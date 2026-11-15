@@ -1,6 +1,6 @@
 /* DAWAH X — লাইব্রেরির লেখা আমদানি (GitHub Actions-এ চলে; দেখুন .github/workflows/import-texts.yml)
    প্রকাশকের অনুমতি সাপেক্ষে উৎস সাইট থেকে লেখা এনে texts/<bucket>.json-এ রাখে। প্রতিটি লেখার সাথে উৎসের ঠিকানা থাকে।
-   নিয়ন্ত্রণ: tools/import-request.json  {"set":"builtin"|"all","hosts":["ai","ra","at"],"limits":{"at":100},"minutes":300}  (আগে আনা লেখা আবার আনা হয় না) */
+   নিয়ন্ত্রণ: tools/import-request.json  {"set":"builtin"|"all","hosts":["ai","ra","at","ia"],"limits":{"at":100},"minutes":300}  (আগে আনা লেখা আবার আনা হয় না) */
 const fs=require('fs'),path=require('path'),cheerio=require('cheerio');
 const ROOT=path.join(__dirname,'..'),OUT=path.join(ROOT,'texts');
 const REQ=JSON.parse(fs.readFileSync(path.join(__dirname,'import-request.json'),'utf8'));
@@ -17,7 +17,10 @@ const SOURCES={
    return{title:$('h1.post-title').first().text(),body:$('.entry-content').first(),date:(head.text().match(/[A-Z][a-z]{2} \d{1,2}, \d{4}/)||[''])[0],author:head.find('a[href*="author_id"]').first().text()}}},
  at:{host:'at-tahreek.com',delay:350,extract($){const body=$('.main_content_area .article-details').first();body.find('.subjects,.fb-comments,#fb-root,.related-articles').remove();
    const crumbs=$('.styled_breadcumb a').toArray().map(a=>$(a).text().replace(/\s+/g,' ').trim()).filter(Boolean);
-   return{title:$('.bread-title h1').first().text(),body,date:crumbs.find(t=>/[০-৯0-9]{4}/.test(t))||'',author:''}}}
+   return{title:$('.bread-title h1').first().text(),body,date:crumbs.find(t=>/[০-৯0-9]{4}/.test(t))||'',author:''}}},
+ ia:{host:'islamicauthors.com',delay:600,extract($){const art=$('article.article-body').first();
+   return{title:art.find('.article-header h1').first().text(),body:art.find('.article-content').first(),date:'',
+    author:(art.find('.author-card').first().text().replace(/\s+/g,' ').trim().match(/^[^0-9০-৯]{2,60}/)||[''])[0]}}}
 };
 const sourceOf=u=>{try{const h=new URL(u).host;return Object.keys(SOURCES).find(k=>SOURCES[k].host===h)||null}catch(e){return null}};
 
