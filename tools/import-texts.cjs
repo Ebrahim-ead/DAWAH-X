@@ -22,6 +22,10 @@ const SOURCES={
    return{title:art.find('.article-header h1').first().text(),body:art.find('.article-content').first(),date:'',
     /* লেখক-কার্ডের লেখা: "<ছবির আদ্যক্ষর> <নাম> <সংখ্যা> আর্টিকেল …" */
     author:(t=>{const m=t.match(/^\S{1,2}\s+(.{2,140}?)\s+[0-9০-৯]+\s*আর্টিকেল/);return m?m[1]:''})(art.find('.author-card').first().text().replace(/\s+/g,' ').trim())}}}
+,
+ /* manual: রানার থেকে আনা যায় না (Cloudflare); লেখা tools/add-texts.cjs দিয়ে tools/manual/ থেকে যোগ হয় */
+ iz:{host:'www.insightzonebd.com',manual:true},
+ fm:{host:'www.frommuslims.com',manual:true}
 };
 const sourceOf=u=>{try{const h=new URL(u).host;return Object.keys(SOURCES).find(k=>SOURCES[k].host===h)||null}catch(e){return null}};
 
@@ -109,7 +113,7 @@ async function get(u){let last;for(let a=0;a<3;a++){try{const ac=new AbortContro
  const want=new Set(REQ.hosts||Object.keys(SOURCES)),seen=new Set(),queue={};
  const rows=REQ.set==='all'?[...builtinRows(),...catalogRows()]:REQ.set==='builtin'?builtinRows():[];
  for(const r of[...builtinRows(),...catalogRows()]){const s=sourceOf(r[2]);if(s)(WANT[s]=WANT[s]||new Set()).add(keyOfUrl(r[2]))}
- for(const r of rows){const s=sourceOf(r[2]);if(!s||!want.has(s))continue;const k=keyOfUrl(r[2]);if(seen.has(k))continue;seen.add(k);
+ for(const r of rows){const s=sourceOf(r[2]);if(!s||!want.has(s)||SOURCES[s].manual)continue;const k=keyOfUrl(r[2]);if(seen.has(k))continue;seen.add(k);
   if(loadBucket(bucketOf(k)).data[k]){report.skipped++;continue}(queue[s]=queue[s]||[]).push({k,s,c:r[0],t:r[1],u:r[2]})}
  const deadline=Date.now()+(REQ.minutes||300)*60000,limit=REQ.limit||Infinity;let lastFlush=Date.now();
  await Promise.all(Object.keys(queue).map(async s=>{const src=SOURCES[s],st=report.bySource[s]={queued:queue[s].length,done:0,failed:0};let streak=0;
