@@ -1,0 +1,17 @@
+{
+  "name": "DAWAH X — Calling to the Truth",
+  "short_name": "DAWAH X",
+  "description": "কুরআন ও সুন্নাহর আলোকে ইসলামের শিক্ষা, প্রশ্নোত্তর, ফতোয়া ও ভিডিও।",
+  "lang": "bn",
+  "dir": "ltr",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#08151a",
+  "theme_color": "#08151a",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

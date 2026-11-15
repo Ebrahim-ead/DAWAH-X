@@ -5,6 +5,7 @@
 const LINKS={
   facebook:"https://www.facebook.com/profile.php?id=61595349861689",
   youtube:"https://www.youtube.com/@ead-s3b",
+  whatsapp:"https://wa.me/8801783543026", /* WhatsApp নম্বর: দেশের কোডসহ, + বা ফাঁকা ছাড়া */
   tiktok:"https://tiktok.com/@YOUR_ID" /* TikTok আইডি দিলে ফুটারে আইকন দেখাবে */
 };
 const MESSENGER="https://m.me/61595349861689"; /* প্রশ্ন এই Messenger ইনবক্সে যায় */
@@ -22,6 +23,56 @@ document.querySelectorAll("[data-link]").forEach(a=>{const u=LINKS[a.dataset.lin
 /* ---- মোবাইল মেনু ---- */
 {const menu=$("menu"),burger=$("burger");
  if(menu&&burger){burger.addEventListener("click",()=>menu.classList.toggle("open"));menu.querySelectorAll("a").forEach(a=>a.addEventListener("click",()=>menu.classList.remove("open")))}}
+
+/* ---- লেখার লিংক কপি (উত্তরের পেজে) ---- */
+document.querySelectorAll("[data-copy-link]").forEach(b=>b.addEventListener("click",async()=>{
+ const url=b.dataset.copyLink||location.href,label=b.querySelector("span")||b,old=label.textContent;let ok=false;
+ try{await navigator.clipboard.writeText(url);ok=true}catch(e){
+  try{const ta=document.createElement("textarea");ta.value=url;ta.setAttribute("readonly","");ta.style.cssText="position:fixed;top:0;left:0;width:1px;height:1px;opacity:0";document.body.appendChild(ta);ta.select();ok=document.execCommand("copy");ta.remove()}catch(e2){}}
+ label.textContent=ok?"কপি হয়েছে ✓":"কপি করা যায়নি";setTimeout(()=>{label.textContent=old},2200)}));
+
+/* ---- read.html: আমদানি করা লেখা দেখানো ---- */
+const READ_TAGS={P:1,BR:1,B:1,I:1,U:1,SUP:1,SUB:1,H2:1,H3:1,H4:1,UL:1,OL:1,LI:1,BLOCKQUOTE:1,TABLE:1,THEAD:1,TBODY:1,TR:1,TD:1,TH:1,A:1,IMG:1};
+/* উৎসের HTML আবার ছেঁকে নেওয়া হয়: শুধু নিরীহ ট্যাগ ও নিরাপদ লিংক থাকে */
+function safeArticle(html){
+ const doc=new DOMParser().parseFromString("<div>"+html+"</div>","text/html"),out=document.createDocumentFragment();
+ const copy=(src,dst)=>{src.childNodes.forEach(n=>{
+  if(n.nodeType===3){dst.appendChild(document.createTextNode(n.nodeValue));return}
+  if(n.nodeType!==1)return;
+  if(!READ_TAGS[n.tagName]){if(!/^(SCRIPT|STYLE|IFRAME|OBJECT|EMBED|FORM)$/.test(n.tagName))copy(n,dst);return}
+  const el=document.createElement(n.tagName);
+  if(n.tagName==="A"){const h=n.getAttribute("href")||"",id=n.getAttribute("id")||"";
+   if(/^x_?(ftn|ftnref|edn|ednref)\d+$/.test(id))el.id=id;
+   if(/^#x_?(ftn|ftnref|edn|ednref)\d+$/.test(h))el.setAttribute("href",h);
+   else if(/^https?:\/\//i.test(h)){el.setAttribute("href",h);el.target="_blank";el.rel="noopener nofollow"}}
+  if(n.tagName==="IMG"){const src=n.getAttribute("src")||"";if(!/^https:\/\//i.test(src))return;el.src=src;el.alt=n.getAttribute("alt")||"";el.loading="lazy";el.decoding="async";el.referrerPolicy="no-referrer"}
+  copy(n,el);dst.appendChild(el)})};
+ copy(doc.body.firstChild,out);
+ /* আরবি অনুচ্ছেদ ডান থেকে বামে */
+ out.querySelectorAll("p,li,blockquote,td").forEach(b=>{const t=b.textContent,ar=(t.match(/[\u0600-\u06ff]/g)||[]).length,bn=(t.match(/[\u0980-\u09ff]/g)||[]).length;if(ar>12&&ar>bn*3){b.lang="ar";b.dir="rtl";b.classList.add("ar")}});
+ return out}
+const readTitle=$("read-title");
+if(readTitle){
+ const P=new URLSearchParams(location.search),key=(P.get("k")||"").toLowerCase(),from=P.get("from")==="f"?"f":"q";
+ const back=$("read-back"),body=$("read-body"),nav=document.querySelector("[data-read-nav]");
+ const backHref=from==="f"?"fatwa.html":"questions.html",backLabel=from==="f"?"ফতোয়া":"প্রশ্নোত্তর";
+ if(back){back.href=backHref;back.textContent=backLabel}
+ if(nav&&from==="f"){nav.classList.remove("on");const f=document.querySelector('#menu a[href="fatwa.html"]');if(f)f.classList.add("on")}
+ const fail=msg=>{readTitle.textContent="লেখাটি পাওয়া যায়নি";body.innerHTML=`<p>${msg}</p><p><a class="askbtn" href="${backHref}">${backLabel} তালিকায় ফিরে যান</a></p>`};
+ if(!/^[0-9a-f]{14}$/.test(key))fail("ঠিকানাটি সঠিক নয়।");
+ else fetch("texts/"+textBucket(key)+".json").then(r=>{if(!r.ok)throw new Error(r.status);return r.json()}).then(all=>{
+  const x=all[key];if(!x){fail("এই লেখাটি এখনো সাইটে যোগ হয়নি।");return}
+  const srcName=TEXT_SOURCES[x.s]||hostOf(x.u);
+  readTitle.textContent=toLatinDigits(x.t);document.title=toLatinDigits(x.t)+" — DAWAH X";
+  const cat=$("read-cat");if(cat&&x.c){cat.textContent=x.c;cat.hidden=false}
+  $("read-meta").innerHTML=[srcName,x.a,x.d].filter(Boolean).map(v=>`<span>${escHTML(v)}</span>`).join('<span aria-hidden="true">·</span>');
+  body.textContent="";body.appendChild(safeArticle(x.h));
+  $("read-credit").innerHTML=`এই লেখাটি <b>${escHTML(srcName)}</b>-এর (${escHTML(hostOf(x.u))})। প্রকাশকের অনুমতিক্রমে এখানে হুবহু তুলে ধরা হয়েছে; লেখার স্বত্ব মূল প্রকাশকের।`;
+  $("read-original").href=x.u;$("read-source").hidden=false;
+  const url=location.href.split("#")[0],share=encodeURIComponent(x.t+"\n"+url);
+  $("read-wa").href="https://wa.me/?text="+share;$("read-fb").href="https://www.facebook.com/sharer/sharer.php?u="+encodeURIComponent(url);$("read-share").hidden=false;
+  if(location.hash){const t=document.getElementById(location.hash.slice(1));if(t)t.scrollIntoView()}
+ }).catch(()=>fail("লেখাটি লোড করা যায়নি। ইন্টারনেট সংযোগ দেখে আবার চেষ্টা করুন।"))}
 
 /* ---- ইমেইল সাবস্ক্রিপশন ---- */
 {const sb=$("sb"),em=$("em"),subm=$("subm");
@@ -47,6 +98,18 @@ const escHTML=v=>escAttr(toLatinDigits(v));
 const normalizeSearchText=v=>toLatinDigits(String(v||"").normalize("NFC").toLowerCase()).trim().replace(/\s+/g," ");
 const hostOf=u=>{try{return new URL(u).hostname.replace(/^www\./,"")}catch(e){return""}};
 const formatCount=n=>new Intl.NumberFormat("en-US").format(n);
+/* ---- সাইটেই পড়ার লেখা (texts/…json; tools/import-texts.cjs দিয়ে আনা) ---- */
+const TEXT_SOURCES={ai:"মাসিক আল-ইতিছাম",at:"মাসিক আত-তাহরীক",ra:"Response to Anti-Islam",fm:"From Muslims"};
+/* tools/import-texts.cjs-এর keyOfUrl()-এর সাথে হুবহু এক হতে হবে */
+function textKey(u){try{u=decodeURI(u)}catch(e){}let h1=0xdeadbeef,h2=0x41c6ce57;for(let i=0;i<u.length;i++){const c=u.charCodeAt(i);h1=Math.imul(h1^c,2654435761);h2=Math.imul(h2^c,1597334677)}
+ h1=Math.imul(h1^(h1>>>16),2246822507)^Math.imul(h2^(h2>>>13),3266489909);h2=Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909);
+ return (4294967296*(2097151&h2)+(h1>>>0)).toString(16).padStart(14,"0")}
+function textBucket(k){return k.slice(-3)}
+/* texts/index.json: {full:{উৎস:host}, missing:[key], keys:[key]} */
+let LOCAL_TEXTS=null;
+const localTextsReady=(location.protocol==="file:"?Promise.resolve(null):fetch("texts/index.json").then(r=>r.ok?r.json():null).catch(()=>null)).then(x=>{
+ if(x&&x.n)LOCAL_TEXTS={hosts:new Set(Object.values(x.full||{})),missing:new Set(x.missing||[]),keys:new Set(x.keys||[])};return LOCAL_TEXTS});
+const localKeyOf=u=>{if(!LOCAL_TEXTS)return"";const k=textKey(u);if(LOCAL_TEXTS.keys.has(k))return k;let h="";try{h=new URL(u).host}catch(e){}return LOCAL_TEXTS.hosts.has(h)&&!LOCAL_TEXTS.missing.has(k)?k:""};
 
 /* cfg: {id:"q"|"f", rows:[[বিভাগ,শিরোনাম,লিংক]], manifest:[{category,src,count}], partsKey, label, hint, loadingText} */
 function setupLibrary(cfg){
@@ -74,7 +137,9 @@ function setupLibrary(cfg){
   const list=rows.filter(x=>inCategory(x,cur)&&terms.every(t=>rowText(x).includes(t)));
   const ready=isReady(cur),loading=isLoading(cur);
   if(list.length){
-   grid.innerHTML=list.slice(0,show).map(x=>`<a class="qcard" href="${escAttr(x[2])}" target="_blank" rel="noopener"><small>${escHTML(x[0])}</small><b>${escHTML(x[1])}</b><span>${escHTML(hostOf(x[2]))} ›</span></a>`).join("");
+   grid.innerHTML=list.slice(0,show).map(x=>{const k=localKeyOf(x[2]);return k
+    ?`<a class="qcard qcard-own" href="read.html?k=${k}&from=${cfg.id}"><small>${escHTML(x[0])}</small><b>${escHTML(x[1])}</b><span>এখানেই পড়ুন ›</span></a>`
+    :`<a class="qcard" href="${escAttr(x[2])}" target="_blank" rel="noopener"><small>${escHTML(x[0])}</small><b>${escHTML(x[1])}</b><span>${escHTML(hostOf(x[2]))} ↗</span></a>`}).join("");
   }else{
    grid.innerHTML=`<p class="qnote">${loading?"লোড হচ্ছে…":failed&&!ready?"সূচি লোড হয়নি। ইন্টারনেট সংযোগ দেখে আবার চেষ্টা করুন।":"কিছু পাওয়া যায়নি।"}</p>`;
   }
@@ -130,6 +195,7 @@ function setupLibrary(cfg){
 
  if(manifest.length)setStatus(`${cfg.label} (${formatCount(total)}টি) — ২ বা তার বেশি অক্ষর লিখে সার্চ বা বিভাগ বাছাই করলে লোড হবে।`);
  draw();
+ localTextsReady.then(x=>{if(x)draw()});
  return {draw,load};
 }
 
@@ -688,46 +754,62 @@ setupLibrary({id:"q",rows:QS,manifest:PAGE==="qa"?QUESTION_PARTS:[],partsKey:"DA
 setupLibrary({id:"f",rows:FT,manifest:PAGE==="fatwa"?FATWA_PARTS:[],partsKey:"DAWAH_FATWAS_PARTS",label:"পূর্ণ ফতোয়া ও প্রবন্ধ সূচি",loadingText:"ফতোয়া ও প্রবন্ধ সূচি লোড হচ্ছে…"});
 
 /* ===== প্রশ্ন পাঠানো =====
+   "WhatsApp-এ পাঠান": প্রশ্নটি লেখা অবস্থায় DAWAH X-এর WhatsApp চ্যাট খোলে (সব হোস্টে কাজ করে)।
+   দ্বিতীয় বোতাম:
    ১) ASK_ACTION দিলে প্রশ্ন সেই ঠিকানায় (যেমন Formspree) সরাসরি জমা হয়।
    ২) সাইট Netlify-তে থাকলে Netlify Forms-এ (`question` ফর্ম) জমা হয়।
-   ৩) অন্যথায় (যেমন GitHub Pages) প্রশ্ন কপি হয়ে DAWAH X-এর Messenger খোলে; ভিজিটর Send চাপলে পৌঁছায়। */
-{const btn=$("askbtn"),aq=$("aq"),msg=$("askm"),how=$("askhow");
+   ৩) অন্যথায় (যেমন GitHub Pages) প্রশ্ন কপি হয়ে DAWAH X-এর Messenger খোলে।
+   WhatsApp/Messenger-এ ভিজিটর Send চাপলে তবেই প্রশ্ন পৌঁছায়। */
+{const btn=$("askbtn"),wa=$("askwa"),aq=$("aq"),msg=$("askm"),how=$("askhow");
  if(btn&&aq&&msg){
   const field=id=>($(id)?.value||"").trim();
   const staticHost=location.protocol==="file:"||/(^|\.)github\.io$/i.test(location.hostname);
   const directPossible=Boolean(ASK_ACTION)||!staticHost;
-  const HOW_MESSENGER="“প্রশ্ন পাঠান” চাপলে আপনার প্রশ্ন কপি হয়ে DAWAH X-এর Messenger খুলবে; সেখানে Send চাপলেই প্রশ্নটি আমাদের কাছে পৌঁছাবে।";
-  if(how&&!directPossible)how.textContent=HOW_MESSENGER;
+  const HOW_CHAT="বোতাম চাপলে আপনার প্রশ্ন লেখা অবস্থায় WhatsApp বা Messenger খুলবে; সেখানে Send চাপলেই প্রশ্নটি আমাদের কাছে পৌঁছাবে।";
+  if(!directPossible){btn.textContent="Messenger-এ পাঠান";if(how)how.textContent=HOW_CHAT}
 
   const copyText=text=>{let ok=false;
    try{const ta=document.createElement("textarea");ta.value=text;ta.setAttribute("readonly","");ta.style.cssText="position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;pointer-events:none";document.body.appendChild(ta);ta.select();ta.setSelectionRange(0,text.length);ok=document.execCommand("copy");ta.remove()}catch(e){}
    try{navigator.clipboard?.writeText(text).catch(()=>{})}catch(e){}
    return ok};
-  const messengerUrl=text=>MESSENGER+"?text="+encodeURIComponent(text.length>1200?text.slice(0,1200)+"…":text);
+  /* লিংকে খুব লম্বা লেখা দেওয়া যায় না; পুরো প্রশ্ন clipboard-এ থাকে, তাই প্রয়োজনে Paste করা যায় */
+  const clip=text=>text.length>700?text.slice(0,700)+"…":text;
+  const CHAT={
+   whatsapp:{name:"WhatsApp",cls:"ask-whatsapp",url:text=>LINKS.whatsapp+"?text="+encodeURIComponent(clip(text))},
+   messenger:{name:"Messenger",cls:"ask-messenger",url:text=>MESSENGER+"?text="+encodeURIComponent(clip(text))}
+  };
 
-  const viaMessenger=(text,{open=true,lead=""}={})=>{
-   const copied=copyText(text),url=messengerUrl(text);
-   const link=Object.assign(document.createElement("a"),{href:url,target:"_blank",rel:"noopener noreferrer",className:"ask-messenger",textContent:"Messenger খুলুন ↗"});
+  const viaChat=(kind,text,{open=true,lead=""}={})=>{
+   const app=CHAT[kind],copied=copyText(text),url=app.url(text);
+   const link=Object.assign(document.createElement("a"),{href:url,target:"_blank",rel:"noopener noreferrer",className:app.cls,textContent:app.name+" খুলুন ↗"});
    const again=Object.assign(document.createElement("button"),{type:"button",className:"ask-copy",textContent:"প্রশ্ন আবার কপি করুন"});
    again.addEventListener("click",()=>{copyText(text);again.textContent="কপি হয়েছে ✓"});
    const p=document.createElement("span");
-   p.textContent=lead+(copied?"আপনার প্রশ্ন কপি করা হয়েছে। ":"")+"Messenger-এ বার্তাটি আগে থেকে লেখা না থাকলে Paste করুন, তারপর Send চাপুন।";
+   p.textContent=lead+(copied?"আপনার প্রশ্ন কপি করা হয়েছে। ":"")+app.name+"-এ বার্তাটি আগে থেকে লেখা না থাকলে বা অসম্পূর্ণ থাকলে Paste করুন, তারপর Send চাপুন।";
    const actions=Object.assign(document.createElement("span"),{className:"ask-actions"});actions.append(link,again);
    msg.replaceChildren(p,actions);
    if(open){try{window.open(url,"_blank","noopener")}catch(e){}}
   };
 
-  btn.addEventListener("click",async()=>{
+  /* ফর্ম যাচাই করে বার্তা তৈরি করে; সমস্যা থাকলে null */
+  const compose=()=>{
    const q=aq.value.trim();
-   if(q.length<5){msg.textContent="অনুগ্রহ করে আপনার প্রশ্ন লিখুন।";aq.focus();return}
-   if(field("abot")){msg.textContent="ধন্যবাদ!";return} /* honeypot: বট হলে কিছু পাঠানো হয় না */
+   if(q.length<5){msg.textContent="অনুগ্রহ করে আপনার প্রশ্ন লিখুন।";aq.focus();return null}
+   if(field("abot")){msg.textContent="ধন্যবাদ!";return null} /* honeypot: বট হলে কিছু পাঠানো হয় না */
    const data={name:field("an"),contact:field("ac"),topic:field("at"),question:q};
    const lines=["আসসালামু আলাইকুম। DAWAH X ওয়েবসাইট থেকে একটি প্রশ্ন:","বিষয়: "+data.topic];
    if(data.name)lines.push("নাম: "+data.name);
    if(data.contact)lines.push("যোগাযোগ: "+data.contact);
    lines.push("","প্রশ্ন: "+q);
-   const text=lines.join("\n");
-   if(!directPossible){viaMessenger(text);return}
+   return {data,text:lines.join("\n")};
+  };
+
+  if(wa)wa.addEventListener("click",()=>{const m=compose();if(m)viaChat("whatsapp",m.text)});
+
+  btn.addEventListener("click",async()=>{
+   const m=compose();if(!m)return;
+   const {data,text}=m;
+   if(!directPossible){viaChat("messenger",text);return}
    btn.disabled=true;msg.textContent="পাঠানো হচ্ছে...";
    try{
     let ok=false;
@@ -738,8 +820,8 @@ setupLibrary({id:"f",rows:FT,manifest:PAGE==="fatwa"?FATWA_PARTS:[],partsKey:"DA
     if(!ok)throw new Error("not delivered");
     msg.textContent="ধন্যবাদ! আপনার প্রশ্ন আমাদের কাছে পৌঁছেছে। ইন শা আল্লাহ শীঘ্রই উত্তর দেওয়া হবে।";aq.value="";
    }catch(e){
-    if(how)how.textContent=HOW_MESSENGER;
-    viaMessenger(text,{open:false,lead:"সরাসরি জমা দেওয়া যায়নি, তাই Messenger-এ পাঠান। "});
+    if(how)how.textContent=HOW_CHAT;
+    viaChat("messenger",text,{open:false,lead:"সরাসরি জমা দেওয়া যায়নি, তাই Messenger বা WhatsApp-এ পাঠান। "});
    }
    btn.disabled=false;
   });

@@ -72,7 +72,7 @@
     const channel=document.createElement('span');
     channel.className='video-channel-label';
     channel.textContent=video.channelTitle||'YouTube';
-    const heading=document.createElement('h3');
+    const heading=document.createElement('h2');
     heading.textContent=video.title;
     const note=document.createElement('span');
     note.className='video-inline-note';
