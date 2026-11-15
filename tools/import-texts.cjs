@@ -186,11 +186,19 @@ async function get(u,ms=30000){let last;for(let a=0;a<3;a++){try{const ac=new Ab
   if(!w.info.err&&hit.length)fs.writeFileSync(cf,JSON.stringify(Object.fromEntries(hit.map(u=>{const k=wbNorm(u),v=w.map.get(k);return[k,[v.ts,v.orig]]}))))}
  const deadline=Date.now()+(REQ.minutes||300)*60000,limit=REQ.limit||Infinity;let lastFlush=Date.now();
  migrate();
+ /* প্রতি ২ মিনিটে ফাইলে লেখা; প্রতি REQ.push (ডিফল্ট ৩০) মিনিটে শাখায় জমা, যাতে লম্বা রানের মাঝপথের ফল হারিয়ে না যায় */
+ let lastPush=Date.now();
+ const tick=()=>{if(Date.now()-lastFlush>120000){lastFlush=Date.now();flush()}
+  if(Date.now()-lastPush>(REQ.push||30)*60000){lastPush=Date.now();if(!process.env.GITHUB_ACTIONS||!process.env.GITHUB_REF_NAME)return;
+   try{report.total=flush();report.partial=new Date().toISOString();fs.writeFileSync(path.join(OUT,'_report.json'),JSON.stringify(report,null,1));
+    require('child_process').execSync('git add texts && (git diff --cached --quiet || (git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -q -m "Import library texts (automated, partial)" && git pull -q --rebase origin "$GITHUB_REF_NAME" && git push -q origin "HEAD:$GITHUB_REF_NAME"))',{cwd:ROOT,stdio:'ignore',timeout:300000})}
+   catch(e){report.checkpointErr=String(e).slice(0,160)}}};
  await Promise.all(Object.keys(queue).map(async s=>{const src=SOURCES[s],st=report.bySource[s]={queued:queue[s].length,done:0,failed:0};let streak=0;
   let list=queue[s].slice(0,(REQ.limits&&REQ.limits[s])||limit);
   /* wayback উৎসে আর্কাইভ ব্যস্ত (429/সংযোগ নেই) থাকলে লেখাটি পরের পাকে আবার চেষ্টা হয়; গতি সবসময় ধীর (delay) */
   for(let pass=0;list.length&&pass<500;pass++){const again=[];let stop=false;st.passes=pass+1;
    for(let n=0;n<list.length;n++){const it=list[n];if(Date.now()>deadline||streak>=25){again.push(...list.slice(n));stop=true;break}
+    tick();
     let r,fail='';
     if(src.wayback){const w=!/\?/.test(it.u)&&WB[s].get(wbNorm(it.u));
      if(!w){st.failed++;st.unarchived=(st.unarchived||0)+1;if(report.failed.length<400)report.failed.push([it.u,'not archived']);continue}
@@ -204,11 +212,10 @@ async function get(u,ms=30000){let last;for(let a=0;a<3;a++){try{const ac=new Ab
       if(!title||textLen(html)<40)fail='no content';
       else{const b=loadBucket(bucketOf(it.k));b.data[it.k]={u:it.u,s,c:it.c,t:title,l:it.t,d:(x.date||'').trim(),a:(x.author||'').replace(/\s+/g,' ').trim(),h:html};if(r.w)b.data[it.k].w=r.w;b.dirty=true;st.done++;report.done++;streak=0}}catch(e){fail='parse: '+String(e).slice(0,80)}}
     if(fail){st.failed++;if(!src.wayback)streak++;if(report.failed.length<400)report.failed.push([it.u,fail])}
-    if(Date.now()-lastFlush>120000){lastFlush=Date.now();flush()}
     await sleep(src.delay)}
    list=again;if(stop||!src.wayback)break}
   if(src.wayback)st.left=list.length;
   if(streak>=25)st.stopped='25 failures in a row'}));
- report.total=flush();fs.writeFileSync(path.join(OUT,'_report.json'),JSON.stringify(report,null,1));
+ delete report.partial;report.total=flush();fs.writeFileSync(path.join(OUT,'_report.json'),JSON.stringify(report,null,1));
  if(fs.existsSync(path.join(OUT,'_probe.json')))fs.unlinkSync(path.join(OUT,'_probe.json'));
  console.log(JSON.stringify({done:report.done,failed:report.failed.length,total:report.total,bySource:report.bySource}))})();
