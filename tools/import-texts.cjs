@@ -25,7 +25,12 @@ const SOURCES={
 ,
  /* manual: রানার থেকে আনা যায় না (Cloudflare); লেখা tools/add-texts.cjs দিয়ে tools/manual/ থেকে যোগ হয় */
  iz:{host:'www.insightzonebd.com',manual:true},
- fm:{host:'www.frommuslims.com',manual:true}
+ /* wayback: সাইটটি রানারকে ঢুকতে দেয় না, তাই Internet Archive-এ সংরক্ষিত সর্বশেষ কপি থেকে পড়া হয় */
+ fm:{host:'www.frommuslims.com',delay:1500,wayback:'frommuslims.com',extract($){
+   const body=$('.entry-content,.post-content,.single-content').first();
+   return{title:$('h1.entry-title,h1.post-title,article h1,h1').first().text(),body,
+    date:($('meta[property="article:published_time"]').attr('content')||$('time[datetime]').first().attr('datetime')||'').slice(0,10),
+    author:$('meta[name="author"]').attr('content')||$('a[rel="author"]').first().text()}}}
 };
 const sourceOf=u=>{try{const h=new URL(u).host;return Object.keys(SOURCES).find(k=>SOURCES[k].host===h)||null}catch(e){return null}};
 
@@ -85,7 +90,24 @@ const flush=()=>{for(const[b,o]of buckets)if(o.dirty){fs.writeFileSync(bucketFil
   if(w.size&&h.size&&miss.length<=w.size*0.05){idx.full[s]=SOURCES[s].host;idx.missing.push(...miss)}else idx.keys.push(...h)}
  idx.missing.sort();idx.keys.sort();fs.writeFileSync(path.join(OUT,'index.json'),JSON.stringify(idx));return n};
 
-async function get(u){let last;for(let a=0;a<3;a++){try{const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),30000);
+/* ---- Internet Archive (Wayback Machine) ---- */
+const wbNorm=u=>{try{let p=new URL(u).pathname;try{p=decodeURIComponent(p)}catch(e){}return p.replace(/\/+$/,'')}catch(e){return''}};
+/* প্রতিটি পেজের সর্বশেষ সফল (200) কপি: path → {ts,orig} */
+async function waybackMap(domain){const map=new Map(),info={rows:0,pages:0};let resume='';
+ for(let i=0;i<60;i++){const r=await get('https://web.archive.org/cdx/search/cdx?url='+domain+'&matchType=domain&output=json&fl=timestamp,original&filter=statuscode:200&filter=mimetype:text/html&limit=15000&showResumeKey=true'+(resume?'&resumeKey='+encodeURIComponent(resume):''),180000);
+  if(r.status!==200){info.err=r.err||('HTTP '+r.status);break}
+  let j;try{j=JSON.parse(r.html)}catch(e){info.err='bad CDX json: '+r.html.slice(0,80);break}
+  info.pages++;resume='';
+  for(let k=0;k<j.length;k++){const row=j[k];if(!row.length){resume=(j[k+1]||[])[0]||'';break}
+   if(row[0]==='timestamp')continue;info.rows++;
+   let U;try{U=new URL(row[1])}catch(e){continue}
+   if(/\/(amp|feed)\/?$/.test(U.pathname))continue;
+   const key=wbNorm(row[1]),q=U.search?1:0,old=map.get(key);
+   if(!old||q<old.q||(q===old.q&&row[0]>old.ts))map.set(key,{ts:row[0],orig:row[1],q})}
+  if(!resume)break;await sleep(1500)}
+ info.urls=map.size;return{map,info}}
+
+async function get(u,ms=30000){let last;for(let a=0;a<3;a++){try{const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),ms);
    const res=await fetch(u,{headers:{'user-agent':UA,'accept-language':'bn,en;q=0.8'},redirect:'follow',signal:ac.signal});const html=await res.text();clearTimeout(tm);
    if(res.status>=500||res.status===429){last='HTTP '+res.status;await sleep(4000*(a+1));continue}return{status:res.status,html,final:res.url}}catch(e){last=String(e).slice(0,80);await sleep(3000*(a+1))}}
  return{status:0,html:'',err:last}}
@@ -115,14 +137,25 @@ async function get(u){let last;for(let a=0;a<3;a++){try{const ac=new AbortContro
  for(const r of[...builtinRows(),...catalogRows()]){const s=sourceOf(r[2]);if(s)(WANT[s]=WANT[s]||new Set()).add(keyOfUrl(r[2]))}
  for(const r of rows){const s=sourceOf(r[2]);if(!s||!want.has(s)||SOURCES[s].manual)continue;const k=keyOfUrl(r[2]);if(seen.has(k))continue;seen.add(k);
   if(loadBucket(bucketOf(k)).data[k]){report.skipped++;continue}(queue[s]=queue[s]||[]).push({k,s,c:r[0],t:r[1],u:r[2]})}
+ const WB={};
+ for(const s of Object.keys(SOURCES))if(SOURCES[s].wayback&&(queue[s]||REQ.wayback)){const w=await waybackMap(SOURCES[s].wayback);WB[s]=w.map;
+  const all=[...new Set([...builtinRows(),...catalogRows()].map(r=>r[2]).filter(u=>sourceOf(u)===s))],hit=all.filter(u=>!/\?/.test(u)&&w.map.has(wbNorm(u)));
+  w.info.catalog=all.length;w.info.matched=hit.length;w.info.newest=hit.map(u=>w.map.get(wbNorm(u)).ts.slice(0,4)).reduce((o,y)=>(o[y]=(o[y]||0)+1,o),{});
+  w.info.unmatched=all.filter(u=>!hit.includes(u)).slice(0,8).map(u=>{try{return decodeURI(u)}catch(e){return u}});(report.wayback=report.wayback||{})[s]=w.info}
  const deadline=Date.now()+(REQ.minutes||300)*60000,limit=REQ.limit||Infinity;let lastFlush=Date.now();
  await Promise.all(Object.keys(queue).map(async s=>{const src=SOURCES[s],st=report.bySource[s]={queued:queue[s].length,done:0,failed:0};let streak=0;
   for(const it of queue[s].slice(0,(REQ.limits&&REQ.limits[s])||limit)){if(Date.now()>deadline||streak>=25)break;
-   const r=await get(it.u);let fail='';
+   let r,fail='';
+   if(src.wayback){const w=!/\?/.test(it.u)&&WB[s].get(wbNorm(it.u));
+    if(!w){st.failed++;st.unarchived=(st.unarchived||0)+1;if(report.failed.length<400)report.failed.push([it.u,'not archived']);continue}
+    r=await get('https://web.archive.org/web/'+w.ts+'id_/'+w.orig,60000);
+    if(r.status===200&&/<title>\s*(Just a moment|Attention Required)/i.test(r.html.slice(0,3000)))r={status:0,html:'',err:'challenge page in archive'};
+    else if(r.status===200){r.final=it.u;r.w=w.ts}}
+   else r=await get(it.u);
    if(r.status!==200)fail=r.err||('HTTP '+r.status);
    else{try{const $=cheerio.load(r.html);const x=src.extract($);const html=x.body&&x.body.length?clean($,x.body,r.final||it.u):'';const title=(x.title||'').replace(/\s+/g,' ').trim();
      if(!title||textLen(html)<40)fail='no content';
-     else{const b=loadBucket(bucketOf(it.k));b.data[it.k]={u:it.u,s,c:it.c,t:title,l:it.t,d:(x.date||'').trim(),a:(x.author||'').replace(/\s+/g,' ').trim(),h:html};b.dirty=true;st.done++;report.done++;streak=0}}catch(e){fail='parse: '+String(e).slice(0,80)}}
+     else{const b=loadBucket(bucketOf(it.k));b.data[it.k]={u:it.u,s,c:it.c,t:title,l:it.t,d:(x.date||'').trim(),a:(x.author||'').replace(/\s+/g,' ').trim(),h:html};if(r.w)b.data[it.k].w=r.w;b.dirty=true;st.done++;report.done++;streak=0}}catch(e){fail='parse: '+String(e).slice(0,80)}}
    if(fail){st.failed++;streak++;if(report.failed.length<400)report.failed.push([it.u,fail])}
    if(Date.now()-lastFlush>120000){lastFlush=Date.now();flush()}
    await sleep(src.delay)}
