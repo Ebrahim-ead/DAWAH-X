@@ -1,14 +1,466 @@
 {
- "at": "2026-11-15T15:37:45.846Z",
+ "at": "2026-11-15T15:49:40.038Z",
  "request": {
   "set": "none",
   "hosts": [],
-  "minutes": 5,
-  "run": 8
+  "wayback": true,
+  "probe": [
+   "https://web.archive.org/web/20300101000000id_/https://www.frommuslims.com/%e0%a6%87%e0%a6%b8%e0%a6%b2%e0%a6%be%e0%a6%ae-%e0%a6%95%e0%a6%bf-%e0%a6%b8%e0%a6%95%e0%a6%b2-%e0%a6%85%e0%a6%ae%e0%a7%81%e0%a6%b8%e0%a6%b2%e0%a6%bf%e0%a6%ae%e0%a6%95%e0%a7%87-%e0%a6%b9%e0%a6%a4/",
+   "https://web.archive.org/web/20300101000000id_/https://www.frommuslims.com/%e0%a6%ae%e0%a7%81%e0%a6%b8%e0%a6%b2%e0%a6%bf%e0%a6%ae%e0%a6%b0%e0%a6%be-%e0%a6%96%e0%a7%81%e0%a6%ac%e0%a6%87-%e0%a6%96%e0%a6%be%e0%a6%b0%e0%a6%be%e0%a6%aa/",
+   "https://web.archive.org/web/20300101000000id_/https://www.frommuslims.com/qna/%e0%a6%95%e0%a7%8b%e0%a6%b0%e0%a6%86%e0%a6%a8%e0%a7%87-%e0%a6%a6%e0%a6%bf%e0%a6%b0%e0%a6%b9%e0%a6%be%e0%a6%ae-%e0%a6%b6%e0%a6%ac%e0%a7%8d%e0%a6%a6-%e0%a6%a8%e0%a6%bf%e0%a6%af%e0%a6%bc%e0%a7%87/",
+   "https://web.archive.org/web/20300101000000id_/https://www.frommuslims.com/qna/%e0%a6%ae%e0%a7%83%e0%a6%a4%e0%a6%a6%e0%a7%87%e0%a6%b9%e0%a7%87%e0%a6%b0-%e0%a6%b8%e0%a6%be%e0%a6%a5%e0%a7%87-%e0%a6%af%e0%a7%8c%e0%a6%a8%e0%a6%a4%e0%a6%be-%e0%a6%b8%e0%a6%ae%e0%a7%8d%e0%a6%aa/"
+  ],
+  "minutes": 10,
+  "run": 9
  },
  "done": 0,
  "skipped": 0,
  "failed": [],
  "bySource": {},
- "total": 19380
+ "probe": [
+  {
+   "u": "https://web.archive.org/web/20300101000000id_/https://www.frommuslims.com/%e0%a6%87%e0%a6%b8%e0%a6%b2%e0%a6%be%e0%a6%ae-%e0%a6%95%e0%a6%bf-%e0%a6%b8%e0%a6%95%e0%a6%b2-%e0%a6%85%e0%a6%ae%e0%a7%81%e0%a6%b8%e0%a6%b2%e0%a6%bf%e0%a6%ae%e0%a6%95%e0%a7%87-%e0%a6%b9%e0%a6%a4/",
+   "status": 0,
+   "len": 0,
+   "title": "",
+   "h1": [],
+   "best": "body",
+   "tree": [],
+   "time": [],
+   "meta": [
+    "og:title=",
+    "article:published_time=",
+    "author=",
+    "og:site_name="
+   ]
+  },
+  {
+   "u": "https://web.archive.org/web/20300101000000id_/https://www.frommuslims.com/%e0%a6%ae%e0%a7%81%e0%a6%b8%e0%a6%b2%e0%a6%bf%e0%a6%ae%e0%a6%b0%e0%a6%be-%e0%a6%96%e0%a7%81%e0%a6%ac%e0%a6%87-%e0%a6%96%e0%a6%be%e0%a6%b0%e0%a6%be%e0%a6%aa/",
+   "status": 200,
+   "final": "https://web.archive.org/web/20250623031416id_/https://www.frommuslims.com/%E0%A6%AE%E0%A7%81%E0%A6%B8%E0%A6%B2%E0%A6%BF%E0%A6%AE%E0%A6%B0%E0%A6%BE-%E0%A6%96%E0%A7%81%E0%A6%AC%E0%A6%87-%E0%A6%96%E0%A6%BE%E0%A6%B0%E0%A6%BE%E0%A6%AA/",
+   "len": 328876,
+   "title": "মুসলিমরা খুবই খারাপ... | FromMuslims",
+   "h1": [
+    {
+     "t": "মুসলিমরা খুবই খারাপ…",
+     "path": [
+      "div.entry-header",
+      "header.entry-header-outer",
+      "article#the-post.container-wrapper.post-content.tie-standard",
+      "div.main-content.tie-col-md-8.tie-col-xs-12",
+      "div#main-content-row.tie-row.main-content-row",
+      "div#content.site-content.container"
+     ]
+    }
+   ],
+   "best": "article#the-post.container-wrapper.post-content.tie-standard",
+   "tree": [
+    {
+     "s": "header.entry-header-outer",
+     "n": 152,
+     "t": "Home»স্যাটায়ার»মুসলিমরা খুবই খারাপ… স্যা"
+    },
+    {
+     "s": "div.entry-content.entry.clearfix",
+     "n": 7536,
+     "t": "Join @FromMuslims on Telegram মুসলিমরা খ",
+     "c": [
+      {
+       "s": "div.wp-block-wptelegram-widget-join-channel.aligncenter",
+       "n": 29,
+       "t": "Join @FromMuslims on Telegram"
+      },
+      {
+       "s": "p",
+       "n": 26,
+       "t": "মুসলিমরা খুবই খারাপ। কারণ,"
+      },
+      {
+       "s": "p",
+       "n": 145,
+       "t": "১. মুসলিমরা বিভিন্ন দেশে গণতন্ত্র প্রতিষ"
+      },
+      {
+       "s": "p",
+       "n": 137,
+       "t": "২. মুসলিমরা অন্য দেশে আফিম চাষ করে বিশ্ব"
+      },
+      {
+       "s": "p",
+       "n": 159,
+       "t": "৩. মুসলিমরা সুযোগ পেলেই বাইবেল, গীতা, ত্"
+      },
+      {
+       "s": "p",
+       "n": 261,
+       "t": "৪. মুসলিমরা নিজেদের দেশের প্রদেশে প্রায় ",
+       "c": [
+        {
+         "s": "span.x193iq5w.xeuugli.x13faqbe.x1vvkbs",
+         "n": 261,
+         "t": "৪. মুসলিমরা নিজেদের দেশের প্রদেশে প্রায় ",
+         "c": [
+          {
+           "s": "span.footnote_referrer.relative",
+           "n": 64,
+           "t": "[3]https://www.wafilife.com/shop/books/k"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "s": "p",
+       "n": 115,
+       "t": "৫. মুসলিমরা অন্য ধর্মালম্বীদের অপমান করা"
+      },
+      {
+       "s": "p",
+       "n": 413,
+       "t": "৬. মুসলিমরা বিশ্বের এক নাম্বার অস্ত্র বি",
+       "c": [
+        {
+         "s": "span.x193iq5w.xeuugli.x13faqbe.x1vvkbs",
+         "n": 413,
+         "t": "৬. মুসলিমরা বিশ্বের এক নাম্বার অস্ত্র বি",
+         "c": [
+          {
+           "s": "span.footnote_referrer.relative",
+           "n": 222,
+           "t": "[4]Statista Research Department (2022), ",
+           "c": [
+            {
+             "s": "a.footnote_hard_link",
+             "n": 3,
+             "t": "[4]"
+            },
+            {
+             "s": "span.footnote_referrer_base",
+             "n": 0,
+             "t": ""
+            },
+            {
+             "s": "span#footnote_plugin_tooltip_text_68486_1_4.footnote_tooltip.position",
+             "n": 219,
+             "t": "Statista Research Department (2022), Mar"
+            }
+           ]
+          },
+          {
+           "s": "span.footnote_referrer.relative",
+           "n": 77,
+           "t": "[5]https://en.wikipedia.org/wiki/Arms_in"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "s": "p",
+       "n": 257,
+       "t": "৭. মুসলিমরা নিজেদের দেশে ১৮ বছরের নীচে ক",
+       "c": [
+        {
+         "s": "span.x193iq5w.xeuugli.x13faqbe.x1vvkbs",
+         "n": 257,
+         "t": "৭. মুসলিমরা নিজেদের দেশে ১৮ বছরের নীচে ক",
+         "c": [
+          {
+           "s": "span.footnote_referrer.relative",
+           "n": 152,
+           "t": "[6]‘Law against Islam’: French vote in f"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "s": "p",
+       "n": 338,
+       "t": "৮. মুসলিমরা ১৯৪৫ সালে নিউক্লিয়ার বোম মে",
+       "c": [
+        {
+         "s": "span.x193iq5w.xeuugli.x13faqbe.x1vvkbs",
+         "n": 338,
+         "t": "৮. মুসলিমরা ১৯৪৫ সালে নিউক্লিয়ার বোম মে",
+         "c": [
+          {
+           "s": "span.footnote_referrer.relative",
+           "n": 132,
+           "t": "[7]The Atomic Bombings of Hiroshima and "
+          },
+          {
+           "s": "span.footnote_referrer.relative",
+           "n": 66,
+           "t": "[8]সহিহুল বুখারি ৩০১৫, সুনানে আবু দাঊদ ২"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "s": "p",
+       "n": 179,
+       "t": "৯. মুসলিমরা উদ্বাস্তুর মতো এক দেশে আশ্রয়"
+      },
+      {
+       "s": "div",
+       "n": 40,
+       "t": "আরো পড়ুন... কুযুক্তি - লজিক্যাল ফ্যালাসি"
+      },
+      {
+       "s": "p",
+       "n": 159,
+       "t": "১০. মুসলিমরা জাতিগত নিধনের মাধ্যমে প্রায়"
+      },
+      {
+       "s": "p",
+       "n": 563,
+       "t": "১১. মুসলিমরা শুকর খাওয়ার অভিযোগে, এমনকি ",
+       "c": [
+        {
+         "s": "span.x193iq5w.xeuugli.x13faqbe.x1vvkbs",
+         "n": 563,
+         "t": "১১. মুসলিমরা শুকর খাওয়ার অভিযোগে, এমনকি ",
+         "c": [
+          {
+           "s": "span.footnote_referrer.relative",
+           "n": 227,
+           "t": "[11]Gopal B Kateshiya (2016), Gujarat: 7",
+           "c": [
+            {
+             "s": "a.footnote_hard_link",
+             "n": 4,
+             "t": "[11]"
+            },
+            {
+             "s": "span.footnote_referrer_base",
+             "n": 0,
+             "t": ""
+            },
+            {
+             "s": "span#footnote_plugin_tooltip_text_68486_1_11.footnote_tooltip.position",
+             "n": 223,
+             "t": "Gopal B Kateshiya (2016), Gujarat: 7 of "
+            }
+           ]
+          },
+          {
+           "s": "span.footnote_referrer.relative",
+           "n": 121,
+           "t": "[12]https://www.channel24bd.tv/internati"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "s": "p",
+       "n": 209,
+       "t": "১২. মুসলিমরা গরিব খ্রিস্টান দেশে যায়। তা",
+       "c": [
+        {
+         "s": "span.x193iq5w.xeuugli.x13faqbe.x1vvkbs",
+         "n": 209,
+         "t": "১২. মুসলিমরা গরিব খ্রিস্টান দেশে যায়। তা",
+         "c": [
+          {
+           "s": "span.footnote_referrer.relative",
+           "n": 65,
+           "t": "[13]https://www.hadithbd.com/books/detai"
+          },
+          {
+           "s": "br",
+           "n": 0,
+           "t": ""
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "s": "p",
+       "n": 738,
+       "t": "১৩. মুসলিমরাইতো ভারত বর্ষে ২০০ বছর শাসন ",
+       "c": [
+        {
+         "s": "span.footnote_referrer.relative",
+         "n": 54,
+         "t": "[14]Prosperous’ British India, Sir Willi"
+        },
+        {
+         "s": "span.footnote_referrer.relative",
+         "n": 91,
+         "t": "[15]https://www.aljazeera.com/opinions/2"
+        },
+        {
+         "s": "span.footnote_referrer.relative",
+         "n": 55,
+         "t": "[16]‘Prosperous’ British India, Sir Will"
+        },
+        {
+         "s": "span.footnote_referrer.relative",
+         "n": 37,
+         "t": "[17]অবাধ্যতা ইতিহাস বই, পৃষ্ঠা -৭৬-৭৯"
+        }
+       ]
+      },
+      {
+       "s": "p",
+       "n": 87,
+       "t": "১৪. মুসলিমরাই ১ম বিশ্বযুদ্ধ, ২য় বিশ্বযুদ"
+      },
+      {
+       "s": "p",
+       "n": 940,
+       "t": "১৫. ১৯৩৭ সালের ডিসেম্বরের দিনগুলোতে মুসল",
+       "c": [
+        {
+         "s": "span.footnote_referrer.relative",
+         "n": 388,
+         "t": "[18]Wakabayashi, Bob Tadashi (2008). “Le",
+         "c": [
+          {
+           "s": "a.footnote_hard_link",
+           "n": 4,
+           "t": "[18]"
+          },
+          {
+           "s": "span.footnote_referrer_base",
+           "n": 0,
+           "t": ""
+          },
+          {
+           "s": "span#footnote_plugin_tooltip_text_68486_1_18.footnote_tooltip.position",
+           "n": 384,
+           "t": "Wakabayashi, Bob Tadashi (2008). “Leftov",
+           "c": [
+            {
+             "s": "a.footnote_tooltip_continue",
+             "n": 13,
+             "t": "See Full Note"
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "s": "div",
+       "n": 29,
+       "t": "আরো পড়ুন... শয়তানের কনফারেন্স"
+      },
+      {
+       "s": "p",
+       "n": 254,
+       "t": "১৬. ১৬১৮-১৬৪৮ সাল পর্যন্ত ইউরোপে মুসলিমদ",
+       "c": [
+        {
+         "s": "em",
+         "n": 18,
+         "t": "থার্টি ইয়ার্স ওয়ার"
+        },
+        {
+         "s": "span.footnote_referrer.relative",
+         "n": 4,
+         "t": "[19]"
+        }
+       ]
+      },
+      {
+       "s": "hr",
+       "n": 0,
+       "t": ""
+      },
+      {
+       "s": "p",
+       "n": 103,
+       "t": "ইনশাআল্লাহ এই লিস্ট আরো বড় হতে থাকবে। পা"
+      }
+     ]
+    },
+    {
+     "s": "div#post-extra-info",
+     "n": 80,
+     "t": "Farhan HabibSeptember 10, 2023Last Updat"
+    },
+    {
+     "s": "div.clearfix",
+     "n": 0,
+     "t": ""
+    },
+    {
+     "s": "div#share-buttons-bottom.share-buttons.share-buttons-bottom",
+     "n": 76,
+     "t": "Share Facebook X Messenger Messenger Wha"
+    }
+   ],
+   "time": [],
+   "meta": [
+    "og:title=মুসলিমরা খুবই খারাপ... | FromMuslims",
+    "article:published_time=2023-09-10T18:03:12+06:00",
+    "author=",
+    "og:site_name=FromMuslims"
+   ]
+  },
+  {
+   "u": "https://web.archive.org/web/20300101000000id_/https://www.frommuslims.com/qna/%e0%a6%95%e0%a7%8b%e0%a6%b0%e0%a6%86%e0%a6%a8%e0%a7%87-%e0%a6%a6%e0%a6%bf%e0%a6%b0%e0%a6%b9%e0%a6%be%e0%a6%ae-%e0%a6%b6%e0%a6%ac%e0%a7%8d%e0%a6%a6-%e0%a6%a8%e0%a6%bf%e0%a6%af%e0%a6%bc%e0%a7%87/",
+   "status": 0,
+   "len": 0,
+   "title": "",
+   "h1": [],
+   "best": "body",
+   "tree": [],
+   "time": [],
+   "meta": [
+    "og:title=",
+    "article:published_time=",
+    "author=",
+    "og:site_name="
+   ]
+  },
+  {
+   "u": "https://web.archive.org/web/20300101000000id_/https://www.frommuslims.com/qna/%e0%a6%ae%e0%a7%83%e0%a6%a4%e0%a6%a6%e0%a7%87%e0%a6%b9%e0%a7%87%e0%a6%b0-%e0%a6%b8%e0%a6%be%e0%a6%a5%e0%a7%87-%e0%a6%af%e0%a7%8c%e0%a6%a8%e0%a6%a4%e0%a6%be-%e0%a6%b8%e0%a6%ae%e0%a7%8d%e0%a6%aa/",
+   "status": 0,
+   "len": 0,
+   "title": "",
+   "h1": [],
+   "best": "body",
+   "tree": [],
+   "time": [],
+   "meta": [
+    "og:title=",
+    "article:published_time=",
+    "author=",
+    "og:site_name="
+   ]
+  }
+ ],
+ "wayback": {
+  "fm": {
+   "rows": 10595,
+   "pages": 1,
+   "urls": 2434,
+   "catalog": 593,
+   "matched": 486,
+   "newest": {
+    "2023": 1,
+    "2024": 141,
+    "2025": 320,
+    "2026": 24
+   },
+   "unmatched": [
+    "https://www.frommuslims.com/প্রাণের-উৎপত্তি/",
+    "https://www.frommuslims.com/আল্লাহর-সিফাত-আকল-না-ওহী/",
+    "https://www.frommuslims.com/রাসুলের-নবুয়তের-সত্যাতা/",
+    "https://www.frommuslims.com/বীর্য-কি-মেরুদণ্ড-ও-বক্ষপ/",
+    "https://www.frommuslims.com/যুলকারনাইন-ইতিহাস-ও-ওহীর/",
+    "https://www.frommuslims.com/হিজাব-নারী-স্বাধীনতা-ও-যৌ/",
+    "https://www.frommuslims.com/আয়িশা-রা-কি-বোধসম্পন্ন-ন/",
+    "https://www.frommuslims.com/রাসূল-ﷺ-কি-সাওদা-রা-কে/"
+   ]
+  }
+ },
+ "total": 19387
 }
