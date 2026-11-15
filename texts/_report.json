@@ -1,5 +1,5 @@
 {
- "at": "2026-11-15T06:25:05.642Z",
+ "at": "2026-11-15T06:40:16.965Z",
  "request": {
   "set": "all",
   "hosts": [
@@ -7,33 +7,204 @@
    "ra",
    "at"
   ],
-  "limits": {
-   "ai": 420,
-   "ra": 400,
-   "at": 8
-  },
-  "minutes": 40,
-  "run": 3
+  "minutes": 320,
+  "run": 4
  },
- "done": 788,
- "skipped": 12,
- "failed": [],
+ "done": 18568,
+ "skipped": 800,
+ "failed": [
+  [
+   "https://at-tahreek.com/article_details/9559",
+   "no content"
+  ],
+  [
+   "https://at-tahreek.com/article_details/9503",
+   "no content"
+  ],
+  [
+   "https://at-tahreek.com/article_details/9413",
+   "no content"
+  ],
+  [
+   "https://at-tahreek.com/article_details/9322",
+   "no content"
+  ],
+  [
+   "https://al-itisam.com/article_details/2257",
+   "no content"
+  ],
+  [
+   "https://at-tahreek.com/article_details/8719",
+   "no content"
+  ],
+  [
+   "https://at-tahreek.com/article_details/8438",
+   "no content"
+  ],
+  [
+   "https://at-tahreek.com/article_details/8084",
+   "no content"
+  ],
+  [
+   "https://at-tahreek.com/article_details/8078",
+   "no content"
+  ],
+  [
+   "https://at-tahreek.com/article_details/8012",
+   "no content"
+  ],
+  [
+   "https://at-tahreek.com/article_details/7951",
+   "no content"
+  ],
+  [
+   "https://at-tahreek.com/article_details/7915",
+   "no content"
+  ],
+  [
+   "https://at-tahreek.com/article_details/7875",
+   "no content"
+  ],
+  [
+   "https://at-tahreek.com/article_details/7596",
+   "no content"
+  ],
+  [
+   "https://at-tahreek.com/article_details/7196",
+   "no content"
+  ],
+  [
+   "https://at-tahreek.com/article_details/7053",
+   "no content"
+  ],
+  [
+   "https://at-tahreek.com/article_details/6484",
+   "no content"
+  ],
+  [
+   "https://at-tahreek.com/article_details/6300",
+   "no content"
+  ],
+  [
+   "https://at-tahreek.com/article_details/6226",
+   "no content"
+  ],
+  [
+   "https://at-tahreek.com/article_details/6177",
+   "no content"
+  ],
+  [
+   "https://at-tahreek.com/article_details/6146",
+   "no content"
+  ],
+  [
+   "https://at-tahreek.com/article_details/6039",
+   "no content"
+  ],
+  [
+   "https://at-tahreek.com/article_details/6035",
+   "no content"
+  ],
+  [
+   "https://at-tahreek.com/article_details/5730",
+   "no content"
+  ],
+  [
+   "https://at-tahreek.com/article_details/5689",
+   "no content"
+  ],
+  [
+   "https://at-tahreek.com/article_details/5679",
+   "no content"
+  ],
+  [
+   "https://at-tahreek.com/article_details/5674",
+   "no content"
+  ],
+  [
+   "https://at-tahreek.com/article_details/5667",
+   "no content"
+  ],
+  [
+   "https://at-tahreek.com/article_details/5634",
+   "no content"
+  ],
+  [
+   "https://at-tahreek.com/article_details/5630",
+   "no content"
+  ],
+  [
+   "https://at-tahreek.com/article_details/5629",
+   "no content"
+  ],
+  [
+   "https://at-tahreek.com/article_details/5549",
+   "no content"
+  ],
+  [
+   "https://at-tahreek.com/article_details/5499",
+   "no content"
+  ],
+  [
+   "https://at-tahreek.com/article_details/5484",
+   "no content"
+  ],
+  [
+   "https://at-tahreek.com/article_details/5475",
+   "no content"
+  ],
+  [
+   "https://at-tahreek.com/article_details/4652",
+   "no content"
+  ],
+  [
+   "https://at-tahreek.com/article_details/1707",
+   "no content"
+  ],
+  [
+   "https://at-tahreek.com/article_details/12139",
+   "no content"
+  ],
+  [
+   "https://at-tahreek.com/article_details/10060",
+   "no content"
+  ],
+  [
+   "https://at-tahreek.com/article_details/5603",
+   "no content"
+  ],
+  [
+   "https://at-tahreek.com/article_details/5537",
+   "no content"
+  ],
+  [
+   "https://at-tahreek.com/article_details/5083",
+   "no content"
+  ],
+  [
+   "https://at-tahreek.com/article_details/3791",
+   "no content"
+  ],
+  [
+   "https://at-tahreek.com/article_details/3790",
+   "no content"
+  ],
+  [
+   "https://at-tahreek.com/article_details/3789",
+   "no content"
+  ]
+ ],
  "bySource": {
-  "ra": {
-   "queued": 360,
-   "done": 360,
-   "failed": 0
+  "at": {
+   "queued": 11608,
+   "done": 11564,
+   "failed": 44
   },
   "ai": {
-   "queued": 7425,
-   "done": 420,
-   "failed": 0
-  },
-  "at": {
-   "queued": 11616,
-   "done": 8,
-   "failed": 0
+   "queued": 7005,
+   "done": 7004,
+   "failed": 1
   }
  },
- "total": 800
+ "total": 19368
 }
