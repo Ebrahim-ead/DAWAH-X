@@ -1,23 +1,19 @@
 {
- "at": "2026-11-15T21:21:12.063Z",
+ "at": "2026-11-15T22:23:47.251Z",
  "request": {
   "set": "all",
   "hosts": [
    "fm"
   ],
-  "minutes": 60,
-  "run": 14
+  "minutes": 300,
+  "run": 15
  },
- "done": 4,
- "skipped": 16,
+ "done": 69,
+ "skipped": 20,
  "failed": [
   [
    "https://www.frommuslims.com/%e0%a6%aa%e0%a7%8d%e0%a6%b0%e0%a6%be%e0%a6%a3%e0%a7%87%e0%a6%b0-%e0%a6%89%e0%a7%8e%e0%a6%aa%e0%a6%a4%e0%a7%8d%e0%a6%a4%e0%a6%bf/",
    "not archived"
-  ],
-  [
-   "https://www.frommuslims.com/%e0%a6%a7%e0%a6%b0%e0%a7%8d%e0%a6%ae-%e0%a6%93-%e0%a6%a6%e0%a6%be%e0%a6%a8%e0%a6%b6%e0%a7%80%e0%a6%b2%e0%a6%a4%e0%a6%be/",
-   "TypeError: fetch failed ConnectTimeoutError: Connect Timeout Error (attempted address: web.archive.org:443, timeout: 100"
   ],
   [
    "https://www.frommuslims.com/%e0%a6%86%e0%a6%b2%e0%a7%8d%e0%a6%b2%e0%a6%be%e0%a6%b9%e0%a6%b0-%e0%a6%b8%e0%a6%bf%e0%a6%ab%e0%a6%be%e0%a6%a4-%e0%a6%86%e0%a6%95%e0%a6%b2-%e0%a6%a8%e0%a6%be-%e0%a6%93%e0%a6%b9%e0%a7%80/",
@@ -30,10 +26,6 @@
   [
    "https://www.frommuslims.com/%e0%a6%ac%e0%a7%80%e0%a6%b0%e0%a7%8d%e0%a6%af-%e0%a6%95%e0%a6%bf-%e0%a6%ae%e0%a7%87%e0%a6%b0%e0%a7%81%e0%a6%a6%e0%a6%a3%e0%a7%8d%e0%a6%a1-%e0%a6%93-%e0%a6%ac%e0%a6%95%e0%a7%8d%e0%a6%b7%e0%a6%aa/",
    "not archived"
-  ],
-  [
-   "https://www.frommuslims.com/%e0%a6%89%e0%a6%9f%e0%a7%87%e0%a6%b0-%e0%a6%ae%e0%a7%82%e0%a6%a4%e0%a7%8d%e0%a6%b0%e0%a6%95%e0%a7%87-%e0%a6%95%e0%a7%87%e0%a6%a8%e0%a7%8d%e0%a6%a6%e0%a7%8d%e0%a6%b0-%e0%a6%95%e0%a6%b0%e0%a7%87/",
-   "HTTP 429"
   ],
   [
    "https://www.frommuslims.com/%e0%a6%af%e0%a7%81%e0%a6%b2%e0%a6%95%e0%a6%be%e0%a6%b0%e0%a6%a8%e0%a6%be%e0%a6%87%e0%a6%a8-%e0%a6%87%e0%a6%a4%e0%a6%bf%e0%a6%b9%e0%a6%be%e0%a6%b8-%e0%a6%93-%e0%a6%93%e0%a6%b9%e0%a7%80%e0%a6%b0/",
@@ -56,24 +48,12 @@
    "not archived"
   ],
   [
-   "https://www.frommuslims.com/%e0%a6%aa%e0%a7%8d%e0%a6%b0%e0%a6%b6%e0%a7%8d%e0%a6%a8%e0%a7%8b%e0%a6%a4%e0%a7%8d%e0%a6%a4%e0%a6%b0-qa/",
-   "HTTP 429"
-  ],
-  [
-   "https://www.frommuslims.com/%e0%a6%9c%e0%a6%be%e0%a6%b2%e0%a6%be%e0%a6%b2%e0%a7%80-%e0%a6%aa%e0%a6%9e%e0%a7%8d%e0%a6%9c%e0%a6%bf%e0%a6%95%e0%a6%be/",
-   "HTTP 429"
-  ],
-  [
    "https://www.frommuslims.com/%e0%a6%b0%e0%a7%8b%e0%a6%ae-%e0%a6%b8%e0%a6%ae%e0%a7%8d%e0%a6%b0%e0%a6%be%e0%a6%9f%e0%a7%87%e0%a6%b0-%e0%a6%b8%e0%a6%be%e0%a6%ae%e0%a6%a8%e0%a7%87-%e0%a6%87%e0%a6%ae%e0%a6%be%e0%a6%ae-%e0%a6%ac/",
    "not archived"
   ],
   [
    "https://www.frommuslims.com/qna/%e0%a6%95%e0%a6%bf%e0%a6%9b%e0%a7%81-%e0%a6%b9%e0%a6%be%e0%a6%a6%e0%a6%bf%e0%a6%b8-%e0%a6%a8%e0%a6%bf%e0%a6%af%e0%a6%bc%e0%a7%87-%e0%a6%aa%e0%a7%8d%e0%a6%b0%e0%a6%b6%e0%a7%8d%e0%a6%a8/",
    "not archived"
-  ],
-  [
-   "https://www.frommuslims.com/%e0%a6%b0%e0%a6%be%e0%a6%b8%e0%a7%82%e0%a6%b2-%ef%b7%ba-%e0%a6%86%e0%a6%b2%e0%a7%80%e0%a6%95%e0%a7%87-%e0%a6%b0%e0%a6%be%e0%a6%83-%e0%a6%a6%e0%a7%8d%e0%a6%ac%e0%a6%bf%e0%a6%a4%e0%a7%80%e0%a6%af/",
-   "HTTP 429"
   ],
   [
    "https://www.frommuslims.com/qna/?filter=all",
@@ -165,7 +145,7 @@
   ],
   [
    "https://www.frommuslims.com/qna/%e0%a6%86%e0%a6%b2%e0%a6%bf%e0%a6%b0%e0%a6%be-%e0%a6%95%e0%a6%bf-%e0%a6%b0%e0%a6%be%e0%a6%b8%e0%a7%81%e0%a6%b2%e0%a6%b8-%e0%a6%8f%e0%a6%b0-%e0%a6%b8%e0%a7%8d%e0%a6%a5%e0%a6%b2%e0%a6%be%e0%a6%ad/",
-   "HTTP 429"
+   "no content"
   ],
   [
    "https://www.frommuslims.com/qna/%e0%a6%95%e0%a7%8b%e0%a6%b0%e0%a6%86%e0%a6%a8-%e0%a6%95%e0%a6%bf-%e0%a6%b0%e0%a6%be%e0%a6%a4-%e0%a6%93-%e0%a6%a6%e0%a6%bf%e0%a6%a8%e0%a7%87%e0%a6%b0-%e0%a6%95%e0%a6%95%e0%a7%8d%e0%a6%b7-%e0%a6%aa/",
@@ -212,16 +192,55 @@
    "not archived"
   ],
   [
-   "https://www.frommuslims.com/qna/%e0%a6%a6%e0%a7%81%e0%a6%a7-%e0%a6%89%e0%a7%8e%e0%a6%aa%e0%a6%be%e0%a6%a6%e0%a6%a8-%e0%a6%b9%e0%a6%af%e0%a6%bc-%e0%a6%97%e0%a7%8b%e0%a6%ac%e0%a6%b0-%e0%a6%8f%e0%a6%ac%e0%a6%82-%e0%a6%b0%e0%a6%95/",
-   "HTTP 429"
+   "https://www.frommuslims.com/qna/%e0%a6%87%e0%a6%b8%e0%a6%b2%e0%a6%be%e0%a6%ae-%e0%a6%85%e0%a6%a8%e0%a7%8d%e0%a6%af-%e0%a6%a7%e0%a6%b0%e0%a7%8d%e0%a6%ae-%e0%a6%95%e0%a7%87-%e0%a6%b8%e0%a6%a8%e0%a7%8d%e0%a6%ae%e0%a6%be%e0%a6%a8/",
+   "not archived"
+  ],
+  [
+   "https://www.frommuslims.com/qna/%e0%a6%a8%e0%a6%be%e0%a6%ac%e0%a6%be%e0%a6%b2%e0%a7%87%e0%a6%97%e0%a6%a6%e0%a7%87%e0%a6%b0-%e0%a6%aa%e0%a6%b0%e0%a6%bf%e0%a6%95%e0%a7%8d%e0%a6%b7%e0%a6%be-%e0%a6%a8%e0%a7%87%e0%a6%87-%e0%a6%86/",
+   "not archived"
+  ],
+  [
+   "https://www.frommuslims.com/qna/%e0%a6%a4%e0%a6%be%e0%a6%95%e0%a6%a6%e0%a6%bf%e0%a6%b0-%e0%a6%a8%e0%a6%bf%e0%a6%af%e0%a6%bc%e0%a7%87-%e0%a6%8f%e0%a6%a4-%e0%a6%ac%e0%a7%88%e0%a6%aa%e0%a6%b0%e0%a7%80%e0%a6%a4%e0%a7%8d%e0%a6%af/",
+   "not archived"
+  ],
+  [
+   "https://www.frommuslims.com/qna/%e0%a6%b0%e0%a6%be%e0%a6%b8%e0%a7%81%e0%a6%b2-%e0%a6%95%e0%a6%bf-%e0%a6%aa%e0%a7%81%e0%a6%a4%e0%a7%8d%e0%a6%b0%e0%a6%ac%e0%a6%a7%e0%a7%81%e0%a6%95%e0%a7%87-%e0%a6%ac%e0%a6%bf%e0%a6%af%e0%a6%bc/",
+   "not archived"
+  ],
+  [
+   "https://www.frommuslims.com/qna/%e0%a6%95%e0%a7%8b%e0%a6%b0%e0%a6%86%e0%a6%a8-%e0%a6%86%e0%a6%b0%e0%a6%ac%e0%a7%80%e0%a6%a4%e0%a7%87-%e0%a6%b9%e0%a6%93%e0%a6%af%e0%a6%bc%e0%a6%be%e0%a6%af%e0%a6%bc-%e0%a6%86%e0%a6%b0%e0%a6%ac/",
+   "not archived"
+  ],
+  [
+   "https://www.frommuslims.com/qna/__trashed-27/",
+   "not archived"
+  ],
+  [
+   "https://www.frommuslims.com/qna/%e0%a6%ae%e0%a6%be%e0%a6%a8%e0%a7%81%e0%a6%b7%e0%a6%95%e0%a7%87-%e0%a6%aa%e0%a6%be%e0%a6%a0%e0%a6%bf%e0%a6%af%e0%a6%bc%e0%a7%87-%e0%a6%95%e0%a7%87%e0%a6%a8-%e0%a6%95%e0%a6%b7%e0%a7%8d%e0%a6%9f/",
+   "not archived"
+  ],
+  [
+   "https://www.frommuslims.com/qna/%e0%a6%86%e0%a6%b2%e0%a7%8d%e0%a6%b2%e0%a6%be%e0%a6%b9%e0%a6%b0-%e0%a6%aa%e0%a6%b0%e0%a6%bf%e0%a6%95%e0%a7%8d%e0%a6%b7%e0%a6%be%e0%a6%af%e0%a6%bc-%e0%a6%ac%e0%a7%88%e0%a6%b7%e0%a6%ae%e0%a7%8d%e0%a6%af/",
+   "not archived"
+  ],
+  [
+   "https://www.frommuslims.com/qna/%e0%a6%a8%e0%a6%ac%e0%a7%80-%e0%a6%95%e0%a6%b0%e0%a6%bf%e0%a6%ae-%e0%a6%b8%e0%a6%83-%e0%a6%8f%e0%a6%b0-%e0%a6%b8%e0%a7%81%e0%a6%aa%e0%a6%be%e0%a6%b0%e0%a6%bf%e0%a6%b6-%e0%a6%95%e0%a6%a4%e0%a7%8b/",
+   "not archived"
+  ],
+  [
+   "https://www.frommuslims.com/qna/%e0%a6%b8%e0%a6%be%e0%a6%a8%e0%a6%be-%e0%a6%ae%e0%a7%8d%e0%a6%af%e0%a6%be%e0%a6%a8%e0%a7%81%e0%a6%b8%e0%a7%8d%e0%a6%95%e0%a7%8d%e0%a6%b0%e0%a6%bf%e0%a6%aa%e0%a6%9f-%e0%a6%95%e0%a6%bf-%e0%a6%ad/",
+   "not archived"
   ]
  ],
  "bySource": {
   "fm": {
-   "queued": 577,
-   "done": 4,
-   "failed": 51,
-   "unarchived": 44
+   "queued": 573,
+   "done": 69,
+   "failed": 55,
+   "passes": 1,
+   "unarchived": 54,
+   "busy": 33,
+   "lastErr": "TypeError: fetch failed ConnectTimeoutError: Connect Timeout Error (attempted address: web.archive.o"
   }
  },
  "wayback": {
@@ -229,5 +248,6 @@
    "cached": 486
   }
  },
- "total": 19407
+ "total": 19476,
+ "partial": "2026-11-15T22:54:10.926Z"
 }
