@@ -600,3 +600,5 @@ a,button,input,select,textarea,.chip,.qcard{touch-action:manipulation;-webkit-ta
 .article-source>b{display:block;margin-bottom:4px;color:var(--gold2);font-size:13px;letter-spacing:.4px}
 .article-source p{margin:0 0 12px;color:#dfe6f0;font-size:15px;line-height:1.8}
 .article-source p b{color:#fff}
+
+.article-head+.article-body{margin-top:22px}

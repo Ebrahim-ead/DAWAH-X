@@ -60,7 +60,7 @@ if(readTitle){
  if(nav&&from==="f"){nav.classList.remove("on");const f=document.querySelector('#menu a[href="fatwa.html"]');if(f)f.classList.add("on")}
  const fail=msg=>{readTitle.textContent="লেখাটি পাওয়া যায়নি";body.innerHTML=`<p>${msg}</p><p><a class="askbtn" href="${backHref}">${backLabel} তালিকায় ফিরে যান</a></p>`};
  if(!/^[0-9a-f]{14}$/.test(key))fail("ঠিকানাটি সঠিক নয়।");
- else fetch("texts/"+key.slice(0,2)+".json").then(r=>{if(!r.ok)throw new Error(r.status);return r.json()}).then(all=>{
+ else fetch("texts/"+textBucket(key)+".json").then(r=>{if(!r.ok)throw new Error(r.status);return r.json()}).then(all=>{
   const x=all[key];if(!x){fail("এই লেখাটি এখনো সাইটে যোগ হয়নি।");return}
   const srcName=TEXT_SOURCES[x.s]||hostOf(x.u);
   readTitle.textContent=toLatinDigits(x.t);document.title=toLatinDigits(x.t)+" — DAWAH X";
@@ -104,9 +104,12 @@ const TEXT_SOURCES={ai:"মাসিক আল-ইতিছাম",at:"মাস
 function textKey(u){try{u=decodeURI(u)}catch(e){}let h1=0xdeadbeef,h2=0x41c6ce57;for(let i=0;i<u.length;i++){const c=u.charCodeAt(i);h1=Math.imul(h1^c,2654435761);h2=Math.imul(h2^c,1597334677)}
  h1=Math.imul(h1^(h1>>>16),2246822507)^Math.imul(h2^(h2>>>13),3266489909);h2=Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909);
  return (4294967296*(2097151&h2)+(h1>>>0)).toString(16).padStart(14,"0")}
-let LOCAL_TEXTS=new Set();
-const localTextsReady=(location.protocol==="file:"?Promise.resolve([]):fetch("texts/index.json").then(r=>r.ok?r.json():[]).catch(()=>[])).then(a=>{LOCAL_TEXTS=new Set(Array.isArray(a)?a:[]);return LOCAL_TEXTS});
-const localKeyOf=u=>{if(!LOCAL_TEXTS.size)return"";const k=textKey(u);return LOCAL_TEXTS.has(k)?k:""};
+function textBucket(k){return k.slice(-3)}
+/* texts/index.json: {full:{উৎস:host}, missing:[key], keys:[key]} */
+let LOCAL_TEXTS=null;
+const localTextsReady=(location.protocol==="file:"?Promise.resolve(null):fetch("texts/index.json").then(r=>r.ok?r.json():null).catch(()=>null)).then(x=>{
+ if(x&&x.n)LOCAL_TEXTS={hosts:new Set(Object.values(x.full||{})),missing:new Set(x.missing||[]),keys:new Set(x.keys||[])};return LOCAL_TEXTS});
+const localKeyOf=u=>{if(!LOCAL_TEXTS)return"";const k=textKey(u);if(LOCAL_TEXTS.keys.has(k))return k;let h="";try{h=new URL(u).host}catch(e){}return LOCAL_TEXTS.hosts.has(h)&&!LOCAL_TEXTS.missing.has(k)?k:""};
 
 /* cfg: {id:"q"|"f", rows:[[বিভাগ,শিরোনাম,লিংক]], manifest:[{category,src,count}], partsKey, label, hint, loadingText} */
 function setupLibrary(cfg){
@@ -192,7 +195,7 @@ function setupLibrary(cfg){
 
  if(manifest.length)setStatus(`${cfg.label} (${formatCount(total)}টি) — ২ বা তার বেশি অক্ষর লিখে সার্চ বা বিভাগ বাছাই করলে লোড হবে।`);
  draw();
- localTextsReady.then(set=>{if(set.size)draw()});
+ localTextsReady.then(x=>{if(x)draw()});
  return {draw,load};
 }
 

@@ -1,1 +1,1 @@
-{"set":"all","hosts":["ai","ra","at"],"limits":{"ai":420,"ra":400,"at":8},"minutes":40,"run":3}
+{"set":"all","hosts":["ai","ra","at"],"minutes":320,"run":4}

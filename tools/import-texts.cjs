@@ -65,11 +65,17 @@ function catalogRows(){const w={};const rows=[];for(const f of fs.readdirSync(RO
 
 /* ---- সংরক্ষণ ---- */
 const buckets=new Map();
+const bucketOf=k=>k.slice(-3); /* app.js-এর সাথে এক */
 const bucketFile=b=>path.join(OUT,b+'.json');
 const loadBucket=b=>{if(!buckets.has(b))buckets.set(b,{dirty:false,data:fs.existsSync(bucketFile(b))?JSON.parse(fs.readFileSync(bucketFile(b),'utf8')):{}});return buckets.get(b)};
+/* index.json: যে উৎসের (প্রায়) সব লেখা আনা হয়েছে সেটি full, শুধু বাদ পড়াগুলো missing-এ; অন্য উৎসের আনা লেখার key তালিকা keys-এ */
+let WANT={};
 const flush=()=>{for(const[b,o]of buckets)if(o.dirty){fs.writeFileSync(bucketFile(b),JSON.stringify(o.data));o.dirty=false}
- const keys=[];for(const f of fs.readdirSync(OUT))if(/^[0-9a-f]{2}\.json$/.test(f))keys.push(...Object.keys(JSON.parse(fs.readFileSync(path.join(OUT,f),'utf8'))));
- fs.writeFileSync(path.join(OUT,'index.json'),JSON.stringify(keys.sort()));return keys.length};
+ const have={};let n=0;for(const f of fs.readdirSync(OUT))if(/^[0-9a-f]{3}\.json$/.test(f)){const o=JSON.parse(fs.readFileSync(path.join(OUT,f),'utf8'));for(const k in o){(have[o[k].s]=have[o[k].s]||new Set()).add(k);n++}}
+ const idx={v:1,n,full:{},missing:[],keys:[]};
+ for(const s of Object.keys(SOURCES)){const h=have[s]||new Set(),w=WANT[s]||new Set(),miss=[...w].filter(k=>!h.has(k));
+  if(w.size&&h.size&&miss.length<=w.size*0.05){idx.full[s]=SOURCES[s].host;idx.missing.push(...miss)}else idx.keys.push(...h)}
+ idx.missing.sort();idx.keys.sort();fs.writeFileSync(path.join(OUT,'index.json'),JSON.stringify(idx));return n};
 
 async function get(u){let last;for(let a=0;a<3;a++){try{const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),30000);
    const res=await fetch(u,{headers:{'user-agent':UA,'accept-language':'bn,en;q=0.8'},redirect:'follow',signal:ac.signal});const html=await res.text();clearTimeout(tm);
@@ -85,8 +91,9 @@ async function get(u){let last;for(let a=0;a<3;a++){try{const ac=new AbortContro
   const el=$(REQ.probeSel||'.main_content_area .col-md-9').first();report.probe.push({u,status:r.status,tree:el.length?walk(el.get(0),0):null})}
  const want=new Set(REQ.hosts||Object.keys(SOURCES)),seen=new Set(),queue={};
  const rows=REQ.set==='all'?[...builtinRows(),...catalogRows()]:REQ.set==='builtin'?builtinRows():[];
+ for(const r of[...builtinRows(),...catalogRows()]){const s=sourceOf(r[2]);if(s)(WANT[s]=WANT[s]||new Set()).add(keyOfUrl(r[2]))}
  for(const r of rows){const s=sourceOf(r[2]);if(!s||!want.has(s))continue;const k=keyOfUrl(r[2]);if(seen.has(k))continue;seen.add(k);
-  if(loadBucket(k.slice(0,2)).data[k]){report.skipped++;continue}(queue[s]=queue[s]||[]).push({k,s,c:r[0],t:r[1],u:r[2]})}
+  if(loadBucket(bucketOf(k)).data[k]){report.skipped++;continue}(queue[s]=queue[s]||[]).push({k,s,c:r[0],t:r[1],u:r[2]})}
  const deadline=Date.now()+(REQ.minutes||300)*60000,limit=REQ.limit||Infinity;let lastFlush=Date.now();
  await Promise.all(Object.keys(queue).map(async s=>{const src=SOURCES[s],st=report.bySource[s]={queued:queue[s].length,done:0,failed:0};let streak=0;
   for(const it of queue[s].slice(0,(REQ.limits&&REQ.limits[s])||limit)){if(Date.now()>deadline||streak>=25)break;
@@ -94,7 +101,7 @@ async function get(u){let last;for(let a=0;a<3;a++){try{const ac=new AbortContro
    if(r.status!==200)fail=r.err||('HTTP '+r.status);
    else{try{const $=cheerio.load(r.html);const x=src.extract($);const html=x.body&&x.body.length?clean($,x.body,r.final||it.u):'';const title=(x.title||'').replace(/\s+/g,' ').trim();
      if(!title||textLen(html)<40)fail='no content';
-     else{const b=loadBucket(it.k.slice(0,2));b.data[it.k]={u:it.u,s,c:it.c,t:title,l:it.t,d:(x.date||'').trim(),a:(x.author||'').replace(/\s+/g,' ').trim(),h:html};b.dirty=true;st.done++;report.done++;streak=0}}catch(e){fail='parse: '+String(e).slice(0,80)}}
+     else{const b=loadBucket(bucketOf(it.k));b.data[it.k]={u:it.u,s,c:it.c,t:title,l:it.t,d:(x.date||'').trim(),a:(x.author||'').replace(/\s+/g,' ').trim(),h:html};b.dirty=true;st.done++;report.done++;streak=0}}catch(e){fail='parse: '+String(e).slice(0,80)}}
    if(fail){st.failed++;streak++;if(report.failed.length<400)report.failed.push([it.u,fail])}
    if(Date.now()-lastFlush>120000){lastFlush=Date.now();flush()}
    await sleep(src.delay)}

@@ -26,6 +26,9 @@
 | `logo.webp`, `logo-icon.webp`, `favicon.svg`, `apple-touch-icon.png`, `hero.jpg`, `youtube-channel-logo.webp` | লোগো, আইকন ও হোম পেজের ছবি |
 | `og-image.jpg` | Facebook/WhatsApp-এ লিংক শেয়ার করলে যে ছবি দেখায় |
 | `manifest.webmanifest`, `icon-192.png`, `icon-512.png`, `icon-maskable-512.png` | ফোনে “Add to Home screen” করলে সাইটের নাম ও আইকন |
+| `read.html` | লাইব্রেরির লেখা এই সাইটেই পড়ার পেজ (`read.html?k=…`) |
+| `texts/` | প্রকাশকদের অনুমতিক্রমে আনা লেখা (`texts/<শেষ ৩ অক্ষর>.json`) ও তার সূচি `texts/index.json` |
+| `tools/import-texts.cjs`, `.github/workflows/import-texts.yml` | উৎস সাইট থেকে লেখা আনার স্বয়ংক্রিয় ব্যবস্থা (GitHub Actions-এ চলে) |
 | `sitemap.xml` | সার্চ ইঞ্জিনের জন্য পেজের তালিকা |
 | `__forms.html`, `netlify.toml` | শুধু Netlify-তে হোস্ট করলে লাগে |
 | `.nojekyll` | GitHub Pages-কে ফাইলগুলো যেমন আছে তেমন প্রকাশ করতে বলে |
@@ -50,6 +53,14 @@
 python3 -m http.server 8000
 ```
 তারপর http://localhost:8000 খুলুন।
+
+## লাইব্রেরির লেখা সাইটেই পড়া
+
+প্রশ্নোত্তর ও ফতোয়ার যে কার্ডের লেখা `texts/`-এ আছে, সেটি `read.html`-এ খোলে; লেখার নিচে উৎসের নাম ও মূল লেখার লিংক থাকে। যে লেখা আনা হয়নি, তার কার্ড আগের মতো মূল সাইটে (নতুন ট্যাবে) খোলে।
+
+- লেখাগুলো **প্রকাশকের অনুমতি সাপেক্ষে** আনা। কোনো প্রকাশক আপত্তি করলে `tools/import-texts.cjs`-এর `SOURCES` থেকে সেই উৎসটি বাদ দিন এবং `texts/`-এর ফাইলগুলো থেকে তার লেখা মুছে দিন।
+- নতুন লেখা আনতে `tools/import-request.json`-এর `run` সংখ্যাটি এক বাড়িয়ে `arena/…` শাখায় push করুন, অথবা GitHub-এর **Actions → Import library texts → Run workflow** চাপুন। আগে আনা লেখা আবার আনা হয় না; ফলাফল `texts/_report.json`-এ থাকে।
+- From Muslims সাইটটি স্বয়ংক্রিয় অনুরোধ আটকে দেয় (Cloudflare), তাই তাদের লেখা এভাবে আনা যায় না।
 
 ## WhatsApp
 
