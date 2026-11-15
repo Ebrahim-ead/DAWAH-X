@@ -1,1 +1,1 @@
-{"set":"all","hosts":["fm"],"limits":{"fm":14},"minutes":20,"run":11}
+{"set":"all","hosts":["fm"],"minutes":300,"run":12}

@@ -26,7 +26,7 @@ const SOURCES={
  /* manual: রানার থেকে আনা যায় না (Cloudflare); লেখা tools/add-texts.cjs দিয়ে tools/manual/ থেকে যোগ হয় */
  iz:{host:'www.insightzonebd.com',manual:true},
  /* wayback: সাইটটি রানারকে ঢুকতে দেয় না, তাই Internet Archive-এ সংরক্ষিত সর্বশেষ কপি থেকে পড়া হয় */
- fm:{host:'www.frommuslims.com',delay:2500,wayback:'frommuslims.com',extract($,base){
+ fm:{host:'www.frommuslims.com',delay:12000,wayback:'frommuslims.com',extract($,base){
    const title=$('h1.post-title,h1.entry-title').first().text(),name=(e,word)=>$(e).children('span').first().text().replace(/\s+/g,' ').trim().split(' '+word+' ')[0].replace(/\s+Staff$/,'').trim();
    /* প্রশ্নোত্তর পেজ (DW Question & Answer): প্রশ্ন + সব উত্তর; মন্তব্য, ভোট, শেয়ার বাদ */
    if($('.dwqa-single-question').length){const q=$('.dwqa-question-item').first(),ans=$('.dwqa-answer-item').toArray();if(!ans.length)return{title,html:''};
@@ -110,7 +110,7 @@ const flush=()=>{for(const[b,o]of buckets)if(o.dirty){fs.writeFileSync(bucketFil
 const wbNorm=u=>{try{let p=new URL(u).pathname;try{p=decodeURIComponent(p)}catch(e){}return p.replace(/\/+$/,'')}catch(e){return''}};
 /* প্রতিটি পেজের সর্বশেষ সফল (200) কপি: path → {ts,orig} */
 async function waybackMap(domain){const map=new Map(),info={rows:0,pages:0};let resume='';
- for(let i=0;i<60;i++){const r=await get('https://web.archive.org/cdx/search/cdx?url='+domain+'&matchType=domain&output=json&fl=timestamp,original&filter=statuscode:200&filter=mimetype:text/html&limit=15000&showResumeKey=true'+(resume?'&resumeKey='+encodeURIComponent(resume):''),180000);
+ for(let i=0;i<60;i++){const r=await getSlow('https://web.archive.org/cdx/search/cdx?url='+domain+'&matchType=domain&output=json&fl=timestamp,original&filter=statuscode:200&filter=mimetype:text/html&limit=15000&showResumeKey=true'+(resume?'&resumeKey='+encodeURIComponent(resume):''),180000);
   if(r.status!==200){info.err=r.err||('HTTP '+r.status);break}
   let j;try{j=JSON.parse(r.html)}catch(e){info.err='bad CDX json: '+r.html.slice(0,80);break}
   info.pages++;resume='';
@@ -123,10 +123,11 @@ async function waybackMap(domain){const map=new Map(),info={rows:0,pages:0};let 
   if(!resume)break;await sleep(1500)}
  info.urls=map.size;return{map,info}}
 
-/* Internet Archive ধীর ও মাঝে মাঝে সংযোগ ফিরিয়ে দেয়: লম্বা সময়সীমা, বেশি বিরতি */
-async function getSlow(u){let last;for(let a=0;a<5;a++){try{const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),90000);
+/* Internet Archive ধীর এবং বেশি অনুরোধে 429 দেয় বা সংযোগ বন্ধ রাখে: তখন লম্বা বিরতি (Retry-After মেনে) */
+async function getSlow(u,ms=90000){let last;for(let a=0;a<3;a++){try{const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),ms);
    const res=await fetch(u,{headers:{'user-agent':UA},redirect:'follow',signal:ac.signal});const html=await res.text();clearTimeout(tm);
-   if(res.status>=500||res.status===429){last='HTTP '+res.status;await sleep(15000*(a+1));continue}return{status:res.status,html,final:res.url}}catch(e){last=(String(e)+' '+String(e&&e.cause||'')).slice(0,120);await sleep(10000*(a+1))}}
+   if(res.status>=500||res.status===429){last='HTTP '+res.status;const ra=parseInt(res.headers.get('retry-after')||'',10);if(a<2)await sleep(1000*Math.min(600,Math.max(ra||0,120*(a+1))));continue}
+   return{status:res.status,html,final:res.url}}catch(e){last=(String(e)+' '+String(e&&e.cause||'')).slice(0,120);if(a<2)await sleep(120000*(a+1))}}
  return{status:0,html:'',err:last}}
 async function get(u,ms=30000){let last;for(let a=0;a<3;a++){try{const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),ms);
    const res=await fetch(u,{headers:{'user-agent':UA,'accept-language':'bn,en;q=0.8'},redirect:'follow',signal:ac.signal});const html=await res.text();clearTimeout(tm);
@@ -163,10 +164,13 @@ async function get(u,ms=30000){let last;for(let a=0;a<3;a++){try{const ac=new Ab
  for(const r of rows){const s=sourceOf(r[2]);if(!s||!want.has(s)||SOURCES[s].manual)continue;const k=keyOfUrl(r[2]);if(seen.has(k))continue;seen.add(k);
   if(loadBucket(bucketOf(k)).data[k]){report.skipped++;continue}(queue[s]=queue[s]||[]).push({k,s,c:r[0],t:r[1],u:r[2]})}
  const WB={};
- for(const s of Object.keys(SOURCES))if(SOURCES[s].wayback&&(queue[s]||REQ.wayback)){const w=await waybackMap(SOURCES[s].wayback);WB[s]=w.map;
+ for(const s of Object.keys(SOURCES))if(SOURCES[s].wayback&&(queue[s]||REQ.wayback)){const cf=path.join(OUT,'_wayback-'+s+'.json');
+  if(fs.existsSync(cf)&&!REQ.wayback){WB[s]=new Map(Object.entries(JSON.parse(fs.readFileSync(cf,'utf8'))).map(([k,v])=>[k,{ts:v[0],orig:v[1]}]));(report.wayback=report.wayback||{})[s]={cached:WB[s].size};continue}
+  const w=await waybackMap(SOURCES[s].wayback);WB[s]=w.map;
   const all=[...new Set([...builtinRows(),...catalogRows()].map(r=>r[2]).filter(u=>sourceOf(u)===s))],hit=all.filter(u=>!/\?/.test(u)&&w.map.has(wbNorm(u)));
   w.info.catalog=all.length;w.info.matched=hit.length;w.info.newest=hit.map(u=>w.map.get(wbNorm(u)).ts.slice(0,4)).reduce((o,y)=>(o[y]=(o[y]||0)+1,o),{});
-  w.info.qna=[all.filter(u=>/\/qna\/./.test(u)).length,hit.filter(u=>/\/qna\/./.test(u)).length];w.info.unmatched=all.filter(u=>!hit.includes(u)).slice(0,8).map(u=>{try{return decodeURI(u)}catch(e){return u}});(report.wayback=report.wayback||{})[s]=w.info}
+  w.info.qna=[all.filter(u=>/\/qna\/./.test(u)).length,hit.filter(u=>/\/qna\/./.test(u)).length];w.info.unmatched=all.filter(u=>!hit.includes(u)).slice(0,8).map(u=>{try{return decodeURI(u)}catch(e){return u}});(report.wayback=report.wayback||{})[s]=w.info;
+  if(!w.info.err&&hit.length)fs.writeFileSync(cf,JSON.stringify(Object.fromEntries(hit.map(u=>{const k=wbNorm(u),v=w.map.get(k);return[k,[v.ts,v.orig]]}))))}
  const deadline=Date.now()+(REQ.minutes||300)*60000,limit=REQ.limit||Infinity;let lastFlush=Date.now();
  await Promise.all(Object.keys(queue).map(async s=>{const src=SOURCES[s],st=report.bySource[s]={queued:queue[s].length,done:0,failed:0};let streak=0;
   for(const it of queue[s].slice(0,(REQ.limits&&REQ.limits[s])||limit)){if(Date.now()>deadline||streak>=25)break;
