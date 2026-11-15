@@ -67,7 +67,7 @@ if(readTitle){
   const cat=$("read-cat");if(cat&&x.c){cat.textContent=x.c;cat.hidden=false}
   $("read-meta").innerHTML=[srcName,x.a,x.d].filter(Boolean).map(v=>`<span>${escHTML(v)}</span>`).join('<span aria-hidden="true">·</span>');
   body.textContent="";body.appendChild(safeArticle(x.h));
-  $("read-credit").innerHTML=`এই লেখাটি <b>${escHTML(srcName)}</b>-এর (${escHTML(hostOf(x.u))})। প্রকাশকের অনুমতিক্রমে এখানে হুবহু তুলে ধরা হয়েছে; লেখার স্বত্ব মূল প্রকাশকের।`;
+  $("read-credit").innerHTML=`এই লেখাটি <b>${escHTML(srcName)}</b>-এর (${escHTML(hostOf(x.u))})। প্রকাশকের অনুমতিক্রমে এখানে হুবহু তুলে ধরা হয়েছে; লেখার স্বত্ব মূল প্রকাশকের।`+(/^\d{8}/.test(x.w||"")?` এই কপিটি Internet Archive-এ সংরক্ষিত ${x.w.slice(0,4)}-${x.w.slice(4,6)}-${x.w.slice(6,8)} তারিখের সংস্করণ থেকে নেওয়া; মূল পেজে এরপর পরিবর্তন হয়ে থাকতে পারে।`:"");
   $("read-original").href=x.u;$("read-source").hidden=false;
   const url=location.href.split("#")[0],share=encodeURIComponent(x.t+"\n"+url);
   $("read-wa").href="https://wa.me/?text="+share;$("read-fb").href="https://www.facebook.com/sharer/sharer.php?u="+encodeURIComponent(url);$("read-share").hidden=false;

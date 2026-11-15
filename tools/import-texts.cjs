@@ -26,11 +26,27 @@ const SOURCES={
  /* manual: রানার থেকে আনা যায় না (Cloudflare); লেখা tools/add-texts.cjs দিয়ে tools/manual/ থেকে যোগ হয় */
  iz:{host:'www.insightzonebd.com',manual:true},
  /* wayback: সাইটটি রানারকে ঢুকতে দেয় না, তাই Internet Archive-এ সংরক্ষিত সর্বশেষ কপি থেকে পড়া হয় */
- fm:{host:'www.frommuslims.com',delay:1500,wayback:'frommuslims.com',extract($){
-   const body=$('.entry-content,.post-content,.single-content').first();
-   return{title:$('h1.entry-title,h1.post-title,article h1,h1').first().text(),body,
-    date:($('meta[property="article:published_time"]').attr('content')||$('time[datetime]').first().attr('datetime')||'').slice(0,10),
-    author:$('meta[name="author"]').attr('content')||$('a[rel="author"]').first().text()}}}
+ fm:{host:'www.frommuslims.com',delay:2500,wayback:'frommuslims.com',extract($,base){
+   const title=$('h1.post-title,h1.entry-title').first().text(),name=(e,word)=>$(e).children('span').first().text().replace(/\s+/g,' ').trim().split(' '+word+' ')[0].replace(/\s+Staff$/,'').trim();
+   /* প্রশ্নোত্তর পেজ (DW Question & Answer): প্রশ্ন + সব উত্তর; মন্তব্য, ভোট, শেয়ার বাদ */
+   if($('.dwqa-single-question').length){const q=$('.dwqa-question-item').first(),ans=$('.dwqa-answer-item').toArray();if(!ans.length)return{title,html:''};
+    const by=n=>n?'<p>— '+esc(n)+'</p>':'',names=[];
+    let html='<h3>প্রশ্ন</h3>'+clean($,q.find('.dwqa-question-content').first(),base)+by(name(q.find('.dwqa-question-meta').first(),'asked'));
+    for(const a of ans){const n=name($(a).find('.dwqa-answer-meta').first(),'answered');if(n&&!names.includes(n))names.push(n);html+='<h3>উত্তর</h3>'+clean($,$(a).find('.dwqa-answer-content').first(),base)+by(n)}
+    return{title,html,date:'',author:names.join(', ')}}
+   /* সাধারণ লেখা (Jannah থিম) */
+   const body=$('#the-post .entry-content,.entry-content').first();
+   body.find('.wp-block-wptelegram-widget-join-channel,.post-bottom-meta,.stream-item,#jp-relatedposts,.sharedaddy,#ez-toc-container,.ez-toc-container,.code-block,.addtoany_share_save_container,.yarpp-related,.share-buttons,.post-shortlink,.footnote_referrer_base,.footnote_reference_container_collapse_button').remove();
+   body.children('div').filter((k,e)=>{const t=$(e).text().replace(/\s+/g,' ').trim();return t.length<260&&/^আর[োও] পড়ুন/.test(t)}).remove();
+   /* টীকা: পূর্ণ তালিকা থাকলে ভাসমান কপি বাদ; না থাকলে ভাসমান লেখা দিয়ে নিচে তালিকা */
+   const refs=$('.footnote_plugin_text');
+   if(refs.length){body.find('.footnote_tooltip').remove();const box=$('.footnotes_reference_container').first();if(box.length&&!body.find('.footnote_plugin_text').length)body.append(box)}
+   else{const tips=body.find('.footnote_tooltip').toArray();if(tips.length){$(tips).find('.footnote_tooltip_continue').remove();body.append('<ol>'+tips.map(e=>'<li>'+$(e).html()+'</li>').join('')+'</ol>');$(tips).remove()}}
+   body.find('.footnote_referrer').each((k,e)=>{$(e).replaceWith('<sup>'+esc($(e).text().replace(/\s+/g,''))+'</sup>')});
+   body.find('.footnote_backlink').each((k,e)=>{$(e).replaceWith(esc($(e).text().replace(/[^0-9০-৯]/g,'')))});
+   const info=$('#post-extra-info').first().text().replace(/\s+/g,' ').trim();
+   return{title,body,date:($('meta[property="article:published_time"]').attr('content')||'').slice(0,10),
+    author:$('#the-post .meta-author a,#the-post a.author-name').first().text()||info.replace(/\s*(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},\s+\d{4}.*$/,'')}}}
 };
 const sourceOf=u=>{try{const h=new URL(u).host;return Object.keys(SOURCES).find(k=>SOURCES[k].host===h)||null}catch(e){return null}};
 
@@ -107,9 +123,14 @@ async function waybackMap(domain){const map=new Map(),info={rows:0,pages:0};let 
   if(!resume)break;await sleep(1500)}
  info.urls=map.size;return{map,info}}
 
+/* Internet Archive ধীর ও মাঝে মাঝে সংযোগ ফিরিয়ে দেয়: লম্বা সময়সীমা, বেশি বিরতি */
+async function getSlow(u){let last;for(let a=0;a<5;a++){try{const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),90000);
+   const res=await fetch(u,{headers:{'user-agent':UA},redirect:'follow',signal:ac.signal});const html=await res.text();clearTimeout(tm);
+   if(res.status>=500||res.status===429){last='HTTP '+res.status;await sleep(15000*(a+1));continue}return{status:res.status,html,final:res.url}}catch(e){last=(String(e)+' '+String(e&&e.cause||'')).slice(0,120);await sleep(10000*(a+1))}}
+ return{status:0,html:'',err:last}}
 async function get(u,ms=30000){let last;for(let a=0;a<3;a++){try{const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),ms);
    const res=await fetch(u,{headers:{'user-agent':UA,'accept-language':'bn,en;q=0.8'},redirect:'follow',signal:ac.signal});const html=await res.text();clearTimeout(tm);
-   if(res.status>=500||res.status===429){last='HTTP '+res.status;await sleep(4000*(a+1));continue}return{status:res.status,html,final:res.url}}catch(e){last=String(e).slice(0,80);await sleep(3000*(a+1))}}
+   if(res.status>=500||res.status===429){last='HTTP '+res.status;await sleep(4000*(a+1));continue}return{status:res.status,html,final:res.url}}catch(e){last=(String(e)+' '+String(e&&e.cause||'')).slice(0,120);await sleep(3000*(a+1))}}
  return{status:0,html:'',err:last}}
 
 (async()=>{
@@ -129,7 +150,7 @@ async function get(u,ms=30000){let last;for(let a=0;a<3;a++){try{const ac=new Ab
   const r=await get(u,60000);const $=cheerio.load(r.html);$('script,style,noscript,svg,iframe').remove();
   const sig=e=>e.tagName+(e.attribs.id?'#'+e.attribs.id:'')+(e.attribs.class?'.'+e.attribs.class.trim().split(/\s+/).slice(0,4).join('.'):'');
   const walk=(e,d)=>$(e).children().toArray().slice(0,REQ.probeKids||22).map(c=>{const t=$(c).text().replace(/\s+/g,' ').trim();const o={s:sig(c),n:t.length,t:t.slice(0,40)};if(d<4&&t.length>200&&$(c).children().length)o.c=walk(c,d+1);return o});
-  const o={u,status:r.status,final:r.final,len:r.html.length,title:$('title').text().trim().slice(0,80),h1:$('h1').toArray().slice(0,3).map(h=>({t:$(h).text().trim().slice(0,50),path:$(h).parents().toArray().slice(0,6).map(sig)}))};
+  const o={u,status:r.status,err:r.err,final:r.final,len:r.html.length,title:$('title').text().trim().slice(0,80),h1:$('h1').toArray().slice(0,3).map(h=>({t:$(h).text().trim().slice(0,50),path:$(h).parents().toArray().slice(0,6).map(sig)}))};
   let best=null;$('h1').first().parents().each((i,p)=>{if(!best&&$(p).text().replace(/\s+/g,' ').length>800)best=p});
   if(!best)best=$('main,article,body').first().get(0);if(best){o.best=sig(best);o.tree=walk(best,0)}
   o.time=$('time').toArray().slice(0,3).map(t=>sig(t)+' '+$(t).text().trim().slice(0,30)+' '+(t.attribs.datetime||''));
@@ -152,12 +173,12 @@ async function get(u,ms=30000){let last;for(let a=0;a<3;a++){try{const ac=new Ab
    let r,fail='';
    if(src.wayback){const w=!/\?/.test(it.u)&&WB[s].get(wbNorm(it.u));
     if(!w){st.failed++;st.unarchived=(st.unarchived||0)+1;if(report.failed.length<400)report.failed.push([it.u,'not archived']);continue}
-    r=await get('https://web.archive.org/web/'+w.ts+'id_/'+w.orig,60000);
+    r=await getSlow('https://web.archive.org/web/'+w.ts+'id_/'+w.orig);
     if(r.status===200&&/<title>\s*(Just a moment|Attention Required)/i.test(r.html.slice(0,3000)))r={status:0,html:'',err:'challenge page in archive'};
     else if(r.status===200){r.final=it.u;r.w=w.ts}}
    else r=await get(it.u);
    if(r.status!==200)fail=r.err||('HTTP '+r.status);
-   else{try{const $=cheerio.load(r.html);const x=src.extract($);const html=x.body&&x.body.length?clean($,x.body,r.final||it.u):'';const title=(x.title||'').replace(/\s+/g,' ').trim();
+   else{try{const $=cheerio.load(r.html);const x=src.extract($,r.final||it.u);const html=x.html!==undefined?x.html:(x.body&&x.body.length?clean($,x.body,r.final||it.u):'');const title=(x.title||'').replace(/\s+/g,' ').trim();
      if(!title||textLen(html)<40)fail='no content';
      else{const b=loadBucket(bucketOf(it.k));b.data[it.k]={u:it.u,s,c:it.c,t:title,l:it.t,d:(x.date||'').trim(),a:(x.author||'').replace(/\s+/g,' ').trim(),h:html};if(r.w)b.data[it.k].w=r.w;b.dirty=true;st.done++;report.done++;streak=0}}catch(e){fail='parse: '+String(e).slice(0,80)}}
    if(fail){st.failed++;streak++;if(report.failed.length<400)report.failed.push([it.u,fail])}
