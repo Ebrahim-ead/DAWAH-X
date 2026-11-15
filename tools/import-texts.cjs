@@ -199,7 +199,8 @@ async function get(u,ms=30000){let last;for(let a=0;a<3;a++){try{const ac=new Ab
  const tick=()=>{if(Date.now()-lastFlush>120000){lastFlush=Date.now();flush()}
   if(Date.now()-lastPush>(REQ.push||30)*60000){lastPush=Date.now();if(!process.env.GITHUB_ACTIONS||!process.env.GITHUB_REF_NAME)return;
    try{report.total=flush();report.partial=new Date().toISOString();fs.writeFileSync(path.join(OUT,'_report.json'),JSON.stringify(report,null,1));
-    require('child_process').execSync('git add texts && (git diff --cached --quiet || (git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -q -m "Import library texts (automated, partial)" && git pull -q --rebase origin "$GITHUB_REF_NAME" && git push -q origin "HEAD:$GITHUB_REF_NAME"))',{cwd:ROOT,stdio:'ignore',timeout:300000})}
+    /* rebase-এর জন্যও পরিচয় লাগে, তাই আগে config; rebase আটকে গেলে বাতিল করে পরের বার আবার চেষ্টা */
+    require('child_process').execSync('git config user.name "github-actions[bot]" && git config user.email "41898282+github-actions[bot]@users.noreply.github.com" && git add texts && (git diff --cached --quiet || git commit -q -m "Import library texts (automated, partial)") && (git pull -q --rebase origin "$GITHUB_REF_NAME" || (git rebase --abort; exit 1)) && git push -q origin "HEAD:$GITHUB_REF_NAME"',{cwd:ROOT,stdio:'ignore',timeout:300000})}
    catch(e){report.checkpointErr=String(e).slice(0,160)}}};
  await Promise.all(Object.keys(queue).map(async s=>{const src=SOURCES[s],st=report.bySource[s]={queued:queue[s].length,done:0,failed:0};let streak=0;
   let list=queue[s].slice(0,(REQ.limits&&REQ.limits[s])||limit);
