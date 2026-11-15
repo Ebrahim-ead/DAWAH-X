@@ -31,8 +31,8 @@ const SOURCES={
    /* প্রশ্নোত্তর পেজ (DW Question & Answer): প্রশ্ন + সব উত্তর; মন্তব্য, ভোট, শেয়ার বাদ */
    if($('.dwqa-single-question').length){const q=$('.dwqa-question-item').first(),ans=$('.dwqa-answer-item').toArray();if(!ans.length)return{title,html:''};
     const by=n=>n?'<p>— '+esc(n)+'</p>':'',names=[];
-    let html='<h3>প্রশ্ন</h3>'+clean($,q.find('.dwqa-question-content').first(),base)+by(name(q.find('.dwqa-question-meta').first(),'asked'));
-    for(const a of ans){const n=name($(a).find('.dwqa-answer-meta').first(),'answered');if(n&&!names.includes(n))names.push(n);html+='<h3>উত্তর</h3>'+clean($,$(a).find('.dwqa-answer-content').first(),base)+by(n)}
+    let html='<h2>প্রশ্ন</h2>'+clean($,q.find('.dwqa-question-content').first(),base)+by(name(q.find('.dwqa-question-meta').first(),'asked'));
+    for(const a of ans){const n=name($(a).find('.dwqa-answer-meta').first(),'answered');if(n&&!names.includes(n))names.push(n);html+='<h2>উত্তর</h2>'+clean($,$(a).find('.dwqa-answer-content').first(),base)+by(n)}
     return{title,html,date:'',author:names.join(', ')}}
    /* সাধারণ লেখা (Jannah থিম) */
    const body=$('#the-post .entry-content,.entry-content').first();

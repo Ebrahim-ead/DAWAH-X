@@ -35,7 +35,7 @@ for(const f of fs.readdirSync(DIR).filter(f=>f.endsWith('.txt')).sort()){
  const s=HOSTS[new URL(h.u).host],k=keyOfUrl(h.u),row=rows[k];
  if(!s)throw new Error(f+': unknown host');if(!row)throw new Error(f+': address is not a card in app.js');
  let html=toHtml(raw.slice(cut+2));
- if(h.q)html='<h3>প্রশ্ন</h3><p>'+esc(h.q)+'</p>'+(h.asker?'<p>— '+esc([h.asker,h.asked].filter(Boolean).join(', '))+'</p>':'')+'<h3>অফিসিয়াল উত্তর</h3>'+html;
+ if(h.q)html='<h2>প্রশ্ন</h2><p>'+esc(h.q)+'</p>'+(h.asker?'<p>— '+esc([h.asker,h.asked].filter(Boolean).join(', '))+'</p>':'')+'<h2>অফিসিয়াল উত্তর</h2>'+html;
  const b=k.slice(-3),file=path.join(OUT,b+'.json'),data=fs.existsSync(file)?JSON.parse(fs.readFileSync(file,'utf8')):{};
  if(!data[k])added++;data[k]={u:h.u,s,c:row[0],t:h.t||row[1].replace(/\s*\(প্রশ্নোত্তর\)\s*$/,''),l:row[1],d:h.d||'',a:h.a||'',h:html};
  fs.writeFileSync(file,JSON.stringify(data));if(!idx.full[s])keys.add(k);n++;
