@@ -16,10 +16,25 @@
   let videos=[];
   let page=1;
 
+  const baseUrl=new URL('.',scriptUrl);
+  const remoteThumb=(id,size='hqdefault')=>`https://i.ytimg.com/vi/${encodeURIComponent(id)}/${size}.jpg`;
   function thumbUrl(video){
     const value=String(video.thumbnail||'');
+    if(!value)return remoteThumb(video.id);
     if(/^https:\/\//i.test(value))return value;
-    return new URL(value||`https://i.ytimg.com/vi/${video.id}/hqdefault.jpg`,new URL('.',scriptUrl)).href;
+    // Local thumbnail files (video-thumb-<id>.jpg) are stored with lowercase names.
+    return new URL(value.toLowerCase(),baseUrl).href;
+  }
+  const normalize=value=>String(value||'').normalize('NFC').toLocaleLowerCase().replace(/[০-৯]/g,d=>String('০১২৩৪৫৬৭৮৯'.indexOf(d))).replace(/\s+/g,' ').trim();
+  const searchText=new WeakMap();
+  function matchingVideos(){
+    const terms=normalize(search?.value).split(' ').filter(Boolean);
+    if(!terms.length)return videos;
+    return videos.filter(video=>{
+      let text=searchText.get(video);
+      if(text===undefined){text=normalize(`${video.title} ${video.channelTitle||''}`);searchText.set(video,text);}
+      return terms.every(term=>text.includes(term));
+    });
   }
 
   function makeCard(video){
@@ -35,15 +50,15 @@
     button.setAttribute('aria-label',video.title+' — ভিডিওটি এই পেজে চালান');
 
     const image=document.createElement('img');
-    image.src=thumbUrl(video);
-    image.alt=video.title+' — ভিডিও thumbnail';
     image.loading='lazy';
     image.decoding='async';
+    image.alt=video.title+' — ভিডিও thumbnail';
     image.addEventListener('error',()=>{
       if(image.dataset.fallback)return;
       image.dataset.fallback='1';
-      image.src=`https://i.ytimg.com/vi/${encodeURIComponent(video.id)}/mqdefault.jpg`;
+      image.src=remoteThumb(video.id,'mqdefault');
     });
+    image.src=thumbUrl(video);
     button.append(image);
 
     const play=document.createElement('span');
@@ -76,8 +91,8 @@
   }
 
   function render(){
-    const query=(search?.value||'').trim().toLocaleLowerCase();
-    const matches=query?videos.filter(video=>`${video.title} ${video.channelTitle}`.toLocaleLowerCase().includes(query)):videos;
+    const query=normalize(search?.value);
+    const matches=matchingVideos();
     const pages=Math.max(1,Math.ceil(matches.length/pageSize));
     page=Math.min(Math.max(1,page),pages);
     const start=(page-1)*pageSize;
@@ -98,21 +113,21 @@
   }
 
   function goToPage(value,scroll=false){
-    const pages=Math.max(1,Math.ceil((search?.value?videos.filter(video=>`${video.title} ${video.channelTitle}`.toLocaleLowerCase().includes(search.value.trim().toLocaleLowerCase())).length:videos.length)/pageSize));
     const target=Number.parseInt(value,10);
-    if(!Number.isFinite(target))return;
-    page=Math.max(1,Math.min(pages,target));
+    if(!Number.isFinite(target)){if(pageInput)pageInput.value=String(page);return;}
+    page=target; // render() clamps to the valid range
     render();
     if(scroll)document.getElementById('video-gallery')?.scrollIntoView({behavior:'smooth',block:'start'});
   }
 
-  search?.addEventListener('input',()=>{page=1;render();});
+  let searchTimer;
+  search?.addEventListener('input',()=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>{page=1;render();},140);});
   prev?.addEventListener('click',()=>goToPage(page-1,true));
   next?.addEventListener('click',()=>goToPage(page+1,true));
   pageGo?.addEventListener('click',()=>goToPage(pageInput?.value,true));
   pageInput?.addEventListener('keydown',event=>{if(event.key==='Enter')goToPage(pageInput.value,true);});
 
-  const catalogUrl=new URL('youtube-videos.json',new URL('.',scriptUrl));
+  const catalogUrl=new URL('youtube-videos.json',baseUrl);
   fetch(catalogUrl.href,{cache:'no-cache'})
     .then(response=>{if(!response.ok)throw new Error(`Catalogue request failed (${response.status})`);return response.json();})
     .then(data=>{

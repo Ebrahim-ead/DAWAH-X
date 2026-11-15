@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1, viewport-fit=cover" name="viewport"/>
+<title>পাতাটি পাওয়া যায়নি — DAWAH X</title>
+<meta content="noindex" name="robots"/>
+<meta content="#08151a" name="theme-color"/><meta content="dark" name="color-scheme"/>
+<style>
+/* Self-contained on purpose: this page can be served for any missing URL, so it must not depend on relative asset paths. */
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{display:grid;place-items:center;padding:24px;background:#050b10;color:#eef2f8;font-family:"Hind Siliguri",system-ui,-apple-system,"Segoe UI",sans-serif;text-align:center;line-height:1.7}
+main{max-width:520px}
+.brand{font-weight:800;letter-spacing:.32em;color:#f6c453;font-size:14px}
+.code{font-size:clamp(72px,22vw,128px);font-weight:800;line-height:1;margin:18px 0 6px;color:#ffe09a}
+h1{font-size:clamp(22px,5vw,30px);margin:0 0 10px}
+p{margin:0 0 26px;color:#aab6c6}
+nav{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+a{display:inline-flex;align-items:center;min-height:46px;padding:10px 20px;border-radius:10px;border:1px solid rgba(173,193,215,.24);color:#eef2f8;text-decoration:none;font-weight:600}
+a.primary{background:linear-gradient(#ffc933,#f0a800);border-color:transparent;color:#1a1300}
+a:hover,a:focus-visible{border-color:#f6c453;outline:none}
+</style>
+</head>
+<body>
+<main>
+<div class="brand">DAWAH X</div>
+<div aria-hidden="true" class="code">404</div>
+<h1>দুঃখিত, এই পাতাটি পাওয়া যায়নি</h1>
+<p>লিংকটি ভুল হতে পারে অথবা পাতাটি সরিয়ে নেওয়া হয়েছে। নিচের লিংক থেকে আপনার প্রয়োজনীয় পাতায় যান।</p>
+<nav aria-label="প্রধান পাতা">
+<a class="primary" data-page="index.html" href="index.html">হোমে ফিরে যান</a>
+<a data-page="questions.html" href="questions.html">প্রশ্নোত্তর</a>
+<a data-page="fatwa.html" href="fatwa.html">ফতোয়া</a>
+<a data-page="videos.html" href="videos.html">ভিডিও</a>
+<a data-page="ask.html" href="ask.html">প্রশ্ন করুন</a>
+</nav>
+</main>
+<script>
+/* Point the links at the site root, wherever the site is hosted (GitHub Pages project folder or a domain root). */
+(function(){var m=location.pathname.match(/^\/DAWAH-X\//i);var root=m?m[0]:"/";document.querySelectorAll("a[data-page]").forEach(function(a){a.href=root+a.getAttribute("data-page")})})();
+</script>
+</body>
+</html>
