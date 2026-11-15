@@ -582,3 +582,21 @@ a,button,input,select,textarea,.chip,.qcard{touch-action:manipulation;-webkit-ta
 .article-note a{color:var(--gold2);text-decoration:underline;text-underline-offset:3px}
 @media(max-width:560px){.article{padding-top:18px}.article-body,.article-short p{font-size:16.5px}.article-cta .askbtn{width:100%;justify-content:center}}
 @media print{header.top,.site-clockbar,footer,.article-share,.article-cta,.article-more,.back-to-top,#scroll-progress,.ambient-motion,.cursor-light,.crumbs{display:none!important}body{background:#fff!important;color:#000!important}.article *{color:#000!important;background:none!important}.quote-ayah{border-left:3px solid #999}}
+
+/* ===== read.html: আমদানি করা লেখা ===== */
+.article-head h1#read-title{font-size:clamp(22px,3.4vw,32px);line-height:1.55}
+.article-body a{color:var(--gold2);text-decoration:underline;text-underline-offset:3px;overflow-wrap:anywhere}
+.article-body a:hover{color:#fff}
+.article-body h3,.article-body h4{margin:26px 0 8px;color:#fff;font-size:clamp(18px,2.4vw,21px);line-height:1.5}
+.article-body blockquote{margin:18px 0;padding:14px 18px;border-left:3px solid var(--gold);border-radius:0 12px 12px 0;background:rgba(255,255,255,.04)}
+.article-body blockquote p:last-child{margin-bottom:0}
+.article-body img{display:block;max-width:100%;height:auto;margin:18px auto;border-radius:10px}
+.article-body table{display:block;max-width:100%;overflow-x:auto;margin:18px 0;border-collapse:collapse;font-size:15px}
+.article-body td,.article-body th{padding:8px 10px;border:1px solid var(--line);vertical-align:top}
+.article-body sup{font-size:.72em;line-height:0}
+.article-body .ar{font-size:1.22em;line-height:2.2;text-align:right;color:#fff}
+.article-body [id]{scroll-margin-top:110px}
+.article-source{margin:30px 0 0;padding:18px 20px;border:1px solid rgba(246,196,83,.32);border-radius:14px;background:linear-gradient(145deg,rgba(246,196,83,.08),rgba(255,255,255,.02))}
+.article-source>b{display:block;margin-bottom:4px;color:var(--gold2);font-size:13px;letter-spacing:.4px}
+.article-source p{margin:0 0 12px;color:#dfe6f0;font-size:15px;line-height:1.8}
+.article-source p b{color:#fff}

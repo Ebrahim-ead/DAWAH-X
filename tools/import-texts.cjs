@@ -1,6 +1,6 @@
 /* DAWAH X — লাইব্রেরির লেখা আমদানি (GitHub Actions-এ চলে; দেখুন .github/workflows/import-texts.yml)
    প্রকাশকের অনুমতি সাপেক্ষে উৎস সাইট থেকে লেখা এনে texts/<bucket>.json-এ রাখে। প্রতিটি লেখার সাথে উৎসের ঠিকানা থাকে।
-   নিয়ন্ত্রণ: tools/import-request.json  {"set":"builtin"|"all","hosts":["ai","ra","at"],"limit":0,"minutes":300,"probe":[url…]} */
+   নিয়ন্ত্রণ: tools/import-request.json  {"set":"builtin"|"all","hosts":["ai","ra","at"],"limits":{"at":100},"minutes":300}  (আগে আনা লেখা আবার আনা হয় না) */
 const fs=require('fs'),path=require('path'),cheerio=require('cheerio');
 const ROOT=path.join(__dirname,'..'),OUT=path.join(ROOT,'texts');
 const REQ=JSON.parse(fs.readFileSync(path.join(__dirname,'import-request.json'),'utf8'));
@@ -15,9 +15,9 @@ const SOURCES={
    return{title:$('.section-title h1').first().text(),body:$('.post-cont-wrapper').first(),date:(meta.match(/[\u0980-\u09ff]+\s+[০-৯0-9]{1,2},\s*[০-৯0-9]{4}/)||[''])[0],author:''}}},
  ra:{host:'www.response-to-anti-islam.com',delay:500,extract($){const head=$('h1.post-title').first().parent();
    return{title:$('h1.post-title').first().text(),body:$('.entry-content').first(),date:(head.text().match(/[A-Z][a-z]{2} \d{1,2}, \d{4}/)||[''])[0],author:head.find('a[href*="author_id"]').first().text()}}},
- at:{host:'at-tahreek.com',delay:350,extract($){const col=$('.main_content_area .col-md-9').first();
-   const body=col.find('.article-details,.post-cont-wrapper,.details,.article_details,.news-details,.single-post').first();
-   return{title:$('.bread-title h1').first().text()||$('h1').first().text(),body:body.length?body:col,date:'',author:''}}}
+ at:{host:'at-tahreek.com',delay:350,extract($){const body=$('.main_content_area .article-details').first();body.find('.subjects,.fb-comments,#fb-root,.related-articles').remove();
+   const crumbs=$('.styled_breadcumb a').toArray().map(a=>$(a).text().replace(/\s+/g,' ').trim()).filter(Boolean);
+   return{title:$('.bread-title h1').first().text(),body,date:crumbs.find(t=>/[০-৯0-9]{4}/.test(t))||'',author:''}}}
 };
 const sourceOf=u=>{try{const h=new URL(u).host;return Object.keys(SOURCES).find(k=>SOURCES[k].host===h)||null}catch(e){return null}};
 
@@ -39,8 +39,8 @@ function clean($,root,base){
   if(t==='a'){const inner=kids(n);let h=n.attribs.href||'';const id=n.attribs.name||n.attribs.id||'';
    const idA=/^_?(ftn|ftnref|edn|ednref)\d+$/.test(id)?` id="x${escA(id)}"`:'';
    const fn=h.match(/#(_?(?:ftn|ftnref|edn|ednref)\d+)$/);
-   if(fn)return`<a${idA} href="#x${fn[1]}">${inner}</a>`;
-   try{h=new URL(h,base).href}catch(e){h=''}
+   let own=h.startsWith('#');try{const U=new URL(h,base);own=own||U.host===new URL(base).host;h=U.href}catch(e){h=''}
+   if(fn&&own)return`<a${idA} href="#x${fn[1]}">${inner}</a>`;
    if(/^https?:\/\//.test(h)&&inner.trim())return`<a${idA} href="${escA(h)}" rel="noopener nofollow" target="_blank">${inner}</a>`;
    return idA?`<a${idA}>${inner}</a>`:inner}
   if(INLINE[t]){const inner=kids(n);return inner.trim()?`<${INLINE[t]}>${inner}</${INLINE[t]}>`:inner}
@@ -50,7 +50,8 @@ function clean($,root,base){
   return kids(n)}
  let html=kids(root.get(0));
  html=html.replace(/<(p|h2|h3|h4|li|blockquote|td|th)>\s+/g,'<$1>').replace(/\s+<\/(p|h2|h3|h4|li|blockquote|td|th)>/g,'</$1>')
-  .replace(/<(p|h2|h3|h4|b|i|u|blockquote)>(?:\s|<br>)*<\/\1>/g,'').replace(/(?:<br>\s*){3,}/g,'<br><br>').trim();
+  .replace(/<(p|h2|h3|h4|b|i|u|blockquote)>(?:\s|<br>)*<\/\1>/g,'').replace(/<(p|h2|h3|h4|b|i|u|blockquote)>(?:\s|<br>)*<\/\1>/g,'')
+  .replace(/(?:<br>\s*){3,}/g,'<br><br>').replace(/^(?:\s|<br>)+|(?:\s|<br>)+$/g,'');
  if(!/^<(p|h2|h3|h4|ul|ol|blockquote|table)\b/.test(html))html='<p>'+html+'</p>';
  return html}
 const textLen=h=>h.replace(/<[^>]+>/g,'').replace(/\s+/g,' ').trim().length;
@@ -88,7 +89,7 @@ async function get(u){let last;for(let a=0;a<3;a++){try{const ac=new AbortContro
   if(loadBucket(k.slice(0,2)).data[k]){report.skipped++;continue}(queue[s]=queue[s]||[]).push({k,s,c:r[0],t:r[1],u:r[2]})}
  const deadline=Date.now()+(REQ.minutes||300)*60000,limit=REQ.limit||Infinity;let lastFlush=Date.now();
  await Promise.all(Object.keys(queue).map(async s=>{const src=SOURCES[s],st=report.bySource[s]={queued:queue[s].length,done:0,failed:0};let streak=0;
-  for(const it of queue[s].slice(0,limit)){if(Date.now()>deadline||streak>=25)break;
+  for(const it of queue[s].slice(0,(REQ.limits&&REQ.limits[s])||limit)){if(Date.now()>deadline||streak>=25)break;
    const r=await get(it.u);let fail='';
    if(r.status!==200)fail=r.err||('HTTP '+r.status);
    else{try{const $=cheerio.load(r.html);const x=src.extract($);const html=x.body&&x.body.length?clean($,x.body,r.final||it.u):'';const title=(x.title||'').replace(/\s+/g,' ').trim();

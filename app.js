@@ -31,6 +31,49 @@ document.querySelectorAll("[data-copy-link]").forEach(b=>b.addEventListener("cli
   try{const ta=document.createElement("textarea");ta.value=url;ta.setAttribute("readonly","");ta.style.cssText="position:fixed;top:0;left:0;width:1px;height:1px;opacity:0";document.body.appendChild(ta);ta.select();ok=document.execCommand("copy");ta.remove()}catch(e2){}}
  label.textContent=ok?"কপি হয়েছে ✓":"কপি করা যায়নি";setTimeout(()=>{label.textContent=old},2200)}));
 
+/* ---- read.html: আমদানি করা লেখা দেখানো ---- */
+const READ_TAGS={P:1,BR:1,B:1,I:1,U:1,SUP:1,SUB:1,H2:1,H3:1,H4:1,UL:1,OL:1,LI:1,BLOCKQUOTE:1,TABLE:1,THEAD:1,TBODY:1,TR:1,TD:1,TH:1,A:1,IMG:1};
+/* উৎসের HTML আবার ছেঁকে নেওয়া হয়: শুধু নিরীহ ট্যাগ ও নিরাপদ লিংক থাকে */
+function safeArticle(html){
+ const doc=new DOMParser().parseFromString("<div>"+html+"</div>","text/html"),out=document.createDocumentFragment();
+ const copy=(src,dst)=>{src.childNodes.forEach(n=>{
+  if(n.nodeType===3){dst.appendChild(document.createTextNode(n.nodeValue));return}
+  if(n.nodeType!==1)return;
+  if(!READ_TAGS[n.tagName]){if(!/^(SCRIPT|STYLE|IFRAME|OBJECT|EMBED|FORM)$/.test(n.tagName))copy(n,dst);return}
+  const el=document.createElement(n.tagName);
+  if(n.tagName==="A"){const h=n.getAttribute("href")||"",id=n.getAttribute("id")||"";
+   if(/^x_?(ftn|ftnref|edn|ednref)\d+$/.test(id))el.id=id;
+   if(/^#x_?(ftn|ftnref|edn|ednref)\d+$/.test(h))el.setAttribute("href",h);
+   else if(/^https?:\/\//i.test(h)){el.setAttribute("href",h);el.target="_blank";el.rel="noopener nofollow"}}
+  if(n.tagName==="IMG"){const src=n.getAttribute("src")||"";if(!/^https:\/\//i.test(src))return;el.src=src;el.alt=n.getAttribute("alt")||"";el.loading="lazy";el.decoding="async";el.referrerPolicy="no-referrer"}
+  copy(n,el);dst.appendChild(el)})};
+ copy(doc.body.firstChild,out);
+ /* আরবি অনুচ্ছেদ ডান থেকে বামে */
+ out.querySelectorAll("p,li,blockquote,td").forEach(b=>{const t=b.textContent,ar=(t.match(/[\u0600-\u06ff]/g)||[]).length,bn=(t.match(/[\u0980-\u09ff]/g)||[]).length;if(ar>12&&ar>bn*3){b.lang="ar";b.dir="rtl";b.classList.add("ar")}});
+ return out}
+const readTitle=$("read-title");
+if(readTitle){
+ const P=new URLSearchParams(location.search),key=(P.get("k")||"").toLowerCase(),from=P.get("from")==="f"?"f":"q";
+ const back=$("read-back"),body=$("read-body"),nav=document.querySelector("[data-read-nav]");
+ const backHref=from==="f"?"fatwa.html":"questions.html",backLabel=from==="f"?"ফতোয়া":"প্রশ্নোত্তর";
+ if(back){back.href=backHref;back.textContent=backLabel}
+ if(nav&&from==="f"){nav.classList.remove("on");const f=document.querySelector('#menu a[href="fatwa.html"]');if(f)f.classList.add("on")}
+ const fail=msg=>{readTitle.textContent="লেখাটি পাওয়া যায়নি";body.innerHTML=`<p>${msg}</p><p><a class="askbtn" href="${backHref}">${backLabel} তালিকায় ফিরে যান</a></p>`};
+ if(!/^[0-9a-f]{14}$/.test(key))fail("ঠিকানাটি সঠিক নয়।");
+ else fetch("texts/"+key.slice(0,2)+".json").then(r=>{if(!r.ok)throw new Error(r.status);return r.json()}).then(all=>{
+  const x=all[key];if(!x){fail("এই লেখাটি এখনো সাইটে যোগ হয়নি।");return}
+  const srcName=TEXT_SOURCES[x.s]||hostOf(x.u);
+  readTitle.textContent=toLatinDigits(x.t);document.title=toLatinDigits(x.t)+" — DAWAH X";
+  const cat=$("read-cat");if(cat&&x.c){cat.textContent=x.c;cat.hidden=false}
+  $("read-meta").innerHTML=[srcName,x.a,x.d].filter(Boolean).map(v=>`<span>${escHTML(v)}</span>`).join('<span aria-hidden="true">·</span>');
+  body.textContent="";body.appendChild(safeArticle(x.h));
+  $("read-credit").innerHTML=`এই লেখাটি <b>${escHTML(srcName)}</b>-এর (${escHTML(hostOf(x.u))})। প্রকাশকের অনুমতিক্রমে এখানে হুবহু তুলে ধরা হয়েছে; লেখার স্বত্ব মূল প্রকাশকের।`;
+  $("read-original").href=x.u;$("read-source").hidden=false;
+  const url=location.href.split("#")[0],share=encodeURIComponent(x.t+"\n"+url);
+  $("read-wa").href="https://wa.me/?text="+share;$("read-fb").href="https://www.facebook.com/sharer/sharer.php?u="+encodeURIComponent(url);$("read-share").hidden=false;
+  if(location.hash){const t=document.getElementById(location.hash.slice(1));if(t)t.scrollIntoView()}
+ }).catch(()=>fail("লেখাটি লোড করা যায়নি। ইন্টারনেট সংযোগ দেখে আবার চেষ্টা করুন।"))}
+
 /* ---- ইমেইল সাবস্ক্রিপশন ---- */
 {const sb=$("sb"),em=$("em"),subm=$("subm");
  if(sb&&em&&subm){
@@ -55,8 +98,15 @@ const escHTML=v=>escAttr(toLatinDigits(v));
 const normalizeSearchText=v=>toLatinDigits(String(v||"").normalize("NFC").toLowerCase()).trim().replace(/\s+/g," ");
 const hostOf=u=>{try{return new URL(u).hostname.replace(/^www\./,"")}catch(e){return""}};
 const formatCount=n=>new Intl.NumberFormat("en-US").format(n);
-/* সাইটের নিজস্ব পেজ (যেমন answer-….html) — পুরো ঠিকানা নয়, শুধু ফাইলের নাম */
-const isLocalPage=u=>!/^[a-z][a-z0-9+.-]*:/i.test(u);
+/* ---- সাইটেই পড়ার লেখা (texts/…json; tools/import-texts.cjs দিয়ে আনা) ---- */
+const TEXT_SOURCES={ai:"মাসিক আল-ইতিছাম",at:"মাসিক আত-তাহরীক",ra:"Response to Anti-Islam",fm:"From Muslims"};
+/* tools/import-texts.cjs-এর keyOfUrl()-এর সাথে হুবহু এক হতে হবে */
+function textKey(u){try{u=decodeURI(u)}catch(e){}let h1=0xdeadbeef,h2=0x41c6ce57;for(let i=0;i<u.length;i++){const c=u.charCodeAt(i);h1=Math.imul(h1^c,2654435761);h2=Math.imul(h2^c,1597334677)}
+ h1=Math.imul(h1^(h1>>>16),2246822507)^Math.imul(h2^(h2>>>13),3266489909);h2=Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909);
+ return (4294967296*(2097151&h2)+(h1>>>0)).toString(16).padStart(14,"0")}
+let LOCAL_TEXTS=new Set();
+const localTextsReady=(location.protocol==="file:"?Promise.resolve([]):fetch("texts/index.json").then(r=>r.ok?r.json():[]).catch(()=>[])).then(a=>{LOCAL_TEXTS=new Set(Array.isArray(a)?a:[]);return LOCAL_TEXTS});
+const localKeyOf=u=>{if(!LOCAL_TEXTS.size)return"";const k=textKey(u);return LOCAL_TEXTS.has(k)?k:""};
 
 /* cfg: {id:"q"|"f", rows:[[বিভাগ,শিরোনাম,লিংক]], manifest:[{category,src,count}], partsKey, label, hint, loadingText} */
 function setupLibrary(cfg){
@@ -84,9 +134,9 @@ function setupLibrary(cfg){
   const list=rows.filter(x=>inCategory(x,cur)&&terms.every(t=>rowText(x).includes(t)));
   const ready=isReady(cur),loading=isLoading(cur);
   if(list.length){
-   grid.innerHTML=list.slice(0,show).map(x=>isLocalPage(x[2])
-    ?`<a class="qcard qcard-own" href="${escAttr(x[2])}"><small>${escHTML(x[0])}</small><b>${escHTML(x[1])}</b><span>DAWAH X-এ পড়ুন ›</span></a>`
-    :`<a class="qcard" href="${escAttr(x[2])}" target="_blank" rel="noopener"><small>${escHTML(x[0])}</small><b>${escHTML(x[1])}</b><span>${escHTML(hostOf(x[2]))} ↗</span></a>`).join("");
+   grid.innerHTML=list.slice(0,show).map(x=>{const k=localKeyOf(x[2]);return k
+    ?`<a class="qcard qcard-own" href="read.html?k=${k}&from=${cfg.id}"><small>${escHTML(x[0])}</small><b>${escHTML(x[1])}</b><span>এখানেই পড়ুন ›</span></a>`
+    :`<a class="qcard" href="${escAttr(x[2])}" target="_blank" rel="noopener"><small>${escHTML(x[0])}</small><b>${escHTML(x[1])}</b><span>${escHTML(hostOf(x[2]))} ↗</span></a>`}).join("");
   }else{
    grid.innerHTML=`<p class="qnote">${loading?"লোড হচ্ছে…":failed&&!ready?"সূচি লোড হয়নি। ইন্টারনেট সংযোগ দেখে আবার চেষ্টা করুন।":"কিছু পাওয়া যায়নি।"}</p>`;
   }
@@ -142,6 +192,7 @@ function setupLibrary(cfg){
 
  if(manifest.length)setStatus(`${cfg.label} (${formatCount(total)}টি) — ২ বা তার বেশি অক্ষর লিখে সার্চ বা বিভাগ বাছাই করলে লোড হবে।`);
  draw();
+ localTextsReady.then(set=>{if(set.size)draw()});
  return {draw,load};
 }
 

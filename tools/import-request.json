@@ -1,1 +1,1 @@
-{"set":"builtin","hosts":["ai","ra"],"limit":6,"minutes":10,"probe":["https://at-tahreek.com/article_details/922193"],"run":2}
+{"set":"all","hosts":["ai","ra","at"],"limits":{"ai":420,"ra":400,"at":8},"minutes":40,"run":3}
