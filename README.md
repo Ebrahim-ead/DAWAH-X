@@ -25,6 +25,7 @@
 | `questions-catalog-part-*.js`, `fatwa-catalog-part-*.js` | পূর্ণ লাইব্রেরি সূচি (প্রয়োজন হলে লোড হয়) |
 | `logo.webp`, `logo-icon.webp`, `favicon.svg`, `apple-touch-icon.png`, `hero.jpg`, `youtube-channel-logo.webp` | লোগো, আইকন ও হোম পেজের ছবি |
 | `og-image.jpg` | Facebook/WhatsApp-এ লিংক শেয়ার করলে যে ছবি দেখায় |
+| `manifest.webmanifest`, `icon-192.png`, `icon-512.png`, `icon-maskable-512.png` | ফোনে “Add to Home screen” করলে সাইটের নাম ও আইকন |
 | `sitemap.xml` | সার্চ ইঞ্জিনের জন্য পেজের তালিকা |
 | `__forms.html`, `netlify.toml` | শুধু Netlify-তে হোস্ট করলে লাগে |
 | `.nojekyll` | GitHub Pages-কে ফাইলগুলো যেমন আছে তেমন প্রকাশ করতে বলে |
