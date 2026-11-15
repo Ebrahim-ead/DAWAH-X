@@ -123,14 +123,18 @@ async function get(u,ms=30000){let last;for(let a=0;a<3;a++){try{const ac=new Ab
   report.ping.push(o);await sleep(400)}
  if(REQ.probe)report.probe=[];
  /* probe: অচেনা সাইটের পেজের গঠন দেখার জন্য (texts/_report.json-এ যায়) */
- for(const u of REQ.probe||[]){const r=await get(u);const $=cheerio.load(r.html);$('script,style,noscript,svg,iframe').remove();
+ let WBP=null;
+ for(let u of REQ.probe||[]){ /* "wb:<ঠিকানা>" = Internet Archive-এর সর্বশেষ সফল কপি */
+  if(u.startsWith('wb:')){WBP=WBP||(await waybackMap('frommuslims.com')).map;const w=WBP.get(wbNorm(u.slice(3)));if(!w){report.probe.push({u,status:'not archived'});continue}u='https://web.archive.org/web/'+w.ts+'id_/'+w.orig}
+  const r=await get(u,60000);const $=cheerio.load(r.html);$('script,style,noscript,svg,iframe').remove();
   const sig=e=>e.tagName+(e.attribs.id?'#'+e.attribs.id:'')+(e.attribs.class?'.'+e.attribs.class.trim().split(/\s+/).slice(0,4).join('.'):'');
-  const walk=(e,d)=>$(e).children().toArray().slice(0,22).map(c=>{const t=$(c).text().replace(/\s+/g,' ').trim();const o={s:sig(c),n:t.length,t:t.slice(0,40)};if(d<4&&t.length>200&&$(c).children().length)o.c=walk(c,d+1);return o});
+  const walk=(e,d)=>$(e).children().toArray().slice(0,REQ.probeKids||22).map(c=>{const t=$(c).text().replace(/\s+/g,' ').trim();const o={s:sig(c),n:t.length,t:t.slice(0,40)};if(d<4&&t.length>200&&$(c).children().length)o.c=walk(c,d+1);return o});
   const o={u,status:r.status,final:r.final,len:r.html.length,title:$('title').text().trim().slice(0,80),h1:$('h1').toArray().slice(0,3).map(h=>({t:$(h).text().trim().slice(0,50),path:$(h).parents().toArray().slice(0,6).map(sig)}))};
   let best=null;$('h1').first().parents().each((i,p)=>{if(!best&&$(p).text().replace(/\s+/g,' ').length>800)best=p});
   if(!best)best=$('main,article,body').first().get(0);if(best){o.best=sig(best);o.tree=walk(best,0)}
   o.time=$('time').toArray().slice(0,3).map(t=>sig(t)+' '+$(t).text().trim().slice(0,30)+' '+(t.attribs.datetime||''));
   o.meta=['og:title','article:published_time','author','og:site_name'].map(n=>n+'='+($('meta[property="'+n+'"],meta[name="'+n+'"]').attr('content')||'').slice(0,50));
+  if(REQ.sel)o.sel=REQ.sel.map(q=>[q,$(q).length,...$(q).toArray().slice(0,2).map(e=>sig(e)+' > '+$(e).children().toArray().slice(0,6).map(sig).join(' , ')+' :: '+$(e).text().replace(/\s+/g,' ').trim().slice(0,110))]);
   report.probe.push(o)}
  const want=new Set(REQ.hosts||Object.keys(SOURCES)),seen=new Set(),queue={};
  const rows=REQ.set==='all'?[...builtinRows(),...catalogRows()]:REQ.set==='builtin'?builtinRows():[];
@@ -141,7 +145,7 @@ async function get(u,ms=30000){let last;for(let a=0;a<3;a++){try{const ac=new Ab
  for(const s of Object.keys(SOURCES))if(SOURCES[s].wayback&&(queue[s]||REQ.wayback)){const w=await waybackMap(SOURCES[s].wayback);WB[s]=w.map;
   const all=[...new Set([...builtinRows(),...catalogRows()].map(r=>r[2]).filter(u=>sourceOf(u)===s))],hit=all.filter(u=>!/\?/.test(u)&&w.map.has(wbNorm(u)));
   w.info.catalog=all.length;w.info.matched=hit.length;w.info.newest=hit.map(u=>w.map.get(wbNorm(u)).ts.slice(0,4)).reduce((o,y)=>(o[y]=(o[y]||0)+1,o),{});
-  w.info.unmatched=all.filter(u=>!hit.includes(u)).slice(0,8).map(u=>{try{return decodeURI(u)}catch(e){return u}});(report.wayback=report.wayback||{})[s]=w.info}
+  w.info.qna=[all.filter(u=>/\/qna\/./.test(u)).length,hit.filter(u=>/\/qna\/./.test(u)).length];w.info.unmatched=all.filter(u=>!hit.includes(u)).slice(0,8).map(u=>{try{return decodeURI(u)}catch(e){return u}});(report.wayback=report.wayback||{})[s]=w.info}
  const deadline=Date.now()+(REQ.minutes||300)*60000,limit=REQ.limit||Infinity;let lastFlush=Date.now();
  await Promise.all(Object.keys(queue).map(async s=>{const src=SOURCES[s],st=report.bySource[s]={queued:queue[s].length,done:0,failed:0};let streak=0;
   for(const it of queue[s].slice(0,(REQ.limits&&REQ.limits[s])||limit)){if(Date.now()>deadline||streak>=25)break;
