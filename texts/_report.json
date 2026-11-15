@@ -1,210 +1,312 @@
 {
- "at": "2026-11-15T06:40:16.965Z",
+ "at": "2026-11-15T15:22:38.221Z",
  "request": {
-  "set": "all",
-  "hosts": [
-   "ai",
-   "ra",
-   "at"
-  ],
-  "minutes": 320,
-  "run": 4
- },
- "done": 18568,
- "skipped": 800,
- "failed": [
-  [
-   "https://at-tahreek.com/article_details/9559",
-   "no content"
-  ],
-  [
-   "https://at-tahreek.com/article_details/9503",
-   "no content"
-  ],
-  [
-   "https://at-tahreek.com/article_details/9413",
-   "no content"
-  ],
-  [
-   "https://at-tahreek.com/article_details/9322",
-   "no content"
-  ],
-  [
-   "https://al-itisam.com/article_details/2257",
-   "no content"
-  ],
-  [
-   "https://at-tahreek.com/article_details/8719",
-   "no content"
-  ],
-  [
-   "https://at-tahreek.com/article_details/8438",
-   "no content"
-  ],
-  [
-   "https://at-tahreek.com/article_details/8084",
-   "no content"
-  ],
-  [
-   "https://at-tahreek.com/article_details/8078",
-   "no content"
-  ],
-  [
-   "https://at-tahreek.com/article_details/8012",
-   "no content"
-  ],
-  [
-   "https://at-tahreek.com/article_details/7951",
-   "no content"
-  ],
-  [
-   "https://at-tahreek.com/article_details/7915",
-   "no content"
-  ],
-  [
-   "https://at-tahreek.com/article_details/7875",
-   "no content"
-  ],
-  [
-   "https://at-tahreek.com/article_details/7596",
-   "no content"
-  ],
-  [
-   "https://at-tahreek.com/article_details/7196",
-   "no content"
-  ],
-  [
-   "https://at-tahreek.com/article_details/7053",
-   "no content"
-  ],
-  [
-   "https://at-tahreek.com/article_details/6484",
-   "no content"
-  ],
-  [
-   "https://at-tahreek.com/article_details/6300",
-   "no content"
-  ],
-  [
-   "https://at-tahreek.com/article_details/6226",
-   "no content"
-  ],
-  [
-   "https://at-tahreek.com/article_details/6177",
-   "no content"
-  ],
-  [
-   "https://at-tahreek.com/article_details/6146",
-   "no content"
-  ],
-  [
-   "https://at-tahreek.com/article_details/6039",
-   "no content"
-  ],
-  [
-   "https://at-tahreek.com/article_details/6035",
-   "no content"
-  ],
-  [
-   "https://at-tahreek.com/article_details/5730",
-   "no content"
-  ],
-  [
-   "https://at-tahreek.com/article_details/5689",
-   "no content"
-  ],
-  [
-   "https://at-tahreek.com/article_details/5679",
-   "no content"
-  ],
-  [
-   "https://at-tahreek.com/article_details/5674",
-   "no content"
-  ],
-  [
-   "https://at-tahreek.com/article_details/5667",
-   "no content"
-  ],
-  [
-   "https://at-tahreek.com/article_details/5634",
-   "no content"
-  ],
-  [
-   "https://at-tahreek.com/article_details/5630",
-   "no content"
-  ],
-  [
-   "https://at-tahreek.com/article_details/5629",
-   "no content"
-  ],
-  [
-   "https://at-tahreek.com/article_details/5549",
-   "no content"
-  ],
-  [
-   "https://at-tahreek.com/article_details/5499",
-   "no content"
-  ],
-  [
-   "https://at-tahreek.com/article_details/5484",
-   "no content"
-  ],
-  [
-   "https://at-tahreek.com/article_details/5475",
-   "no content"
-  ],
-  [
-   "https://at-tahreek.com/article_details/4652",
-   "no content"
-  ],
-  [
-   "https://at-tahreek.com/article_details/1707",
-   "no content"
-  ],
-  [
-   "https://at-tahreek.com/article_details/12139",
-   "no content"
-  ],
-  [
-   "https://at-tahreek.com/article_details/10060",
-   "no content"
-  ],
-  [
-   "https://at-tahreek.com/article_details/5603",
-   "no content"
-  ],
-  [
-   "https://at-tahreek.com/article_details/5537",
-   "no content"
-  ],
-  [
-   "https://at-tahreek.com/article_details/5083",
-   "no content"
-  ],
-  [
-   "https://at-tahreek.com/article_details/3791",
-   "no content"
-  ],
-  [
-   "https://at-tahreek.com/article_details/3790",
-   "no content"
-  ],
-  [
-   "https://at-tahreek.com/article_details/3789",
-   "no content"
+  "set": "none",
+  "hosts": [],
+  "minutes": 5,
+  "run": 5,
+  "probe": [
+   "https://www.insightzonebd.com/%E0%A6%AC%E0%A6%BF%E0%A6%9C%E0%A7%8D%E0%A6%9E%E0%A6%BE%E0%A6%A8-%E0%A6%95%E0%A6%BF",
+   "https://www.insightzonebd.com/question/173",
+   "https://islamicauthors.com/article/42"
   ]
- ],
- "bySource": {
-  "at": {
-   "queued": 11608,
-   "done": 11564,
-   "failed": 44
-  },
-  "ai": {
-   "queued": 7005,
-   "done": 7004,
-   "failed": 1
-  }
  },
+ "done": 0,
+ "skipped": 0,
+ "failed": [],
+ "bySource": {},
+ "probe": [
+  {
+   "u": "https://www.insightzonebd.com/%E0%A6%AC%E0%A6%BF%E0%A6%9C%E0%A7%8D%E0%A6%9E%E0%A6%BE%E0%A6%A8-%E0%A6%95%E0%A6%BF",
+   "status": 403,
+   "final": "https://www.insightzonebd.com/%E0%A6%AC%E0%A6%BF%E0%A6%9C%E0%A7%8D%E0%A6%9E%E0%A6%BE%E0%A6%A8-%E0%A6%95%E0%A6%BF",
+   "len": 5903,
+   "title": "Just a moment...",
+   "h1": [],
+   "best": "body",
+   "tree": [
+    {
+     "s": "div.main-wrapper",
+     "n": 0,
+     "t": ""
+    }
+   ],
+   "time": [],
+   "meta": [
+    "og:title=",
+    "article:published_time=",
+    "author=",
+    "og:site_name="
+   ]
+  },
+  {
+   "u": "https://www.insightzonebd.com/question/173",
+   "status": 403,
+   "final": "https://www.insightzonebd.com/question/173",
+   "len": 5608,
+   "title": "Just a moment...",
+   "h1": [],
+   "best": "body",
+   "tree": [
+    {
+     "s": "div.main-wrapper",
+     "n": 0,
+     "t": ""
+    }
+   ],
+   "time": [],
+   "meta": [
+    "og:title=",
+    "article:published_time=",
+    "author=",
+    "og:site_name="
+   ]
+  },
+  {
+   "u": "https://islamicauthors.com/article/42",
+   "status": 200,
+   "final": "https://islamicauthors.com/article/42",
+   "len": 51401,
+   "title": "আল্লাহ কেন মানুষকে এতো কষ্ট ও বিপদ দেন? — IslamicAuthors",
+   "h1": [
+    {
+     "t": "আল্লাহ কেন মানুষকে এতো কষ্ট ও বিপদ দেন?",
+     "path": [
+      "header.article-header",
+      "article.article-body.svelte-17e7cgh",
+      "div.layout.svelte-17e7cgh",
+      "div.page.ia-page-container.svelte-17e7cgh",
+      "main.main.svelte-12qhfyh",
+      "div.ia-root.lang-bn.svelte-12qhfyh"
+     ]
+    }
+   ],
+   "best": "article.article-body.svelte-17e7cgh",
+   "tree": [
+    {
+     "s": "header.article-header",
+     "n": 85,
+     "t": "দর্শন আল্লাহ কেন মানুষকে এতো কষ্ট ও বিপদ"
+    },
+    {
+     "s": "div.article-content",
+     "n": 11249,
+     "t": "বর্তমান নাস্তিক- ইসলাম বিদ্বেষীদের একটি ",
+     "c": [
+      {
+       "s": "p",
+       "n": 0,
+       "t": ""
+      },
+      {
+       "s": "p",
+       "n": 209,
+       "t": "বর্তমান নাস্তিক- ইসলাম বিদ্বেষীদের একটি ",
+       "c": [
+        {
+         "s": "span",
+         "n": 209,
+         "t": "বর্তমান নাস্তিক- ইসলাম বিদ্বেষীদের একটি "
+        }
+       ]
+      },
+      {
+       "s": "p",
+       "n": 7,
+       "t": "জবাব :-"
+      },
+      {
+       "s": "p",
+       "n": 60,
+       "t": "এই প্রশ্নের উত্তর স্বয়ং আল্লাহ তায়ালা ন"
+      },
+      {
+       "s": "p",
+       "n": 136,
+       "t": "وَلَنَبْلُوَنَّكُمْ بِشَيْءٍ مِنَ الْخَو"
+      },
+      {
+       "s": "p",
+       "n": 159,
+       "t": "এবং অবশ্যই আমি তোমাদিগকে পরীক্ষা করব কি"
+      },
+      {
+       "s": "p",
+       "n": 79,
+       "t": "أَحَسِبَ النَّاسُ أَنْ يُتْرَكُوا أَنْ ي"
+      },
+      {
+       "s": "p",
+       "n": 136,
+       "t": "মানুষ কি মনে করে যে, তারা একথা বলেই অব্য"
+      },
+      {
+       "s": "p",
+       "n": 120,
+       "t": "الَّذِیۡ خَلَقَ الۡمَوۡتَ وَ الۡحَیٰوۃَ "
+      },
+      {
+       "s": "p",
+       "n": 139,
+       "t": "\"যিনি সৃষ্টি করেছেন মৃত্যু ও জীবন, তোমাদ"
+      },
+      {
+       "s": "p",
+       "n": 172,
+       "t": "◾মহান আল্লাহ তায়ালা এই প্রশ্নের জবাব কুর"
+      },
+      {
+       "s": "p",
+       "n": 51,
+       "t": "তিনি আমাদের পৃথিবীতে পরীক্ষা করার জন্য প"
+      },
+      {
+       "s": "blockquote",
+       "n": 273,
+       "t": "وَلَقَدْ فَتَنَّا الَّذِينَ مِنْ قَبْلِه",
+       "c": [
+        {
+         "s": "p",
+         "n": 118,
+         "t": "وَلَقَدْ فَتَنَّا الَّذِينَ مِنْ قَبْلِه"
+        },
+        {
+         "s": "p",
+         "n": 154,
+         "t": "আমি তাদেরকেও পরীক্ষা করেছি, যারা তাদের প"
+        }
+       ]
+      },
+      {
+       "s": "p",
+       "n": 17,
+       "t": "তাফসীর ইবনে কাসীর"
+      },
+      {
+       "s": "p",
+       "n": 33,
+       "t": "সূরা বাকারা আয়াত ১৫৫-এর ব্যাখ্যা-"
+      },
+      {
+       "s": "p",
+       "n": 151,
+       "t": "وَ لَنَبۡلُوَنَّکُمۡ بِشَیۡءٍ مِّنَ الۡخ"
+      },
+      {
+       "s": "p",
+       "n": 4365,
+       "t": "তোমাদেরকে ভয় ও ক্ষুধা এবং ধন-সম্পদ, জীবন",
+       "c": [
+        {
+         "s": "span",
+         "n": 4365,
+         "t": "তোমাদেরকে ভয় ও ক্ষুধা এবং ধন-সম্পদ, জীবন",
+         "c": [
+          {
+           "s": "span",
+           "n": 132,
+           "t": "﴿وَ لَنَبْلُوَنَّكُمْ حَتّٰى نَعْلَمَ ال"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "s": "p",
+       "n": 151,
+       "t": "\"ما من مسلم ولا مسلمة يصاب بمصيبة فيذكره"
+      },
+      {
+       "s": "p",
+       "n": 1220,
+       "t": "কোন বান্দা বিপদগ্রস্ত হয়ে নীচের দু‘আটি প",
+       "c": [
+        {
+         "s": "span",
+         "n": 1220,
+         "t": "কোন বান্দা বিপদগ্রস্ত হয়ে নীচের দু‘আটি প",
+         "c": [
+          {
+           "s": "span",
+           "n": 196,
+           "t": "ما من مسلم ولا مسلمة يصاب بمصيبة فيذكرها"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "s": "p",
+       "n": 154,
+       "t": "يا ملك الموت، قبضتَ ولد عبدي؟ قبضت قُرَّ"
+      },
+      {
+       "s": "p",
+       "n": 433,
+       "t": "হে মরণের ফেরেশতা! তুমি আমার বান্দার ছেলে",
+       "c": [
+        {
+         "s": "span",
+         "n": 433,
+         "t": "হে মরণের ফেরেশতা! তুমি আমার বান্দার ছেলে",
+         "c": [
+          {
+           "s": "span",
+           "n": 0,
+           "t": ""
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "s": "p",
+       "n": 17,
+       "t": "তাফসীর ইবনে কাসীর"
+      }
+     ]
+    },
+    {
+     "s": "div.mobile-actions.svelte-17e7cgh",
+     "n": 16,
+     "t": "লাইক শেয়ার করুন"
+    },
+    {
+     "s": "section#comments.comments.svelte-17e7cgh",
+     "n": 50,
+     "t": "মন্তব্য এখনো কোনো মন্তব্য নেই। প্রথম মন্"
+    },
+    {
+     "s": "div.author-card.svelte-17e7cgh",
+     "n": 132,
+     "t": "MH MEHEDHI HASAN 77 আর্টিকেল বিবিধ ইসলাম"
+    },
+    {
+     "s": "section.related.svelte-17e7cgh",
+     "n": 205,
+     "t": "সম্পর্কিত আর্টিকেল হাদিস সমান অধিকার কাক",
+     "c": [
+      {
+       "s": "h2.section-title.font-display.svelte-17e7cgh",
+       "n": 18,
+       "t": "সম্পর্কিত আর্টিকেল"
+      },
+      {
+       "s": "div.related-grid.svelte-17e7cgh",
+       "n": 186,
+       "t": "হাদিস সমান অধিকার কাকে বলে? Great Beard "
+      }
+     ]
+    }
+   ],
+   "time": [],
+   "meta": [
+    "og:title=",
+    "article:published_time=",
+    "author=",
+    "og:site_name="
+   ]
+  }
+ ],
  "total": 19368
 }
