@@ -3,7 +3,8 @@
    নিয়ন্ত্রণ: tools/import-request.json  {"set":"builtin"|"all","hosts":["ai","ra","at","ia"],"limits":{"at":100},"minutes":300}  (আগে আনা লেখা আবার আনা হয় না) */
 const fs=require('fs'),path=require('path'),cheerio=require('cheerio');
 const ROOT=path.join(__dirname,'..'),OUT=path.join(ROOT,'texts');
-const REQ=JSON.parse(fs.readFileSync(path.join(__dirname,'import-request.json'),'utf8'));
+/* IMPORT_REQUEST দিয়ে স্থানীয়ভাবে চালানো যায়, যেমন শুধু সংশোধনের জন্য: IMPORT_REQUEST='{"set":"none","hosts":[]}' */
+const REQ=JSON.parse(process.env.IMPORT_REQUEST||fs.readFileSync(path.join(__dirname,'import-request.json'),'utf8'));
 const UA='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36';
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 /* app.js-এর textKey()-এর সাথে হুবহু এক হতে হবে */
@@ -29,6 +30,7 @@ const SOURCES={
  fm:{host:'www.frommuslims.com',delay:13000,wayback:'frommuslims.com',extract($,base){
    const title=$('h1.post-title,h1.entry-title').first().text(),name=(e,word)=>$(e).children('span').first().text().replace(/<img\b[^>]*>/g,' ').replace(/\s+/g,' ').trim().split(' '+word+' ')[0].replace(/\s+Staff$/,'').trim();
    /* প্রশ্নোত্তর পেজ (DW Question & Answer): প্রশ্ন + সব উত্তর; মন্তব্য, ভোট, শেয়ার বাদ */
+   if($('.dwqa-questions-archive,.dwqa-questions-list').length&&!$('.dwqa-single-question').length)return{title,html:''}; /* প্রশ্নের তালিকা-পাতা, লেখা নয় */
    if($('.dwqa-single-question').length){const q=$('.dwqa-question-item').first(),ans=$('.dwqa-answer-item').toArray();if(!ans.length)return{title,html:''};
     const by=n=>n?'<p>— '+esc(n)+'</p>':'',names=[];
     const qh=clean($,q.find('.dwqa-question-content').first(),base);
@@ -38,6 +40,8 @@ const SOURCES={
    /* সাধারণ লেখা (Jannah থিম) */
    const body=$('#the-post .entry-content,.entry-content').first();
    body.find('.wp-block-wptelegram-widget-join-channel,.post-bottom-meta,.stream-item,#jp-relatedposts,.sharedaddy,#ez-toc-container,.ez-toc-container,.code-block,.addtoany_share_save_container,.yarpp-related,.share-buttons,.post-shortlink,.footnote_referrer_base,.footnote_reference_container_collapse_button').remove();
+   body.find('table caption').remove();
+   body.find('p,div').filter((k,e)=>/^(Citation is loading\.\.\.|Citation style:)$/.test($(e).text().replace(/\s+/g,' ').trim())).remove();
    body.children('div').filter((k,e)=>{const t=$(e).text().replace(/\s+/g,' ').trim();return t.length<260&&/^আর[োও] পড়ুন/.test(t)}).remove();
    /* টীকা: পূর্ণ তালিকা থাকলে ভাসমান কপি বাদ; না থাকলে ভাসমান লেখা দিয়ে নিচে তালিকা */
    const refs=$('.footnote_plugin_text');
@@ -47,7 +51,7 @@ const SOURCES={
    body.find('.footnote_backlink').each((k,e)=>{$(e).replaceWith(esc($(e).text().replace(/[^0-9০-৯]/g,'')))});
    const info=$('#post-extra-info').first().text().replace(/\s+/g,' ').trim();
    return{title,body,date:($('meta[property="article:published_time"]').attr('content')||'').slice(0,10),
-    author:$('#the-post .meta-author a,#the-post a.author-name').first().text()||info.replace(/\s*(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},\s+\d{4}.*$/,'')}}}
+    author:$('#the-post .meta-author a,#the-post a.author-name').first().text()||info.replace(/\s*(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},\s+\d{4}.*$/,'').replace(/\s*\d+\s+(seconds?|minutes?|hours?|days?|weeks?|months?|years?)\s+ago.*$/,'').replace(/\s*Last Updated.*$/,'')}}}
 };
 const sourceOf=u=>{try{const h=new URL(u).host;return Object.keys(SOURCES).find(k=>SOURCES[k].host===h)||null}catch(e){return null}};
 
@@ -138,7 +142,11 @@ async function getOnce(u,ms=60000){try{const ac=new AbortController(),tm=setTime
   return{status:res.status,html,final:res.url}}catch(e){return{status:0,html:'',busy:true,err:(String(e)+' '+String(e&&e.cause||'')).slice(0,100)}}}
 /* আগের রানে রাখা From Muslims প্রশ্নোত্তরের ছোট সংশোধন (বারবার চালালেও ফল একই) */
 function migrate(){for(const f of fs.readdirSync(OUT)){if(!/^[0-9a-f]{3}\.json$/.test(f))continue;if(!fs.readFileSync(path.join(OUT,f),'utf8').includes('"s":"fm"'))continue;
-  const b=loadBucket(f.slice(0,3));for(const k in b.data){const x=b.data[k];if(x.s!=='fm'||!/\/qna\//.test(x.u))continue;
+  const b=loadBucket(f.slice(0,3));for(const k in b.data){const x=b.data[k];if(x.s!=='fm')continue;
+   if(/^<p>Filter:<a /.test(x.h)){delete b.data[k];b.dirty=true;continue} /* প্রশ্নের তালিকা-পাতা */
+   if(!/\/qna\//.test(x.u)){const h=x.h.replace(/<p>Citation is loading\.\.\.<\/p>/g,'').replace(/<p>Citation style:<\/p>/g,'').replace(/<table>[^<]+<tbody>/g,'<table><tbody>').replace(/\s+$/,''),
+     a=x.a.replace(/\s*\d+\s+(seconds?|minutes?|hours?|days?|weeks?|months?|years?)\s+ago.*$/,'').replace(/\s*Last Updated.*$/,'');
+    if(h!==x.h||a!==x.a){x.h=h;x.a=a;b.dirty=true}continue}
    const h=x.h.replace(/^<h3>প্রশ্ন<\/h3>/,'<h2>প্রশ্ন</h2>').replace(/<h3>উত্তর<\/h3>/g,'<h2>উত্তর</h2>').replace(/&lt;img\b[^<]*?&gt;/g,'').replace(/^<h2>প্রশ্ন<\/h2><p><\/p>/,'<h2>প্রশ্ন</h2><p>'+esc(x.t)+'</p>');
    const a=[...new Set(x.a.replace(/<img\b[^>]*>/g,' ').split(',').map(v=>v.replace(/\s+/g,' ').trim()).filter(Boolean))].join(', ');
    if(h!==x.h||a!==x.a){x.h=h;x.a=a;b.dirty=true}}}}
