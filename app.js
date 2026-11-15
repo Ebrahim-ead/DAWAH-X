@@ -5,6 +5,7 @@
 const LINKS={
   facebook:"https://www.facebook.com/profile.php?id=61595349861689",
   youtube:"https://www.youtube.com/@ead-s3b",
+  whatsapp:"https://wa.me/8801783543026", /* WhatsApp নম্বর: দেশের কোডসহ, + বা ফাঁকা ছাড়া */
   tiktok:"https://tiktok.com/@YOUR_ID" /* TikTok আইডি দিলে ফুটারে আইকন দেখাবে */
 };
 const MESSENGER="https://m.me/61595349861689"; /* প্রশ্ন এই Messenger ইনবক্সে যায় */
@@ -22,6 +23,13 @@ document.querySelectorAll("[data-link]").forEach(a=>{const u=LINKS[a.dataset.lin
 /* ---- মোবাইল মেনু ---- */
 {const menu=$("menu"),burger=$("burger");
  if(menu&&burger){burger.addEventListener("click",()=>menu.classList.toggle("open"));menu.querySelectorAll("a").forEach(a=>a.addEventListener("click",()=>menu.classList.remove("open")))}}
+
+/* ---- লেখার লিংক কপি (উত্তরের পেজে) ---- */
+document.querySelectorAll("[data-copy-link]").forEach(b=>b.addEventListener("click",async()=>{
+ const url=b.dataset.copyLink||location.href,label=b.querySelector("span")||b,old=label.textContent;let ok=false;
+ try{await navigator.clipboard.writeText(url);ok=true}catch(e){
+  try{const ta=document.createElement("textarea");ta.value=url;ta.setAttribute("readonly","");ta.style.cssText="position:fixed;top:0;left:0;width:1px;height:1px;opacity:0";document.body.appendChild(ta);ta.select();ok=document.execCommand("copy");ta.remove()}catch(e2){}}
+ label.textContent=ok?"কপি হয়েছে ✓":"কপি করা যায়নি";setTimeout(()=>{label.textContent=old},2200)}));
 
 /* ---- ইমেইল সাবস্ক্রিপশন ---- */
 {const sb=$("sb"),em=$("em"),subm=$("subm");
@@ -47,6 +55,8 @@ const escHTML=v=>escAttr(toLatinDigits(v));
 const normalizeSearchText=v=>toLatinDigits(String(v||"").normalize("NFC").toLowerCase()).trim().replace(/\s+/g," ");
 const hostOf=u=>{try{return new URL(u).hostname.replace(/^www\./,"")}catch(e){return""}};
 const formatCount=n=>new Intl.NumberFormat("en-US").format(n);
+/* সাইটের নিজস্ব পেজ (যেমন answer-….html) — পুরো ঠিকানা নয়, শুধু ফাইলের নাম */
+const isLocalPage=u=>!/^[a-z][a-z0-9+.-]*:/i.test(u);
 
 /* cfg: {id:"q"|"f", rows:[[বিভাগ,শিরোনাম,লিংক]], manifest:[{category,src,count}], partsKey, label, hint, loadingText} */
 function setupLibrary(cfg){
@@ -74,7 +84,9 @@ function setupLibrary(cfg){
   const list=rows.filter(x=>inCategory(x,cur)&&terms.every(t=>rowText(x).includes(t)));
   const ready=isReady(cur),loading=isLoading(cur);
   if(list.length){
-   grid.innerHTML=list.slice(0,show).map(x=>`<a class="qcard" href="${escAttr(x[2])}" target="_blank" rel="noopener"><small>${escHTML(x[0])}</small><b>${escHTML(x[1])}</b><span>${escHTML(hostOf(x[2]))} ›</span></a>`).join("");
+   grid.innerHTML=list.slice(0,show).map(x=>isLocalPage(x[2])
+    ?`<a class="qcard qcard-own" href="${escAttr(x[2])}"><small>${escHTML(x[0])}</small><b>${escHTML(x[1])}</b><span>DAWAH X-এ পড়ুন ›</span></a>`
+    :`<a class="qcard" href="${escAttr(x[2])}" target="_blank" rel="noopener"><small>${escHTML(x[0])}</small><b>${escHTML(x[1])}</b><span>${escHTML(hostOf(x[2]))} ↗</span></a>`).join("");
   }else{
    grid.innerHTML=`<p class="qnote">${loading?"লোড হচ্ছে…":failed&&!ready?"সূচি লোড হয়নি। ইন্টারনেট সংযোগ দেখে আবার চেষ্টা করুন।":"কিছু পাওয়া যায়নি।"}</p>`;
   }
@@ -134,8 +146,17 @@ function setupLibrary(cfg){
 }
 
 /* ===== প্রশ্নোত্তর লাইব্রেরি: [বিষয়, শিরোনাম, মূল লেখার লিংক] — নতুন লেখা এই তালিকায় যোগ করুন ===== */
+/* DAWAH X-এর নিজস্ব উত্তর: [বিভাগ, শিরোনাম, পেজের ফাইল]। নতুন answer-….html পেজ যোগ করলে এখানে একটি লাইন যোগ করুন। */
+const OWN_ANSWERS=[
+["DAWAH X-এর উত্তর", "সবকিছুর স্রষ্টা থাকলে স্রষ্টাকে কে সৃষ্টি করেছেন?", "answer-who-created-god.html"],
+["DAWAH X-এর উত্তর", "আল্লাহ দয়ালু হলে পৃথিবীতে এত দুঃখ-কষ্ট কেন?", "answer-why-suffering.html"],
+["DAWAH X-এর উত্তর", "আল্লাহ তো আগে থেকেই সব জানেন—তবু পরীক্ষা কেন?", "answer-why-test.html"],
+["DAWAH X-এর উত্তর", "ধর্ম কি শুধু জন্মসূত্রে পাওয়া? এত ধর্মের মধ্যে সত্য চিনব কীভাবে?", "answer-inherited-religion.html"],
+["DAWAH X-এর উত্তর", "বিজ্ঞান কি স্রষ্টার প্রয়োজন শেষ করে দিয়েছে?", "answer-science-and-god.html"],
+["DAWAH X-এর উত্তর", "আল্লাহ অমুখাপেক্ষী—তাহলে আমাদের ইবাদত কেন চান?", "answer-why-worship.html"]
+];
 const QB="https://www.response-to-anti-islam.com/show/";
-const QS=[
+const QS_SOURCES=[
 ["নাস্তিক্যবাদ","সৃষ্টিকর্তার অস্তিত্ব নিয়ে কালাম কসমোলজিক্যাল আর্গুমেন্ট","সৃষ্টিকর্তার-অস্তিত্ব-নিয়ে-কালাম-কসমোলজিক্যাল-আর্গুমেন্ট/402"],
 ["নাস্তিক্যবাদ","আল্লাহর অস্তিত্বঃ কুরআনের আর্গুমেন্ট","আল্লাহর-অস্তিত্বঃ-কুরআনের-আর্গুমেন্ট-/207"],
 ["নাস্তিক্যবাদ","নাস্তিকতার অবাস্তব প্রস্তাবনা","নাস্তিকতার-অবাস্তব-প্রস্তাবনা-/136"],
@@ -266,6 +287,7 @@ const QS=[
 ["নৈতিকতা","ভিডিও: চারজন সাক্ষী না থাকলে কি জিনার বিচার করা যায় না?","https://www.youtube.com/watch?v=-Q5qDzfik28"],
 ["নবুয়ত","মহানবী ﷺ-এর একাধিক বিয়ে নিয়ে অভিযোগের জবাব","https://islamicauthors.com/article/157"]
 ].map(x=>[x[0],x[1],x[2].startsWith("http")?x[2]:encodeURI(QB+x[2])]);
+const QS=[...OWN_ANSWERS,...QS_SOURCES];
 
 /* ===== ফতোয়া: [বিষয়, প্রশ্ন, al-itisam.com-এর আর্টিকেল নম্বর] — নতুন ফতোয়া এই তালিকায় যোগ করুন ===== */
 const AI="https://al-itisam.com/article_details/";
@@ -688,46 +710,62 @@ setupLibrary({id:"q",rows:QS,manifest:PAGE==="qa"?QUESTION_PARTS:[],partsKey:"DA
 setupLibrary({id:"f",rows:FT,manifest:PAGE==="fatwa"?FATWA_PARTS:[],partsKey:"DAWAH_FATWAS_PARTS",label:"পূর্ণ ফতোয়া ও প্রবন্ধ সূচি",loadingText:"ফতোয়া ও প্রবন্ধ সূচি লোড হচ্ছে…"});
 
 /* ===== প্রশ্ন পাঠানো =====
+   "WhatsApp-এ পাঠান": প্রশ্নটি লেখা অবস্থায় DAWAH X-এর WhatsApp চ্যাট খোলে (সব হোস্টে কাজ করে)।
+   দ্বিতীয় বোতাম:
    ১) ASK_ACTION দিলে প্রশ্ন সেই ঠিকানায় (যেমন Formspree) সরাসরি জমা হয়।
    ২) সাইট Netlify-তে থাকলে Netlify Forms-এ (`question` ফর্ম) জমা হয়।
-   ৩) অন্যথায় (যেমন GitHub Pages) প্রশ্ন কপি হয়ে DAWAH X-এর Messenger খোলে; ভিজিটর Send চাপলে পৌঁছায়। */
-{const btn=$("askbtn"),aq=$("aq"),msg=$("askm"),how=$("askhow");
+   ৩) অন্যথায় (যেমন GitHub Pages) প্রশ্ন কপি হয়ে DAWAH X-এর Messenger খোলে।
+   WhatsApp/Messenger-এ ভিজিটর Send চাপলে তবেই প্রশ্ন পৌঁছায়। */
+{const btn=$("askbtn"),wa=$("askwa"),aq=$("aq"),msg=$("askm"),how=$("askhow");
  if(btn&&aq&&msg){
   const field=id=>($(id)?.value||"").trim();
   const staticHost=location.protocol==="file:"||/(^|\.)github\.io$/i.test(location.hostname);
   const directPossible=Boolean(ASK_ACTION)||!staticHost;
-  const HOW_MESSENGER="“প্রশ্ন পাঠান” চাপলে আপনার প্রশ্ন কপি হয়ে DAWAH X-এর Messenger খুলবে; সেখানে Send চাপলেই প্রশ্নটি আমাদের কাছে পৌঁছাবে।";
-  if(how&&!directPossible)how.textContent=HOW_MESSENGER;
+  const HOW_CHAT="বোতাম চাপলে আপনার প্রশ্ন লেখা অবস্থায় WhatsApp বা Messenger খুলবে; সেখানে Send চাপলেই প্রশ্নটি আমাদের কাছে পৌঁছাবে।";
+  if(!directPossible){btn.textContent="Messenger-এ পাঠান";if(how)how.textContent=HOW_CHAT}
 
   const copyText=text=>{let ok=false;
    try{const ta=document.createElement("textarea");ta.value=text;ta.setAttribute("readonly","");ta.style.cssText="position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;pointer-events:none";document.body.appendChild(ta);ta.select();ta.setSelectionRange(0,text.length);ok=document.execCommand("copy");ta.remove()}catch(e){}
    try{navigator.clipboard?.writeText(text).catch(()=>{})}catch(e){}
    return ok};
-  const messengerUrl=text=>MESSENGER+"?text="+encodeURIComponent(text.length>1200?text.slice(0,1200)+"…":text);
+  /* লিংকে খুব লম্বা লেখা দেওয়া যায় না; পুরো প্রশ্ন clipboard-এ থাকে, তাই প্রয়োজনে Paste করা যায় */
+  const clip=text=>text.length>700?text.slice(0,700)+"…":text;
+  const CHAT={
+   whatsapp:{name:"WhatsApp",cls:"ask-whatsapp",url:text=>LINKS.whatsapp+"?text="+encodeURIComponent(clip(text))},
+   messenger:{name:"Messenger",cls:"ask-messenger",url:text=>MESSENGER+"?text="+encodeURIComponent(clip(text))}
+  };
 
-  const viaMessenger=(text,{open=true,lead=""}={})=>{
-   const copied=copyText(text),url=messengerUrl(text);
-   const link=Object.assign(document.createElement("a"),{href:url,target:"_blank",rel:"noopener noreferrer",className:"ask-messenger",textContent:"Messenger খুলুন ↗"});
+  const viaChat=(kind,text,{open=true,lead=""}={})=>{
+   const app=CHAT[kind],copied=copyText(text),url=app.url(text);
+   const link=Object.assign(document.createElement("a"),{href:url,target:"_blank",rel:"noopener noreferrer",className:app.cls,textContent:app.name+" খুলুন ↗"});
    const again=Object.assign(document.createElement("button"),{type:"button",className:"ask-copy",textContent:"প্রশ্ন আবার কপি করুন"});
    again.addEventListener("click",()=>{copyText(text);again.textContent="কপি হয়েছে ✓"});
    const p=document.createElement("span");
-   p.textContent=lead+(copied?"আপনার প্রশ্ন কপি করা হয়েছে। ":"")+"Messenger-এ বার্তাটি আগে থেকে লেখা না থাকলে Paste করুন, তারপর Send চাপুন।";
+   p.textContent=lead+(copied?"আপনার প্রশ্ন কপি করা হয়েছে। ":"")+app.name+"-এ বার্তাটি আগে থেকে লেখা না থাকলে বা অসম্পূর্ণ থাকলে Paste করুন, তারপর Send চাপুন।";
    const actions=Object.assign(document.createElement("span"),{className:"ask-actions"});actions.append(link,again);
    msg.replaceChildren(p,actions);
    if(open){try{window.open(url,"_blank","noopener")}catch(e){}}
   };
 
-  btn.addEventListener("click",async()=>{
+  /* ফর্ম যাচাই করে বার্তা তৈরি করে; সমস্যা থাকলে null */
+  const compose=()=>{
    const q=aq.value.trim();
-   if(q.length<5){msg.textContent="অনুগ্রহ করে আপনার প্রশ্ন লিখুন।";aq.focus();return}
-   if(field("abot")){msg.textContent="ধন্যবাদ!";return} /* honeypot: বট হলে কিছু পাঠানো হয় না */
+   if(q.length<5){msg.textContent="অনুগ্রহ করে আপনার প্রশ্ন লিখুন।";aq.focus();return null}
+   if(field("abot")){msg.textContent="ধন্যবাদ!";return null} /* honeypot: বট হলে কিছু পাঠানো হয় না */
    const data={name:field("an"),contact:field("ac"),topic:field("at"),question:q};
    const lines=["আসসালামু আলাইকুম। DAWAH X ওয়েবসাইট থেকে একটি প্রশ্ন:","বিষয়: "+data.topic];
    if(data.name)lines.push("নাম: "+data.name);
    if(data.contact)lines.push("যোগাযোগ: "+data.contact);
    lines.push("","প্রশ্ন: "+q);
-   const text=lines.join("\n");
-   if(!directPossible){viaMessenger(text);return}
+   return {data,text:lines.join("\n")};
+  };
+
+  if(wa)wa.addEventListener("click",()=>{const m=compose();if(m)viaChat("whatsapp",m.text)});
+
+  btn.addEventListener("click",async()=>{
+   const m=compose();if(!m)return;
+   const {data,text}=m;
+   if(!directPossible){viaChat("messenger",text);return}
    btn.disabled=true;msg.textContent="পাঠানো হচ্ছে...";
    try{
     let ok=false;
@@ -738,8 +776,8 @@ setupLibrary({id:"f",rows:FT,manifest:PAGE==="fatwa"?FATWA_PARTS:[],partsKey:"DA
     if(!ok)throw new Error("not delivered");
     msg.textContent="ধন্যবাদ! আপনার প্রশ্ন আমাদের কাছে পৌঁছেছে। ইন শা আল্লাহ শীঘ্রই উত্তর দেওয়া হবে।";aq.value="";
    }catch(e){
-    if(how)how.textContent=HOW_MESSENGER;
-    viaMessenger(text,{open:false,lead:"সরাসরি জমা দেওয়া যায়নি, তাই Messenger-এ পাঠান। "});
+    if(how)how.textContent=HOW_CHAT;
+    viaChat("messenger",text,{open:false,lead:"সরাসরি জমা দেওয়া যায়নি, তাই Messenger বা WhatsApp-এ পাঠান। "});
    }
    btn.disabled=false;
   });
