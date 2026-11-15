@@ -86,9 +86,16 @@ async function get(u){let last;for(let a=0;a<3;a++){try{const ac=new AbortContro
  fs.mkdirSync(OUT,{recursive:true});
  const report={at:new Date().toISOString(),request:REQ,done:0,skipped:0,failed:[],bySource:{}};
  if(REQ.probe)report.probe=[];
- for(const u of REQ.probe||[]){const r=await get(u);const $=cheerio.load(r.html);$('script,style,noscript,svg').remove();const sig=e=>e.tagName+(e.attribs.id?'#'+e.attribs.id:'')+(e.attribs.class?'.'+e.attribs.class.trim().split(/\s+/).slice(0,4).join('.'):'');
-  const walk=(e,d)=>$(e).children().toArray().slice(0,25).map(c=>{const t=$(c).text().replace(/\s+/g,' ').trim();const o={s:sig(c),n:t.length,t:t.slice(0,40)};if(d<4&&t.length>120&&$(c).children().length)o.c=walk(c,d+1);return o});
-  const el=$(REQ.probeSel||'.main_content_area .col-md-9').first();report.probe.push({u,status:r.status,tree:el.length?walk(el.get(0),0):null})}
+ /* probe: অচেনা সাইটের পেজের গঠন দেখার জন্য (texts/_report.json-এ যায়) */
+ for(const u of REQ.probe||[]){const r=await get(u);const $=cheerio.load(r.html);$('script,style,noscript,svg,iframe').remove();
+  const sig=e=>e.tagName+(e.attribs.id?'#'+e.attribs.id:'')+(e.attribs.class?'.'+e.attribs.class.trim().split(/\s+/).slice(0,4).join('.'):'');
+  const walk=(e,d)=>$(e).children().toArray().slice(0,22).map(c=>{const t=$(c).text().replace(/\s+/g,' ').trim();const o={s:sig(c),n:t.length,t:t.slice(0,40)};if(d<4&&t.length>200&&$(c).children().length)o.c=walk(c,d+1);return o});
+  const o={u,status:r.status,final:r.final,len:r.html.length,title:$('title').text().trim().slice(0,80),h1:$('h1').toArray().slice(0,3).map(h=>({t:$(h).text().trim().slice(0,50),path:$(h).parents().toArray().slice(0,6).map(sig)}))};
+  let best=null;$('h1').first().parents().each((i,p)=>{if(!best&&$(p).text().replace(/\s+/g,' ').length>800)best=p});
+  if(!best)best=$('main,article,body').first().get(0);if(best){o.best=sig(best);o.tree=walk(best,0)}
+  o.time=$('time').toArray().slice(0,3).map(t=>sig(t)+' '+$(t).text().trim().slice(0,30)+' '+(t.attribs.datetime||''));
+  o.meta=['og:title','article:published_time','author','og:site_name'].map(n=>n+'='+($('meta[property="'+n+'"],meta[name="'+n+'"]').attr('content')||'').slice(0,50));
+  report.probe.push(o)}
  const want=new Set(REQ.hosts||Object.keys(SOURCES)),seen=new Set(),queue={};
  const rows=REQ.set==='all'?[...builtinRows(),...catalogRows()]:REQ.set==='builtin'?builtinRows():[];
  for(const r of[...builtinRows(),...catalogRows()]){const s=sourceOf(r[2]);if(s)(WANT[s]=WANT[s]||new Set()).add(keyOfUrl(r[2]))}
