@@ -26,12 +26,13 @@ const SOURCES={
  /* manual: রানার থেকে আনা যায় না (Cloudflare); লেখা tools/add-texts.cjs দিয়ে tools/manual/ থেকে যোগ হয় */
  iz:{host:'www.insightzonebd.com',manual:true},
  /* wayback: সাইটটি রানারকে ঢুকতে দেয় না, তাই Internet Archive-এ সংরক্ষিত সর্বশেষ কপি থেকে পড়া হয় */
- fm:{host:'www.frommuslims.com',delay:12000,wayback:'frommuslims.com',extract($,base){
-   const title=$('h1.post-title,h1.entry-title').first().text(),name=(e,word)=>$(e).children('span').first().text().replace(/\s+/g,' ').trim().split(' '+word+' ')[0].replace(/\s+Staff$/,'').trim();
+ fm:{host:'www.frommuslims.com',delay:13000,wayback:'frommuslims.com',extract($,base){
+   const title=$('h1.post-title,h1.entry-title').first().text(),name=(e,word)=>$(e).children('span').first().text().replace(/<img\b[^>]*>/g,' ').replace(/\s+/g,' ').trim().split(' '+word+' ')[0].replace(/\s+Staff$/,'').trim();
    /* প্রশ্নোত্তর পেজ (DW Question & Answer): প্রশ্ন + সব উত্তর; মন্তব্য, ভোট, শেয়ার বাদ */
    if($('.dwqa-single-question').length){const q=$('.dwqa-question-item').first(),ans=$('.dwqa-answer-item').toArray();if(!ans.length)return{title,html:''};
     const by=n=>n?'<p>— '+esc(n)+'</p>':'',names=[];
-    let html='<h2>প্রশ্ন</h2>'+clean($,q.find('.dwqa-question-content').first(),base)+by(name(q.find('.dwqa-question-meta').first(),'asked'));
+    const qh=clean($,q.find('.dwqa-question-content').first(),base);
+    let html='<h2>প্রশ্ন</h2>'+(textLen(qh)?qh:'<p>'+esc(title.replace(/\s+/g,' ').trim())+'</p>')+by(name(q.find('.dwqa-question-meta').first(),'asked'));
     for(const a of ans){const n=name($(a).find('.dwqa-answer-meta').first(),'answered');if(n&&!names.includes(n))names.push(n);html+='<h2>উত্তর</h2>'+clean($,$(a).find('.dwqa-answer-content').first(),base)+by(n)}
     return{title,html,date:'',author:names.join(', ')}}
    /* সাধারণ লেখা (Jannah থিম) */
@@ -129,6 +130,18 @@ async function getSlow(u,ms=90000){let last;for(let a=0;a<3;a++){try{const ac=ne
    if(res.status>=500||res.status===429){last='HTTP '+res.status;const ra=parseInt(res.headers.get('retry-after')||'',10);if(a<2)await sleep(1000*Math.min(600,Math.max(ra||0,120*(a+1))));continue}
    return{status:res.status,html,final:res.url}}catch(e){last=(String(e)+' '+String(e&&e.cause||'')).slice(0,120);if(a<2)await sleep(120000*(a+1))}}
  return{status:0,html:'',err:last}}
+/* এক চেষ্টা; 429/5xx/সংযোগ-ব্যর্থতা = busy (পরে আবার চেষ্টা) */
+const UA_BOT='DAWAH-X text importer (+https://github.com/Ebrahim-ead/DAWAH-X)';
+async function getOnce(u,ms=60000){try{const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),ms);
+  const res=await fetch(u,{headers:{'user-agent':UA_BOT},redirect:'follow',signal:ac.signal});const html=await res.text();clearTimeout(tm);
+  if(res.status===429||res.status>=500)return{status:res.status,html:'',busy:true,ra:parseInt(res.headers.get('retry-after')||'',10)||0,err:'HTTP '+res.status};
+  return{status:res.status,html,final:res.url}}catch(e){return{status:0,html:'',busy:true,err:(String(e)+' '+String(e&&e.cause||'')).slice(0,100)}}}
+/* আগের রানে রাখা From Muslims প্রশ্নোত্তরের ছোট সংশোধন (বারবার চালালেও ফল একই) */
+function migrate(){for(const f of fs.readdirSync(OUT)){if(!/^[0-9a-f]{3}\.json$/.test(f))continue;if(!fs.readFileSync(path.join(OUT,f),'utf8').includes('"s":"fm"'))continue;
+  const b=loadBucket(f.slice(0,3));for(const k in b.data){const x=b.data[k];if(x.s!=='fm'||!/\/qna\//.test(x.u))continue;
+   const h=x.h.replace(/^<h3>প্রশ্ন<\/h3>/,'<h2>প্রশ্ন</h2>').replace(/<h3>উত্তর<\/h3>/g,'<h2>উত্তর</h2>').replace(/&lt;img\b[^<]*?&gt;/g,'').replace(/^<h2>প্রশ্ন<\/h2><p><\/p>/,'<h2>প্রশ্ন</h2><p>'+esc(x.t)+'</p>');
+   const a=[...new Set(x.a.replace(/<img\b[^>]*>/g,' ').split(',').map(v=>v.replace(/\s+/g,' ').trim()).filter(Boolean))].join(', ');
+   if(h!==x.h||a!==x.a){x.h=h;x.a=a;b.dirty=true}}}}
 async function get(u,ms=30000){let last;for(let a=0;a<3;a++){try{const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),ms);
    const res=await fetch(u,{headers:{'user-agent':UA,'accept-language':'bn,en;q=0.8'},redirect:'follow',signal:ac.signal});const html=await res.text();clearTimeout(tm);
    if(res.status>=500||res.status===429){last='HTTP '+res.status;await sleep(4000*(a+1));continue}return{status:res.status,html,final:res.url}}catch(e){last=(String(e)+' '+String(e&&e.cause||'')).slice(0,120);await sleep(3000*(a+1))}}
@@ -172,22 +185,29 @@ async function get(u,ms=30000){let last;for(let a=0;a<3;a++){try{const ac=new Ab
   w.info.qna=[all.filter(u=>/\/qna\/./.test(u)).length,hit.filter(u=>/\/qna\/./.test(u)).length];w.info.unmatched=all.filter(u=>!hit.includes(u)).slice(0,8).map(u=>{try{return decodeURI(u)}catch(e){return u}});(report.wayback=report.wayback||{})[s]=w.info;
   if(!w.info.err&&hit.length)fs.writeFileSync(cf,JSON.stringify(Object.fromEntries(hit.map(u=>{const k=wbNorm(u),v=w.map.get(k);return[k,[v.ts,v.orig]]}))))}
  const deadline=Date.now()+(REQ.minutes||300)*60000,limit=REQ.limit||Infinity;let lastFlush=Date.now();
+ migrate();
  await Promise.all(Object.keys(queue).map(async s=>{const src=SOURCES[s],st=report.bySource[s]={queued:queue[s].length,done:0,failed:0};let streak=0;
-  for(const it of queue[s].slice(0,(REQ.limits&&REQ.limits[s])||limit)){if(Date.now()>deadline||streak>=25)break;
-   let r,fail='';
-   if(src.wayback){const w=!/\?/.test(it.u)&&WB[s].get(wbNorm(it.u));
-    if(!w){st.failed++;st.unarchived=(st.unarchived||0)+1;if(report.failed.length<400)report.failed.push([it.u,'not archived']);continue}
-    r=await getSlow('https://web.archive.org/web/'+w.ts+'id_/'+w.orig);
-    if(r.status===200&&/<title>\s*(Just a moment|Attention Required)/i.test(r.html.slice(0,3000)))r={status:0,html:'',err:'challenge page in archive'};
-    else if(r.status===200){r.final=it.u;r.w=w.ts}}
-   else r=await get(it.u);
-   if(r.status!==200)fail=r.err||('HTTP '+r.status);
-   else{try{const $=cheerio.load(r.html);const x=src.extract($,r.final||it.u);const html=x.html!==undefined?x.html:(x.body&&x.body.length?clean($,x.body,r.final||it.u):'');const title=(x.title||'').replace(/\s+/g,' ').trim();
-     if(!title||textLen(html)<40)fail='no content';
-     else{const b=loadBucket(bucketOf(it.k));b.data[it.k]={u:it.u,s,c:it.c,t:title,l:it.t,d:(x.date||'').trim(),a:(x.author||'').replace(/\s+/g,' ').trim(),h:html};if(r.w)b.data[it.k].w=r.w;b.dirty=true;st.done++;report.done++;streak=0}}catch(e){fail='parse: '+String(e).slice(0,80)}}
-   if(fail){st.failed++;streak++;if(report.failed.length<400)report.failed.push([it.u,fail])}
-   if(Date.now()-lastFlush>120000){lastFlush=Date.now();flush()}
-   await sleep(src.delay)}
+  let list=queue[s].slice(0,(REQ.limits&&REQ.limits[s])||limit);
+  /* wayback উৎসে আর্কাইভ ব্যস্ত (429/সংযোগ নেই) থাকলে লেখাটি পরের পাকে আবার চেষ্টা হয়; গতি সবসময় ধীর (delay) */
+  for(let pass=0;list.length&&pass<500;pass++){const again=[];let stop=false;st.passes=pass+1;
+   for(let n=0;n<list.length;n++){const it=list[n];if(Date.now()>deadline||streak>=25){again.push(...list.slice(n));stop=true;break}
+    let r,fail='';
+    if(src.wayback){const w=!/\?/.test(it.u)&&WB[s].get(wbNorm(it.u));
+     if(!w){st.failed++;st.unarchived=(st.unarchived||0)+1;if(report.failed.length<400)report.failed.push([it.u,'not archived']);continue}
+     r=await getOnce('https://web.archive.org/web/'+w.ts+'id_/'+w.orig);
+     if(r.busy){st.busy=(st.busy||0)+1;if(r.ra)st.retryAfter=Math.max(st.retryAfter||0,r.ra);if(r.err)st.lastErr=r.err;again.push(it);await sleep(Math.max(src.delay,1000*Math.min(r.ra||0,180)));continue}
+     if(r.status===200&&/<title>\s*(Just a moment|Attention Required)/i.test(r.html.slice(0,3000)))r={status:0,html:'',err:'challenge page in archive'};
+     else if(r.status===200){r.final=it.u;r.w=w.ts}}
+    else r=await get(it.u);
+    if(r.status!==200)fail=r.err||('HTTP '+r.status);
+    else{try{const $=cheerio.load(r.html);const x=src.extract($,r.final||it.u);const html=x.html!==undefined?x.html:(x.body&&x.body.length?clean($,x.body,r.final||it.u):'');const title=(x.title||'').replace(/\s+/g,' ').trim();
+      if(!title||textLen(html)<40)fail='no content';
+      else{const b=loadBucket(bucketOf(it.k));b.data[it.k]={u:it.u,s,c:it.c,t:title,l:it.t,d:(x.date||'').trim(),a:(x.author||'').replace(/\s+/g,' ').trim(),h:html};if(r.w)b.data[it.k].w=r.w;b.dirty=true;st.done++;report.done++;streak=0}}catch(e){fail='parse: '+String(e).slice(0,80)}}
+    if(fail){st.failed++;if(!src.wayback)streak++;if(report.failed.length<400)report.failed.push([it.u,fail])}
+    if(Date.now()-lastFlush>120000){lastFlush=Date.now();flush()}
+    await sleep(src.delay)}
+   list=again;if(stop||!src.wayback)break}
+  if(src.wayback)st.left=list.length;
   if(streak>=25)st.stopped='25 failures in a row'}));
  report.total=flush();fs.writeFileSync(path.join(OUT,'_report.json'),JSON.stringify(report,null,1));
  if(fs.existsSync(path.join(OUT,'_probe.json')))fs.unlinkSync(path.join(OUT,'_probe.json'));
