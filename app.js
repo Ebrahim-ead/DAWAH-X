@@ -48,6 +48,9 @@ function safeArticle(html){
   if(n.tagName==="IMG"){const src=n.getAttribute("src")||"";if(!/^https:\/\//i.test(src))return;el.src=src;el.alt=n.getAttribute("alt")||"";el.loading="lazy";el.decoding="async";el.referrerPolicy="no-referrer"}
   copy(n,el);dst.appendChild(el)})};
  copy(doc.body.firstChild,out);
+ /* শিরোনামের স্তর সাজানো: পাতার h1-এর পরে h2 থেকে শুরু, মাঝে কোনো স্তর বাদ না পড়ে (স্ক্রিন-রিডারের জন্য); লেখা বদলায় না */
+ const hs=[...out.querySelectorAll("h2,h3,h4")],used=[...new Set(hs.map(h=>+h.tagName[1]))].sort();let prev=1;
+ hs.forEach(h=>{const lv=Math.min(used.indexOf(+h.tagName[1])+2,prev+1);prev=lv;if(lv!==+h.tagName[1]){const n=document.createElement("h"+lv);while(h.firstChild)n.appendChild(h.firstChild);h.replaceWith(n)}});
  /* আরবি অনুচ্ছেদ ডান থেকে বামে */
  out.querySelectorAll("p,li,blockquote,td").forEach(b=>{const t=b.textContent,ar=(t.match(/[\u0600-\u06ff]/g)||[]).length,bn=(t.match(/[\u0980-\u09ff]/g)||[]).length;if(ar>12&&ar>bn*3){b.lang="ar";b.dir="rtl";b.classList.add("ar")}});
  return out}
