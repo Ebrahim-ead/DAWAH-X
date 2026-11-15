@@ -1,0 +1,31 @@
+name: Import library texts
+on:
+  workflow_dispatch:
+  push:
+    branches: ['arena/a66078b5-dawah-x']
+    paths: ['tools/import-request.json']
+permissions:
+  contents: write
+concurrency:
+  group: import-texts
+  cancel-in-progress: false
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install --no-save --prefix /tmp/imp cheerio@1.0.0
+      - run: NODE_PATH=/tmp/imp/node_modules node tools/import-texts.cjs
+      - name: Commit results
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add texts
+          git diff --cached --quiet && exit 0
+          git commit -q -m "Import library texts (automated)"
+          git pull -q --rebase origin "${GITHUB_REF_NAME}"
+          git push -q origin "HEAD:${GITHUB_REF_NAME}"

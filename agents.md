@@ -27,14 +27,6 @@ Each page is its own `.html` file containing the shared chrome (head, SVG sprite
 - Headings: every page has exactly one `<h1>` (the page title); cards and footer column titles are `<h2>`, nested items `<h3>`. `youtube-gallery.js` creates video titles as `<h2>`. Keep levels sequential — CSS targets them by class + tag (e.g. `.title h1`, `.card h2`, `.fg h2`).
 - UI copy is Bengali; keep it that way. Numbers in UI text use Latin digits.
 
-## Own answer pages (`answer-*.html`)
-
-- Original DAWAH X articles readable on-site. Each uses `<body data-page="answer">` with `<article id="answer">` (the `data-page` rule in `style.css` only hides `<section>` elements, so the article needs no rule of its own). The header/footer/sprite are identical to the other pages; the Q&A menu item keeps `class="on"` without `aria-current`.
-- Listed in three places that must stay in sync: `OWN_ANSWERS` in `app.js` (drives search and the first cards of the library), the static `.own-answers` grid in `questions.html`, and `sitemap.xml`. The home page shows three of them in `#home-answers`.
-- Library rows whose third field is not an absolute URL are treated as on-site pages (`isLocalPage`): same tab, `.qcard-own` style. External rows open in a new tab and show the source host.
-- The external catalogues (`fatwa-catalog-part-*.js`, `questions-catalog-part-*.js`) are link indexes to other publishers' copyrighted texts. Do not copy those texts into the repo without the publisher's permission.
-- Quran/hadith references in the articles are written with Latin digits (`সূরা … 2:216`, `সহীহ মুসলিম 2999`); verify any new reference before publishing.
-
 ## WhatsApp
 
 `LINKS.whatsapp` in `app.js` (`https://wa.me/8801783543026`) feeds every `[data-link="whatsapp"]` element and the `#askwa` button on `ask.html`, which opens WhatsApp with the question prefilled (text is cut at 700 characters and also copied to the clipboard). Sprite symbol: `#wa`.

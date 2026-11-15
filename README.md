@@ -26,7 +26,6 @@
 | `logo.webp`, `logo-icon.webp`, `favicon.svg`, `apple-touch-icon.png`, `hero.jpg`, `youtube-channel-logo.webp` | লোগো, আইকন ও হোম পেজের ছবি |
 | `og-image.jpg` | Facebook/WhatsApp-এ লিংক শেয়ার করলে যে ছবি দেখায় |
 | `manifest.webmanifest`, `icon-192.png`, `icon-512.png`, `icon-maskable-512.png` | ফোনে “Add to Home screen” করলে সাইটের নাম ও আইকন |
-| `answer-*.html` | DAWAH X-এর নিজস্ব উত্তর — প্রতিটি উত্তরের জন্য একটি পেজ, যা এই সাইটেই পড়া যায় |
 | `sitemap.xml` | সার্চ ইঞ্জিনের জন্য পেজের তালিকা |
 | `__forms.html`, `netlify.toml` | শুধু Netlify-তে হোস্ট করলে লাগে |
 | `.nojekyll` | GitHub Pages-কে ফাইলগুলো যেমন আছে তেমন প্রকাশ করতে বলে |
@@ -51,13 +50,6 @@
 python3 -m http.server 8000
 ```
 তারপর http://localhost:8000 খুলুন।
-
-## নতুন নিজস্ব উত্তর যোগ করা
-
-1. যেকোনো `answer-….html` ফাইল কপি করে নতুন নাম দিন (ছোট হাতের ইংরেজি অক্ষর ও হাইফেন, যেমন `answer-my-topic.html`)।
-2. ফাইলের ভেতরে শিরোনাম, বিবরণ (`<title>`, `description`, `og:`/`twitter:` ট্যাগ, JSON-LD), `canonical`/`og:url` ঠিকানা, শেয়ার লিংক এবং মূল লেখা বদলান।
-3. `app.js`-এর `OWN_ANSWERS` তালিকায় একটি লাইন যোগ করুন: `["বিভাগ","শিরোনাম","answer-my-topic.html"]` — তাহলে প্রশ্নোত্তর পেজের সার্চ ও তালিকায় আসবে।
-4. `questions.html`-এর `.own-answers` অংশে একটি কার্ড এবং `sitemap.xml`-এ একটি `<url>` লাইন যোগ করুন।
 
 ## WhatsApp
 
