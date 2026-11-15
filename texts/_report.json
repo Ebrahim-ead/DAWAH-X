@@ -1,17 +1,41 @@
 {
- "at": "2026-11-15T15:49:40.038Z",
+ "at": "2026-11-15T15:52:39.149Z",
  "request": {
   "set": "none",
   "hosts": [],
   "wayback": true,
   "probe": [
-   "https://web.archive.org/web/20300101000000id_/https://www.frommuslims.com/%e0%a6%87%e0%a6%b8%e0%a6%b2%e0%a6%be%e0%a6%ae-%e0%a6%95%e0%a6%bf-%e0%a6%b8%e0%a6%95%e0%a6%b2-%e0%a6%85%e0%a6%ae%e0%a7%81%e0%a6%b8%e0%a6%b2%e0%a6%bf%e0%a6%ae%e0%a6%95%e0%a7%87-%e0%a6%b9%e0%a6%a4/",
-   "https://web.archive.org/web/20300101000000id_/https://www.frommuslims.com/%e0%a6%ae%e0%a7%81%e0%a6%b8%e0%a6%b2%e0%a6%bf%e0%a6%ae%e0%a6%b0%e0%a6%be-%e0%a6%96%e0%a7%81%e0%a6%ac%e0%a6%87-%e0%a6%96%e0%a6%be%e0%a6%b0%e0%a6%be%e0%a6%aa/",
-   "https://web.archive.org/web/20300101000000id_/https://www.frommuslims.com/qna/%e0%a6%95%e0%a7%8b%e0%a6%b0%e0%a6%86%e0%a6%a8%e0%a7%87-%e0%a6%a6%e0%a6%bf%e0%a6%b0%e0%a6%b9%e0%a6%be%e0%a6%ae-%e0%a6%b6%e0%a6%ac%e0%a7%8d%e0%a6%a6-%e0%a6%a8%e0%a6%bf%e0%a6%af%e0%a6%bc%e0%a7%87/",
-   "https://web.archive.org/web/20300101000000id_/https://www.frommuslims.com/qna/%e0%a6%ae%e0%a7%83%e0%a6%a4%e0%a6%a6%e0%a7%87%e0%a6%b9%e0%a7%87%e0%a6%b0-%e0%a6%b8%e0%a6%be%e0%a6%a5%e0%a7%87-%e0%a6%af%e0%a7%8c%e0%a6%a8%e0%a6%a4%e0%a6%be-%e0%a6%b8%e0%a6%ae%e0%a7%8d%e0%a6%aa/"
+   "wb:https://www.frommuslims.com/%e0%a6%ae%e0%a7%81%e0%a6%b8%e0%a6%b2%e0%a6%bf%e0%a6%ae%e0%a6%b0%e0%a6%be-%e0%a6%96%e0%a7%81%e0%a6%ac%e0%a6%87-%e0%a6%96%e0%a6%be%e0%a6%b0%e0%a6%be%e0%a6%aa/",
+   "wb:https://www.frommuslims.com/%e0%a6%ac%e0%a7%80%e0%a6%b0%e0%a7%8d%e0%a6%af-%e0%a6%95%e0%a6%bf-%e0%a6%ae%e0%a7%87%e0%a6%b0%e0%a7%81%e0%a6%a6%e0%a6%a3%e0%a7%8d%e0%a6%a1-%e0%a6%93-%e0%a6%ac%e0%a6%95%e0%a7%8d%e0%a6%b7%e0%a6%aa/",
+   "wb:https://www.frommuslims.com/qna/%e0%a6%95%e0%a7%8b%e0%a6%b0%e0%a6%86%e0%a6%a8%e0%a7%87-%e0%a6%a6%e0%a6%bf%e0%a6%b0%e0%a6%b9%e0%a6%be%e0%a6%ae-%e0%a6%b6%e0%a6%ac%e0%a7%8d%e0%a6%a6-%e0%a6%a8%e0%a6%bf%e0%a6%af%e0%a6%bc%e0%a7%87/",
+   "wb:https://www.frommuslims.com/qna/%e0%a6%a6%e0%a6%bf%e0%a6%b0%e0%a6%b9%e0%a6%be%e0%a6%ae-%e0%a6%a8%e0%a6%bf%e0%a6%af%e0%a6%bc%e0%a7%87-%e0%a6%95%e0%a6%bf-%e0%a6%95%e0%a7%8b%e0%a6%b0%e0%a6%86%e0%a6%a8%e0%a7%87-%e0%a6%90%e0%a6%a4/",
+   "wb:https://www.frommuslims.com/qna/%e0%a6%b9%e0%a6%be%e0%a6%ae%e0%a6%be%e0%a6%b8%e0%a7%87%e0%a6%b0-%e0%a7%ad-%e0%a6%85%e0%a6%95%e0%a7%8d%e0%a6%9f%e0%a7%8b%e0%a6%ac%e0%a6%b0%e0%a7%87%e0%a6%b0-%e0%a6%b9%e0%a6%be%e0%a6%ae%e0%a6%b2/",
+   "wb:https://www.frommuslims.com/qna/%e0%a6%ae%e0%a7%83%e0%a6%a4%e0%a6%a6%e0%a7%87%e0%a6%b9%e0%a7%87%e0%a6%b0-%e0%a6%b8%e0%a6%be%e0%a6%a5%e0%a7%87-%e0%a6%af%e0%a7%8c%e0%a6%a8%e0%a6%a4%e0%a6%be-%e0%a6%b8%e0%a6%ae%e0%a7%8d%e0%a6%aa/",
+   "wb:https://www.frommuslims.com/qna/%e0%a6%9c%e0%a6%bf%e0%a6%b9%e0%a6%be%e0%a6%a6-%e0%a6%ac%e0%a6%bf%e0%a6%b7%e0%a6%af%e0%a6%bc%e0%a6%95-%e0%a6%93-%e0%a6%85%e0%a6%a8%e0%a7%8d%e0%a6%af%e0%a6%be%e0%a6%a8%e0%a7%8d%e0%a6%af/",
+   "wb:https://www.frommuslims.com/qna/%e0%a6%aa%e0%a6%b0%e0%a7%8d%e0%a6%a6%e0%a6%be-%e0%a6%b8%e0%a6%ae%e0%a7%8d%e0%a6%aa%e0%a6%b0%e0%a7%8d%e0%a6%95%e0%a7%87-%e0%a6%86%e0%a6%b2%e0%a6%ac%e0%a6%be%e0%a6%a8%e0%a7%80-%e0%a6%b0%e0%a6%b9/"
+  ],
+  "probeKids": 60,
+  "sel": [
+   "h1",
+   "#post-extra-info",
+   ".meta-author",
+   ".footnotes_reference_container",
+   ".footnotes_reference_container tr",
+   ".footnote_plugin_text",
+   ".entry-content > div",
+   ".dwqa-question-item",
+   ".dwqa-question-content",
+   ".dwqa-question-meta",
+   ".dwqa-answer-item",
+   ".dwqa-answer-content",
+   ".dwqa-answer-meta",
+   ".dwqa-comments",
+   ".dwqa-question-title",
+   ".dwqa-breadcrumbs",
+   "[class*=dwqa]"
   ],
   "minutes": 10,
-  "run": 9
+  "run": 10
  },
  "done": 0,
  "skipped": 0,
@@ -19,7 +43,7 @@
  "bySource": {},
  "probe": [
   {
-   "u": "https://web.archive.org/web/20300101000000id_/https://www.frommuslims.com/%e0%a6%87%e0%a6%b8%e0%a6%b2%e0%a6%be%e0%a6%ae-%e0%a6%95%e0%a6%bf-%e0%a6%b8%e0%a6%95%e0%a6%b2-%e0%a6%85%e0%a6%ae%e0%a7%81%e0%a6%b8%e0%a6%b2%e0%a6%bf%e0%a6%ae%e0%a6%95%e0%a7%87-%e0%a6%b9%e0%a6%a4/",
+   "u": "https://web.archive.org/web/20250623031416id_/https://www.frommuslims.com/%E0%A6%AE%E0%A7%81%E0%A6%B8%E0%A6%B2%E0%A6%BF%E0%A6%AE%E0%A6%B0%E0%A6%BE-%E0%A6%96%E0%A7%81%E0%A6%AC%E0%A6%87-%E0%A6%96%E0%A6%BE%E0%A6%B0%E0%A6%BE%E0%A6%AA/",
    "status": 0,
    "len": 0,
    "title": "",
@@ -32,17 +56,275 @@
     "article:published_time=",
     "author=",
     "og:site_name="
+   ],
+   "sel": [
+    [
+     "h1",
+     0
+    ],
+    [
+     "#post-extra-info",
+     0
+    ],
+    [
+     ".meta-author",
+     0
+    ],
+    [
+     ".footnotes_reference_container",
+     0
+    ],
+    [
+     ".footnotes_reference_container tr",
+     0
+    ],
+    [
+     ".footnote_plugin_text",
+     0
+    ],
+    [
+     ".entry-content > div",
+     0
+    ],
+    [
+     ".dwqa-question-item",
+     0
+    ],
+    [
+     ".dwqa-question-content",
+     0
+    ],
+    [
+     ".dwqa-question-meta",
+     0
+    ],
+    [
+     ".dwqa-answer-item",
+     0
+    ],
+    [
+     ".dwqa-answer-content",
+     0
+    ],
+    [
+     ".dwqa-answer-meta",
+     0
+    ],
+    [
+     ".dwqa-comments",
+     0
+    ],
+    [
+     ".dwqa-question-title",
+     0
+    ],
+    [
+     ".dwqa-breadcrumbs",
+     0
+    ],
+    [
+     "[class*=dwqa]",
+     0
+    ]
    ]
   },
   {
-   "u": "https://web.archive.org/web/20300101000000id_/https://www.frommuslims.com/%e0%a6%ae%e0%a7%81%e0%a6%b8%e0%a6%b2%e0%a6%bf%e0%a6%ae%e0%a6%b0%e0%a6%be-%e0%a6%96%e0%a7%81%e0%a6%ac%e0%a6%87-%e0%a6%96%e0%a6%be%e0%a6%b0%e0%a6%be%e0%a6%aa/",
+   "u": "wb:https://www.frommuslims.com/%e0%a6%ac%e0%a7%80%e0%a6%b0%e0%a7%8d%e0%a6%af-%e0%a6%95%e0%a6%bf-%e0%a6%ae%e0%a7%87%e0%a6%b0%e0%a7%81%e0%a6%a6%e0%a6%a3%e0%a7%8d%e0%a6%a1-%e0%a6%93-%e0%a6%ac%e0%a6%95%e0%a7%8d%e0%a6%b7%e0%a6%aa/",
+   "status": "not archived"
+  },
+  {
+   "u": "wb:https://www.frommuslims.com/qna/%e0%a6%95%e0%a7%8b%e0%a6%b0%e0%a6%86%e0%a6%a8%e0%a7%87-%e0%a6%a6%e0%a6%bf%e0%a6%b0%e0%a6%b9%e0%a6%be%e0%a6%ae-%e0%a6%b6%e0%a6%ac%e0%a7%8d%e0%a6%a6-%e0%a6%a8%e0%a6%bf%e0%a6%af%e0%a6%bc%e0%a7%87/",
+   "status": "not archived"
+  },
+  {
+   "u": "wb:https://www.frommuslims.com/qna/%e0%a6%a6%e0%a6%bf%e0%a6%b0%e0%a6%b9%e0%a6%be%e0%a6%ae-%e0%a6%a8%e0%a6%bf%e0%a6%af%e0%a6%bc%e0%a7%87-%e0%a6%95%e0%a6%bf-%e0%a6%95%e0%a7%8b%e0%a6%b0%e0%a6%86%e0%a6%a8%e0%a7%87-%e0%a6%90%e0%a6%a4/",
+   "status": "not archived"
+  },
+  {
+   "u": "wb:https://www.frommuslims.com/qna/%e0%a6%b9%e0%a6%be%e0%a6%ae%e0%a6%be%e0%a6%b8%e0%a7%87%e0%a6%b0-%e0%a7%ad-%e0%a6%85%e0%a6%95%e0%a7%8d%e0%a6%9f%e0%a7%8b%e0%a6%ac%e0%a6%b0%e0%a7%87%e0%a6%b0-%e0%a6%b9%e0%a6%be%e0%a6%ae%e0%a6%b2/",
+   "status": "not archived"
+  },
+  {
+   "u": "https://web.archive.org/web/20251017141750id_/https://www.frommuslims.com/qna/%E0%A6%AE%E0%A7%83%E0%A6%A4%E0%A6%A6%E0%A7%87%E0%A6%B9%E0%A7%87%E0%A6%B0-%E0%A6%B8%E0%A6%BE%E0%A6%A5%E0%A7%87-%E0%A6%AF%E0%A7%8C%E0%A6%A8%E0%A6%A4%E0%A6%BE-%E0%A6%B8%E0%A6%AE%E0%A7%8D%E0%A6%AA/",
+   "status": 0,
+   "len": 0,
+   "title": "",
+   "h1": [],
+   "best": "body",
+   "tree": [],
+   "time": [],
+   "meta": [
+    "og:title=",
+    "article:published_time=",
+    "author=",
+    "og:site_name="
+   ],
+   "sel": [
+    [
+     "h1",
+     0
+    ],
+    [
+     "#post-extra-info",
+     0
+    ],
+    [
+     ".meta-author",
+     0
+    ],
+    [
+     ".footnotes_reference_container",
+     0
+    ],
+    [
+     ".footnotes_reference_container tr",
+     0
+    ],
+    [
+     ".footnote_plugin_text",
+     0
+    ],
+    [
+     ".entry-content > div",
+     0
+    ],
+    [
+     ".dwqa-question-item",
+     0
+    ],
+    [
+     ".dwqa-question-content",
+     0
+    ],
+    [
+     ".dwqa-question-meta",
+     0
+    ],
+    [
+     ".dwqa-answer-item",
+     0
+    ],
+    [
+     ".dwqa-answer-content",
+     0
+    ],
+    [
+     ".dwqa-answer-meta",
+     0
+    ],
+    [
+     ".dwqa-comments",
+     0
+    ],
+    [
+     ".dwqa-question-title",
+     0
+    ],
+    [
+     ".dwqa-breadcrumbs",
+     0
+    ],
+    [
+     "[class*=dwqa]",
+     0
+    ]
+   ]
+  },
+  {
+   "u": "https://web.archive.org/web/20240920064037id_/https://www.frommuslims.com/qna/%e0%a6%9c%e0%a6%bf%e0%a6%b9%e0%a6%be%e0%a6%a6-%e0%a6%ac%e0%a6%bf%e0%a6%b7%e0%a6%af%e0%a6%bc%e0%a6%95-%e0%a6%93-%e0%a6%85%e0%a6%a8%e0%a7%8d%e0%a6%af%e0%a6%be%e0%a6%a8%e0%a7%8d%e0%a6%af/",
+   "status": 0,
+   "len": 0,
+   "title": "",
+   "h1": [],
+   "best": "body",
+   "tree": [],
+   "time": [],
+   "meta": [
+    "og:title=",
+    "article:published_time=",
+    "author=",
+    "og:site_name="
+   ],
+   "sel": [
+    [
+     "h1",
+     0
+    ],
+    [
+     "#post-extra-info",
+     0
+    ],
+    [
+     ".meta-author",
+     0
+    ],
+    [
+     ".footnotes_reference_container",
+     0
+    ],
+    [
+     ".footnotes_reference_container tr",
+     0
+    ],
+    [
+     ".footnote_plugin_text",
+     0
+    ],
+    [
+     ".entry-content > div",
+     0
+    ],
+    [
+     ".dwqa-question-item",
+     0
+    ],
+    [
+     ".dwqa-question-content",
+     0
+    ],
+    [
+     ".dwqa-question-meta",
+     0
+    ],
+    [
+     ".dwqa-answer-item",
+     0
+    ],
+    [
+     ".dwqa-answer-content",
+     0
+    ],
+    [
+     ".dwqa-answer-meta",
+     0
+    ],
+    [
+     ".dwqa-comments",
+     0
+    ],
+    [
+     ".dwqa-question-title",
+     0
+    ],
+    [
+     ".dwqa-breadcrumbs",
+     0
+    ],
+    [
+     "[class*=dwqa]",
+     0
+    ]
+   ]
+  },
+  {
+   "u": "https://web.archive.org/web/20250618211031id_/https://www.frommuslims.com/qna/%E0%A6%AA%E0%A6%B0%E0%A7%8D%E0%A6%A6%E0%A6%BE-%E0%A6%B8%E0%A6%AE%E0%A7%8D%E0%A6%AA%E0%A6%B0%E0%A7%8D%E0%A6%95%E0%A7%87-%E0%A6%86%E0%A6%B2%E0%A6%AC%E0%A6%BE%E0%A6%A8%E0%A7%80-%E0%A6%B0%E0%A6%B9/",
    "status": 200,
-   "final": "https://web.archive.org/web/20250623031416id_/https://www.frommuslims.com/%E0%A6%AE%E0%A7%81%E0%A6%B8%E0%A6%B2%E0%A6%BF%E0%A6%AE%E0%A6%B0%E0%A6%BE-%E0%A6%96%E0%A7%81%E0%A6%AC%E0%A6%87-%E0%A6%96%E0%A6%BE%E0%A6%B0%E0%A6%BE%E0%A6%AA/",
-   "len": 328876,
-   "title": "মুসলিমরা খুবই খারাপ... | FromMuslims",
+   "final": "https://web.archive.org/web/20250618211031id_/https://www.frommuslims.com/qna/%E0%A6%AA%E0%A6%B0%E0%A7%8D%E0%A6%A6%E0%A6%BE-%E0%A6%B8%E0%A6%AE%E0%A7%8D%E0%A6%AA%E0%A6%B0%E0%A7%8D%E0%A6%95%E0%A7%87-%E0%A6%86%E0%A6%B2%E0%A6%AC%E0%A6%BE%E0%A6%A8%E0%A7%80-%E0%A6%B0%E0%A6%B9/",
+   "len": 201733,
+   "title": "পর্দা সম্পর্কে আলবানী রহ. | FromMuslims",
    "h1": [
     {
-     "t": "মুসলিমরা খুবই খারাপ…",
+     "t": "পর্দা সম্পর্কে আলবানী রহ.",
      "path": [
       "div.entry-header",
       "header.entry-header-outer",
@@ -57,383 +339,180 @@
    "tree": [
     {
      "s": "header.entry-header-outer",
-     "n": 152,
-     "t": "Home»স্যাটায়ার»মুসলিমরা খুবই খারাপ… স্যা"
+     "n": 71,
+     "t": "Home»Question»ইসলাম»পর্দা সম্পর্কে আলবান"
     },
     {
      "s": "div.entry-content.entry.clearfix",
-     "n": 7536,
-     "t": "Join @FromMuslims on Telegram মুসলিমরা খ",
+     "n": 2040,
+     "t": "প্রশ্নোত্তর (Q&A) › Category: ইসলাম › পর",
      "c": [
       {
-       "s": "div.wp-block-wptelegram-widget-join-channel.aligncenter",
-       "n": 29,
-       "t": "Join @FromMuslims on Telegram"
-      },
-      {
-       "s": "p",
-       "n": 26,
-       "t": "মুসলিমরা খুবই খারাপ। কারণ,"
-      },
-      {
-       "s": "p",
-       "n": 145,
-       "t": "১. মুসলিমরা বিভিন্ন দেশে গণতন্ত্র প্রতিষ"
-      },
-      {
-       "s": "p",
-       "n": 137,
-       "t": "২. মুসলিমরা অন্য দেশে আফিম চাষ করে বিশ্ব"
-      },
-      {
-       "s": "p",
-       "n": 159,
-       "t": "৩. মুসলিমরা সুযোগ পেলেই বাইবেল, গীতা, ত্"
-      },
-      {
-       "s": "p",
-       "n": 261,
-       "t": "৪. মুসলিমরা নিজেদের দেশের প্রদেশে প্রায় ",
+       "s": "div.dwqa-container",
+       "n": 2040,
+       "t": "প্রশ্নোত্তর (Q&A) › Category: ইসলাম › পর",
        "c": [
         {
-         "s": "span.x193iq5w.xeuugli.x13faqbe.x1vvkbs",
-         "n": 261,
-         "t": "৪. মুসলিমরা নিজেদের দেশের প্রদেশে প্রায় ",
+         "s": "div.dwqa-single-question",
+         "n": 2040,
+         "t": "প্রশ্নোত্তর (Q&A) › Category: ইসলাম › পর",
          "c": [
           {
-           "s": "span.footnote_referrer.relative",
-           "n": 64,
-           "t": "[3]https://www.wafilife.com/shop/books/k"
-          }
-         ]
-        }
-       ]
-      },
-      {
-       "s": "p",
-       "n": 115,
-       "t": "৫. মুসলিমরা অন্য ধর্মালম্বীদের অপমান করা"
-      },
-      {
-       "s": "p",
-       "n": 413,
-       "t": "৬. মুসলিমরা বিশ্বের এক নাম্বার অস্ত্র বি",
-       "c": [
-        {
-         "s": "span.x193iq5w.xeuugli.x13faqbe.x1vvkbs",
-         "n": 413,
-         "t": "৬. মুসলিমরা বিশ্বের এক নাম্বার অস্ত্র বি",
-         "c": [
+           "s": "div.dwqa-breadcrumbs",
+           "n": 63,
+           "t": "প্রশ্নোত্তর (Q&A) › Category: ইসলাম › পর"
+          },
           {
-           "s": "span.footnote_referrer.relative",
-           "n": 222,
-           "t": "[4]Statista Research Department (2022), ",
+           "s": "div.dwqa-question-item",
+           "n": 290,
+           "t": "0 Vote Up Vote Down ফাহিম খান asked 2 ye",
            "c": [
             {
-             "s": "a.footnote_hard_link",
-             "n": 3,
-             "t": "[4]"
+             "s": "div.dwqa-question-vote",
+             "n": 19,
+             "t": "0 Vote Up Vote Down"
             },
             {
-             "s": "span.footnote_referrer_base",
+             "s": "div.dwqa-question-meta",
+             "n": 27,
+             "t": "ফাহিম খান asked 2 years ago"
+            },
+            {
+             "s": "div.dwqa-question-content",
+             "n": 242,
+             "t": "আলবানী রহ. কি দাসীদের পর্দা সম্পূর্ণ স্ব"
+            },
+            {
+             "s": "footer.dwqa-question-footer",
              "n": 0,
              "t": ""
             },
             {
-             "s": "span#footnote_plugin_tooltip_text_68486_1_4.footnote_tooltip.position",
-             "n": 219,
-             "t": "Statista Research Department (2022), Mar"
-            }
-           ]
-          },
-          {
-           "s": "span.footnote_referrer.relative",
-           "n": 77,
-           "t": "[5]https://en.wikipedia.org/wiki/Arms_in"
-          }
-         ]
-        }
-       ]
-      },
-      {
-       "s": "p",
-       "n": 257,
-       "t": "৭. মুসলিমরা নিজেদের দেশে ১৮ বছরের নীচে ক",
-       "c": [
-        {
-         "s": "span.x193iq5w.xeuugli.x13faqbe.x1vvkbs",
-         "n": 257,
-         "t": "৭. মুসলিমরা নিজেদের দেশে ১৮ বছরের নীচে ক",
-         "c": [
-          {
-           "s": "span.footnote_referrer.relative",
-           "n": 152,
-           "t": "[6]‘Law against Islam’: French vote in f"
-          }
-         ]
-        }
-       ]
-      },
-      {
-       "s": "p",
-       "n": 338,
-       "t": "৮. মুসলিমরা ১৯৪৫ সালে নিউক্লিয়ার বোম মে",
-       "c": [
-        {
-         "s": "span.x193iq5w.xeuugli.x13faqbe.x1vvkbs",
-         "n": 338,
-         "t": "৮. মুসলিমরা ১৯৪৫ সালে নিউক্লিয়ার বোম মে",
-         "c": [
-          {
-           "s": "span.footnote_referrer.relative",
-           "n": 132,
-           "t": "[7]The Atomic Bombings of Hiroshima and "
-          },
-          {
-           "s": "span.footnote_referrer.relative",
-           "n": 66,
-           "t": "[8]সহিহুল বুখারি ৩০১৫, সুনানে আবু দাঊদ ২"
-          }
-         ]
-        }
-       ]
-      },
-      {
-       "s": "p",
-       "n": 179,
-       "t": "৯. মুসলিমরা উদ্বাস্তুর মতো এক দেশে আশ্রয়"
-      },
-      {
-       "s": "div",
-       "n": 40,
-       "t": "আরো পড়ুন... কুযুক্তি - লজিক্যাল ফ্যালাসি"
-      },
-      {
-       "s": "p",
-       "n": 159,
-       "t": "১০. মুসলিমরা জাতিগত নিধনের মাধ্যমে প্রায়"
-      },
-      {
-       "s": "p",
-       "n": 563,
-       "t": "১১. মুসলিমরা শুকর খাওয়ার অভিযোগে, এমনকি ",
-       "c": [
-        {
-         "s": "span.x193iq5w.xeuugli.x13faqbe.x1vvkbs",
-         "n": 563,
-         "t": "১১. মুসলিমরা শুকর খাওয়ার অভিযোগে, এমনকি ",
-         "c": [
-          {
-           "s": "span.footnote_referrer.relative",
-           "n": 227,
-           "t": "[11]Gopal B Kateshiya (2016), Gujarat: 7",
-           "c": [
-            {
-             "s": "a.footnote_hard_link",
-             "n": 4,
-             "t": "[11]"
-            },
-            {
-             "s": "span.footnote_referrer_base",
+             "s": "div.dwqa-comments",
              "n": 0,
              "t": ""
-            },
-            {
-             "s": "span#footnote_plugin_tooltip_text_68486_1_11.footnote_tooltip.position",
-             "n": 223,
-             "t": "Gopal B Kateshiya (2016), Gujarat: 7 of "
             }
            ]
           },
           {
-           "s": "span.footnote_referrer.relative",
-           "n": 121,
-           "t": "[12]https://www.channel24bd.tv/internati"
-          }
-         ]
-        }
-       ]
-      },
-      {
-       "s": "p",
-       "n": 209,
-       "t": "১২. মুসলিমরা গরিব খ্রিস্টান দেশে যায়। তা",
-       "c": [
-        {
-         "s": "span.x193iq5w.xeuugli.x13faqbe.x1vvkbs",
-         "n": 209,
-         "t": "১২. মুসলিমরা গরিব খ্রিস্টান দেশে যায়। তা",
-         "c": [
-          {
-           "s": "span.footnote_referrer.relative",
-           "n": 65,
-           "t": "[13]https://www.hadithbd.com/books/detai"
-          },
-          {
-           "s": "br",
-           "n": 0,
-           "t": ""
-          }
-         ]
-        }
-       ]
-      },
-      {
-       "s": "p",
-       "n": 738,
-       "t": "১৩. মুসলিমরাইতো ভারত বর্ষে ২০০ বছর শাসন ",
-       "c": [
-        {
-         "s": "span.footnote_referrer.relative",
-         "n": 54,
-         "t": "[14]Prosperous’ British India, Sir Willi"
-        },
-        {
-         "s": "span.footnote_referrer.relative",
-         "n": 91,
-         "t": "[15]https://www.aljazeera.com/opinions/2"
-        },
-        {
-         "s": "span.footnote_referrer.relative",
-         "n": 55,
-         "t": "[16]‘Prosperous’ British India, Sir Will"
-        },
-        {
-         "s": "span.footnote_referrer.relative",
-         "n": 37,
-         "t": "[17]অবাধ্যতা ইতিহাস বই, পৃষ্ঠা -৭৬-৭৯"
-        }
-       ]
-      },
-      {
-       "s": "p",
-       "n": 87,
-       "t": "১৪. মুসলিমরাই ১ম বিশ্বযুদ্ধ, ২য় বিশ্বযুদ"
-      },
-      {
-       "s": "p",
-       "n": 940,
-       "t": "১৫. ১৯৩৭ সালের ডিসেম্বরের দিনগুলোতে মুসল",
-       "c": [
-        {
-         "s": "span.footnote_referrer.relative",
-         "n": 388,
-         "t": "[18]Wakabayashi, Bob Tadashi (2008). “Le",
-         "c": [
-          {
-           "s": "a.footnote_hard_link",
-           "n": 4,
-           "t": "[18]"
-          },
-          {
-           "s": "span.footnote_referrer_base",
-           "n": 0,
-           "t": ""
-          },
-          {
-           "s": "span#footnote_plugin_tooltip_text_68486_1_18.footnote_tooltip.position",
-           "n": 384,
-           "t": "Wakabayashi, Bob Tadashi (2008). “Leftov",
+           "s": "div.dwqa-answers",
+           "n": 1685,
+           "t": "1 Answers 1 Vote Up Vote Down Best Answe",
            "c": [
             {
-             "s": "a.footnote_tooltip_continue",
-             "n": 13,
-             "t": "See Full Note"
+             "s": "div.dwqa-answers-title",
+             "n": 9,
+             "t": "1 Answers"
+            },
+            {
+             "s": "div.dwqa-answers-list",
+             "n": 1628,
+             "t": "1 Vote Up Vote Down Best Answer Tahsin A"
+            },
+            {
+             "s": "div.dwqa-answers-login",
+             "n": 46,
+             "t": "Please Login or Register to submit your "
             }
            ]
           }
          ]
         }
        ]
-      },
-      {
-       "s": "div",
-       "n": 29,
-       "t": "আরো পড়ুন... শয়তানের কনফারেন্স"
-      },
-      {
-       "s": "p",
-       "n": 254,
-       "t": "১৬. ১৬১৮-১৬৪৮ সাল পর্যন্ত ইউরোপে মুসলিমদ",
-       "c": [
-        {
-         "s": "em",
-         "n": 18,
-         "t": "থার্টি ইয়ার্স ওয়ার"
-        },
-        {
-         "s": "span.footnote_referrer.relative",
-         "n": 4,
-         "t": "[19]"
-        }
-       ]
-      },
-      {
-       "s": "hr",
-       "n": 0,
-       "t": ""
-      },
-      {
-       "s": "p",
-       "n": 103,
-       "t": "ইনশাআল্লাহ এই লিস্ট আরো বড় হতে থাকবে। পা"
       }
      ]
-    },
-    {
-     "s": "div#post-extra-info",
-     "n": 80,
-     "t": "Farhan HabibSeptember 10, 2023Last Updat"
-    },
-    {
-     "s": "div.clearfix",
-     "n": 0,
-     "t": ""
-    },
-    {
-     "s": "div#share-buttons-bottom.share-buttons.share-buttons-bottom",
-     "n": 76,
-     "t": "Share Facebook X Messenger Messenger Wha"
     }
    ],
    "time": [],
    "meta": [
-    "og:title=মুসলিমরা খুবই খারাপ... | FromMuslims",
-    "article:published_time=2023-09-10T18:03:12+06:00",
+    "og:title=পর্দা সম্পর্কে আলবানী রহ. | FromMuslims",
+    "article:published_time=",
     "author=",
     "og:site_name=FromMuslims"
-   ]
-  },
-  {
-   "u": "https://web.archive.org/web/20300101000000id_/https://www.frommuslims.com/qna/%e0%a6%95%e0%a7%8b%e0%a6%b0%e0%a6%86%e0%a6%a8%e0%a7%87-%e0%a6%a6%e0%a6%bf%e0%a6%b0%e0%a6%b9%e0%a6%be%e0%a6%ae-%e0%a6%b6%e0%a6%ac%e0%a7%8d%e0%a6%a6-%e0%a6%a8%e0%a6%bf%e0%a6%af%e0%a6%bc%e0%a7%87/",
-   "status": 0,
-   "len": 0,
-   "title": "",
-   "h1": [],
-   "best": "body",
-   "tree": [],
-   "time": [],
-   "meta": [
-    "og:title=",
-    "article:published_time=",
-    "author=",
-    "og:site_name="
-   ]
-  },
-  {
-   "u": "https://web.archive.org/web/20300101000000id_/https://www.frommuslims.com/qna/%e0%a6%ae%e0%a7%83%e0%a6%a4%e0%a6%a6%e0%a7%87%e0%a6%b9%e0%a7%87%e0%a6%b0-%e0%a6%b8%e0%a6%be%e0%a6%a5%e0%a7%87-%e0%a6%af%e0%a7%8c%e0%a6%a8%e0%a6%a4%e0%a6%be-%e0%a6%b8%e0%a6%ae%e0%a7%8d%e0%a6%aa/",
-   "status": 0,
-   "len": 0,
-   "title": "",
-   "h1": [],
-   "best": "body",
-   "tree": [],
-   "time": [],
-   "meta": [
-    "og:title=",
-    "article:published_time=",
-    "author=",
-    "og:site_name="
+   ],
+   "sel": [
+    [
+     "h1",
+     1,
+     "h1.post-title.entry-title >  :: পর্দা সম্পর্কে আলবানী রহ."
+    ],
+    [
+     "#post-extra-info",
+     0
+    ],
+    [
+     ".meta-author",
+     0
+    ],
+    [
+     ".footnotes_reference_container",
+     0
+    ],
+    [
+     ".footnotes_reference_container tr",
+     0
+    ],
+    [
+     ".footnote_plugin_text",
+     0
+    ],
+    [
+     ".entry-content > div",
+     1,
+     "div.dwqa-container > div.dwqa-single-question :: প্রশ্নোত্তর (Q&A) › Category: ইসলাম › পর্দা সম্পর্কে আলবানী রহ. 0 Vote Up Vote Down ফাহিম খান asked 2 years ag"
+    ],
+    [
+     ".dwqa-question-item",
+     1,
+     "div.dwqa-question-item > div.dwqa-question-vote , div.dwqa-question-meta , div.dwqa-question-content , footer.dwqa-question-footer , div.dwqa-comments :: 0 Vote Up Vote Down ফাহিম খান asked 2 years ago আলবানী রহ. কি দাসীদের পর্দা সম্পূর্ণ স্বাধীন নারীর মত বলেছিলেন"
+    ],
+    [
+     ".dwqa-question-content",
+     1,
+     "div.dwqa-question-content >  :: আলবানী রহ. কি দাসীদের পর্দা সম্পূর্ণ স্বাধীন নারীর মত বলেছিলেন? স্বাধীন নারীদের ব্যাপারে আলবানী রহ. কি বলেছিলে"
+    ],
+    [
+     ".dwqa-question-meta",
+     2,
+     "div.dwqa-question-meta > span , span.dwqa-question-actions :: ফাহিম খান asked 2 years ago",
+     "div.dwqa-question-meta >  :: "
+    ],
+    [
+     ".dwqa-answer-item",
+     1,
+     "div#answer-339894.dwqa-answer-item.dwqa-best-answer > div.dwqa-answer-vote , span.dwqa-pick-best-answer , div.dwqa-answer-meta , div.dwqa-answer-content , div.dwqa-comments :: 1 Vote Up Vote Down Best Answer Tahsin Arafat Staff answered 2 years ago দাসীর পর্দা সম্পর্কে আলবানী (রহঃ) এর "
+    ],
+    [
+     ".dwqa-answer-content",
+     1,
+     "div.dwqa-answer-content > p , ul , p , ul , p , ul :: দাসীর পর্দা সম্পর্কে আলবানী (রহঃ) এর মতামত জানতে এখানে দেখুনঃ https://www.frommuslims.com/ইসলামে-দাসীর-পর্দা/ "
+    ],
+    [
+     ".dwqa-answer-meta",
+     1,
+     "div.dwqa-answer-meta > span , span.dwqa-answer-actions :: Tahsin Arafat Staff answered 2 years ago"
+    ],
+    [
+     ".dwqa-comments",
+     2,
+     "div.dwqa-comments > div.dwqa-comments-list :: ",
+     "div.dwqa-comments > div.dwqa-comments-list :: "
+    ],
+    [
+     ".dwqa-question-title",
+     0
+    ],
+    [
+     ".dwqa-breadcrumbs",
+     1,
+     "div.dwqa-breadcrumbs > a , span.dwqa-sep , a , span.dwqa-sep , span.dwqa-current :: প্রশ্নোত্তর (Q&A) › Category: ইসলাম › পর্দা সম্পর্কে আলবানী রহ."
+    ],
+    [
+     "[class*=dwqa]",
+     40,
+     "body#tie-body.wp-singular.dwqa-question-template-default.single.single-dwqa-question > div.background-overlay , div#reading-position-indicator , div#autocomplete-suggestions.autocomplete-suggestions , div#is-scroller-outer , div#fb-root , div#tie-popup-search-mobile.tie-popup.tie-popup-search-wrap :: Menu Switch skin Search for হোমপেইজ অন্যান্য ই-লাইব্রেরি (β) ফ্রম মুসলিমস্ আর্কাইভ ইবুক ফাইল ইসলামী গ্রন্থাগার",
+     "div.dwqa-container > div.dwqa-single-question :: প্রশ্নোত্তর (Q&A) › Category: ইসলাম › পর্দা সম্পর্কে আলবানী রহ. 0 Vote Up Vote Down ফাহিম খান asked 2 years ag"
+    ]
    ]
   }
  ],
@@ -450,6 +529,10 @@
     "2025": 320,
     "2026": 24
    },
+   "qna": [
+    234,
+    187
+   ],
    "unmatched": [
     "https://www.frommuslims.com/প্রাণের-উৎপত্তি/",
     "https://www.frommuslims.com/আল্লাহর-সিফাত-আকল-না-ওহী/",
