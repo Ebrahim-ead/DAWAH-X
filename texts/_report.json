@@ -1,90 +1,14 @@
 {
- "at": "2026-11-15T15:36:36.045Z",
+ "at": "2026-11-15T15:37:45.846Z",
  "request": {
   "set": "none",
   "hosts": [],
   "minutes": 5,
-  "run": 8,
-  "ping": [
-   "https://www.frommuslims.com/wp-json/wp/v2/posts?per_page=1&_fields=id,link,title,date",
-   "https://www.frommuslims.com/wp-json/wp/v2/types",
-   "https://www.frommuslims.com/feed/",
-   "https://www.frommuslims.com/wp-sitemap.xml",
-   "https://www.insightzonebd.com/sitemap.xml",
-   "https://www.insightzonebd.com/feed",
-   "https://www.insightzonebd.com/rss.xml",
-   "https://www.insightzonebd.com/robots.txt",
-   "https://www.insightzonebd.com/wp-json/wp/v2/posts?per_page=1&_fields=id,link"
-  ]
+  "run": 8
  },
  "done": 0,
  "skipped": 0,
  "failed": [],
  "bySource": {},
- "ping": [
-  {
-   "u": "https://www.frommuslims.com/wp-json/wp/v2/posts?per_page=1&_fields=id,link,title,date",
-   "status": 403,
-   "len": 5813,
-   "head": "<!DOCTYPE html><html lang=\"en-US\"><head><title>Just a moment...</title><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\"><meta http-equiv=\"X-UA",
-   "locs": []
-  },
-  {
-   "u": "https://www.frommuslims.com/wp-json/wp/v2/types",
-   "status": 403,
-   "len": 5627,
-   "head": "<!DOCTYPE html><html lang=\"en-US\"><head><title>Just a moment...</title><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\"><meta http-equiv=\"X-UA",
-   "locs": []
-  },
-  {
-   "u": "https://www.frommuslims.com/feed/",
-   "status": 403,
-   "len": 5563,
-   "head": "<!DOCTYPE html><html lang=\"en-US\"><head><title>Just a moment...</title><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\"><meta http-equiv=\"X-UA",
-   "locs": []
-  },
-  {
-   "u": "https://www.frommuslims.com/wp-sitemap.xml",
-   "status": 403,
-   "len": 5612,
-   "head": "<!DOCTYPE html><html lang=\"en-US\"><head><title>Just a moment...</title><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\"><meta http-equiv=\"X-UA",
-   "locs": []
-  },
-  {
-   "u": "https://www.insightzonebd.com/sitemap.xml",
-   "status": 403,
-   "len": 5605,
-   "head": "<!DOCTYPE html><html lang=\"en-US\"><head><title>Just a moment...</title><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\"><meta http-equiv=\"X-UA",
-   "locs": []
-  },
-  {
-   "u": "https://www.insightzonebd.com/feed",
-   "status": 403,
-   "len": 5562,
-   "head": "<!DOCTYPE html><html lang=\"en-US\"><head><title>Just a moment...</title><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\"><meta http-equiv=\"X-UA",
-   "locs": []
-  },
-  {
-   "u": "https://www.insightzonebd.com/rss.xml",
-   "status": 403,
-   "len": 5571,
-   "head": "<!DOCTYPE html><html lang=\"en-US\"><head><title>Just a moment...</title><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\"><meta http-equiv=\"X-UA",
-   "locs": []
-  },
-  {
-   "u": "https://www.insightzonebd.com/robots.txt",
-   "status": 200,
-   "len": 105,
-   "head": "User-agent: * Disallow: /admin/ Disallow: /app/ Sitemap: https://www.insightzonebd.com/sitemap.xml",
-   "locs": []
-  },
-  {
-   "u": "https://www.insightzonebd.com/wp-json/wp/v2/posts?per_page=1&_fields=id,link",
-   "status": 403,
-   "len": 5782,
-   "head": "<!DOCTYPE html><html lang=\"en-US\"><head><title>Just a moment...</title><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\"><meta http-equiv=\"X-UA",
-   "locs": []
-  }
- ],
  "total": 19380
 }
