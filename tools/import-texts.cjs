@@ -32,7 +32,7 @@ const SOURCES={
    /* প্রশ্নোত্তর পেজ (DW Question & Answer): প্রশ্ন + সব উত্তর; মন্তব্য, ভোট, শেয়ার বাদ */
    if($('.dwqa-questions-archive,.dwqa-questions-list').length&&!$('.dwqa-single-question').length)return{title,html:''}; /* প্রশ্নের তালিকা-পাতা, লেখা নয় */
    if($('.dwqa-single-question').length){const q=$('.dwqa-question-item').first(),ans=$('.dwqa-answer-item').toArray();if(!ans.length)return{title,html:''};
-    const by=n=>n?'<p>— '+esc(n)+'</p>':'',names=[];
+    const by=n=>n&&!/@|\[email/.test(n)?'<p>— '+esc(n)+'</p>':'',names=[]; /* নামের জায়গায় ই-মেইল থাকলে দেখানো হয় না */
     const qh=clean($,q.find('.dwqa-question-content').first(),base);
     let html='<h2>প্রশ্ন</h2>'+(textLen(qh)?qh:'<p>'+esc(title.replace(/\s+/g,' ').trim())+'</p>')+by(name(q.find('.dwqa-question-meta').first(),'asked'));
     for(const a of ans){const n=name($(a).find('.dwqa-answer-meta').first(),'answered');if(n&&!names.includes(n))names.push(n);html+='<h2>উত্তর</h2>'+clean($,$(a).find('.dwqa-answer-content').first(),base)+by(n)}
@@ -147,7 +147,7 @@ function migrate(){for(const f of fs.readdirSync(OUT)){if(!/^[0-9a-f]{3}\.json$/
    if(!/\/qna\//.test(x.u)){const h=x.h.replace(/<p>Citation is loading\.\.\.<\/p>/g,'').replace(/<p>Citation style:<\/p>/g,'').replace(/<table>[^<]+<tbody>/g,'<table><tbody>').replace(/\s+$/,''),
      a=x.a.replace(/\s*\d+\s+(seconds?|minutes?|hours?|days?|weeks?|months?|years?)\s+ago.*$/,'').replace(/\s*Last Updated.*$/,'');
     if(h!==x.h||a!==x.a){x.h=h;x.a=a;b.dirty=true}continue}
-   const h=x.h.replace(/^<h3>প্রশ্ন<\/h3>/,'<h2>প্রশ্ন</h2>').replace(/<h3>উত্তর<\/h3>/g,'<h2>উত্তর</h2>').replace(/&lt;img\b[^<]*?&gt;/g,'').replace(/^<h2>প্রশ্ন<\/h2><p><\/p>/,'<h2>প্রশ্ন</h2><p>'+esc(x.t)+'</p>');
+   const h=x.h.replace(/^<h3>প্রশ্ন<\/h3>/,'<h2>প্রশ্ন</h2>').replace(/<h3>উত্তর<\/h3>/g,'<h2>উত্তর</h2>').replace(/&lt;img\b[^<]*?&gt;/g,'').replace(/<p>— [^<]*(@|\[email)[^<]*<\/p>/g,'').replace(/^<h2>প্রশ্ন<\/h2><p><\/p>/,'<h2>প্রশ্ন</h2><p>'+esc(x.t)+'</p>');
    const a=[...new Set(x.a.replace(/<img\b[^>]*>/g,' ').split(',').map(v=>v.replace(/\s+/g,' ').trim()).filter(Boolean))].join(', ');
    if(h!==x.h||a!==x.a){x.h=h;x.a=a;b.dirty=true}}}}
 async function get(u,ms=30000){let last;for(let a=0;a<3;a++){try{const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),ms);
