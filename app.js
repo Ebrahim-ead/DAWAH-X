@@ -1,22 +1,139 @@
+/* DAWAH X — মূল সাইট স্ক্রিপ্ট (সব পেজে একই ফাইল ব্যবহৃত হয়) */
+"use strict";
 
 /* ===== আপনার তথ্য এখানে বদলান ===== */
 const LINKS={
   facebook:"https://www.facebook.com/profile.php?id=61595349861689",
   youtube:"https://www.youtube.com/@ead-s3b",
-  tiktok:"https://tiktok.com/@YOUR_ID"
+  tiktok:"https://tiktok.com/@YOUR_ID" /* TikTok আইডি দিলে ফুটারে আইকন দেখাবে */
 };
-const SUBSCRIBE_ACTION=""; /* Formspree/Mailchimp ইত্যাদির URL দিলে ইমেইল সংগ্রহ হবে */
+const MESSENGER="https://m.me/61595349861689"; /* প্রশ্ন এই Messenger ইনবক্সে যায় */
+const ASK_ACTION=""; /* ঐচ্ছিক: Formspree URL দিলে প্রশ্ন সরাসরি ইমেইলে আসবে, যেমন https://formspree.io/f/xxxxxx */
+const SUBSCRIBE_ACTION=""; /* ঐচ্ছিক: Formspree/Mailchimp ইত্যাদির URL দিলে ইমেইল সংগ্রহ হবে */
 /* ================================== */
-document.querySelectorAll("[data-link]").forEach(a=>{const u=LINKS[a.dataset.link];if(!u||u.includes("YOUR_")){a.style.display="none"}else a.href=u});
-const strip=u=>u.replace(/^https?:\/\/(www\.)?/,"");
-yr.textContent=new Date().getFullYear();
-burger.onclick=()=>menu.classList.toggle("open");
-menu.querySelectorAll("a").forEach(a=>a.onclick=()=>menu.classList.remove("open"));
-sb.onclick=async()=>{const v=em.value.trim();
- if(!/^\S+@\S+\.\S+$/.test(v)){subm.textContent="সঠিক ইমেইল দিন।";return}
- if(!SUBSCRIBE_ACTION){subm.textContent="সাবস্ক্রিপশন শীঘ্রই চালু হবে। আপাতত আমাদের Facebook Page ফলো করুন।";return}
- try{await fetch(SUBSCRIBE_ACTION,{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json"},body:JSON.stringify({email:v})});subm.textContent="ধন্যবাদ! আপনি যুক্ত হয়েছেন।";em.value=""}catch(e){subm.textContent="দুঃখিত, পরে আবার চেষ্টা করুন।"}};
-/* ===== প্রশ্নোত্তর লাইব্রেরি (মূল লেখার লিংক) ===== */
+
+const $=id=>document.getElementById(id);
+const PAGE=document.body.dataset.page||"";
+
+/* ---- সোশ্যাল লিংক ও ফুটার ---- */
+document.querySelectorAll("[data-link]").forEach(a=>{const u=LINKS[a.dataset.link];if(!u||u.includes("YOUR_")){a.hidden=true;a.style.display="none"}else a.href=u});
+{const yr=$("yr");if(yr)yr.textContent=new Date().getFullYear()}
+
+/* ---- মোবাইল মেনু ---- */
+{const menu=$("menu"),burger=$("burger");
+ if(menu&&burger){burger.addEventListener("click",()=>menu.classList.toggle("open"));menu.querySelectorAll("a").forEach(a=>a.addEventListener("click",()=>menu.classList.remove("open")))}}
+
+/* ---- ইমেইল সাবস্ক্রিপশন ---- */
+{const sb=$("sb"),em=$("em"),subm=$("subm");
+ if(sb&&em&&subm){
+  const subscribe=async()=>{const v=em.value.trim();
+   if(!/^\S+@\S+\.\S+$/.test(v)){subm.textContent="সঠিক ইমেইল দিন।";em.focus();return}
+   if(!SUBSCRIBE_ACTION){subm.replaceChildren("ইমেইল সাবস্ক্রিপশন শীঘ্রই চালু হবে। আপাতত আমাদের ",Object.assign(document.createElement("a"),{href:LINKS.facebook,target:"_blank",rel:"noopener noreferrer",textContent:"Facebook Page"})," ফলো করুন।");return}
+   sb.disabled=true;
+   try{const r=await fetch(SUBSCRIBE_ACTION,{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json"},body:JSON.stringify({email:v})});if(!r.ok)throw new Error("subscribe failed");subm.textContent="ধন্যবাদ! আপনি যুক্ত হয়েছেন।";em.value=""}
+   catch(e){subm.textContent="দুঃখিত, পরে আবার চেষ্টা করুন।"}
+   sb.disabled=false};
+  sb.addEventListener("click",subscribe);
+  em.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();subscribe()}});
+ }}
+
+/* ===== লাইব্রেরি (প্রশ্নোত্তর ও ফতোয়া) — সাধারণ কোড ===== */
+const ALL="সব",LIBRARY_PAGE_SIZE=20;
+const BN_DIGITS="০১২৩৪৫৬৭৮৯";
+const toLatinDigits=v=>String(v).replace(/[০-৯]/g,d=>String(BN_DIGITS.indexOf(d)));
+/* escAttr: শুধু HTML escape (লিংকের জন্য — সংখ্যা বদলানো যাবে না); escHTML: দৃশ্যমান লেখার জন্য, সংখ্যা ইংরেজিতে */
+const escAttr=v=>String(v).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll("\"","&quot;");
+const escHTML=v=>escAttr(toLatinDigits(v));
+const normalizeSearchText=v=>toLatinDigits(String(v||"").normalize("NFC").toLowerCase()).trim().replace(/\s+/g," ");
+const hostOf=u=>{try{return new URL(u).hostname.replace(/^www\./,"")}catch(e){return""}};
+const formatCount=n=>new Intl.NumberFormat("en-US").format(n);
+
+/* cfg: {id:"q"|"f", rows:[[বিভাগ,শিরোনাম,লিংক]], manifest:[{category,src,count}], partsKey, label, hint, loadingText} */
+function setupLibrary(cfg){
+ const search=$(cfg.id+"search"),chips=$(cfg.id+"chips"),grid=$(cfg.id+"grid"),more=$(cfg.id+"more"),stat=$(cfg.id+"stat");
+ if(!search||!chips||!grid||!more)return null;
+ const manifest=cfg.manifest||[];
+ const total=manifest.reduce((n,x)=>n+x.count,0);
+ const loaded=new Set(),pending=new Map(),textCache=new WeakMap();
+ /* একই লিংক দুবার দেখানো হয় না: বাছাইকৃত সারি আগে থাকে, পূর্ণ সূচির একই লিংক সেটির বাড়তি বিভাগ (x[3]) হিসেবে যুক্ত হয় */
+ const keyOf=u=>{try{return decodeURI(u)}catch(e){return u}};
+ const rows=cfg.rows.slice(),index=new Map(rows.map(x=>[keyOf(x[2]),x]));
+ let cur=ALL,show=LIBRARY_PAGE_SIZE,failed=false,remaining=0;
+ const inCategory=(x,c)=>c===ALL||x[0]===c||Boolean(x[3]&&x[3].includes(c));
+ const cats=[...new Set([ALL,...rows.map(x=>x[0]),...manifest.map(x=>x.category)])];
+ const partsFor=c=>c===ALL?manifest:manifest.filter(x=>x.category===c);
+ const isReady=c=>partsFor(c).every(x=>loaded.has(x.category));
+ const isLoading=c=>partsFor(c).some(x=>pending.has(x.category));
+ const rowText=row=>{let v=textCache.get(row);if(v===undefined){v=normalizeSearchText(row[0]+" "+(row[3]||[]).join(" ")+" "+row[1]);textCache.set(row,v)}return v};
+ const setStatus=text=>{if(stat)stat.textContent=text};
+ const query=()=>normalizeSearchText(search.value);
+
+ function draw(){
+  const q=query(),terms=q?q.split(" "):[];
+  chips.innerHTML=cats.map(c=>`<button type="button" class="chip${c===cur?" on":""}" data-c="${escAttr(c)}" aria-pressed="${c===cur}">${escHTML(c)}</button>`).join("");
+  const list=rows.filter(x=>inCategory(x,cur)&&terms.every(t=>rowText(x).includes(t)));
+  const ready=isReady(cur),loading=isLoading(cur);
+  if(list.length){
+   grid.innerHTML=list.slice(0,show).map(x=>`<a class="qcard" href="${escAttr(x[2])}" target="_blank" rel="noopener"><small>${escHTML(x[0])}</small><b>${escHTML(x[1])}</b><span>${escHTML(hostOf(x[2]))} ›</span></a>`).join("");
+  }else{
+   grid.innerHTML=`<p class="qnote">${loading?"লোড হচ্ছে…":failed&&!ready?"সূচি লোড হয়নি। ইন্টারনেট সংযোগ দেখে আবার চেষ্টা করুন।":"কিছু পাওয়া যায়নি।"}</p>`;
+  }
+  /* "আরও দেখুন": আরও ফলাফল থাকলে সেগুলো দেখায়; ফুরিয়ে গেলে এবং পূর্ণ সূচি লোড না হয়ে থাকলে সেটি লোড করে */
+  remaining=Math.max(0,list.length-show);
+  const canMore=remaining>0||!ready;
+  more.hidden=!canMore;more.style.display=canMore?"":"none";
+  more.disabled=loading;
+  if(loading)more.textContent="লোড হচ্ছে…";
+  else if(remaining>0&&ready)more.innerHTML=`আরও দেখুন <span class="qmore-count">${formatCount(remaining)}</span>`;
+  else more.textContent=remaining>0?"আরও দেখুন":"পূর্ণ সূচি লোড করুন";
+ }
+
+ function loadPart(entry){
+  if(loaded.has(entry.category))return Promise.resolve();
+  if(pending.has(entry.category))return pending.get(entry.category);
+  const task=new Promise((resolve,reject)=>{
+   const script=document.createElement("script");script.src=entry.src;script.async=true;
+   script.onload=()=>{const parts=window[cfg.partsKey]||{},part=parts[entry.category];
+    if(!Array.isArray(part)){reject(new Error("catalog chunk missing"));return}
+    for(const row of part){const key=keyOf(row[2]),known=index.get(key);
+     if(!known){index.set(key,row);rows.push(row)}
+     else if(known[0]!==row[0]&&!(known[3]&&known[3].includes(row[0]))){(known[3]||(known[3]=[])).push(row[0]);textCache.delete(known)}}
+    delete parts[entry.category];loaded.add(entry.category);resolve()};
+   script.onerror=()=>{script.remove();reject(new Error("catalog chunk failed"))};
+   document.head.appendChild(script)});
+  pending.set(entry.category,task);
+  const done=()=>pending.delete(entry.category);task.then(done,done);
+  return task;
+ }
+
+ async function load(category){
+  const selected=partsFor(category),missing=selected.filter(x=>!loaded.has(x.category));
+  if(!missing.length)return;
+  failed=false;const jobs=missing.map(loadPart);
+  setStatus(cfg.loadingText);draw();
+  try{
+   await Promise.all(jobs);
+   setStatus(loaded.size===manifest.length?`সম্পূর্ণ সূচি প্রস্তুত · ${formatCount(total)}টি রেফারেন্স`:`${category===ALL?"সূচি":category+" বিভাগ"} প্রস্তুত · ${formatCount(selected.reduce((n,x)=>n+x.count,0))}টি রেফারেন্স`);
+  }catch(e){
+   await Promise.allSettled(jobs);failed=true;
+   setStatus("সূচি লোড হয়নি — ইন্টারনেট সংযোগ দেখে আবার সার্চ/বিভাগ নির্বাচন করুন।");
+  }
+  draw();
+ }
+
+ chips.addEventListener("click",e=>{const b=e.target.closest("[data-c]");if(!b)return;cur=b.dataset.c;show=LIBRARY_PAGE_SIZE;draw();load(cur);chips.querySelector(".chip.on")?.focus({preventScroll:true})});
+ let drawTimer;
+ const onSearch=now=>{clearTimeout(drawTimer);drawTimer=setTimeout(()=>{show=LIBRARY_PAGE_SIZE;draw();if(query().length>=2)load(cur)},now?0:160)};
+ search.addEventListener("input",()=>onSearch(false));
+ search.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();onSearch(true)}});
+ more.addEventListener("click",()=>{if(more.disabled)return;if(remaining>0){show+=LIBRARY_PAGE_SIZE;draw()}else load(cur)});
+
+ if(manifest.length)setStatus(`${cfg.label} (${formatCount(total)}টি) — ২ বা তার বেশি অক্ষর লিখে সার্চ বা বিভাগ বাছাই করলে লোড হবে।`);
+ draw();
+ return {draw,load};
+}
+
+/* ===== প্রশ্নোত্তর লাইব্রেরি: [বিষয়, শিরোনাম, মূল লেখার লিংক] — নতুন লেখা এই তালিকায় যোগ করুন ===== */
 const QB="https://www.response-to-anti-islam.com/show/";
 const QS=[
 ["নাস্তিক্যবাদ","সৃষ্টিকর্তার অস্তিত্ব নিয়ে কালাম কসমোলজিক্যাল আর্গুমেন্ট","সৃষ্টিকর্তার-অস্তিত্ব-নিয়ে-কালাম-কসমোলজিক্যাল-আর্গুমেন্ট/402"],
@@ -147,20 +264,12 @@ const QS=[
 ["নবুয়ত","নবী (ﷺ) কেন জুওয়াইরিয়াহ (রা.)-কে বিয়ে করেছিলেন? (প্রশ্নোত্তর)","https://www.insightzonebd.com/question/158"],
 ["বিশ্বাস","মুসলিমরা তওবা করলে কি সব অপরাধই ক্ষমা হয়ে যায়?","https://www.insightzonebd.com/মুসলিমরা-তওবা-করলে-কি-সব-অপরাধই-ক্ষমা-হয়ে-যায়"],
 ["নৈতিকতা","ভিডিও: চারজন সাক্ষী না থাকলে কি জিনার বিচার করা যায় না?","https://www.youtube.com/watch?v=-Q5qDzfik28"],
-["নবুয়ত","মহানবী ﷺ-এর একাধিক বিয়ে নিয়ে অভিযোগের জবাব","https://islamicauthors.com/article/157"]];
-const QC=["সব",...new Set(QS.map(x=>x[0]))];let qcur="সব";
-let qshow=20;
-const escHTML=v=>String(v).replace(/[০-৯]/g,d=>String("০১২৩৪৫৬৭৮৯".indexOf(d))).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll("\"","&quot;");
-const qSearchCache=new WeakMap();const normalizeSearchText=v=>String(v||"").normalize("NFC").toLowerCase().replace(/[০-৯]/g,d=>"0123456789"["০১২৩৪৫৬৭৮৯".indexOf(d)]).trim().replace(/\s+/g," ");const qSearchText=row=>{let v=qSearchCache.get(row);if(v===undefined){v=normalizeSearchText(row[0]+" "+row[1]);qSearchCache.set(row,v)}return v};const fSearchCache=new WeakMap();const fSearchText=row=>{let v=fSearchCache.get(row);if(v===undefined){v=normalizeSearchText(row[0]+" "+row[1]);fSearchCache.set(row,v)}return v};
-function qdraw(){const t=normalizeSearchText(qsearch.value);
- qchips.innerHTML=QC.map(c=>`<button class="chip${c===qcur?" on":""}" data-c="${escHTML(c)}">${escHTML(c)}</button>`).join("");
- const l=QS.filter(x=>(qcur==="সব"||x[0]===qcur)&&x[1].includes(t));
- qgrid.innerHTML=l.length?l.slice(0,qshow).map(x=>`<a class="qcard" href="${escHTML(x[2].startsWith("http")?x[2]:encodeURI(QB+x[2]))}" target="_blank" rel="noopener"><small>${escHTML(x[0])}</small><b>${escHTML(x[1])}</b><span>${x[2].startsWith("http")?new URL(x[2]).hostname.replace("www.",""):"response-to-anti-islam.com"} ›</span></a>`).join(""):'<p class="qnote">কিছু পাওয়া যায়নি।</p>';const moreReady=typeof window.DAWAH_QUESTION_READY_FOR==="function"&&window.DAWAH_QUESTION_READY_FOR(qcur);qmore.style.display=l.length>qshow||!moreReady?"":"none";if(moreReady&&l.length>qshow)qmore.innerHTML=`আরও দেখুন <span class="qmore-count">${l.length-qshow}</span>`;else qmore.textContent="আরও দেখুন"}
-qchips.addEventListener("click",e=>{const c=e.target.dataset.c;if(c){qcur=c;qshow=20;qdraw()}});
-let qDrawTimer;qsearch.addEventListener("input",()=>{qshow=20;clearTimeout(qDrawTimer);qDrawTimer=setTimeout(qdraw,110)});qsearch.addEventListener("keydown",e=>{if(e.key==="Enter"){clearTimeout(qDrawTimer);qdraw()}});qmore.onclick=()=>{qshow+=20;qdraw()};qdraw();
-/* ===== ফতোয়া: [বিষয়, প্রশ্ন, মূল লিংক] — নতুন ফতোয়া এই তালিকায় যোগ করুন ===== */
+["নবুয়ত","মহানবী ﷺ-এর একাধিক বিয়ে নিয়ে অভিযোগের জবাব","https://islamicauthors.com/article/157"]
+].map(x=>[x[0],x[1],x[2].startsWith("http")?x[2]:encodeURI(QB+x[2])]);
+
+/* ===== ফতোয়া: [বিষয়, প্রশ্ন, al-itisam.com-এর আর্টিকেল নম্বর] — নতুন ফতোয়া এই তালিকায় যোগ করুন ===== */
 const AI="https://al-itisam.com/article_details/";
-let FT=[
+const FT=[
 ["আক্বীদা","হানাফী, শাফেঈ, সালাফী, আহলেহাদীছ—এগুলো কি ফিরকা?","7034"],
 ["আক্বীদা","“পাপীকে নয়, পাপকে ঘৃণা করো” বলা বা বিশ্বাস করা যাবে কি?","7035"],
 ["আক্বীদা","ঔষধ খেয়ে জ্বর ভালো হয়েছে বললে কি শিরক হবে?","7036"],
@@ -561,26 +670,77 @@ let FT=[
 ["উত্তরাধিকার","শুধু দুই মেয়ে থাকলে সব সম্পদ মেয়েদের নামে লিখে দেওয়া যাবে কি?","440"],
 ["আক্বীদা","দু‘আ করলে ফেরেশতারা দু‘আকারীর জন্য দু‘আ করেন—ছহীহ হাদীছ আছে কি?","441"]
 ].map(x=>[x[0],x[1],AI+x[2]]);
-let fshow=20,fcur="সব";let FC=["সব",...new Set(FT.map(x=>x[0]))];
-function fdraw(){const t=normalizeSearchText(fsearch.value);
- fchips.innerHTML=FC.map(c=>`<button class="chip${c===fcur?" on":""}" data-c="${escHTML(c)}">${escHTML(c)}</button>`).join("");
- const terms=t?t.split(" "):[];const l=FT.filter(x=>(fcur==="সব"||x[0]===fcur)&&(!terms.length||terms.every(term=>fSearchText(x).includes(term))));
- const fstat=document.getElementById("fstat");if(fstat)fstat.textContent=window.DAWAH_FATWA_STATUS||"প্রাথমিক বাছাইকৃত ফলাফল";
- fgrid.innerHTML=l.length?l.slice(0,fshow).map(x=>`<a class="qcard" href="${escHTML(x[2])}" target="_blank" rel="noopener"><small>${escHTML(x[0])}</small><b>${escHTML(x[1])}</b><span>${escHTML(new URL(x[2]).hostname.replace("www.",""))} ›</span></a>`).join(""):'<p class="qnote">ফতোয়াগুলো শীঘ্রই যোগ করা হবে। আপাতত মূল সাইটে দেখুন।</p>';
- const moreReady=typeof window.DAWAH_FATWA_READY_FOR==="function"&&window.DAWAH_FATWA_READY_FOR(fcur);fmore.style.display=l.length>fshow||!moreReady?"":"none";if(moreReady&&l.length>fshow)fmore.innerHTML=`আরও দেখুন <span class="qmore-count">${l.length-fshow}</span>`;else fmore.textContent="আরও দেখুন"}
-fchips.addEventListener("click",e=>{const c=e.target.dataset.c;if(c){fcur=c;fshow=20;fdraw()}});
-let fDrawTimer;fsearch.addEventListener("input",()=>{fshow=20;clearTimeout(fDrawTimer);fDrawTimer=setTimeout(fdraw,110)});fsearch.addEventListener("keydown",e=>{if(e.key==="Enter"){clearTimeout(fDrawTimer);fdraw()}});fmore.onclick=()=>{fshow+=20;fdraw()};fdraw();
-/* ===== প্রশ্ন পাঠানো ===== */
-const ASK_ACTION=""; /* Formspree URL দিলে প্রশ্ন সরাসরি আপনার ইমেইলে আসবে, যেমন: https://formspree.io/f/xxxxxx */
-const MESSENGER="https://m.me/61595349861689";
-askbtn.onclick=async()=>{
- const q=aq.value.trim();
- if(q.length<5){askm.textContent="অনুগ্রহ করে আপনার প্রশ্ন লিখুন।";return}
- const body=new URLSearchParams({"form-name":"question",name:an.value.trim(),contact:ac.value.trim(),topic:at.value,question:q,"bot-field":(document.getElementById("abot")||{}).value||""});
- askbtn.disabled=true;askm.textContent="পাঠানো হচ্ছে...";
- try{const r=await fetch("/__forms.html",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:body.toString()});
-  if(!r.ok)throw 0;
-  askm.textContent="ধন্যবাদ! আপনার প্রশ্ন আমাদের কাছে পৌঁছেছে। ইন শা আল্লাহ শীঘ্রই উত্তর দেওয়া হবে।";aq.value=""}
- catch(e){askm.replaceChildren("দুঃখিত, এই মুহূর্তে পাঠানো যায়নি। আবার চেষ্টা করুন অথবা ",Object.assign(document.createElement("a"),{href:MESSENGER,target:"_blank",rel:"noopener noreferrer",textContent:"Messenger-এ লিখুন",style:"color:var(--gold);text-decoration:underline"}),"।")}
- askbtn.disabled=false;
-};
+
+/* পূর্ণ সূচির chunk ফাইল — শুধু সংশ্লিষ্ট পেজে, প্রয়োজন হলে লোড হয় */
+const QUESTION_PARTS=[
+ {category:"Response to Anti-Islam",src:"questions-catalog-part-00.js",count:327},
+ {category:"From Muslims · প্রশ্নোত্তর",src:"questions-catalog-part-01.js",count:234},
+ {category:"From Muslims · প্রবন্ধ",src:"questions-catalog-part-02.js",count:358}
+];
+const FATWA_PARTS=[
+ {category:"আত-তাহরীক",src:"fatwa-catalog-part-00.js",count:8012},
+ {category:"আল-ইতিছাম",src:"fatwa-catalog-part-01.js",count:4641},
+ {category:"আত-তাহরীক · প্রবন্ধ",src:"fatwa-catalog-part-02.js",count:3604},
+ {category:"আল-ইতিছাম · প্রবন্ধ",src:"fatwa-catalog-part-03.js",count:2253},
+ {category:"আল-ইতিছাম · অতিরিক্ত প্রশ্নোত্তর",src:"fatwa-catalog-part-04.js",count:143}
+];
+setupLibrary({id:"q",rows:QS,manifest:PAGE==="qa"?QUESTION_PARTS:[],partsKey:"DAWAH_QUESTIONS_PARTS",label:"পূর্ণ সূচি",loadingText:"পূর্ণ প্রশ্নোত্তর সূচি লোড হচ্ছে…"});
+setupLibrary({id:"f",rows:FT,manifest:PAGE==="fatwa"?FATWA_PARTS:[],partsKey:"DAWAH_FATWAS_PARTS",label:"পূর্ণ ফতোয়া ও প্রবন্ধ সূচি",loadingText:"ফতোয়া ও প্রবন্ধ সূচি লোড হচ্ছে…"});
+
+/* ===== প্রশ্ন পাঠানো =====
+   ১) ASK_ACTION দিলে প্রশ্ন সেই ঠিকানায় (যেমন Formspree) সরাসরি জমা হয়।
+   ২) সাইট Netlify-তে থাকলে Netlify Forms-এ (`question` ফর্ম) জমা হয়।
+   ৩) অন্যথায় (যেমন GitHub Pages) প্রশ্ন কপি হয়ে DAWAH X-এর Messenger খোলে; ভিজিটর Send চাপলে পৌঁছায়। */
+{const btn=$("askbtn"),aq=$("aq"),msg=$("askm"),how=$("askhow");
+ if(btn&&aq&&msg){
+  const field=id=>($(id)?.value||"").trim();
+  const staticHost=location.protocol==="file:"||/(^|\.)github\.io$/i.test(location.hostname);
+  const directPossible=Boolean(ASK_ACTION)||!staticHost;
+  const HOW_MESSENGER="“প্রশ্ন পাঠান” চাপলে আপনার প্রশ্ন কপি হয়ে DAWAH X-এর Messenger খুলবে; সেখানে Send চাপলেই প্রশ্নটি আমাদের কাছে পৌঁছাবে।";
+  if(how&&!directPossible)how.textContent=HOW_MESSENGER;
+
+  const copyText=text=>{let ok=false;
+   try{const ta=document.createElement("textarea");ta.value=text;ta.setAttribute("readonly","");ta.style.cssText="position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;pointer-events:none";document.body.appendChild(ta);ta.select();ta.setSelectionRange(0,text.length);ok=document.execCommand("copy");ta.remove()}catch(e){}
+   try{navigator.clipboard?.writeText(text).catch(()=>{})}catch(e){}
+   return ok};
+  const messengerUrl=text=>MESSENGER+"?text="+encodeURIComponent(text.length>1200?text.slice(0,1200)+"…":text);
+
+  const viaMessenger=(text,{open=true,lead=""}={})=>{
+   const copied=copyText(text),url=messengerUrl(text);
+   const link=Object.assign(document.createElement("a"),{href:url,target:"_blank",rel:"noopener noreferrer",className:"ask-messenger",textContent:"Messenger খুলুন ↗"});
+   const again=Object.assign(document.createElement("button"),{type:"button",className:"ask-copy",textContent:"প্রশ্ন আবার কপি করুন"});
+   again.addEventListener("click",()=>{copyText(text);again.textContent="কপি হয়েছে ✓"});
+   const p=document.createElement("span");
+   p.textContent=lead+(copied?"আপনার প্রশ্ন কপি করা হয়েছে। ":"")+"Messenger-এ বার্তাটি আগে থেকে লেখা না থাকলে Paste করুন, তারপর Send চাপুন।";
+   const actions=Object.assign(document.createElement("span"),{className:"ask-actions"});actions.append(link,again);
+   msg.replaceChildren(p,actions);
+   if(open){try{window.open(url,"_blank","noopener")}catch(e){}}
+  };
+
+  btn.addEventListener("click",async()=>{
+   const q=aq.value.trim();
+   if(q.length<5){msg.textContent="অনুগ্রহ করে আপনার প্রশ্ন লিখুন।";aq.focus();return}
+   if(field("abot")){msg.textContent="ধন্যবাদ!";return} /* honeypot: বট হলে কিছু পাঠানো হয় না */
+   const data={name:field("an"),contact:field("ac"),topic:field("at"),question:q};
+   const lines=["আসসালামু আলাইকুম। DAWAH X ওয়েবসাইট থেকে একটি প্রশ্ন:","বিষয়: "+data.topic];
+   if(data.name)lines.push("নাম: "+data.name);
+   if(data.contact)lines.push("যোগাযোগ: "+data.contact);
+   lines.push("","প্রশ্ন: "+q);
+   const text=lines.join("\n");
+   if(!directPossible){viaMessenger(text);return}
+   btn.disabled=true;msg.textContent="পাঠানো হচ্ছে...";
+   try{
+    let ok=false;
+    if(ASK_ACTION){const r=await fetch(ASK_ACTION,{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json"},body:JSON.stringify(data)});ok=r.ok}
+    else{const body=new URLSearchParams({"form-name":"question",...data,"bot-field":""});
+     const r=await fetch("__forms.html",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:body.toString()});
+     ok=r.ok&&/netlify/i.test(r.headers.get("server")||"")} /* Netlify ছাড়া অন্য হোস্টে ফর্ম জমা হয় না */
+    if(!ok)throw new Error("not delivered");
+    msg.textContent="ধন্যবাদ! আপনার প্রশ্ন আমাদের কাছে পৌঁছেছে। ইন শা আল্লাহ শীঘ্রই উত্তর দেওয়া হবে।";aq.value="";
+   }catch(e){
+    if(how)how.textContent=HOW_MESSENGER;
+    viaMessenger(text,{open:false,lead:"সরাসরি জমা দেওয়া যায়নি, তাই Messenger-এ পাঠান। "});
+   }
+   btn.disabled=false;
+  });
+ }}

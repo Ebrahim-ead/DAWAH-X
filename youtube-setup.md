@@ -15,6 +15,8 @@ The catalogue is static; no YouTube API key or live API request is needed. New c
 
 ## Publish
 
-Upload all files and folders from the ZIP into the GitHub Pages repository root (the same folder as `index.html`). In particular, keep `youtube-videos.json`, `youtube-gallery.js`, `videos.html`, and the `video-thumb-*.jpg` files together.
+Upload all files into the GitHub Pages repository root (the same folder as `index.html`). In particular, keep `youtube-videos.json`, `youtube-gallery.js`, `videos.html`, and the `video-thumb-*.jpg` files together.
+
+**Thumbnail file names are lowercase.** The 20 first-page thumbnails are stored as `video-thumb-<video id in lowercase>.jpg` (for example `video-thumb-mpntrch_hwa.jpg` for video `MPNtRch_hWA`). GitHub Pages is case-sensitive, so the gallery lowercases the `thumbnail` name from `youtube-videos.json` before loading it; every other video uses YouTube's own thumbnail. If a local file is missing, the gallery falls back to the YouTube thumbnail automatically.
 
 The video player is an embedded YouTube player. YouTube or a channel owner can restrict playback for an individual video (for example, disable embedding, age/region restrict it, or remove it), so those individual videos may show a YouTube restriction message. The in-app preview sandbox blocks YouTube/network content; test actual playback on the published website.

@@ -24,7 +24,7 @@
  const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
  const revealSelector='.title,.card,.qcard,.askbox,.ccard,.about,.library-panel,.lrow,.fbrow,.quote,.badge,.joinbtn,.qtools,.livebox,.field,.field-row,.field-group,.social,.contact-card,.channel-bar,.video-card';
  let io=null;
- if(!reduceMotion&&'IntersectionObserver' in window){io=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('is-visible');io.unobserve(e.target)}}),{threshold:.08})}
+ if(!reduceMotion&&'IntersectionObserver' in window){io=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting){const el=e.target;el.classList.add('is-visible');io.unobserve(el);window.setTimeout(()=>{el.style.transitionDelay=''},1000)}}),{threshold:.08})}
  const revealOne=(el,index=0)=>{if(!el.matches||!el.matches(revealSelector))return;if(!el.hasAttribute('data-reveal'))el.setAttribute('data-reveal','');if(reduceMotion||!io){el.classList.add('is-visible');return}el.style.transitionDelay=Math.min(index%7,6)*48+'ms';io.observe(el)};
  const revealTree=scope=>{if(scope.matches&&scope.matches(revealSelector))revealOne(scope);scope.querySelectorAll?.(revealSelector).forEach((el,i)=>revealOne(el,i))};
  const tiltSelector='.card,.qcard,.ccard,.library-link,.video-card';
