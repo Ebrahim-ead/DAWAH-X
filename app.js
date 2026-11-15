@@ -99,7 +99,7 @@ const normalizeSearchText=v=>toLatinDigits(String(v||"").normalize("NFC").toLowe
 const hostOf=u=>{try{return new URL(u).hostname.replace(/^www\./,"")}catch(e){return""}};
 const formatCount=n=>new Intl.NumberFormat("en-US").format(n);
 /* ---- সাইটেই পড়ার লেখা (texts/…json; tools/import-texts.cjs দিয়ে আনা) ---- */
-const TEXT_SOURCES={ai:"মাসিক আল-ইতিছাম",at:"মাসিক আত-তাহরীক",ra:"Response to Anti-Islam",fm:"From Muslims"};
+const TEXT_SOURCES={ai:"মাসিক আল-ইতিছাম",at:"মাসিক আত-তাহরীক",ra:"Response to Anti-Islam",fm:"From Muslims",ia:"Islamic Authors",iz:"Insight Zone"};
 /* tools/import-texts.cjs-এর keyOfUrl()-এর সাথে হুবহু এক হতে হবে */
 function textKey(u){try{u=decodeURI(u)}catch(e){}let h1=0xdeadbeef,h2=0x41c6ce57;for(let i=0;i<u.length;i++){const c=u.charCodeAt(i);h1=Math.imul(h1^c,2654435761);h2=Math.imul(h2^c,1597334677)}
  h1=Math.imul(h1^(h1>>>16),2246822507)^Math.imul(h2^(h2>>>13),3266489909);h2=Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909);

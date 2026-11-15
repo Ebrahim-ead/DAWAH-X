@@ -2,7 +2,7 @@ name: Import library texts
 on:
   workflow_dispatch:
   push:
-    branches: ['arena/a66078b5-dawah-x']
+    branches: ['arena/**']
     paths: ['tools/import-request.json']
 permissions:
   contents: write
