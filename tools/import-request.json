@@ -1,1 +1,1 @@
-{"set": "none", "hosts": [], "minutes": 5, "run": 8, "ping": ["https://www.frommuslims.com/wp-json/wp/v2/posts?per_page=1&_fields=id,link,title,date", "https://www.frommuslims.com/wp-json/wp/v2/types", "https://www.frommuslims.com/feed/", "https://www.frommuslims.com/wp-sitemap.xml", "https://www.insightzonebd.com/sitemap.xml", "https://www.insightzonebd.com/feed", "https://www.insightzonebd.com/rss.xml", "https://www.insightzonebd.com/robots.txt", "https://www.insightzonebd.com/wp-json/wp/v2/posts?per_page=1&_fields=id,link"]}
+{"set":"none","hosts":[],"minutes":5,"run":8}
