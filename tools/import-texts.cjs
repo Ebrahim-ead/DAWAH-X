@@ -89,6 +89,12 @@ async function get(u){let last;for(let a=0;a<3;a++){try{const ac=new AbortContro
 (async()=>{
  fs.mkdirSync(OUT,{recursive:true});
  const report={at:new Date().toISOString(),request:REQ,done:0,skipped:0,failed:[],bySource:{}};
+ /* ping: কোনো ঠিকানা (ফিড/API/সাইটম্যাপ) এই সার্ভার থেকে খোলে কি না দেখার জন্য */
+ if(REQ.ping)report.ping=[];
+ for(const u of REQ.ping||[]){const r=await get(u);const o={u,status:r.status,len:r.html.length,err:r.err};
+  try{const j=JSON.parse(r.html);o.json=Array.isArray(j)?{array:j.length,keys:j[0]&&typeof j[0]==='object'?Object.keys(j[0]).slice(0,30):[]}:{keys:Object.keys(j).slice(0,60)}}
+  catch(e){o.head=r.html.replace(/\s+/g,' ').slice(0,160);o.locs=(r.html.match(/<loc>[^<]{0,120}/g)||[]).slice(0,6)}
+  report.ping.push(o);await sleep(400)}
  if(REQ.probe)report.probe=[];
  /* probe: অচেনা সাইটের পেজের গঠন দেখার জন্য (texts/_report.json-এ যায়) */
  for(const u of REQ.probe||[]){const r=await get(u);const $=cheerio.load(r.html);$('script,style,noscript,svg,iframe').remove();
