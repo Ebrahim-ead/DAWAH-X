@@ -59,8 +59,8 @@ python3 -m http.server 8000
 প্রশ্নোত্তর ও ফতোয়ার যে কার্ডের লেখা `texts/`-এ আছে, সেটি `read.html`-এ খোলে; লেখার নিচে উৎসের নাম ও মূল লেখার লিংক থাকে। যে লেখা আনা হয়নি, তার কার্ড আগের মতো মূল সাইটে (নতুন ট্যাবে) খোলে।
 
 - লেখাগুলো **প্রকাশকের অনুমতি সাপেক্ষে** আনা। কোনো প্রকাশক আপত্তি করলে `tools/import-texts.cjs`-এর `SOURCES` থেকে সেই উৎসটি বাদ দিন এবং `texts/`-এর ফাইলগুলো থেকে তার লেখা মুছে দিন।
-- নতুন লেখা আনতে `tools/import-request.json`-এর `run` সংখ্যাটি এক বাড়িয়ে `arena/…` শাখায় push করুন, অথবা GitHub-এর **Actions → Import library texts → Run workflow** চাপুন। আগে আনা লেখা আবার আনা হয় না; ফলাফল `texts/_report.json`-এ থাকে।
-- From Muslims সাইটটি স্বয়ংক্রিয় অনুরোধ আটকে দেয় (Cloudflare), তাই তাদের লেখা এভাবে আনা যায় না।
+- নতুন লেখা আনতে `tools/import-request.json`-এর `run` সংখ্যাটি এক বাড়িয়ে যেকোনো `arena/…` শাখায় push করুন, অথবা GitHub-এর **Actions → Import library texts → Run workflow** চাপুন। আগে আনা লেখা আবার আনা হয় না; ফলাফল `texts/_report.json`-এ থাকে।
+- From Muslims ও insightzonebd.com স্বয়ংক্রিয় অনুরোধ আটকে দেয় (Cloudflare), তাই তাদের লেখা এভাবে আনা যায় না।
 
 ## WhatsApp
 
