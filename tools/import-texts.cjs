@@ -20,7 +20,8 @@ const SOURCES={
    return{title:$('.bread-title h1').first().text(),body,date:crumbs.find(t=>/[০-৯0-9]{4}/.test(t))||'',author:''}}},
  ia:{host:'islamicauthors.com',delay:600,extract($){const art=$('article.article-body').first();
    return{title:art.find('.article-header h1').first().text(),body:art.find('.article-content').first(),date:'',
-    author:(art.find('.author-card').first().text().replace(/\s+/g,' ').trim().match(/^[^0-9০-৯]{2,60}/)||[''])[0]}}}
+    /* লেখক-কার্ডের লেখা: "<ছবির আদ্যক্ষর> <নাম> <সংখ্যা> আর্টিকেল …" */
+    author:(t=>{const m=t.match(/^\S{1,2}\s+(.{2,140}?)\s+[0-9০-৯]+\s*আর্টিকেল/);return m?m[1]:''})(art.find('.author-card').first().text().replace(/\s+/g,' ').trim())}}}
 };
 const sourceOf=u=>{try{const h=new URL(u).host;return Object.keys(SOURCES).find(k=>SOURCES[k].host===h)||null}catch(e){return null}};
 
