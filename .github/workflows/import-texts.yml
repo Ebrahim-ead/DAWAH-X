@@ -28,7 +28,6 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add texts
-          git diff --cached --quiet && exit 0
-          git commit -q -m "Import library texts (automated)"
+          git diff --cached --quiet || git commit -q -m "Import library texts (automated)"
           git pull -q --rebase origin "${GITHUB_REF_NAME}" || { git rebase --abort; git pull -q --rebase origin "${GITHUB_REF_NAME}"; }
           git push -q origin "HEAD:${GITHUB_REF_NAME}"
