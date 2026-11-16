@@ -132,6 +132,8 @@ const flush=()=>{for(const[b,o]of buckets)if(o.dirty){fs.writeFileSync(bucketFil
 const wbNorm=u=>{try{let p=new URL(u).pathname;try{p=decodeURIComponent(p)}catch(e){}return p.replace(/\/+$/,'').normalize('NFC')}catch(e){return''}};
 /* শিরোনাম/ঠিকানার শব্দ মিলিয়ে দেখা */
 const words=t=>[...new Set(String(t).normalize('NFC').split(/[^\u0980-\u09ffA-Za-z0-9]+/).filter(w=>w.length>1))];
+/* ঠিকানা মিলিয়ে পাওয়া পাতাটি আসলে প্রবন্ধ নয় (যেমন বইয়ের PDF নামানোর পাতা) */
+const notArticle=(title,html)=>/\bpdf\s*$/i.test(title)||html.replace(/<[^>]+>/g,'').replace(/\s+/g,' ').trim().length<800;
 const sameTitle=(a,b)=>{const A=words(a),B=words(b),n=A.filter(w=>B.includes(w)).length;return n>=Math.min(3,A.length,B.length)&&n>=0.75*Math.min(A.length,B.length)};
 /* পুরোনো ঠিকানার সাথে আংশিক মিল: শব্দ এক, বা একটি অন্যটির শুরু (কাটা পড়া স্লাগ) */
 const slugLike=(a,b)=>{const A=words(a),B=words(b),hit=A.filter(w=>B.some(v=>v===w||(Math.min(v.length,w.length)>=4&&(v.startsWith(w)||w.startsWith(v))))).length;return hit>=2&&hit>=0.6*Math.min(A.length,B.length)?hit/Math.max(A.length,B.length):0};
@@ -165,7 +167,7 @@ async function getOnce(u,ms=60000){try{const ac=new AbortController(),tm=setTime
 /* আগের রানে রাখা From Muslims প্রশ্নোত্তরের ছোট সংশোধন (বারবার চালালেও ফল একই) */
 function migrate(){for(const f of fs.readdirSync(OUT)){if(!/^[0-9a-f]{3}\.json$/.test(f))continue;if(!/"s":"(fm|iz)"/.test(fs.readFileSync(path.join(OUT,f),'utf8')))continue;
   const b=loadBucket(f.slice(0,3));for(const k in b.data){const x=b.data[k];
-   if(x.s==='iz'&&x.w){const h=SOURCES.iz.tidy(x.h,x.t);if(h!==x.h){x.h=h;b.dirty=true}continue}
+   if(x.s==='iz'&&x.w){if(notArticle(x.t,x.h)){delete b.data[k];b.dirty=true;continue}const h=SOURCES.iz.tidy(x.h,x.t);if(h!==x.h){x.h=h;b.dirty=true}continue}
    if(x.s!=='fm')continue;
    if(/^<p>Filter:<a /.test(x.h)){delete b.data[k];b.dirty=true;continue} /* প্রশ্নের তালিকা-পাতা */
    if(!/\/qna\//.test(x.u)){const h=x.h.replace(/<p>Citation is loading\.\.\.<\/p>/g,'').replace(/<p>Citation style:<\/p>/g,'').replace(/<table>[^<]+<tbody>/g,'<table><tbody>').replace(/\s+$/,''),
@@ -251,6 +253,7 @@ async function get(u,ms=30000){let last;for(let a=0;a<3;a++){try{const ac=new Ab
     else{try{const $=cheerio.load(r.html);const x=src.extract($,r.final||it.u);const html=x.html!==undefined?x.html:(x.body&&x.body.length?clean($,x.body,r.final||it.u):'');const title=(x.title||'').replace(/\s+/g,' ').trim();
       if(!title||textLen(html)<40)fail='no content';
       else if(src.fuzzy&&!sameTitle(title,it.t))fail='title mismatch: '+title.slice(0,70);
+      else if(src.fuzzy&&notArticle(title,html))fail='not the article (download page): '+title.slice(0,70);
       else{const b=loadBucket(bucketOf(it.k));b.data[it.k]={u:it.u,s,c:it.c,t:title,l:it.t,d:(x.date||'').trim(),a:(x.author||'').replace(/\s+/g,' ').trim(),h:html};if(r.w)b.data[it.k].w=r.w;b.dirty=true;st.done++;report.done++;streak=0}}catch(e){fail='parse: '+String(e).slice(0,80)}}
     if(fail){st.failed++;if(!src.wayback)streak++;if(report.failed.length<400)report.failed.push([it.u,fail])}
     await sleep(src.delay)}
