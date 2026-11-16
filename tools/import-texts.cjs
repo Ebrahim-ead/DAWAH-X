@@ -16,7 +16,8 @@ const SOURCES={
    return{title:$('.section-title h1').first().text(),body:$('.post-cont-wrapper').first(),date:(meta.match(/[\u0980-\u09ff]+\s+[০-৯0-9]{1,2},\s*[০-৯0-9]{4}/)||[''])[0],author:''}}},
  ra:{host:'www.response-to-anti-islam.com',delay:500,extract($){const head=$('h1.post-title').first().parent();
    return{title:$('h1.post-title').first().text(),body:$('.entry-content').first(),date:(head.text().match(/[A-Z][a-z]{2} \d{1,2}, \d{4}/)||[''])[0],author:head.find('a[href*="author_id"]').first().text()}}},
- at:{host:'at-tahreek.com',delay:350,extract($){const body=$('.main_content_area .article-details').first();body.find('.subjects,.fb-comments,#fb-root,.related-articles').remove();
+ /* cardTitle: কিছু পাতার শিরোনামে ভাঙা HTML থাকায় h1 ফাঁকা আসে; তখন তালিকার শিরোনামই নেওয়া হয় */
+ at:{host:'at-tahreek.com',delay:350,cardTitle:true,extract($){const body=$('.main_content_area .article-details').first();body.find('.subjects,.fb-comments,#fb-root,.related-articles').remove();
    const crumbs=$('.styled_breadcumb a').toArray().map(a=>$(a).text().replace(/\s+/g,' ').trim()).filter(Boolean);
    return{title:$('.bread-title h1').first().text(),body,date:crumbs.find(t=>/[০-৯0-9]{4}/.test(t))||'',author:''}}},
  ia:{host:'islamicauthors.com',delay:600,extract($){const art=$('article.article-body').first();
@@ -27,11 +28,37 @@ const SOURCES={
  /* insightzonebd.com: রানার থেকে সরাসরি আনা যায় না (Cloudflare)। প্রশ্নোত্তর tools/add-texts.cjs দিয়ে tools/manual/ থেকে যোগ হয়;
     প্রবন্ধ আসে Internet Archive-এ থাকা পুরোনো (WordPress) সংস্করণের কপি থেকে। পুরোনো ঠিকানা একটু আলাদা হতে পারে (fuzzy), তাই শিরোনাম মিলিয়ে নেওয়া হয়। */
  /* izTidy: শিরোনামের পুনরাবৃত্তি, জোড়া <sup>, "URL Copied" বোতামের লেখা বাদ; খোলা লেখা (যেমন "রেফারেন্স") অনুচ্ছেদে */
- iz:{tidy(html,title){const flat=t=>t.replace(/<[^>]+>/g,'').replace(/&amp;/g,'&').replace(/[\s?!।:;,.\-–—'"‘’“”]+/g,'').normalize('NFC');
+ iz:{tidy(html,title){const flat=t=>t.replace(/<[^>]+>/g,'').replace(/&amp;/g,'&').replace(/[\s?!।:;,.\-–—'"‘’“”]+/g,'').normalize('NFC').replace(/ী/g,'ি');
    return html.replace(/^\s*<(h[234])>(.*?)<\/\1>\s*/,(m,g,t)=>flat(t)===flat(title)?'':m).replace(/<sup>\s*<sup>([^<]*)<\/sup>\s*<\/sup>/g,'<sup>$1</sup>')
     .replace(/\s*<p>\s*URL Copied\s*<\/p>/g,'').replace(/(<\/(?:p|ol|ul|blockquote|h[234]|table)>)\s*([^<\s][^<]{0,80}?)\s*(<(?:ol|ul)>)/g,'$1<p>$2</p>$3').trim()},
    host:'www.insightzonebd.com',delay:13000,wayback:'insightzonebd.com',fuzzy:true,extract($,base){
    const title=($('meta[property="og:title"]').attr('content')||$('title').first().text()).replace(/\s+/g,' ').replace(/\s*[-–|]\s*Insight Zone\s*$/i,'').trim();
+   /* নতুন সাইট (২০২৬, WordPress নয়): main.post-main > h1.post-content-title, .post-meta-left (লেখক, তারিখ, পঠিত), .post-body।
+      লেখায় অনুচ্ছেদ-ট্যাগ প্রায়ই নেই — ফাঁকা লাইন = নতুন অনুচ্ছেদ, এক লাইন-ভাঙা = <br>; টীকা লেখার ভেতরে "(( … ))" আকারে (সাইট নিজে এগুলোকে নম্বর দেয়) */
+   const nb=$('.post-main .post-body').first();
+   if(nb.length){const t2=$('h1.post-content-title').first().text().replace(/\s+/g,' ').trim()||title.replace(/\s*[-–|]\s*ইনসাইট জোন\s*$/,'').trim();
+    const meta=$('.post-main .post-meta-left > span').toArray().map(e=>$(e).text().replace(/\s+/g,' ').trim());
+    const DM=/\b(\d{1,2}) (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*,? (\d{4})\b/,dm=DM.exec(meta.join(' | '));
+    const date=dm?dm[3]+'-'+String('JanFebMarAprMayJunJulAugSepOctNovDec'.indexOf(dm[2])/3+1).padStart(2,'0')+'-'+dm[1].padStart(2,'0'):'';
+    const author=meta[0]&&!DM.test(meta[0])&&!/বার পঠিত/.test(meta[0])?meta[0]:'';
+    nb.find('.post-footnotes-box,.share-box,.post-toc,script,style').remove();
+    for(let k=0;k<6&&nb.find('span').length;k++)nb.find('span').each((i,e)=>{$(e).replaceWith($(e).contents())});
+    const BL=new Set(['p','h1','h2','h3','h4','h5','h6','ul','ol','blockquote','table','div','figure','hr','pre','section']);
+    const autop=c=>{const out=[];let buf=[];
+     const flush=()=>{if(!buf.length)return;const h=buf.map(n=>$.html(n)).join('');buf=[];
+      for(const part of h.split(/\n[ \t\r]*\n/)){const t=part.replace(/^\s+|\s+$/g,'');if(t.replace(/<[^>]+>|&nbsp;|\s/g,'')||/<img\b/.test(t))out.push('<p>'+t.replace(/[ \t\r]*\n[ \t\r]*/g,'<br>')+'</p>')}};
+     for(const n of(c.children||[]).slice()){if(n.type==='tag'&&BL.has(n.tagName.toLowerCase())){flush();out.push($.html(n))}else if(n.type==='text'||n.type==='tag')buf.push(n)}
+     flush();$(c).html(out.join('\n'))};
+    for(const q of nb.find('blockquote').toArray().reverse())autop(q);
+    autop(nb.get(0));
+    let html=clean($,nb,base);const notes=[],bal=x=>['b','i','u','a','sup'].every(t=>(x.match(new RegExp('<'+t+'\\b','g'))||[]).length===(x.match(new RegExp('</'+t+'>','g'))||[]).length);
+    html=html.replace(/\s*\(\(((?:(?!\(\(|\)\)|<\/?(?:p|blockquote|h[234]|li|ul|ol|table|tr|td|th)\b)[\s\S])*?)\)\)/g,(m,t)=>{const x=t.replace(/^(?:\s|<br>)+|(?:\s|<br>)+$/g,'');
+     if(!x.replace(/<[^>]+>/g,'').trim()||!bal(x))return m;notes.push(x);return'<sup>'+notes.length+'</sup>'});
+    if(notes.length)html+='<h2>তথ্যসূত্র</h2><ol>'+notes.map(x=>'<li>'+x+'</li>').join('')+'</ol>';
+    html=SOURCES.iz.tidy(html,t2);
+    const junk=html.replace(/<[^>]+>/g,' ').match(/Leave a Comment|Post Comment|শেয়ার করুন|লিংক কপি|বার পঠিত|সূচিপত্র/);
+    if(junk)throw new Error('junk in content: '+junk[0]);
+    return{title:t2,html,date,author}}
    let body=$('.elementor-widget-theme-post-content').first();if(!body.length)body=$('.entry-content').first();if(!body.length)body=$('article').first();
    if(!body.length)return{title,html:''};
    body.find('.post-views,#wpd-post-rating,.wpd-rating,#comments,.comments-area,#wpdcom,[id^="wpd"],[class*="wpdiscuz"],[class*="wpd-"],.sharedaddy,.addtoany_share_save_container,#ez-toc-container,.ez-toc-container,.lwptoc,#toc_container,nav,.post-navigation,.elementor-post-navigation,.elementor-widget-share-buttons,.elementor-widget-post-navigation,.elementor-widget-post-comments,.elementor-widget-posts,.elementor-widget-post-info,.jp-relatedposts,.yarpp-related').remove();
@@ -64,6 +91,8 @@ const SOURCES={
    who(a){return a.replace(/\s*(?:January|February|March|April|May|June|July|August|September|October|November|December|জানু(?:\u09df|\u09af\u09bc)ারি|ফেব্রু(?:\u09df|\u09af\u09bc)ারি|মার্চ|এপ্রিল|মে|জুন|জুলাই|আগস্ট|সেপ্টেম্বর|অক্টোবর|নভেম্বর|ডিসেম্বর)\s+[0-9০-৯]{1,2},\s+[0-9০-৯]{4}.*$/,'')
     .replace(/\s*[0-9০-৯]+\s+\S+\s+ago.*$/,'').replace(/\s*Last Updated.*$/,'').replace(/\s+/g,' ').trim()},
    ver:3, /* নিষ্কাশন-নিয়মের সংস্করণ; নতুন রেকর্ডে v হিসেবে থাকে */
+   /* WordPress REST API: এক অনুরোধে ৫০টি লেখা (শুধু সাধারণ লেখা; প্রশ্নোত্তর এতে নেই) */
+   api:n=>'https://www.frommuslims.com/wp-json/wp/v2/posts?per_page=50&page='+n+'&_fields=link,date_gmt,title,content,coauthors',
    host:'www.frommuslims.com',delay:13000,wayback:'frommuslims.com',extract($,base){
    /* বসানো ইউটিউব ভিডিওর (iframe) জায়গায় ভিডিওর ঠিকানা, নইলে ভিডিও-নির্ভর লেখা ফাঁকা থেকে যায় */
    $('iframe').each((k,e)=>{const m=/(?:youtube(?:-nocookie)?\.com\/embed\/|youtu\.be\/)([\w-]{6,20})/.exec($(e).attr('data-src')||$(e).attr('data-lazy-src')||$(e).attr('src')||'');if(!m)return;
@@ -185,6 +214,8 @@ async function getSlow(u,ms=90000){let last;for(let a=0;a<3;a++){try{const ac=ne
    if(res.status>=500||res.status===429){last='HTTP '+res.status;const ra=parseInt(res.headers.get('retry-after')||'',10);if(a<2)await sleep(1000*Math.min(600,Math.max(ra||0,120*(a+1))));continue}
    return{status:res.status,html,final:res.url}}catch(e){last=(String(e)+' '+String(e&&e.cause||'')).slice(0,120);if(a<2)await sleep(120000*(a+1))}}
  return{status:0,html:'',err:last}}
+/* লেখকের নামের জায়গায় ই-মেইল ঠিকানা থাকলে তা দেখানো হয় না (প্রশ্নোত্তরের মতোই) */
+const noMail=a=>String(a||'').split(/\s*,\s*/).filter(n=>n&&!/\S+@\S+\.\S+|\[email/.test(n)).join(', ');
 /* এক চেষ্টা; 429/5xx/সংযোগ-ব্যর্থতা = busy (পরে আবার চেষ্টা) */
 const UA_BOT='DAWAH-X text importer (+https://github.com/Ebrahim-ead/DAWAH-X)';
 async function getOnce(u,ms=60000){try{const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),ms);
@@ -225,13 +256,14 @@ async function get(u,ms=30000){let last;for(let a=0;a<3;a++){try{const ac=new Ab
  let WBP=null;
  for(let u of REQ.probe||[]){ /* "wb:<ঠিকানা>" = Internet Archive-এর সর্বশেষ সফল কপি */
   if(u.startsWith('wb:')){const dom=new URL(u.slice(3)).host.replace(/^www\./,'');WBP=WBP||{};WBP[dom]=WBP[dom]||(await waybackMap(dom)).map;const w=WBP[dom].get(wbNorm(u.slice(3)));if(!w){report.probe.push({u,status:'not archived'});continue}u='https://web.archive.org/web/'+w.ts+'id_/'+w.orig}
-  const r=await get(u,60000);const $=cheerio.load(r.html);
+  let r={};for(let a=0;a<(REQ.probeTries||10);a++){r=await getOnce(u,120000);if(!r.busy)break;await sleep(Math.max(45000,1000*Math.min(r.ra||0,180)))}
+  r.html=r.html||'';const $=cheerio.load(r.html);
   /* ভিডিওর খোঁজ (iframe মুছে ফেলার আগে): কোন উপাদানে, কোন বৈশিষ্ট্যে ভিডিওর ঠিকানা আছে */
   const vids={ids:[...new Set(r.html.match(/(?:youtube(?:-nocookie)?\.com\/(?:embed\/|watch\?v=)|youtu\.be\/)[\w-]{6,20}/g)||[])].slice(0,8),
    at:$('iframe,[data-video],[data-video-id],[data-src*="youtu"],[data-lazy-src*="youtu"],a[href*="youtu"],meta[property^="og:video"]').toArray().slice(0,8).map(e=>e.tagName+'.'+(e.attribs.class||'')+' '+JSON.stringify(Object.fromEntries(Object.entries(e.attribs).filter(([k])=>/^(src|href|content|data-)/.test(k)).map(([k,v])=>[k,v.slice(0,100)])))+' < '+$(e).parents().toArray().slice(0,5).map(p=>p.tagName+(p.attribs.id?'#'+p.attribs.id:'')+(p.attribs.class?'.'+p.attribs.class.trim().split(/\s+/).slice(0,3).join('.'):'')).join(' < '))};
   $('script,style,noscript,svg,iframe').remove();
   const sig=e=>e.tagName+(e.attribs.id?'#'+e.attribs.id:'')+(e.attribs.class?'.'+e.attribs.class.trim().split(/\s+/).slice(0,4).join('.'):'');
-  const walk=(e,d)=>$(e).children().toArray().slice(0,REQ.probeKids||22).map(c=>{const t=$(c).text().replace(/\s+/g,' ').trim();const o={s:sig(c),n:t.length,t:t.slice(0,40)};if(d<4&&t.length>200&&$(c).children().length)o.c=walk(c,d+1);return o});
+  const walk=(e,d)=>$(e).children().toArray().slice(0,REQ.probeKids||22).map(c=>{const t=$(c).text().replace(/\s+/g,' ').trim();const o={s:sig(c),n:t.length,t:t.slice(0,40)};if(d<(REQ.probeDepth||4)&&t.length>200&&$(c).children().length)o.c=walk(c,d+1);return o});
   const o={u,status:r.status,err:r.err,final:r.final,len:r.html.length,title:$('title').text().trim().slice(0,80),h1:$('h1').toArray().slice(0,3).map(h=>({t:$(h).text().trim().slice(0,50),path:$(h).parents().toArray().slice(0,6).map(sig)}))};
   let best=null;$('h1').first().parents().each((i,p)=>{if(!best&&$(p).text().replace(/\s+/g,' ').length>800)best=p});
   if(!best)best=$('main,article,body').first().get(0);if(best){o.best=sig(best);o.tree=walk(best,0)}
@@ -239,6 +271,15 @@ async function get(u,ms=30000){let last;for(let a=0;a<3;a++){try{const ac=new Ab
   o.meta=['og:title','article:published_time','author','og:site_name'].map(n=>n+'='+($('meta[property="'+n+'"],meta[name="'+n+'"]').attr('content')||'').slice(0,50));
   o.vids=vids;
   if(REQ.sel)o.sel=REQ.sel.map(q=>[q,$(q).length,...$(q).toArray().slice(0,2).map(e=>sig(e)+' > '+$(e).children().toArray().slice(0,6).map(sig).join(' , ')+' :: '+$(e).text().replace(/\s+/g,' ').trim().slice(0,110))]);
+  /* probeHtml: সবচেয়ে উপযুক্ত অংশের (বা দেওয়া সিলেক্টরের) HTML-কাঠামো — লেখা ছেঁটে, শুধু class/id/href রেখে */
+  if(REQ.probeHtml){const root=typeof REQ.probeHtml==='string'?$(REQ.probeHtml).first().get(0):best;const cut=REQ.probeText||24;
+   const sk=n=>{if(n.type==='text'){const t=n.data.replace(/\s+/g,' ').trim();return t?(t.length>cut?t.slice(0,cut)+'…('+t.length+')':t):''}if(n.type!=='tag')return'';
+    const at=['id','class','href','datetime','itemprop','rel'].filter(k=>n.attribs[k]).map(k=>' '+k+'="'+n.attribs[k].slice(0,k==='href'?40:90)+'"').join('');
+    return'<'+n.tagName+at+'>'+(n.children||[]).map(sk).join('')+'</'+n.tagName+'>'};
+   const all=root?sk(root):'',lim=REQ.probeLen||40000;o.html=all.length>lim?all.slice(0,lim*0.6)+' ⋯⋯ '+all.slice(-lim*0.4):all;o.htmlLen=all.length}
+  /* probeRaw: ["<সিলেক্টর>",শুরু,দৈর্ঘ্য] — মূল HTML-এর একটি টুকরো হুবহু (ফাঁকা জায়গা, লাইন-ভাঙা সহ) */
+  if(Array.isArray(REQ.probeRaw)){const raw=cheerio.load(r.html)(REQ.probeRaw[0]).first();const h=raw.length?cheerio.load(r.html).html(raw):'';o.rawLen=h.length;o.raw=h.slice(REQ.probeRaw[1]||0,(REQ.probeRaw[1]||0)+(REQ.probeRaw[2]||6000));
+   o.css=(r.html.match(/[^{}]*\.post-body[^{}]*\{[^}]*\}/g)||[]).slice(0,30).map(x=>x.replace(/\s+/g,' ').trim().slice(0,200));o.links=[...r.html.matchAll(/<link[^>]+rel=["']stylesheet["'][^>]*>/g)].map(m=>m[0].slice(0,200)).slice(0,12)}
   report.probe.push(o)}
  migrate(); /* তালিকা তৈরির আগে, যাতে মুছে দেওয়া রেকর্ড এই রানেই আবার আনা হয় */
  const want=new Set(REQ.hosts||Object.keys(SOURCES)),seen=new Set(),queue={};
@@ -258,6 +299,40 @@ async function get(u,ms=30000){let last;for(let a=0;a<3;a++){try{const ac=new Ab
   w.info.catalog=all.length;w.info.matched=hit.length;w.info.newest=hit.map(u=>w.map.get(wbNorm(u)).ts.slice(0,4)).reduce((o,y)=>(o[y]=(o[y]||0)+1,o),{});
   w.info.qna=[all.filter(u=>/\/qna\/./.test(u)).length,hit.filter(u=>/\/qna\/./.test(u)).length];w.info.unmatched=all.filter(u=>!hit.includes(u)).slice(0,8).map(u=>{try{return decodeURI(u)}catch(e){return u}});(report.wayback=report.wayback||{})[s]=w.info;
   if(!w.info.err&&hit.length)fs.writeFileSync(cf,JSON.stringify(Object.fromEntries(hit.map(u=>{const k=wbNorm(u),v=w.map.get(k);return[k,[v.ts,v.orig]]}))))}
+ /* ts: {"<পাতার ঠিকানা>":"<১৪ অঙ্কের সময়>"} — CDX সূচিতে এখনো ওঠেনি এমন নতুন কপি সরাসরি ধরিয়ে দেওয়া যায় */
+ if(REQ.ts)for(const u of Object.keys(REQ.ts)){const s=sourceOf(u);if(s&&WB[s]&&/^\d{14}$/.test(REQ.ts[u]))WB[s].set(wbNorm(u),{ts:REQ.ts[u],orig:u,pin:true})}
+ /* api: {"fm":[1,2,[3,"<সময়>"]]} — সাইটের REST API-র পাতাগুলোর Internet Archive কপি থেকে লেখা নেওয়া (এক কপিতে অনেক লেখা)।
+    আগে থেকে রাখা লেখার সাথে দৈর্ঘ্য মিলিয়ে দেখা হয়; না মিললে এ পথে কিছুই নেওয়া হয় না। লেখকের নাম: API শুধু লেখকের নম্বর দেয়,
+    তাই আগে আনা (এক লেখকের) লেখা থেকে নম্বর→নাম জেনে নেওয়া হয়; কোনো নম্বরের নাম জানা না থাকলে লেখাটি সাধারণ পথের জন্য থেকে যায় */
+ if(REQ.api)for(const s of Object.keys(REQ.api)){const src=SOURCES[s];if(!src||!src.api||!queue[s])continue;
+  const info=(report.api=report.api||{})[s]={pages:0,posts:0,done:0,errs:[]},posts=new Map();
+  for(const pg of REQ.api[s]){const n=Array.isArray(pg)?pg[0]:pg,ts=Array.isArray(pg)?pg[1]:'';let r={};
+   for(let a=0;a<8;a++){r=await getOnce('https://web.archive.org/web/'+(ts||'20301231235959')+'id_/'+src.api(n),240000);if(!r.busy)break;await sleep(30000)}
+   const m=/\/web\/(\d{14})id_\//.exec(r.final||'');let arr=null;if(r.status===200&&m)try{arr=JSON.parse(r.html)}catch(e){}
+   if(!Array.isArray(arr)){info.errs.push([n,r.status||0,(r.err||'').slice(0,60)]);await sleep(src.delay);continue}
+   info.pages++;for(const p of arr)if(p&&p.link&&p.content)posts.set(wbNorm(p.link),{p,w:m[1]});await sleep(src.delay)}
+  info.posts=posts.size;
+  /* ঠিকানা বদলে যাওয়া লেখা: ক্যাটালগের শিরোনাম হুবহু মিললে (এবং একটিই মিললে) সেটিই ধরা হয়; প্রশ্নোত্তরের ঠিকানায় নয় */
+  const nt=t=>String(t||'').normalize('NFC').replace(/[^\p{L}\p{N}]+/gu,'').toLowerCase(),byTitle=new Map();
+  for(const o of posts.values()){const k=nt(cheerio.load('<i>'+((o.p.title&&o.p.title.rendered)||'')+'</i>')('i').text());if(k.length>=8)byTitle.set(k,byTitle.has(k)?null:o)}
+  const find=it=>posts.get(wbNorm(it.u))||(/\/qna\//.test(it.u)?null:(byTitle.get(nt(it.t))||null));
+  const make=o=>{const p=o.p,$=cheerio.load('<html><head><meta property="article:published_time" content="'+esc(String(p.date_gmt||p.date||''))+'"></head><body><div id="the-post"><h1 class="post-title entry-title">'+((p.title&&p.title.rendered)||'')+'</h1><div class="entry-content">'+((p.content&&p.content.rendered)||'')+'</div></div></body></html>');
+   const x=src.extract($,p.link);let html=x.body&&x.body.length?clean($,x.body,p.link):'';if(src.tidy)html=src.tidy(html);return{title:(x.title||'').replace(/\s+/g,' ').trim(),html,date:(x.date||'').trim()}};
+  const cat=new Map();for(const r of[...builtinRows(),...catalogRows()])if(sourceOf(r[2])===s)cat.set(wbNorm(r[2]),keyOfUrl(r[2]));
+  const names={},ratios=[];let stored=0;
+  for(const[pth,o]of posts){const k=cat.get(pth);if(!k)continue;const rec=loadBucket(bucketOf(k)).data[k];if(!rec)continue;stored++;
+   const ids=o.p.coauthors||[];if(ids.length===1&&rec.a){const c=(names[ids[0]]=names[ids[0]]||{});c[rec.a]=(c[rec.a]||0)+1}
+   if(ratios.length<80){try{ratios.push(+(textLen(make(o).html)/Math.max(1,textLen(rec.h))).toFixed(3))}catch(e){ratios.push(0)}}}
+  const given=REQ.apiNames||{},who=id=>{if(given[id])return given[id];const c=names[id];return c?Object.keys(c).sort((a,b)=>c[b]-c[a])[0]:''};
+  const sorted=ratios.slice().sort((a,b)=>a-b),med=sorted[sorted.length>>1]||0,near=ratios.filter(v=>v>0.9&&v<1.1).length;
+  info.stored=stored;info.authors=Object.keys(names).length;info.check={n:ratios.length,median:med,near,min:sorted[0],max:sorted[sorted.length-1]};
+  info.ok=!!REQ.apiForce||(ratios.length>=10&&med>0.97&&med<1.03&&near>=0.7*ratios.length);
+  if(info.ok)queue[s]=queue[s].filter(it=>{const o=find(it);if(!o)return true;if(!posts.get(wbNorm(it.u)))info.byTitle=(info.byTitle||0)+1;
+   const ids=o.p.coauthors||[],au=ids.map(who);if(!ids.length||au.some(a=>!a)){info.noAuthor=(info.noAuthor||0)+1;(info.unknown=info.unknown||{})[ids.filter(i=>!who(i)).join('+')||'none']=o.p.link;return true}
+   try{const y=make(o);if(!y.title||textLen(y.html)<40)return true;
+    const b=loadBucket(bucketOf(it.k));b.data[it.k]={u:it.u,s,c:it.c,t:y.title,l:it.t,d:y.date.slice(0,10),a:noMail([...new Set(au)].join(', ')),h:y.html,w:o.w};if(src.ver)b.data[it.k].v=src.ver;b.dirty=true;info.done++;report.done++;return false}
+   catch(e){info.errs.push([it.u.slice(-40),String(e).slice(0,60)]);return true}});
+  flush()}
  const deadline=Date.now()+(REQ.minutes||300)*60000,limit=REQ.limit||Infinity;let lastFlush=Date.now();
  /* প্রতি ২ মিনিটে ফাইলে লেখা; প্রতি REQ.push (ডিফল্ট ৩০) মিনিটে শাখায় জমা, যাতে লম্বা রানের মাঝপথের ফল হারিয়ে না যায় */
  let lastPush=Date.now();
@@ -265,7 +340,7 @@ async function get(u,ms=30000){let last;for(let a=0;a<3;a++){try{const ac=new Ab
   if(Date.now()-lastPush>(REQ.push||30)*60000){lastPush=Date.now();if(!process.env.GITHUB_ACTIONS||!process.env.GITHUB_REF_NAME)return;
    try{report.total=flush();report.partial=new Date().toISOString();fs.writeFileSync(path.join(OUT,'_report.json'),JSON.stringify(report,null,1));
     /* rebase-এর জন্যও পরিচয় লাগে, তাই আগে config; rebase আটকে গেলে বাতিল করে পরের বার আবার চেষ্টা */
-    require('child_process').execSync('git config user.name "github-actions[bot]" && git config user.email "41898282+github-actions[bot]@users.noreply.github.com" && git add texts && (git diff --cached --quiet || git commit -q -m "Import library texts (automated, partial)") && (git pull -q --rebase origin "$GITHUB_REF_NAME" || (git rebase --abort; exit 1)) && git push -q origin "HEAD:$GITHUB_REF_NAME"',{cwd:ROOT,stdio:'ignore',timeout:300000})}
+    require('child_process').execSync('git config user.name "github-actions[bot]" && git config user.email "41898282+github-actions[bot]@users.noreply.github.com" && git add texts && (git diff --cached --quiet || git commit -q -m "Import library texts (automated, partial)") && (git pull -q --rebase -X theirs origin "$GITHUB_REF_NAME" || (git rebase --abort; exit 1)) && git push -q origin "HEAD:$GITHUB_REF_NAME"',{cwd:ROOT,stdio:'ignore',timeout:300000})}
    catch(e){report.checkpointErr=String(e).slice(0,160)}}};
  await Promise.all(Object.keys(queue).map(async s=>{const src=SOURCES[s],st=report.bySource[s]={queued:queue[s].length,done:0,failed:0};let streak=0;
   let list=queue[s].slice(0,(REQ.limits&&REQ.limits[s])||limit);
@@ -274,19 +349,30 @@ async function get(u,ms=30000){let last;for(let a=0;a<3;a++){try{const ac=new Ab
    for(let n=0;n<list.length;n++){const it=list[n];if(Date.now()>deadline||streak>=25){again.push(...list.slice(n));stop=true;break}
     tick();
     let r,fail='';
-    if(src.wayback){const w=!/\?/.test(it.u)&&WB[s].get(wbNorm(it.u));
-     if(!w){st.failed++;st.unarchived=(st.unarchived||0)+1;if(report.failed.length<400)report.failed.push([it.u,'not archived']);continue}
-     r=await getOnce('https://web.archive.org/web/'+w.ts+'id_/'+w.orig);
+    if(src.wayback){const w=!/\?/.test(it.u)&&WB[s].get(wbNorm(it.u));const busyWait=x=>sleep(Math.max(src.delay,1000*Math.min(x.ra||0,180)));const SAVE=REQ.save===true||(Array.isArray(REQ.save)&&REQ.save.includes(s));
+     /* save: যে পাতার কপি নেই (বা কপিটি অকেজো), তার সর্বশেষ কপি চাওয়া হয়; না থাকলে Internet Archive-কে পাতাটি সংরক্ষণ করতে বলা হয় ("Save Page Now") এবং পরের পাকে সেই নতুন কপি পড়া হয় */
+     if(SAVE&&!/\?/.test(it.u)&&(!w||it.fresh)){
+      const L=await getOnce('https://web.archive.org/web/20301231235959id_/'+it.u,90000),m=/\/web\/(\d{14})id_\//.exec(L.final||'');
+      if(L.busy){st.busy=(st.busy||0)+1;if(L.err)st.lastErr=L.err;again.push(it);await busyWait(L);continue}
+      if(L.status===200&&m&&!(it.fresh&&m[1]<=it.fresh)){r=L;r.final=it.u;r.w=m[1]}
+      else if((it.saves||0)>=3){st.failed++;st.unarchived=(st.unarchived||0)+1;if(report.failed.length<400)report.failed.push([it.u,'not archived (save: '+(it.lastSave||'')+')']);await sleep(src.delay);continue}
+      else{it.saves=(it.saves||0)+1;await sleep(src.delay);const S=await getOnce('https://web.archive.org/save/'+it.u,180000);it.lastSave=String(S.status)+(S.err?' '+S.err.slice(0,40):'');st.saves=(st.saves||0)+1;st.lastSave=it.lastSave;
+       if(S.status===429)it.saves--;again.push(it);await busyWait(S);continue}}
+     else if(!w){st.failed++;st.unarchived=(st.unarchived||0)+1;if(report.failed.length<400)report.failed.push([it.u,'not archived']);continue}
+     else r=await getOnce('https://web.archive.org/web/'+w.ts+'id_/'+w.orig);
+     if(SAVE&&w&&!it.fresh&&r.status===404){it.fresh=w.ts;again.push(it);await sleep(src.delay);continue} /* সংরক্ষিত কপিটি নিজেই "পাওয়া যায়নি" পাতা: নতুন কপি চাওয়া হবে */
      if(r.busy){st.busy=(st.busy||0)+1;if(r.ra)st.retryAfter=Math.max(st.retryAfter||0,r.ra);if(r.err)st.lastErr=r.err;again.push(it);await sleep(Math.max(src.delay,1000*Math.min(r.ra||0,180)));continue}
      if(r.status===200&&/<title>\s*(Just a moment|Attention Required)/i.test(r.html.slice(0,3000)))r={status:0,html:'',err:'challenge page in archive'};
-     else if(r.status===200){r.final=it.u;r.w=w.ts}}
+     else if(r.status===200){r.final=it.u;r.w=r.w||w.ts;r.pin=!!(w&&w.pin)}}
     else r=await get(it.u);
     if(r.status!==200)fail=r.err||('HTTP '+r.status);
-    else{try{const $=cheerio.load(r.html);const x=src.extract($,r.final||it.u);let html=x.html!==undefined?x.html:(x.body&&x.body.length?clean($,x.body,r.final||it.u):'');if(src.tidy)html=src.tidy(html,(x.title||'').replace(/\s+/g,' ').trim());const title=(x.title||'').replace(/\s+/g,' ').trim();
-      if(!title||textLen(html)<40)fail='no content';
-      else if(src.fuzzy&&!sameTitle(title,it.t))fail='title mismatch: '+title.slice(0,70);
+    else{try{const $=cheerio.load(r.html);const x=src.extract($,r.final||it.u);let html=x.html!==undefined?x.html:(x.body&&x.body.length?clean($,x.body,r.final||it.u):'');if(src.tidy)html=src.tidy(html,(x.title||'').replace(/\s+/g,' ').trim());const title=(x.title||'').replace(/\s+/g,' ').trim()||(src.cardTitle&&textLen(html)>=40?it.t:'');
+      /* পত্রিকার প্রশ্নোত্তরে (শিরোনাম "প্রশ্ন …", লেখা "উত্তর …") এক বাক্যের উত্তরও পূর্ণ লেখা, যেমন "উত্তরঃ এটি কোন হাদীছ নয়।" */
+      const min=/^প্রশ্ন/.test(title)&&/^(?:<[^>]+>|\s)*উত্তর/.test(html)?12:40;
+      if(!title||textLen(html)<min)fail='no content'+(r.final&&r.final.replace(/\/$/,'')!==it.u.replace(/\/$/,'')?' (redirected to '+r.final.slice(0,90)+')':'');
+      else if(src.fuzzy&&!r.pin&&!sameTitle(title,it.t))fail='title mismatch: '+title.slice(0,70);
       else if(src.fuzzy&&notArticle(title,html))fail='not the article (download page): '+title.slice(0,70);
-      else{const b=loadBucket(bucketOf(it.k));b.data[it.k]={u:it.u,s,c:it.c,t:title,l:it.t,d:(x.date||'').trim(),a:(x.author||'').replace(/\s+/g,' ').trim(),h:html};if(r.w)b.data[it.k].w=r.w;if(src.ver)b.data[it.k].v=src.ver;b.dirty=true;st.done++;report.done++;streak=0}}catch(e){fail='parse: '+String(e).slice(0,80)}}
+      else{const b=loadBucket(bucketOf(it.k));b.data[it.k]={u:it.u,s,c:it.c,t:title,l:it.t,d:(x.date||'').trim(),a:noMail((x.author||'').replace(/\s+/g,' ').trim()),h:html};if(r.w)b.data[it.k].w=r.w;if(src.ver)b.data[it.k].v=src.ver;b.dirty=true;st.done++;report.done++;streak=0}}catch(e){fail='parse: '+String(e).slice(0,80)}}
     if(fail){st.failed++;if(!src.wayback)streak++;if(report.failed.length<400)report.failed.push([it.u,fail])}
     await sleep(src.delay)}
    list=again;if(stop||!src.wayback)break}

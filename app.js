@@ -58,13 +58,31 @@ function safeArticle(html){
  return out}
 const readTitle=$("read-title");
 if(readTitle){
- const P=new URLSearchParams(location.search),key=(P.get("k")||"").toLowerCase(),from=P.get("from")==="f"?"f":"q";
+ const P=new URLSearchParams(location.search),key=(P.get("k")||"").toLowerCase(),vid=P.get("v")||"",from=P.get("from")==="f"?"f":"q";
  const back=$("read-back"),body=$("read-body"),nav=document.querySelector("[data-read-nav]");
  const backHref=from==="f"?"fatwa.html":"questions.html",backLabel=from==="f"?"ফতোয়া":"প্রশ্নোত্তর";
  if(back){back.href=backHref;back.textContent=backLabel}
  if(nav&&from==="f"){nav.classList.remove("on");const f=document.querySelector('#menu a[href="fatwa.html"]');if(f)f.classList.add("on")}
  const fail=msg=>{readTitle.textContent="লেখাটি পাওয়া যায়নি";body.innerHTML=`<p>${msg}</p><p><a class="askbtn" href="${backHref}">${backLabel} তালিকায় ফিরে যান</a></p>`};
- if(!/^[0-9a-f]{14}$/.test(key))fail("ঠিকানাটি সঠিক নয়।");
+ const shareLinks=t=>{const url=location.href.split("#")[0],share=encodeURIComponent(t+"\n"+url);
+  $("read-wa").href="https://wa.me/?text="+share;$("read-fb").href="https://www.facebook.com/sharer/sharer.php?u="+encodeURIComponent(url);$("read-share").hidden=false};
+ /* read.html?v=<id>: তালিকার ইউটিউব ভিডিও এই পাতাতেই চলে (SITE_VIDEOS-এ থাকা ভিডিওই শুধু) */
+ const showVideo=()=>{
+  if(!siteVideo(vid)){readTitle.textContent="ভিডিওটি পাওয়া যায়নি";body.innerHTML=`<p>এই ভিডিওটি সাইটের তালিকায় নেই।</p><p><a class="askbtn" href="${backHref}">${backLabel} তালিকায় ফিরে যান</a></p>`;return}
+  const row=[...QS,...FT].find(r=>videoIdOf(r[2])===vid)||["","ভিডিও"],by=SITE_VIDEOS[vid];
+  readTitle.textContent=toLatinDigits(row[1]);document.title=toLatinDigits(row[1])+" — DAWAH X";
+  const cat=$("read-cat");if(cat&&row[0]){cat.textContent=row[0];cat.hidden=false}
+  $("read-meta").innerHTML=[by,"ইউটিউব ভিডিও"].filter(Boolean).map(v=>`<span>${escHTML(v)}</span>`).join('<span aria-hidden="true">·</span>');
+  const frame=document.createElement("div"),player=document.createElement("iframe"),tip=document.createElement("p");
+  frame.className="video-frame article-video";player.src="https://www.youtube.com/embed/"+encodeURIComponent(vid)+"?rel=0&playsinline=1";player.title=row[1];
+  player.allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";player.allowFullscreen=true;player.referrerPolicy="strict-origin-when-cross-origin";
+  tip.className="article-video-tip";tip.textContent="ভিডিওটি এই পাতাতেই চলবে — প্লে বোতামে চাপুন।";
+  frame.appendChild(player);body.textContent="";body.append(frame,tip);
+  $("read-credit").innerHTML=`এই ভিডিওটি <b>${escHTML(by||"ইউটিউব")}</b>-এর ইউটিউব চ্যানেলের (youtube.com)। ইউটিউবের প্লেয়ারে এখানে দেখানো হচ্ছে; ভিডিওর স্বত্ব চ্যানেলের।`;
+  const orig=$("read-original"),label=orig.querySelector("span");orig.href="https://www.youtube.com/watch?v="+encodeURIComponent(vid);if(label)label.textContent="ইউটিউবে দেখুন ↗";$("read-source").hidden=false;
+  shareLinks(row[1])};
+ if(vid)setTimeout(showVideo,0); /* SITE_VIDEOS, QS, FT নিচে সংজ্ঞায়িত */
+ else if(!/^[0-9a-f]{14}$/.test(key))fail("ঠিকানাটি সঠিক নয়।");
  else fetch("texts/"+textBucket(key)+".json").then(r=>{if(!r.ok)throw new Error(r.status);return r.json()}).then(all=>{
   const x=all[key];if(!x){fail("এই লেখাটি এখনো সাইটে যোগ হয়নি।");return}
   const srcName=TEXT_SOURCES[x.s]||hostOf(x.u);
@@ -74,8 +92,7 @@ if(readTitle){
   body.textContent="";body.appendChild(safeArticle(x.h));
   $("read-credit").innerHTML=`এই লেখাটি <b>${escHTML(srcName)}</b>-এর (${escHTML(hostOf(x.u))})। প্রকাশকের অনুমতিক্রমে এখানে হুবহু তুলে ধরা হয়েছে; লেখার স্বত্ব মূল প্রকাশকের।`+(/^\d{8}/.test(x.w||"")?` এই কপিটি Internet Archive-এ সংরক্ষিত ${x.w.slice(0,4)}-${x.w.slice(4,6)}-${x.w.slice(6,8)} তারিখের সংস্করণ থেকে নেওয়া; মূল পেজে এরপর পরিবর্তন হয়ে থাকতে পারে।`:"");
   $("read-original").href=x.u;$("read-source").hidden=false;
-  const url=location.href.split("#")[0],share=encodeURIComponent(x.t+"\n"+url);
-  $("read-wa").href="https://wa.me/?text="+share;$("read-fb").href="https://www.facebook.com/sharer/sharer.php?u="+encodeURIComponent(url);$("read-share").hidden=false;
+  shareLinks(x.t);
   if(location.hash){const t=document.getElementById(location.hash.slice(1));if(t)t.scrollIntoView()}
  }).catch(()=>fail("লেখাটি লোড করা যায়নি। ইন্টারনেট সংযোগ দেখে আবার চেষ্টা করুন।"))}
 
@@ -115,6 +132,11 @@ let LOCAL_TEXTS=null;
 const localTextsReady=(location.protocol==="file:"?Promise.resolve(null):fetch("texts/index.json").then(r=>r.ok?r.json():null).catch(()=>null)).then(x=>{
  if(x&&x.n)LOCAL_TEXTS={hosts:new Set(Object.values(x.full||{})),missing:new Set(x.missing||[]),keys:new Set(x.keys||[])};return LOCAL_TEXTS});
 const localKeyOf=u=>{if(!LOCAL_TEXTS)return"";const k=textKey(u);if(LOCAL_TEXTS.keys.has(k))return k;let h="";try{h=new URL(u).host}catch(e){}return LOCAL_TEXTS.hosts.has(h)&&!LOCAL_TEXTS.missing.has(k)?k:""};
+/* তালিকার ইউটিউব ভিডিও: কার্ডে চাপলে ইউটিউবে না গিয়ে সাইটের পাঠ-পাতায় (read.html?v=<id>) প্লেয়ার খোলে।
+   শুধু এই তালিকার ভিডিওই সাইটে চলে (ভিডিওর id → চ্যানেলের নাম); তালিকায় নতুন ভিডিও দিলে তার id এখানে যোগ করতে হবে */
+const SITE_VIDEOS={"pfuxmCur3j4":"Insight Zone","ADf5pMhySeI":"Insight Zone","-Q5qDzfik28":"Insight Zone"};
+const siteVideo=id=>Object.prototype.hasOwnProperty.call(SITE_VIDEOS,id);
+const videoIdOf=u=>{const m=/^https?:\/\/(?:www\.|m\.)?(?:youtube\.com\/watch\?(?:[^#]*&)?v=|youtu\.be\/)([\w-]{11})(?![\w-])/.exec(u||"");return m&&siteVideo(m[1])?m[1]:""};
 
 /* cfg: {id:"q"|"f", rows:[[বিভাগ,শিরোনাম,লিংক]], manifest:[{category,src,count}], partsKey, label, hint, loadingText} */
 function setupLibrary(cfg){
@@ -142,8 +164,9 @@ function setupLibrary(cfg){
   const list=rows.filter(x=>inCategory(x,cur)&&terms.every(t=>rowText(x).includes(t)));
   const ready=isReady(cur),loading=isLoading(cur);
   if(list.length){
-   grid.innerHTML=list.slice(0,show).map(x=>{const k=localKeyOf(x[2]);return k
+   grid.innerHTML=list.slice(0,show).map(x=>{const k=localKeyOf(x[2]),v=k?"":videoIdOf(x[2]);return k
     ?`<a class="qcard qcard-own" href="read.html?k=${k}&from=${cfg.id}"><small>${escHTML(x[0])}</small><b>${escHTML(x[1])}</b><span>এখানেই পড়ুন ›</span></a>`
+    :v?`<a class="qcard qcard-own" href="read.html?v=${encodeURIComponent(v)}&from=${cfg.id}"><small>${escHTML(x[0])}</small><b>${escHTML(x[1])}</b><span>এখানেই দেখুন ›</span></a>`
     :`<a class="qcard" href="${escAttr(x[2])}" target="_blank" rel="noopener"><small>${escHTML(x[0])}</small><b>${escHTML(x[1])}</b><span>${escHTML(hostOf(x[2]))} ↗</span></a>`}).join("");
   }else{
    grid.innerHTML=`<p class="qnote">${loading?"লোড হচ্ছে…":failed&&!ready?"সূচি লোড হয়নি। ইন্টারনেট সংযোগ দেখে আবার চেষ্টা করুন।":"কিছু পাওয়া যায়নি।"}</p>`;
@@ -192,6 +215,9 @@ function setupLibrary(cfg){
  }
 
  chips.addEventListener("click",e=>{const b=e.target.closest("[data-c]");if(!b)return;cur=b.dataset.c;show=LIBRARY_PAGE_SIZE;draw();load(cur);chips.querySelector(".chip.on")?.focus({preventScroll:true})});
+ /* উৎসের বড় কার্ড (data-cat): মূল সাইটে না নিয়ে নিচের তালিকায় সেই বিভাগের লেখাগুলো দেখায় */
+ document.querySelectorAll('a.library-link[data-cat][href="#'+cfg.id+'chips"]').forEach(a=>a.addEventListener("click",e=>{if(!cats.includes(a.dataset.cat))return;
+  e.preventDefault();search.value="";cur=a.dataset.cat;show=LIBRARY_PAGE_SIZE;draw();load(cur);(stat||chips).scrollIntoView({block:"start"});chips.querySelector(".chip.on")?.focus({preventScroll:true})}));
  let drawTimer;
  const onSearch=now=>{clearTimeout(drawTimer);drawTimer=setTimeout(()=>{show=LIBRARY_PAGE_SIZE;draw();if(query().length>=2)load(cur)},now?0:160)};
  search.addEventListener("input",()=>onSearch(false));
@@ -248,7 +274,6 @@ const QS=[
 ["নাস্তিক্যবাদ","স্রষ্টার অস্তিত্ব ও চার ধরণের দলীল","https://www.frommuslims.com/%e0%a6%b8%e0%a7%8d%e0%a6%b0%e0%a6%b7%e0%a7%8d%e0%a6%9f%e0%a6%be%e0%a6%b0-%e0%a6%85%e0%a6%b8%e0%a7%8d%e0%a6%a4%e0%a6%bf%e0%a6%a4%e0%a7%8d%e0%a6%ac-%e0%a6%93-%e0%a6%9a%e0%a6%be%e0%a6%b0-%e0%a6%a7/"],
 ["নাস্তিক্যবাদ","ধর্ম ও দানশীলতা: কেন ধার্মিকরা বেশি দান করেন?","https://www.frommuslims.com/%e0%a6%a7%e0%a6%b0%e0%a7%8d%e0%a6%ae-%e0%a6%93-%e0%a6%a6%e0%a6%be%e0%a6%a8%e0%a6%b6%e0%a7%80%e0%a6%b2%e0%a6%a4%e0%a6%be/"],
 ["নাস্তিক্যবাদ","আদিমানবের প্রথম ধর্ম: একেশ্বরবাদ — নৃতত্ত্ব কী বলে?","https://www.frommuslims.com/%e0%a6%aa%e0%a7%8d%e0%a6%b0%e0%a6%a5%e0%a6%ae-%e0%a6%a7%e0%a6%b0%e0%a7%8d%e0%a6%ae-%e0%a6%8f%e0%a6%95%e0%a7%87%e0%a6%b6%e0%a7%8d%e0%a6%ac%e0%a6%b0%e0%a6%ac%e0%a6%be%e0%a6%a6/"],
-["বিশ্বাস","আল্লাহর সিফাত: আকল না ওহী, কোনটা মান্য?","https://www.frommuslims.com/%e0%a6%86%e0%a6%b2%e0%a7%8d%e0%a6%b2%e0%a6%be%e0%a6%b9%e0%a6%b0-%e0%a6%b8%e0%a6%bf%e0%a6%ab%e0%a6%be%e0%a6%a4-%e0%a6%86%e0%a6%95%e0%a6%b2-%e0%a6%a8%e0%a6%be-%e0%a6%93%e0%a6%b9%e0%a7%80/"],
 ["নবুয়ত","ইসলাম সত্য ধর্ম হওয়ার প্রমাণ: কোরআন ও মুহাম্মদ (সা.)-এর সত্যতা","https://www.frommuslims.com/%e0%a6%b0%e0%a6%be%e0%a6%b8%e0%a7%81%e0%a6%b2%e0%a7%87%e0%a6%b0-%e0%a6%a8%e0%a6%ac%e0%a7%81%e0%a6%af%e0%a6%bc%e0%a6%a4%e0%a7%87%e0%a6%b0-%e0%a6%b8%e0%a6%a4%e0%a7%8d%e0%a6%af%e0%a6%be%e0%a6%a4%e0%a6%be/"],
 ["বিজ্ঞান","বীর্য কি মেরুদণ্ড ও বক্ষপাঁজর থেকে বের হয়?","https://www.frommuslims.com/%e0%a6%ac%e0%a7%80%e0%a6%b0%e0%a7%8d%e0%a6%af-%e0%a6%95%e0%a6%bf-%e0%a6%ae%e0%a7%87%e0%a6%b0%e0%a7%81%e0%a6%a6%e0%a6%a3%e0%a7%8d%e0%a6%a1-%e0%a6%93-%e0%a6%ac%e0%a6%95%e0%a7%8d%e0%a6%b7%e0%a6%aa/"],
 ["বিজ্ঞান","উটের মূত্র নিয়ে করা সমস্ত অভিযোগের পোস্টমর্টেম","https://www.frommuslims.com/%e0%a6%89%e0%a6%9f%e0%a7%87%e0%a6%b0-%e0%a6%ae%e0%a7%82%e0%a6%a4%e0%a7%8d%e0%a6%b0%e0%a6%95%e0%a7%87-%e0%a6%95%e0%a7%87%e0%a6%a8%e0%a7%8d%e0%a6%a6%e0%a7%8d%e0%a6%b0-%e0%a6%95%e0%a6%b0%e0%a7%87/"],
@@ -286,10 +311,7 @@ const QS=[
 ["কুরআন","উসমান (রা.)-এর সংকলিত কুরআনের কপিতে কি লিপিকারদের ভুল ছিল?","উসমান(রা.)-সংকলিত-কুরআনের-কপিতে-আসলেই-কি-লিপিকারদের-ভুল-(Scribal-Errors)-বা-ব্যাকরণগত-ভুল-ছিলো--/299"],
 ["নবুয়ত","রাসূল (ﷺ) কি সাওদা (রা.)-কে বৃদ্ধ হওয়ার কারণে তালাক দিয়েছিলেন?","https://www.frommuslims.com/%e0%a6%b0%e0%a6%be%e0%a6%b8%e0%a7%82%e0%a6%b2-%ef%b7%ba-%e0%a6%95%e0%a6%bf-%e0%a6%b8%e0%a6%be%e0%a6%93%e0%a6%a6%e0%a6%be-%e0%a6%b0%e0%a6%be-%e0%a6%95%e0%a7%87/"],
 ["কুরআন","কুরআনের অনুরূপ কুরআন বা সূরা তৈরি করা কি সম্ভব? (প্রশ্নোত্তর)","https://www.frommuslims.com/qna/%e0%a6%95%e0%a7%81%e0%a6%b0%e0%a6%86%e0%a6%a8%e0%a7%87%e0%a6%b0-%e0%a6%85%e0%a6%a8%e0%a7%81%e0%a6%b0%e0%a7%82%e0%a6%aa-%e0%a6%95%e0%a7%81%e0%a6%b0%e0%a6%86%e0%a6%a8-%e0%a6%ac%e0%a6%be-%e0%a6%b8/"],
-["বিবিধ","ফ্রম মুসলিমস্-এ আপনার প্রশ্ন জমা দিন ও উত্তর দেখুন (Q&A পাতা)","https://www.frommuslims.com/%e0%a6%aa%e0%a7%8d%e0%a6%b0%e0%a6%b6%e0%a7%8d%e0%a6%a8%e0%a7%8b%e0%a6%a4%e0%a7%8d%e0%a6%a4%e0%a6%b0-qa/"],
 ["নাস্তিক্যবাদ","একজন ডিইস্টকে কীভাবে ইসলামের সত্যতা বোঝানো যায়? (প্রশ্নোত্তর)","https://www.insightzonebd.com/question/173"],
-["নাস্তিক্যবাদ","নাস্তিক ও সেকুলাররা ইসলামের প্রতি এত আক্রমণাত্মক কেন? (প্রশ্নোত্তর)","https://www.insightzonebd.com/question/154"],
-["নাস্তিক্যবাদ","ধর্মের সত্যতা যাচাইয়ের নিরপেক্ষ মানদণ্ড কী? (প্রশ্নোত্তর)","https://www.insightzonebd.com/question/142"],
 ["বিশ্বাস","অমুসলিম পরিবারে জন্ম নেওয়া মানুষের জাহান্নামের বিধান কি অমানবিক? (প্রশ্নোত্তর)","https://www.insightzonebd.com/question/156"],
 ["বিশ্বাস","যাদের কাছে ইসলামের দাওয়াত পৌঁছায়নি, তাদের বিচার কীভাবে হবে? (প্রশ্নোত্তর)","https://www.insightzonebd.com/question/148"],
 ["বিশ্বাস","মেরাজের রাতের ঘটনা ও বারযাখের জীবন কীভাবে বুঝব? (প্রশ্নোত্তর)","https://www.insightzonebd.com/question/147"],
@@ -330,7 +352,6 @@ const QS=[
 ["বিবিধ","রোম সম্রাটের সামনে ইমাম বাকিল্লানীর (রহ.) অসাধারণ বুদ্ধিমত্তা","https://www.frommuslims.com/%e0%a6%b0%e0%a7%8b%e0%a6%ae-%e0%a6%b8%e0%a6%ae%e0%a7%8d%e0%a6%b0%e0%a6%be%e0%a6%9f%e0%a7%87%e0%a6%b0-%e0%a6%b8%e0%a6%be%e0%a6%ae%e0%a6%a8%e0%a7%87-%e0%a6%87%e0%a6%ae%e0%a6%be%e0%a6%ae-%e0%a6%ac/"],
 ["হাদিস","কিছু হাদিস নিয়ে প্রশ্ন (প্রশ্নোত্তর)","https://www.frommuslims.com/qna/%e0%a6%95%e0%a6%bf%e0%a6%9b%e0%a7%81-%e0%a6%b9%e0%a6%be%e0%a6%a6%e0%a6%bf%e0%a6%b8-%e0%a6%a8%e0%a6%bf%e0%a6%af%e0%a6%bc%e0%a7%87-%e0%a6%aa%e0%a7%8d%e0%a6%b0%e0%a6%b6%e0%a7%8d%e0%a6%a8/"],
 ["নবুয়ত","রাসূল ﷺ আলীকে (রাঃ) দ্বিতীয় বিয়ের অনুমতি দেন নি কেন?","https://www.frommuslims.com/%e0%a6%b0%e0%a6%be%e0%a6%b8%e0%a7%82%e0%a6%b2-%ef%b7%ba-%e0%a6%86%e0%a6%b2%e0%a7%80%e0%a6%95%e0%a7%87-%e0%a6%b0%e0%a6%be%e0%a6%83-%e0%a6%a6%e0%a7%8d%e0%a6%ac%e0%a6%bf%e0%a6%a4%e0%a7%80%e0%a6%af/"],
-["নারী","আফগানিস্তানে নারীর অধিকার আর ইসলামে নারীর অধিকার কি এক? (প্রশ্নোত্তর)","https://www.insightzonebd.com/question/133"],
 ["বিবিধ","হায়েনা, পঙ্গপাল, বেজি খাওয়া জায়েজ কি? (প্রশ্নোত্তর)","https://www.insightzonebd.com/question/171"],
 ["নবুয়ত","নবী (ﷺ) কেন জুওয়াইরিয়াহ (রা.)-কে বিয়ে করেছিলেন? (প্রশ্নোত্তর)","https://www.insightzonebd.com/question/158"],
 ["বিশ্বাস","মুসলিমরা তওবা করলে কি সব অপরাধই ক্ষমা হয়ে যায়?","https://www.insightzonebd.com/মুসলিমরা-তওবা-করলে-কি-সব-অপরাধই-ক্ষমা-হয়ে-যায়"],
@@ -745,13 +766,13 @@ const FT=[
 /* পূর্ণ সূচির chunk ফাইল — শুধু সংশ্লিষ্ট পেজে, প্রয়োজন হলে লোড হয় */
 const QUESTION_PARTS=[
  {category:"Response to Anti-Islam",src:"questions-catalog-part-00.js",count:327},
- {category:"From Muslims · প্রশ্নোত্তর",src:"questions-catalog-part-01.js",count:234},
- {category:"From Muslims · প্রবন্ধ",src:"questions-catalog-part-02.js",count:358}
+ {category:"From Muslims · প্রশ্নোত্তর",src:"questions-catalog-part-01.js",count:227},
+ {category:"From Muslims · প্রবন্ধ",src:"questions-catalog-part-02.js",count:357}
 ];
 const FATWA_PARTS=[
- {category:"আত-তাহরীক",src:"fatwa-catalog-part-00.js",count:8012},
+ {category:"আত-তাহরীক",src:"fatwa-catalog-part-00.js",count:7996},
  {category:"আল-ইতিছাম",src:"fatwa-catalog-part-01.js",count:4641},
- {category:"আত-তাহরীক · প্রবন্ধ",src:"fatwa-catalog-part-02.js",count:3604},
+ {category:"আত-তাহরীক · প্রবন্ধ",src:"fatwa-catalog-part-02.js",count:3600},
  {category:"আল-ইতিছাম · প্রবন্ধ",src:"fatwa-catalog-part-03.js",count:2253},
  {category:"আল-ইতিছাম · অতিরিক্ত প্রশ্নোত্তর",src:"fatwa-catalog-part-04.js",count:143}
 ];

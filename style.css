@@ -590,12 +590,15 @@ a,button,input,select,textarea,.chip,.qcard{touch-action:manipulation;-webkit-ta
 .article-body h3,.article-body h4{margin:26px 0 8px;color:#fff;font-size:clamp(18px,2.4vw,21px);line-height:1.5}
 .article-body blockquote{margin:18px 0;padding:14px 18px;border-left:3px solid var(--gold);border-radius:0 12px 12px 0;background:rgba(255,255,255,.04)}
 .article-body blockquote p:last-child{margin-bottom:0}
+.article-video{margin:4px 0 14px;border-radius:14px;border:1px solid var(--line);box-shadow:0 10px 36px rgba(0,0,0,.35)}
+.article-video-tip{margin:0;color:var(--muted,#9fb0c3);font-size:14.5px}
 .article-body img{display:block;max-width:100%;height:auto;margin:18px auto;border-radius:10px}
 .article-body .imgmiss{display:block;margin:14px 0;color:var(--muted);font-size:14px}
 .article-body table{display:block;max-width:100%;overflow-x:auto;margin:18px 0;border-collapse:collapse;font-size:15px}
 .article-body td,.article-body th{padding:8px 10px;border:1px solid var(--line);vertical-align:top}
 .article-body sup{font-size:.72em;line-height:0}
 .article-body .ar{font-size:1.22em;line-height:2.2;text-align:right;color:#fff}
+.article-body li.ar{list-style-position:inside}
 .article-body [id]{scroll-margin-top:110px}
 .article-source{margin:30px 0 0;padding:18px 20px;border:1px solid rgba(246,196,83,.32);border-radius:14px;background:linear-gradient(145deg,rgba(246,196,83,.08),rgba(255,255,255,.02))}
 .article-source>b{display:block;margin-bottom:4px;color:var(--gold2);font-size:13px;letter-spacing:.4px}
