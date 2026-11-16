@@ -596,6 +596,7 @@ a,button,input,select,textarea,.chip,.qcard{touch-action:manipulation;-webkit-ta
 .article-body td,.article-body th{padding:8px 10px;border:1px solid var(--line);vertical-align:top}
 .article-body sup{font-size:.72em;line-height:0}
 .article-body .ar{font-size:1.22em;line-height:2.2;text-align:right;color:#fff}
+.article-body li.ar{list-style-position:inside}
 .article-body [id]{scroll-margin-top:110px}
 .article-source{margin:30px 0 0;padding:18px 20px;border:1px solid rgba(246,196,83,.32);border-radius:14px;background:linear-gradient(145deg,rgba(246,196,83,.08),rgba(255,255,255,.02))}
 .article-source>b{display:block;margin-bottom:4px;color:var(--gold2);font-size:13px;letter-spacing:.4px}
