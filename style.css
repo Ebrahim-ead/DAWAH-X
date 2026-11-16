@@ -455,14 +455,6 @@ body.video-modal-open{overflow:hidden}
 .qmore:hover .qmore-count{background:rgba(8,18,25,.16);border-color:rgba(26,19,0,.28);color:#1a1300}
 .qmore:disabled{opacity:.64;cursor:wait;transform:none;box-shadow:none}
 @media(max-width:560px){.qmore{min-height:42px;min-width:158px;padding:7px 16px;font-size:14px}}
-/* Standalone live Dhaka clock, fully static. */
-.dhaka-clock-band{position:relative;z-index:2;padding:24px 0 34px;background:linear-gradient(180deg,rgba(246,196,83,.045),transparent 80%)}
-.dhaka-clock-card{position:relative;overflow:hidden;padding:clamp(20px,3.5vw,34px);border:1px solid rgba(246,196,83,.24);border-radius:24px;background:radial-gradient(ellipse at 100% 0,rgba(246,196,83,.11),transparent 42%),linear-gradient(145deg,rgba(15,30,37,.96),rgba(5,13,18,.96));box-shadow:0 24px 60px rgba(0,0,0,.26),inset 0 1px rgba(255,255,255,.045)}
-.dhaka-clock-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}.dhaka-clock-eyebrow{color:var(--gold2);font-size:11px;font-weight:700;letter-spacing:1.65px}.dhaka-clock-head h2{margin:5px 0 2px;color:#fff;font-size:clamp(22px,3.5vw,30px);line-height:1.3}.dhaka-clock-date{margin:0;color:var(--muted);font-size:13px}.dhaka-clock-date span{color:var(--gold)}
-.dhaka-clock-live{display:inline-flex;align-items:center;gap:7px;padding:5px 10px;border:1px solid rgba(96,224,163,.23);border-radius:999px;background:rgba(96,224,163,.07);color:#a6f2c6;font:700 10px/1.2 system-ui,sans-serif;letter-spacing:.8px;white-space:nowrap}.dhaka-clock-live i{width:7px;height:7px;border-radius:50%;background:#68e69c;box-shadow:0 0 10px rgba(104,230,156,.72);animation:clockPulse 1.6s ease-in-out infinite alternate}@keyframes clockPulse{to{opacity:.45;transform:scale(.78)}}
-.dhaka-clock-panel{display:flex;align-items:center;justify-content:center;margin:20px 0 0;padding:clamp(20px,3vw,30px) 16px;border:1px solid rgba(246,196,83,.28);border-radius:17px;background:linear-gradient(105deg,rgba(246,196,83,.12),rgba(246,196,83,.035) 55%,rgba(255,255,255,.02))}.dhaka-clock-face{display:grid;justify-items:center;gap:5px}.dhaka-clock-face span{color:var(--muted);font-size:12px;letter-spacing:.08em}.dhaka-clock-face time{color:var(--gold2);font:700 clamp(27px,5vw,42px)/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;font-variant-numeric:tabular-nums;white-space:nowrap}
-@media(max-width:760px){.dhaka-clock-band{padding:18px 0 28px}}
-@media(max-width:420px){.dhaka-clock-card{padding:17px 14px;border-radius:19px}.dhaka-clock-panel{padding:22px 12px}.dhaka-clock-face time{font-size:26px}}
 /* Quran and Hadith highlights for the homepage. */
 .daily-guidance{position:relative;z-index:2;padding:14px 0 40px}.guidance-heading{text-align:center;margin:5px 0 20px}.guidance-heading>span{color:var(--gold2);font:700 10px/1.4 system-ui,sans-serif;letter-spacing:1.8px}.guidance-heading h2{margin:6px 0 3px;color:#fff;font-size:clamp(22px,3vw,30px)}.guidance-heading p{margin:0;color:var(--muted);font-size:13px}.guidance-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.guidance-card{position:relative;overflow:hidden;padding:clamp(18px,2.5vw,27px);border:1px solid rgba(246,196,83,.2);border-radius:20px;background:radial-gradient(ellipse at 100% 0,rgba(246,196,83,.09),transparent 47%),linear-gradient(145deg,rgba(15,30,37,.94),rgba(5,13,18,.96));box-shadow:0 18px 42px rgba(0,0,0,.2),inset 0 1px rgba(255,255,255,.035);transition:transform .25s ease,border-color .25s ease,box-shadow .25s ease}.guidance-card:hover{transform:translateY(-4px);border-color:rgba(246,196,83,.48);box-shadow:0 22px 50px rgba(0,0,0,.28),0 0 25px rgba(246,196,83,.06)}.guidance-topline{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.guidance-mark{display:inline-flex;align-items:center;padding:4px 10px;border:1px solid rgba(246,196,83,.35);border-radius:999px;background:rgba(246,196,83,.09);color:var(--gold2);font-size:11px;font-weight:700}.hadith-mark{border-color:rgba(115,223,196,.35);background:rgba(115,223,196,.08);color:#9af0d5}.guidance-reference{color:var(--muted);font-size:11px}.guidance-card h3{margin:13px 0 8px;color:#fff;font-size:18px;line-height:1.4}.guidance-arabic{margin:10px 0 12px;color:#ffe4a7;font-family:'Noto Naskh Arabic','Amiri','Traditional Arabic',serif;font-size:clamp(21px,2.7vw,29px);line-height:2.05;text-align:right}.guidance-translation{margin:0;color:rgba(238,242,248,.92);font-size:14px;line-height:1.9}.guidance-source{display:inline-flex;margin-top:13px;color:var(--gold2);font-size:11px;font-weight:600;text-decoration:underline;text-underline-offset:3px}.guidance-source:hover{color:#fff}
 @media(max-width:740px){.guidance-grid{grid-template-columns:1fr}.daily-guidance{padding-top:10px}}
@@ -647,3 +639,20 @@ a,button,input,select,textarea,.chip,.qcard{touch-action:manipulation;-webkit-ta
 .follow-btn{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:8px 14px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.04);color:var(--text);font-size:14px;font-weight:600;text-decoration:none;transition:border-color .2s,background .2s}
 .follow-btn:hover,.follow-btn:focus-visible{border-color:var(--gold);background:rgba(246,196,83,.08)}
 .follow-btn .ic{width:20px;height:20px;flex:none}
+
+/* তালিকার পৃষ্ঠা বদলের বার (প্রশ্নোত্তর ও ফতোয়া): ← আগের · পৃষ্ঠা ক / খ · নম্বর · যান · পরের → */
+.pager{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px 12px;margin-top:24px}
+.pager[hidden]{display:none}
+.pg-btn,.pg-input{min-height:46px;border:1px solid rgba(255,255,255,.11);border-radius:13px;background:rgba(255,255,255,.04);color:var(--text);font:inherit;font-size:16px;font-weight:700;line-height:1.2}
+.pg-btn{cursor:pointer;padding:8px 18px;white-space:nowrap;transition:border-color .2s,background .2s,color .2s}
+.pg-btn:hover:not(:disabled){border-color:var(--gold);background:rgba(246,196,83,.08);color:var(--gold2)}
+.pg-btn:disabled,.pg-input:disabled{opacity:.45;cursor:default}
+.pg-input{width:92px;padding:8px 10px;text-align:center;font-variant-numeric:tabular-nums}
+.pg-btn:focus-visible,.pg-input:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.pg-info{color:var(--muted);font-size:14px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.pg-info b{color:var(--text)}
+.pg-total{flex-basis:100%;margin:0;text-align:center;color:var(--muted);font-size:13px}
+.pager>.qmore{display:none}
+@media(max-width:520px){.pager{gap:9px 8px}.pg-btn{min-height:44px;padding:8px 13px;font-size:15px}.pg-input{width:66px;min-height:44px}.pg-info{font-size:13px}
+ /* সরু পর্দায় দুই সারি: উপরে আগের · পৃষ্ঠা · পরের, নিচে নম্বরের ঘর · যান */
+ .pg-prev{order:1}.pg-info{order:2}.pg-next{order:3}.pager::after{content:"";order:4;flex-basis:100%;height:0}.pg-input{order:5}.pg-go{order:6}.pg-total{order:7}}

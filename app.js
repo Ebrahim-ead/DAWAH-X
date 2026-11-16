@@ -62,7 +62,9 @@ if(readTitle){
  const P=new URLSearchParams(location.search),key=(P.get("k")||"").toLowerCase(),vid=P.get("v")||"",from=P.get("from")==="f"?"f":"q";
  const back=$("read-back"),body=$("read-body"),nav=document.querySelector("[data-read-nav]");
  const backHref=from==="f"?"fatwa.html":"questions.html",backLabel=from==="f"?"ফতোয়া":"প্রশ্নোত্তর";
- if(back){back.href=backHref;back.textContent=backLabel}
+ /* তালিকায় পাঠক যে বিভাগ / খোঁজ / পৃষ্ঠায় ছিলেন, "ফিরে যান" লিংক সেখানেই ফেরায় */
+ let backTo=backHref;try{const s=sessionStorage.getItem("dawahx-list-"+from);if(s)backTo+="?"+s}catch(e){}
+ if(back){back.href=backTo;back.textContent=backLabel}
  if(nav&&from==="f"){nav.classList.remove("on");const f=document.querySelector('#menu a[href="fatwa.html"]');if(f)f.classList.add("on")}
  const fail=msg=>{readTitle.textContent="লেখাটি পাওয়া যায়নি";body.innerHTML=`<p>${msg}</p><p><a class="askbtn" href="${backHref}">${backLabel} তালিকায় ফিরে যান</a></p>`};
  /* লেখার শেয়ার-লিংক s/<চাবি>.html — সেখানে লেখার নিজের শিরোনাম থাকে (Facebook/WhatsApp-এর প্রিভিউয়ের জন্য), খুললে এই পাতাতেই আসে */
@@ -178,8 +180,16 @@ const videoIdOf=u=>{const m=/^https?:\/\/(?:www\.|m\.)?(?:youtube\.com\/watch\?(
 
 /* cfg: {id:"q"|"f", rows:[[বিভাগ,শিরোনাম,লিংক]], manifest:[{category,src,count}], partsKey, label, hint, loadingText} */
 function setupLibrary(cfg){
- const search=$(cfg.id+"search"),chips=$(cfg.id+"chips"),grid=$(cfg.id+"grid"),more=$(cfg.id+"more"),stat=$(cfg.id+"stat");
- if(!search||!chips||!grid||!more)return null;
+ const search=$(cfg.id+"search"),chips=$(cfg.id+"chips"),grid=$(cfg.id+"grid"),stat=$(cfg.id+"stat");
+ /* পৃষ্ঠা বদলের বার (#qpager / #fpager)। পুরনো HTML-এ শুধু "আরও দেখুন" বোতাম থাকলে তার জায়গায় বারটি বসে */
+ let pager=$(cfg.id+"pager");
+ if(!pager){const old=$(cfg.id+"more");if(old){pager=document.createElement("nav");pager.className="pager";pager.id=cfg.id+"pager";(old.parentElement&&old.parentElement.classList.contains("qmorewrap")?old.parentElement:old).replaceWith(pager)}}
+ if(!search||!chips||!grid||!pager)return null;
+ pager.setAttribute("aria-label","পৃষ্ঠা বদল");
+ pager.innerHTML='<button type="button" class="pg-btn pg-prev" data-pg="prev">← আগের</button><span class="pg-info"></span><input class="pg-input" type="text" inputmode="numeric" autocomplete="off" maxlength="6" aria-label="পৃষ্ঠা নম্বর লিখুন"><button type="button" class="pg-btn pg-go" data-pg="go">যান</button><button type="button" class="pg-btn pg-next" data-pg="next">পরের →</button><p class="pg-total"></p>';
+ const pgPrev=pager.querySelector(".pg-prev"),pgNext=pager.querySelector(".pg-next"),pgGo=pager.querySelector(".pg-go"),pgInput=pager.querySelector(".pg-input"),pgInfo=pager.querySelector(".pg-info"),pgTotal=pager.querySelector(".pg-total");
+ /* own = এটি এই তালিকার নিজের পাতা (questions.html / fatwa.html): তখন বিভাগ, খোঁজ ও পৃষ্ঠা ঠিকানায় (?c= &s= &p=) রাখা হয় */
+ const own=Boolean(cfg.deep),PER=LIBRARY_PAGE_SIZE;
  const manifest=cfg.manifest||[];
  const total=manifest.reduce((n,x)=>n+x.count,0);
  const loaded=new Set(),pending=new Map(),textCache=new WeakMap(),keyCache=new WeakMap();
@@ -188,8 +198,11 @@ function setupLibrary(cfg){
  const rowKey=row=>{let k=keyCache.get(row);if(k===undefined){k=localKeyOf(row[2]);if(LOCAL_TEXTS)keyCache.set(row,k)}return k};
  /* একই লিংক দুবার দেখানো হয় না: বাছাইকৃত সারি আগে থাকে, পূর্ণ সূচির একই লিংক সেটির বাড়তি বিভাগ (x[3]) হিসেবে যুক্ত হয় */
  const keyOf=u=>{try{return decodeURI(u)}catch(e){return u}};
- const rows=cfg.rows.slice(),index=new Map(rows.map(x=>[keyOf(x[2]),x]));
- let cur=ALL,show=LIBRARY_PAGE_SIZE,failed=false,remaining=0;
+ /* সারির ক্রম সবসময় একই থাকে: আগে বাছাইকৃত সারি, তারপর manifest-এর ক্রমে প্রতিটি অংশ — কোন অংশ আগে লোড হলো তার উপর নির্ভর করে না (নইলে একই পৃষ্ঠা নম্বরে ভিন্ন লেখা আসত) */
+ const base=cfg.rows.slice(),added=new Map();
+ let rows=base.slice();const index=new Map(rows.map(x=>[keyOf(x[2]),x]));
+ /* page = চাওয়া পৃষ্ঠা, pages = মোট পৃষ্ঠা, have = এ পর্যন্ত লোড হওয়া সারিতে যত পৃষ্ঠা হয়; hold = ঠিকানা থেকে ফেরানো পৃষ্ঠা প্রথম লোড শেষ না হওয়া পর্যন্ত ছাঁটা হয় না */
+ let cur=ALL,page=1,pages=1,have=1,failed=false,hold=false,restored=false;
  const inCategory=(x,c)=>c===ALL||x[0]===c||Boolean(x[3]&&x[3].includes(c));
  const cats=[...new Set([ALL,...rows.map(x=>x[0]),...manifest.map(x=>x.category)])];
  const partsFor=c=>c===ALL?manifest:manifest.filter(x=>x.category===c);
@@ -208,22 +221,29 @@ function setupLibrary(cfg){
   if(useDeep){const a=[],b=[];for(const x of rows){if(!inCategory(x,cur))continue;if(inTitle(x))a.push(x);else if(deep.has(rowKey(x)))b.push(x)}list=a.concat(b);titleHits=a.length}
   else{list=rows.filter(x=>inCategory(x,cur)&&inTitle(x));titleHits=list.length}
   const ready=isReady(cur),loading=isLoading(cur),qs=q.length>=2?"&q="+encodeURIComponent(search.value.trim().slice(0,80)):"";
+  /* মোট পৃষ্ঠা: পূর্ণ সূচি লোড না হয়ে থাকলে (এবং খোঁজ না চললে) manifest-এর সংখ্যা ধরে আনুমানিক; লোড হলে সঠিক সংখ্যা বসে */
+  have=Math.max(1,Math.ceil(list.length/PER));
+  const waiting=!ready&&!q?partsFor(cur).filter(x=>!loaded.has(x.category)).reduce((n,x)=>n+x.count,0):0;
+  pages=Math.max(have,Math.ceil((list.length+waiting)/PER));
+  if(!(page>=1))page=1;
+  if(ready||(!loading&&!hold))page=Math.min(page,pages);
+  if(failed&&!loading&&!hold)page=Math.min(page,have);
+  /* busy = চাওয়া পৃষ্ঠার সারি এখনো আসেনি (সূচি লোড হচ্ছে) */
+  const busy=page>have&&!ready,at=Math.min(page,have),first=(at-1)*PER;
   if(list.length){
-   grid.innerHTML=list.slice(0,show).map((x,i)=>{const k=localKeyOf(x[2]),v=k?"":videoIdOf(x[2]);return k
+   grid.innerHTML=busy?`<p class="qnote">পৃষ্ঠা ${formatCount(page)} লোড হচ্ছে…</p>`:list.slice(first,first+PER).map((x,j)=>{const i=first+j,k=localKeyOf(x[2]),v=k?"":videoIdOf(x[2]);return k
     ?`<a class="qcard qcard-own${i>=titleHits?" qcard-deep":""}" href="read.html?k=${k}&from=${cfg.id}${qs}"><small>${escHTML(x[0])}</small><b>${escHTML(x[1])}</b><span>${i>=titleHits?"লেখার ভেতরে পাওয়া গেছে ›":"এখানেই পড়ুন ›"}</span></a>`
     :v?`<a class="qcard qcard-own" href="read.html?v=${encodeURIComponent(v)}&from=${cfg.id}"><small>${escHTML(x[0])}</small><b>${escHTML(x[1])}</b><span>এখানেই দেখুন ›</span></a>`
     :`<a class="qcard" href="${escAttr(x[2])}" target="_blank" rel="noopener"><small>${escHTML(x[0])}</small><b>${escHTML(x[1])}</b><span>${escHTML(hostOf(x[2]))} ↗</span></a>`}).join("");
   }else{
    grid.innerHTML=`<p class="qnote">${loading||(deepBusy&&q)?"খোঁজা হচ্ছে…":failed&&!ready?"সূচি লোড হয়নি। ইন্টারনেট সংযোগ দেখে আবার চেষ্টা করুন।":"কিছু পাওয়া যায়নি।"}</p>`;
   }
-  /* "আরও দেখুন": আরও ফলাফল থাকলে সেগুলো দেখায়; ফুরিয়ে গেলে এবং পূর্ণ সূচি লোড না হয়ে থাকলে সেটি লোড করে */
-  remaining=Math.max(0,list.length-show);
-  const canMore=remaining>0||!ready;
-  more.hidden=!canMore;more.style.display=canMore?"":"none";
-  more.disabled=loading;
-  if(loading)more.textContent="লোড হচ্ছে…";
-  else if(remaining>0&&ready)more.innerHTML=`আরও দেখুন <span class="qmore-count">${formatCount(remaining)}</span>`;
-  else more.textContent=remaining>0?"আরও দেখুন":"পূর্ণ সূচি লোড করুন";
+  /* পৃষ্ঠা বদলের বার: ← আগের · পৃষ্ঠা ক / খ · নম্বর লেখার ঘর · যান · পরের → (এক পৃষ্ঠায় সব ধরে গেলে বারটি লুকানো থাকে) */
+  pager.hidden=pages<=1&&!busy;
+  pgInfo.innerHTML=`পৃষ্ঠা <b>${formatCount(page)}</b> / ${busy&&page>pages?"…":formatCount(pages)}`;
+  if(document.activeElement!==pgInput)pgInput.value=String(page);
+  pgPrev.disabled=busy||page<=1;pgNext.disabled=busy||page>=pages;pgGo.disabled=busy;pgInput.disabled=busy;
+  pgTotal.textContent=busy?"সূচি লোড হচ্ছে…":!list.length?"":ready?`মোট ${formatCount(list.length)}টির মধ্যে ${formatCount(first+1)}–${formatCount(Math.min(first+PER,list.length))} দেখানো হচ্ছে`:`${formatCount(first+1)}–${formatCount(Math.min(first+PER,list.length))} দেখানো হচ্ছে`;
   if(q&&ready&&!loading&&!failed)setStatus(useDeep?`“${search.value.trim()}” — শিরোনামে ${formatCount(titleHits)}টি${list.length>titleHits?`, লেখার ভেতরে আরও ${formatCount(list.length-titleHits)}টি`:""} পাওয়া গেছে`:deepBusy?"লেখার ভেতরেও খোঁজা হচ্ছে…":`“${search.value.trim()}” — শিরোনামে ${formatCount(titleHits)}টি পাওয়া গেছে`);
  }
  /* লেখার ভেতরে খোঁজা (৩ বা তার বেশি অক্ষর); ফল এলে তালিকা আবার আঁকা হয় */
@@ -239,9 +259,11 @@ function setupLibrary(cfg){
    const script=document.createElement("script");script.src=entry.src;script.async=true;
    script.onload=()=>{const parts=window[cfg.partsKey]||{},part=parts[entry.category];
     if(!Array.isArray(part)){reject(new Error("catalog chunk missing"));return}
+    const fresh=[];
     for(const row of part){const key=keyOf(row[2]),known=index.get(key);
-     if(!known){index.set(key,row);rows.push(row)}
+     if(!known){index.set(key,row);fresh.push(row)}
      else if(known[0]!==row[0]&&!(known[3]&&known[3].includes(row[0]))){(known[3]||(known[3]=[])).push(row[0]);textCache.delete(known)}}
+    added.set(entry.category,fresh);rows=base.concat(...manifest.map(m=>added.get(m.category)||[]));
     delete parts[entry.category];loaded.add(entry.category);resolve()};
    script.onerror=()=>{script.remove();reject(new Error("catalog chunk failed"))};
    document.head.appendChild(script)});
@@ -262,21 +284,50 @@ function setupLibrary(cfg){
    await Promise.allSettled(jobs);failed=true;
    setStatus("সূচি লোড হয়নি — ইন্টারনেট সংযোগ দেখে আবার সার্চ/বিভাগ নির্বাচন করুন।");
   }
-  draw();
+  hold=false;draw();sync();
+  if(restored){restored=false;toTop(true)}
  }
 
- chips.addEventListener("click",e=>{const b=e.target.closest("[data-c]");if(!b)return;cur=b.dataset.c;show=LIBRARY_PAGE_SIZE;draw();load(cur);chips.querySelector(".chip.on")?.focus({preventScroll:true})});
+ /* তালিকার শুরুতে ফেরা (পৃষ্ঠা বদলের বার তালিকার নিচে থাকে) */
+ function toTop(instant){const t=stat||chips,r=t.getBoundingClientRect();if(instant&&r.top>=0&&r.top<innerHeight*.6)return;t.scrollIntoView({block:"start",behavior:instant?"auto":"smooth"})}
+ /* বিভাগ, খোঁজ ও পৃষ্ঠা ঠিকানায় রাখা হয়: লেখা পড়ে ফিরে এলে বা লিংক পাঠালে একই জায়গা খোলে; পাঠ-পাতার "ফিরে যান" লিংকও এটি ব্যবহার করে */
+ function sync(){if(!own)return;const p=new URLSearchParams(),s=search.value.trim().slice(0,80);
+  if(cur!==ALL)p.set("c",cur);if(s)p.set("s",s);if(page>1)p.set("p",String(page));const v=p.toString();
+  try{history.replaceState(history.state,"",location.pathname+(v?"?"+v:"")+location.hash)}catch(e){}
+  try{sessionStorage.setItem("dawahx-list-"+cfg.id,v)}catch(e){}}
+ /* পৃষ্ঠা বদল: দরকারি সারি এখনো লোড না হয়ে থাকলে আগে পূর্ণ সূচি আনা হয় */
+ function go(n){n=Math.min(Math.max(1,Math.floor(n)||1),pages);pgInput.value=String(n);if(n===page)return;
+  page=n;if(n>have&&!isReady(cur))load(cur);else draw();
+  pgInput.value=String(page);sync();toTop(false)}
+ const typedPage=()=>{const n=parseInt(String(pgInput.value).replace(/[০-৯]/g,d=>"০১২৩৪৫৬৭৮৯".indexOf(d)).replace(/[^0-9]/g,""),10);return n>=1?n:page};
+ pager.addEventListener("click",e=>{const b=e.target.closest("[data-pg]");if(!b||b.disabled)return;const k=b.dataset.pg;go(k==="prev"?page-1:k==="next"?page+1:typedPage())});
+ pgInput.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();go(typedPage());pgInput.blur()}});
+ pgInput.addEventListener("focus",()=>pgInput.select());
+ /* ঘর ছাড়লে লেখা নম্বরটি মুছে ফেলা হয় না: "যান" চাপলে আগে ঘরটি ফোকাস হারায়, তারপর ক্লিক আসে */
+
+ chips.addEventListener("click",e=>{const b=e.target.closest("[data-c]");if(!b)return;cur=b.dataset.c;page=1;draw();load(cur);sync();chips.querySelector(".chip.on")?.focus({preventScroll:true})});
  /* উৎসের বড় কার্ড (data-cat): মূল সাইটে না নিয়ে নিচের তালিকায় সেই বিভাগের লেখাগুলো দেখায় */
  document.querySelectorAll('a.library-link[data-cat][href="#'+cfg.id+'chips"]').forEach(a=>a.addEventListener("click",e=>{if(!cats.includes(a.dataset.cat))return;
-  e.preventDefault();search.value="";cur=a.dataset.cat;show=LIBRARY_PAGE_SIZE;draw();load(cur);(stat||chips).scrollIntoView({block:"start"});chips.querySelector(".chip.on")?.focus({preventScroll:true})}));
+  e.preventDefault();search.value="";cur=a.dataset.cat;page=1;draw();load(cur);sync();(stat||chips).scrollIntoView({block:"start"});chips.querySelector(".chip.on")?.focus({preventScroll:true})}));
  let drawTimer;
- const onSearch=now=>{clearTimeout(drawTimer);drawTimer=setTimeout(()=>{show=LIBRARY_PAGE_SIZE;runDeep();draw();if(query().length>=2)load(cur)},now?0:220)};
+ const onSearch=now=>{clearTimeout(drawTimer);drawTimer=setTimeout(()=>{page=1;runDeep();draw();if(query().length>=2)load(cur);sync()},now?0:220)};
  search.addEventListener("input",()=>onSearch(false));
  search.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();onSearch(true)}});
- more.addEventListener("click",()=>{if(more.disabled)return;if(remaining>0){show+=LIBRARY_PAGE_SIZE;draw()}else load(cur)});
 
- if(manifest.length)setStatus(`${cfg.label} (${formatCount(total)}টি) — ২ বা তার বেশি অক্ষর লিখে সার্চ বা বিভাগ বাছাই করলে লোড হবে।`);
+ if(manifest.length)setStatus(`${cfg.label} (${formatCount(total)}টি) — সার্চ করলে, বিভাগ বাছলে বা পরের পৃষ্ঠাগুলোতে গেলে লোড হবে।`);
+ /* ঠিকানায় রাখা অবস্থা ফেরানো (?c=বিভাগ &s=খোঁজ &p=পৃষ্ঠা) */
+ if(own){const P=new URLSearchParams(location.search),c=P.get("c"),s=(P.get("s")||"").trim().slice(0,80),p=parseInt(P.get("p"),10);
+  if(c&&cats.includes(c)){cur=c;restored=true}
+  if(s){search.value=s;restored=true}
+  if(p>1){page=p;restored=true}
+  hold=restored}
  draw();
+ if(own){
+  if(query().length>=3)runDeep();
+  /* ছোট সূচি (cfg.eager) পাতা খুলতেই পুরোটা আনা হয়; বড় সূচি শুধু দরকার হলে */
+  const need=cfg.eager?ALL:(cur!==ALL||query().length>=2||page>have)?cur:null;
+  if(need!==null&&!isReady(need))load(need);else if(restored){hold=false;draw();sync();restored=false;toTop(true)}
+ }
  localTextsReady.then(x=>{if(x)draw()});
  return {draw,load};
 }
@@ -827,7 +878,7 @@ const FATWA_PARTS=[
  {category:"আল-ইতিছাম · প্রবন্ধ",src:"fatwa-catalog-part-03.js",count:2253},
  {category:"আল-ইতিছাম · অতিরিক্ত প্রশ্নোত্তর",src:"fatwa-catalog-part-04.js",count:143}
 ];
-setupLibrary({id:"q",deep:PAGE==="qa",rows:QS,manifest:PAGE==="qa"?QUESTION_PARTS:[],partsKey:"DAWAH_QUESTIONS_PARTS",label:"পূর্ণ সূচি",loadingText:"পূর্ণ প্রশ্নোত্তর সূচি লোড হচ্ছে…"});
+setupLibrary({id:"q",deep:PAGE==="qa",eager:true,rows:QS,manifest:PAGE==="qa"?QUESTION_PARTS:[],partsKey:"DAWAH_QUESTIONS_PARTS",label:"পূর্ণ সূচি",loadingText:"পূর্ণ প্রশ্নোত্তর সূচি লোড হচ্ছে…"});
 setupLibrary({id:"f",deep:PAGE==="fatwa",rows:FT,manifest:PAGE==="fatwa"?FATWA_PARTS:[],partsKey:"DAWAH_FATWAS_PARTS",label:"পূর্ণ ফতোয়া ও প্রবন্ধ সূচি",loadingText:"ফতোয়া ও প্রবন্ধ সূচি লোড হচ্ছে…"});
 
 /* ===== প্রশ্ন পাঠানো =====

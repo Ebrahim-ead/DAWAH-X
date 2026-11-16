@@ -32,7 +32,7 @@ GitHub Pages-এ “প্রশ্ন পাঠান” চাপলে প্
 A live Bangladesh date/time display is shown on every page using the `Asia/Dhaka` timezone. The date is in English and the clock uses English numerals in 12-hour format with AM/PM, updating every second.
 
 ## Dhaka clock
-The homepage shows the current Dhaka date and time in `Asia/Dhaka`, updating every second. It works entirely in the browser and does not need a server-side API.
+The large "ঢাকার বর্তমান সময়" card on the homepage was removed at the owner's request (2026-11-16). Only the small date/time line at the top of every page remains.
 
 ## GitHub Pages deployment
 Upload every file to the repository root (no sub-folders) with lowercase filenames, then enable GitHub Pages for the `main` branch and root folder. All links inside the pages are relative, so the site works from `https://<user>.github.io/DAWAH-X/` without any server-side code. See `README.md` for the upload rules.
