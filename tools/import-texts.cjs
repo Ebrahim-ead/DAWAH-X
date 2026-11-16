@@ -187,6 +187,8 @@ async function getSlow(u,ms=90000){let last;for(let a=0;a<3;a++){try{const ac=ne
    if(res.status>=500||res.status===429){last='HTTP '+res.status;const ra=parseInt(res.headers.get('retry-after')||'',10);if(a<2)await sleep(1000*Math.min(600,Math.max(ra||0,120*(a+1))));continue}
    return{status:res.status,html,final:res.url}}catch(e){last=(String(e)+' '+String(e&&e.cause||'')).slice(0,120);if(a<2)await sleep(120000*(a+1))}}
  return{status:0,html:'',err:last}}
+/* লেখকের নামের জায়গায় ই-মেইল ঠিকানা থাকলে তা দেখানো হয় না (প্রশ্নোত্তরের মতোই) */
+const noMail=a=>String(a||'').split(/\s*,\s*/).filter(n=>n&&!/\S+@\S+\.\S+|\[email/.test(n)).join(', ');
 /* এক চেষ্টা; 429/5xx/সংযোগ-ব্যর্থতা = busy (পরে আবার চেষ্টা) */
 const UA_BOT='DAWAH-X text importer (+https://github.com/Ebrahim-ead/DAWAH-X)';
 async function getOnce(u,ms=60000){try{const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),ms);
@@ -227,13 +229,14 @@ async function get(u,ms=30000){let last;for(let a=0;a<3;a++){try{const ac=new Ab
  let WBP=null;
  for(let u of REQ.probe||[]){ /* "wb:<ঠিকানা>" = Internet Archive-এর সর্বশেষ সফল কপি */
   if(u.startsWith('wb:')){const dom=new URL(u.slice(3)).host.replace(/^www\./,'');WBP=WBP||{};WBP[dom]=WBP[dom]||(await waybackMap(dom)).map;const w=WBP[dom].get(wbNorm(u.slice(3)));if(!w){report.probe.push({u,status:'not archived'});continue}u='https://web.archive.org/web/'+w.ts+'id_/'+w.orig}
-  const r=await get(u,60000);const $=cheerio.load(r.html);
+  let r={};for(let a=0;a<(REQ.probeTries||10);a++){r=await getOnce(u,120000);if(!r.busy)break;await sleep(Math.max(45000,1000*Math.min(r.ra||0,180)))}
+  r.html=r.html||'';const $=cheerio.load(r.html);
   /* ভিডিওর খোঁজ (iframe মুছে ফেলার আগে): কোন উপাদানে, কোন বৈশিষ্ট্যে ভিডিওর ঠিকানা আছে */
   const vids={ids:[...new Set(r.html.match(/(?:youtube(?:-nocookie)?\.com\/(?:embed\/|watch\?v=)|youtu\.be\/)[\w-]{6,20}/g)||[])].slice(0,8),
    at:$('iframe,[data-video],[data-video-id],[data-src*="youtu"],[data-lazy-src*="youtu"],a[href*="youtu"],meta[property^="og:video"]').toArray().slice(0,8).map(e=>e.tagName+'.'+(e.attribs.class||'')+' '+JSON.stringify(Object.fromEntries(Object.entries(e.attribs).filter(([k])=>/^(src|href|content|data-)/.test(k)).map(([k,v])=>[k,v.slice(0,100)])))+' < '+$(e).parents().toArray().slice(0,5).map(p=>p.tagName+(p.attribs.id?'#'+p.attribs.id:'')+(p.attribs.class?'.'+p.attribs.class.trim().split(/\s+/).slice(0,3).join('.'):'')).join(' < '))};
   $('script,style,noscript,svg,iframe').remove();
   const sig=e=>e.tagName+(e.attribs.id?'#'+e.attribs.id:'')+(e.attribs.class?'.'+e.attribs.class.trim().split(/\s+/).slice(0,4).join('.'):'');
-  const walk=(e,d)=>$(e).children().toArray().slice(0,REQ.probeKids||22).map(c=>{const t=$(c).text().replace(/\s+/g,' ').trim();const o={s:sig(c),n:t.length,t:t.slice(0,40)};if(d<4&&t.length>200&&$(c).children().length)o.c=walk(c,d+1);return o});
+  const walk=(e,d)=>$(e).children().toArray().slice(0,REQ.probeKids||22).map(c=>{const t=$(c).text().replace(/\s+/g,' ').trim();const o={s:sig(c),n:t.length,t:t.slice(0,40)};if(d<(REQ.probeDepth||4)&&t.length>200&&$(c).children().length)o.c=walk(c,d+1);return o});
   const o={u,status:r.status,err:r.err,final:r.final,len:r.html.length,title:$('title').text().trim().slice(0,80),h1:$('h1').toArray().slice(0,3).map(h=>({t:$(h).text().trim().slice(0,50),path:$(h).parents().toArray().slice(0,6).map(sig)}))};
   let best=null;$('h1').first().parents().each((i,p)=>{if(!best&&$(p).text().replace(/\s+/g,' ').length>800)best=p});
   if(!best)best=$('main,article,body').first().get(0);if(best){o.best=sig(best);o.tree=walk(best,0)}
@@ -241,6 +244,12 @@ async function get(u,ms=30000){let last;for(let a=0;a<3;a++){try{const ac=new Ab
   o.meta=['og:title','article:published_time','author','og:site_name'].map(n=>n+'='+($('meta[property="'+n+'"],meta[name="'+n+'"]').attr('content')||'').slice(0,50));
   o.vids=vids;
   if(REQ.sel)o.sel=REQ.sel.map(q=>[q,$(q).length,...$(q).toArray().slice(0,2).map(e=>sig(e)+' > '+$(e).children().toArray().slice(0,6).map(sig).join(' , ')+' :: '+$(e).text().replace(/\s+/g,' ').trim().slice(0,110))]);
+  /* probeHtml: সবচেয়ে উপযুক্ত অংশের (বা দেওয়া সিলেক্টরের) HTML-কাঠামো — লেখা ছেঁটে, শুধু class/id/href রেখে */
+  if(REQ.probeHtml){const root=typeof REQ.probeHtml==='string'?$(REQ.probeHtml).first().get(0):best;const cut=REQ.probeText||24;
+   const sk=n=>{if(n.type==='text'){const t=n.data.replace(/\s+/g,' ').trim();return t?(t.length>cut?t.slice(0,cut)+'…('+t.length+')':t):''}if(n.type!=='tag')return'';
+    const at=['id','class','href','datetime','itemprop','rel'].filter(k=>n.attribs[k]).map(k=>' '+k+'="'+n.attribs[k].slice(0,k==='href'?40:90)+'"').join('');
+    return'<'+n.tagName+at+'>'+(n.children||[]).map(sk).join('')+'</'+n.tagName+'>'};
+   const all=root?sk(root):'',lim=REQ.probeLen||40000;o.html=all.length>lim?all.slice(0,lim*0.6)+' ⋯⋯ '+all.slice(-lim*0.4):all;o.htmlLen=all.length}
   report.probe.push(o)}
  migrate(); /* তালিকা তৈরির আগে, যাতে মুছে দেওয়া রেকর্ড এই রানেই আবার আনা হয় */
  const want=new Set(REQ.hosts||Object.keys(SOURCES)),seen=new Set(),queue={};
@@ -291,7 +300,7 @@ async function get(u,ms=30000){let last;for(let a=0;a<3;a++){try{const ac=new Ab
   if(info.ok)queue[s]=queue[s].filter(it=>{const o=find(it);if(!o)return true;if(!posts.get(wbNorm(it.u)))info.byTitle=(info.byTitle||0)+1;
    const ids=o.p.coauthors||[],au=ids.map(who);if(!ids.length||au.some(a=>!a)){info.noAuthor=(info.noAuthor||0)+1;(info.unknown=info.unknown||{})[ids.filter(i=>!who(i)).join('+')||'none']=o.p.link;return true}
    try{const y=make(o);if(!y.title||textLen(y.html)<40)return true;
-    const b=loadBucket(bucketOf(it.k));b.data[it.k]={u:it.u,s,c:it.c,t:y.title,l:it.t,d:y.date.slice(0,10),a:[...new Set(au)].join(', '),h:y.html,w:o.w};if(src.ver)b.data[it.k].v=src.ver;b.dirty=true;info.done++;report.done++;return false}
+    const b=loadBucket(bucketOf(it.k));b.data[it.k]={u:it.u,s,c:it.c,t:y.title,l:it.t,d:y.date.slice(0,10),a:noMail([...new Set(au)].join(', ')),h:y.html,w:o.w};if(src.ver)b.data[it.k].v=src.ver;b.dirty=true;info.done++;report.done++;return false}
    catch(e){info.errs.push([it.u.slice(-40),String(e).slice(0,60)]);return true}});
   flush()}
  const deadline=Date.now()+(REQ.minutes||300)*60000,limit=REQ.limit||Infinity;let lastFlush=Date.now();
@@ -331,7 +340,7 @@ async function get(u,ms=30000){let last;for(let a=0;a<3;a++){try{const ac=new Ab
       if(!title||textLen(html)<40)fail='no content';
       else if(src.fuzzy&&!r.pin&&!sameTitle(title,it.t))fail='title mismatch: '+title.slice(0,70);
       else if(src.fuzzy&&notArticle(title,html))fail='not the article (download page): '+title.slice(0,70);
-      else{const b=loadBucket(bucketOf(it.k));b.data[it.k]={u:it.u,s,c:it.c,t:title,l:it.t,d:(x.date||'').trim(),a:(x.author||'').replace(/\s+/g,' ').trim(),h:html};if(r.w)b.data[it.k].w=r.w;if(src.ver)b.data[it.k].v=src.ver;b.dirty=true;st.done++;report.done++;streak=0}}catch(e){fail='parse: '+String(e).slice(0,80)}}
+      else{const b=loadBucket(bucketOf(it.k));b.data[it.k]={u:it.u,s,c:it.c,t:title,l:it.t,d:(x.date||'').trim(),a:noMail((x.author||'').replace(/\s+/g,' ').trim()),h:html};if(r.w)b.data[it.k].w=r.w;if(src.ver)b.data[it.k].v=src.ver;b.dirty=true;st.done++;report.done++;streak=0}}catch(e){fail='parse: '+String(e).slice(0,80)}}
     if(fail){st.failed++;if(!src.wayback)streak++;if(report.failed.length<400)report.failed.push([it.u,fail])}
     await sleep(src.delay)}
    list=again;if(stop||!src.wayback)break}
