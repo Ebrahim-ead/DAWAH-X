@@ -1,284 +1,150 @@
 {
- "at": "2026-11-16T09:21:57.280Z",
+ "at": "2026-11-16T09:49:25.303Z",
  "request": {
-  "set": "all",
-  "hosts": [
-   "iz",
-   "fm"
+  "set": "none",
+  "hosts": [],
+  "probe": [
+   "https://web.archive.org/web/20261116075911id_/https://www.insightzonebd.com/গড-অফ-দ্য-গ্যাপস",
+   "https://web.archive.org/web/20261116080051id_/https://www.insightzonebd.com/ইসলামে-জিহাদের-বিধান"
   ],
-  "api": {
-   "fm": [
+  "probeKids": 14,
+  "sel": [
+   ".elementor-widget-theme-post-content",
+   ".entry-content",
+   "article",
+   "main",
+   ".post-content",
+   "[class*='prose']",
+   "h1",
+   "[class*='author']",
+   "time"
+  ],
+  "minutes": 10,
+  "run": 25
+ },
+ "done": 0,
+ "skipped": 0,
+ "failed": [],
+ "bySource": {},
+ "probe": [
+  {
+   "u": "https://web.archive.org/web/20261116075911id_/https://www.insightzonebd.com/গড-অফ-দ্য-গ্যাপস",
+   "status": 0,
+   "err": "HTTP 429",
+   "len": 0,
+   "title": "",
+   "h1": [],
+   "best": "body",
+   "tree": [],
+   "time": [],
+   "meta": [
+    "og:title=",
+    "article:published_time=",
+    "author=",
+    "og:site_name="
+   ],
+   "vids": {
+    "ids": [],
+    "at": []
+   },
+   "sel": [
     [
-     1,
-     "20261116091257"
+     ".elementor-widget-theme-post-content",
+     0
     ],
     [
-     2,
-     "20261116091258"
+     ".entry-content",
+     0
     ],
     [
-     3,
-     "20261116091237"
+     "article",
+     0
     ],
     [
-     4,
-     "20261116091321"
+     "main",
+     0
     ],
     [
-     5,
-     "20261116091322"
+     ".post-content",
+     0
     ],
     [
-     6,
-     "20261116091323"
+     "[class*='prose']",
+     0
     ],
     [
-     7,
-     "20261116091343"
+     "h1",
+     0
     ],
     [
-     8,
-     "20261116091344"
+     "[class*='author']",
+     0
+    ],
+    [
+     "time",
+     0
     ]
    ]
   },
-  "ts": {
-   "https://www.frommuslims.com/qna/%e0%a6%95%e0%a7%81%e0%a6%b0%e0%a6%86%e0%a6%a8%e0%a7%87%e0%a6%b0-%e0%a6%85%e0%a6%a8%e0%a7%81%e0%a6%b0%e0%a7%82%e0%a6%aa-%e0%a6%95%e0%a7%81%e0%a6%b0%e0%a6%86%e0%a6%a8-%e0%a6%ac%e0%a6%be-%e0%a6%b8/": "20261116090321",
-   "https://www.frommuslims.com/qna/%e0%a6%95%e0%a6%bf%e0%a6%9b%e0%a7%81-%e0%a6%b9%e0%a6%be%e0%a6%a6%e0%a6%bf%e0%a6%b8-%e0%a6%a8%e0%a6%bf%e0%a6%af%e0%a6%bc%e0%a7%87-%e0%a6%aa%e0%a7%8d%e0%a6%b0%e0%a6%b6%e0%a7%8d%e0%a6%a8/": "20261116080856",
-   "https://www.frommuslims.com/qna/%e0%a6%a6%e0%a6%bf%e0%a6%b0%e0%a6%b9%e0%a6%be%e0%a6%ae-%e0%a6%a8%e0%a6%bf%e0%a6%af%e0%a6%bc%e0%a7%87-%e0%a6%95%e0%a6%bf-%e0%a6%95%e0%a7%8b%e0%a6%b0%e0%a6%86%e0%a6%a8%e0%a7%87-%e0%a6%90%e0%a6%a4/": "20261116090443",
-   "https://www.frommuslims.com/qna/%e0%a6%b9%e0%a6%be%e0%a6%ae%e0%a6%be%e0%a6%b8%e0%a7%87%e0%a6%b0-%e0%a7%ad-%e0%a6%85%e0%a6%95%e0%a7%8d%e0%a6%9f%e0%a7%8b%e0%a6%ac%e0%a6%b0%e0%a7%87%e0%a6%b0-%e0%a6%b9%e0%a6%be%e0%a6%ae%e0%a6%b2/": "20261116090430",
-   "https://www.frommuslims.com/qna/%e0%a6%aa%e0%a6%b6%e0%a7%81%e0%a6%aa%e0%a7%8b%e0%a6%b7%e0%a6%be%e0%a6%95-%e0%a6%87%e0%a6%a4%e0%a7%8d%e0%a6%af%e0%a6%be%e0%a6%a6%e0%a6%bf-%e0%a6%95%e0%a6%bf-%e0%a6%86%e0%a6%95%e0%a6%be%e0%a6%b6/": "20261116090509",
-   "https://www.frommuslims.com/qna/%e0%a6%b8%e0%a6%a8%e0%a7%8d%e0%a6%a4%e0%a6%be%e0%a6%a8%e0%a7%87%e0%a6%b0-%e0%a6%b8%e0%a6%be%e0%a6%a5%e0%a7%87-%e0%a6%ac%e0%a6%be%e0%a6%ac%e0%a6%be-%e0%a6%ae%e0%a6%be%e0%a6%af%e0%a6%bc%e0%a7%87/": "20261116090545",
-   "https://www.frommuslims.com/qna/%e0%a6%87%e0%a6%a4%e0%a6%bf%e0%a6%b9%e0%a6%be%e0%a6%b8%e0%a7%87-%e0%a6%95%e0%a7%8d%e0%a6%b0%e0%a7%81%e0%a6%b6%e0%a6%ac%e0%a6%a6%e0%a7%8d%e0%a6%a7-%e0%a6%95%e0%a6%b0%e0%a7%87-%e0%a6%ae%e0%a6%be/": "20261116090547",
-   "https://www.frommuslims.com/qna/%e0%a6%b8%e0%a6%be%e0%a6%b9%e0%a6%be%e0%a6%ac%e0%a6%be%e0%a6%b0%e0%a6%be-%e0%a6%95%e0%a6%bf-%e0%a6%a8%e0%a6%ac%e0%a7%80%e0%a6%9c%e0%a6%bf%e0%a6%b0-%e0%a6%b0%e0%a6%95%e0%a7%8d%e0%a6%a4-%e0%a6%ac/": "20261116090549",
-   "https://www.frommuslims.com/qna/%e0%a6%95%e0%a7%8b%e0%a6%b0%e0%a6%86%e0%a6%a8%e0%a7%87%e0%a6%b0-%e0%a6%86%e0%a6%b0%e0%a6%b0%e0%a6%bf-%e0%a6%ad%e0%a6%be%e0%a6%b7%e0%a6%be%e0%a6%af%e0%a6%bc-%e0%a6%b8%e0%a6%bf%e0%a6%b0%e0%a6%bf/": "20261116090551",
-   "https://www.frommuslims.com/qna/%e0%a6%a8%e0%a6%be%e0%a6%b0%e0%a7%80-%e0%a6%a6%e0%a6%be%e0%a6%b8%e0%a7%80%e0%a6%b0-%e0%a6%86%e0%a6%93%e0%a6%b0%e0%a6%be%e0%a6%b9-%e0%a6%aa%e0%a7%8d%e0%a6%b0%e0%a6%b8%e0%a6%99%e0%a7%8d%e0%a6%97/": "20261116090634",
-   "https://www.frommuslims.com/qna/%e0%a6%86%e0%a6%b8%e0%a6%b8%e0%a6%be%e0%a6%b2%e0%a6%be%e0%a6%ae%e0%a7%81%e0%a6%af%e0%a6%bc%e0%a6%be%e0%a6%b2%e0%a6%be%e0%a6%87%e0%a6%95%e0%a7%81%e0%a6%ae%e0%a5%a4-%e0%a6%b0%e0%a6%be%e0%a6%a7%e0%a6%be/": "20261116090635",
-   "https://www.frommuslims.com/qna/%e0%a6%aa%e0%a7%83%e0%a6%a5%e0%a6%bf%e0%a6%ac%e0%a7%80%e0%a6%b0-%e0%a6%98%e0%a7%81%e0%a6%b0%e0%a7%8d%e0%a6%a3%e0%a6%a8/": "20261116090641",
-   "https://www.frommuslims.com/qna/%e0%a6%95%e0%a7%8b%e0%a6%b0%e0%a6%86%e0%a6%a8-%e0%a6%93-%e0%a6%b9%e0%a6%be%e0%a6%a6%e0%a6%bf%e0%a6%b8%e0%a7%87%e0%a6%b0-%e0%a6%ac%e0%a7%8d%e0%a6%af%e0%a6%be%e0%a6%96%e0%a7%8d%e0%a6%af%e0%a6%be/": "20261116090910",
-   "https://www.frommuslims.com/qna/%e0%a6%b8%e0%a6%be%e0%a6%a8%e0%a6%be-%e0%a6%ae%e0%a7%8d%e0%a6%af%e0%a6%be%e0%a6%a8%e0%a7%81%e0%a6%b8%e0%a7%8d%e0%a6%95%e0%a7%8d%e0%a6%b0%e0%a6%bf%e0%a6%aa%e0%a6%9f-%e0%a6%95%e0%a6%bf-%e0%a6%ad/": "20261116090853",
-   "https://www.frommuslims.com/qna/%e0%a6%a8%e0%a6%ac%e0%a7%80-%e0%a6%95%e0%a6%b0%e0%a6%bf%e0%a6%ae-%e0%a6%b8%e0%a6%83-%e0%a6%8f%e0%a6%b0-%e0%a6%b8%e0%a7%81%e0%a6%aa%e0%a6%be%e0%a6%b0%e0%a6%bf%e0%a6%b6-%e0%a6%95%e0%a6%a4%e0%a7%8b/": "20261116090915",
-   "https://www.frommuslims.com/qna/%e0%a6%86%e0%a6%b2%e0%a7%8d%e0%a6%b2%e0%a6%be%e0%a6%b9%e0%a6%b0-%e0%a6%aa%e0%a6%b0%e0%a6%bf%e0%a6%95%e0%a7%8d%e0%a6%b7%e0%a6%be%e0%a6%af%e0%a6%bc-%e0%a6%ac%e0%a7%88%e0%a6%b7%e0%a6%ae%e0%a7%8d%e0%a6%af/": "20261116090911",
-   "https://www.frommuslims.com/qna/%e0%a6%b0%e0%a6%be%e0%a6%b7%e0%a7%8d%e0%a6%9f%e0%a7%8d%e0%a6%b0%e0%a7%80%e0%a6%af%e0%a6%bc-%e0%a6%ad%e0%a6%be%e0%a6%ac%e0%a7%87-%e0%a6%9c%e0%a7%8b%e0%a6%b0-%e0%a6%95%e0%a6%b0%e0%a7%87-%e0%a6%aa/": "20261116090708",
-   "https://www.frommuslims.com/qna/%e0%a6%a8%e0%a7%82%e0%a6%b9-%e0%a6%86%e0%a6%b2%e0%a6%be%e0%a6%87%e0%a6%b9%e0%a6%bf%e0%a6%b8-%e0%a6%b8%e0%a6%be%e0%a6%b2%e0%a6%be%e0%a6%ae%e0%a7%87%e0%a6%b0-%e0%a6%ac%e0%a6%a8%e0%a7%8d%e0%a6%af/": "20261116090709",
-   "https://www.frommuslims.com/qna/345986/": "20261116091451",
-   "https://www.frommuslims.com/qna/%e0%a6%95%e0%a7%8b%e0%a6%b0%e0%a6%86%e0%a6%a8%e0%a7%87-%e0%a6%89%e0%a6%a6%e0%a6%af%e0%a6%bc%e0%a6%be%e0%a6%9a%e0%a6%b2-%e0%a6%85%e0%a6%b8%e0%a7%8d%e0%a6%a4%e0%a6%be%e0%a6%9a%e0%a6%b2-%e0%a6%95/": "20261116091452",
-   "https://www.frommuslims.com/qna/%e0%a6%ae%e0%a6%b0%e0%a6%bf%e0%a6%af%e0%a6%bc%e0%a6%ae-%e0%a6%86%e0%a6%83-%e0%a6%8f%e0%a6%b0-%e0%a6%95%e0%a6%be%e0%a6%9b%e0%a7%87-%e0%a6%95%e0%a6%a4%e0%a6%9c%e0%a6%a8-%e0%a6%ab%e0%a7%87%e0%a6%b0/": "20261116081735",
-   "https://www.frommuslims.com/qna/%e0%a6%a6%e0%a6%be%e0%a6%9c%e0%a7%8d%e0%a6%9c%e0%a6%be%e0%a6%b2%e0%a7%87%e0%a6%b0-%e0%a6%95%e0%a7%8b%e0%a6%a8-%e0%a6%9a%e0%a7%8b%e0%a6%96-%e0%a6%95%e0%a6%be%e0%a6%a8%e0%a6%be-%e0%a6%b9%e0%a6%ac/": "20261116081824",
-   "https://www.frommuslims.com/qna/%e0%a6%95%e0%a7%8b%e0%a6%b0%e0%a6%86%e0%a6%a8-%e0%a6%95%e0%a6%bf-%e0%a6%b0%e0%a6%be%e0%a6%a4-%e0%a6%93-%e0%a6%a6%e0%a6%bf%e0%a6%a8%e0%a7%87%e0%a6%b0-%e0%a6%95%e0%a6%95%e0%a7%8d%e0%a6%b7-%e0%a6%aa/": "20261116091531",
-   "https://www.frommuslims.com/qna/%e0%a6%ae%e0%a7%87%e0%a6%b0%e0%a6%be%e0%a6%9c%e0%a7%87%e0%a6%b0-%e0%a6%b9%e0%a6%be%e0%a6%a6%e0%a6%bf%e0%a6%b8%e0%a7%87%e0%a6%b0-%e0%a6%b8%e0%a7%8d%e0%a6%ac%e0%a6%ac%e0%a6%bf%e0%a6%b0%e0%a7%8b%e0%a6%a7/": "20261116091533",
-   "https://www.frommuslims.com/qna/%e0%a6%9a%e0%a7%8b%e0%a6%b0%e0%a7%87%e0%a6%b0-%e0%a6%b9%e0%a6%be%e0%a6%a4-%e0%a6%95%e0%a6%be%e0%a6%9f%e0%a6%be/": "20261116091535",
-   "https://www.frommuslims.com/qna/%e0%a6%ae%e0%a7%81%e0%a6%b8%e0%a6%b2%e0%a6%bf%e0%a6%ae%e0%a6%b0%e0%a6%be-%e0%a6%86%e0%a6%ac%e0%a6%bf%e0%a6%b7%e0%a7%8d%e0%a6%95%e0%a6%be%e0%a6%b0-%e0%a6%b9%e0%a6%93%e0%a6%af%e0%a6%bc%e0%a6%be%e0%a6%b0/": "20261116091537",
-   "https://www.frommuslims.com/qna/%e0%a6%b8%e0%a7%81%e0%a6%b0%e0%a6%be-%e0%a6%95%e0%a7%8d%e0%a6%ac%e0%a6%bf%e0%a6%af%e0%a6%bc%e0%a6%be%e0%a6%ae%e0%a6%be%e0%a6%b9-%e0%a6%8f%e0%a6%b0-%e0%a7%ae-%e0%a6%a8%e0%a6%82-%e0%a6%86%e0%a6%af/": "20261116091559",
-   "https://www.frommuslims.com/qna/%e0%a6%9c%e0%a6%be%e0%a6%a8%e0%a7%8d%e0%a6%a8%e0%a6%be%e0%a6%a4%e0%a7%87-%e0%a6%ae%e0%a6%a6-%e0%a6%96%e0%a7%87%e0%a6%a4%e0%a7%87-%e0%a6%a6%e0%a6%bf%e0%a6%ac%e0%a7%87/": "20261116091621",
-   "https://www.frommuslims.com/qna/%e0%a6%95%e0%a7%88%e0%a6%b2%e0%a6%be%e0%a6%b8-%e0%a6%aa%e0%a6%b0%e0%a7%8d%e0%a6%ac%e0%a6%a4%e0%a7%87-%e0%a6%85%e0%a6%b2%e0%a7%8c%e0%a6%95%e0%a6%bf%e0%a6%95%e0%a6%a4%e0%a6%be-%e0%a6%b0%e0%a6%af/": "20261116082222",
-   "https://www.frommuslims.com/qna/%e0%a6%86%e0%a6%b2%e0%a7%8d%e0%a6%b2%e0%a6%be%e0%a6%b9-%e0%a6%95%e0%a6%bf-%e0%a6%aa%e0%a7%83%e0%a6%a5%e0%a6%bf%e0%a6%ac%e0%a7%80%e0%a6%a4%e0%a7%87-%e0%a6%97%e0%a6%ac%e0%a6%be%e0%a6%a6%e0%a6%bf/": "20261116091636",
-   "https://www.frommuslims.com/qna/%e0%a6%87%e0%a6%ac%e0%a6%a8%e0%a7%87-%e0%a6%ac%e0%a6%be%e0%a6%af%e0%a7%87%e0%a6%b0-%e0%a6%a6%e0%a7%83%e0%a6%b7%e0%a7%8d%e0%a6%9f%e0%a6%bf%e0%a6%a4%e0%a7%87%e0%a7%87-%e0%a6%86%e0%a6%ae%e0%a7%87/": "20261116091659",
-   "https://www.frommuslims.com/qna/%e0%a6%ac%e0%a6%be%e0%a6%82%e0%a6%b2%e0%a6%be-%e0%a6%b9%e0%a6%be%e0%a6%a6%e0%a6%bf%e0%a6%b8-%e0%a6%97%e0%a7%8d%e0%a6%b0%e0%a6%a8%e0%a7%8d%e0%a6%a5-%e0%a6%95%e0%a6%bf-%e0%a6%b8%e0%a6%a4%e0%a7%8d/": "20261116091640",
-   "https://www.frommuslims.com/qna/%e0%a6%86%e0%a6%b2%e0%a6%ac%e0%a6%be%e0%a6%a8%e0%a6%bf%e0%a6%b0-%e0%a7%a7%e0%a7%af%e0%a7%af%e0%a7%a9-%e0%a6%b8%e0%a6%be%e0%a6%b2%e0%a7%87%e0%a6%b0-%e0%a6%ab%e0%a6%a4%e0%a7%8b%e0%a6%af%e0%a6%bc/": "20261116091730",
-   "https://www.frommuslims.com/qna/%e0%a6%87%e0%a6%b8%e0%a6%b2%e0%a6%be%e0%a6%ae-%e0%a6%85%e0%a6%a8%e0%a7%8d%e0%a6%af-%e0%a6%a7%e0%a6%b0%e0%a7%8d%e0%a6%ae-%e0%a6%95%e0%a7%87-%e0%a6%b8%e0%a6%a8%e0%a7%8d%e0%a6%ae%e0%a6%be%e0%a6%a8/": "20261116091753",
-   "https://www.frommuslims.com/qna/%e0%a6%a8%e0%a6%be%e0%a6%ac%e0%a6%be%e0%a6%b2%e0%a7%87%e0%a6%97%e0%a6%a6%e0%a7%87%e0%a6%b0-%e0%a6%aa%e0%a6%b0%e0%a6%bf%e0%a6%95%e0%a7%8d%e0%a6%b7%e0%a6%be-%e0%a6%a8%e0%a7%87%e0%a6%87-%e0%a6%86/": "20261116091754",
-   "https://www.frommuslims.com/qna/%e0%a6%a4%e0%a6%be%e0%a6%95%e0%a6%a6%e0%a6%bf%e0%a6%b0-%e0%a6%a8%e0%a6%bf%e0%a6%af%e0%a6%bc%e0%a7%87-%e0%a6%8f%e0%a6%a4-%e0%a6%ac%e0%a7%88%e0%a6%aa%e0%a6%b0%e0%a7%80%e0%a6%a4%e0%a7%8d%e0%a6%af/": "20261116091756",
-   "https://www.frommuslims.com/qna/%e0%a6%b0%e0%a6%be%e0%a6%b8%e0%a7%81%e0%a6%b2-%e0%a6%95%e0%a6%bf-%e0%a6%aa%e0%a7%81%e0%a6%a4%e0%a7%8d%e0%a6%b0%e0%a6%ac%e0%a6%a7%e0%a7%81%e0%a6%95%e0%a7%87-%e0%a6%ac%e0%a6%bf%e0%a6%af%e0%a6%bc/": "20261116091738",
-   "https://www.frommuslims.com/qna/%e0%a6%95%e0%a7%8b%e0%a6%b0%e0%a6%86%e0%a6%a8-%e0%a6%86%e0%a6%b0%e0%a6%ac%e0%a7%80%e0%a6%a4%e0%a7%87-%e0%a6%b9%e0%a6%93%e0%a6%af%e0%a6%bc%e0%a6%be%e0%a6%af%e0%a6%bc-%e0%a6%86%e0%a6%b0%e0%a6%ac/": "20261116082645",
-   "https://www.frommuslims.com/qna/__trashed-27/": "20261116091909",
-   "https://www.frommuslims.com/qna/%e0%a6%ae%e0%a6%be%e0%a6%a8%e0%a7%81%e0%a6%b7%e0%a6%95%e0%a7%87-%e0%a6%aa%e0%a6%be%e0%a6%a0%e0%a6%bf%e0%a6%af%e0%a6%bc%e0%a7%87-%e0%a6%95%e0%a7%87%e0%a6%a8-%e0%a6%95%e0%a6%b7%e0%a7%8d%e0%a6%9f/": "20261116090920",
-   "https://www.frommuslims.com/qna/%e0%a6%aa%e0%a7%8d%e0%a6%af%e0%a6%be%e0%a6%b2%e0%a7%87%e0%a6%b8%e0%a7%8d%e0%a6%9f%e0%a6%be%e0%a6%87-%e0%a6%b6%e0%a6%ac%e0%a7%8d%e0%a6%a6%e0%a7%87%e0%a6%b0-%e0%a6%89%e0%a7%8e%e0%a6%aa%e0%a6%a4/": "20261116090908",
-   "https://www.frommuslims.com/%e0%a6%86%e0%a6%b2%e0%a7%8d%e0%a6%b2%e0%a6%be%e0%a6%b9%e0%a6%b0-%e0%a6%b8%e0%a6%bf%e0%a6%ab%e0%a6%be%e0%a6%a4-%e0%a6%86%e0%a6%95%e0%a6%b2-%e0%a6%a8%e0%a6%be-%e0%a6%93%e0%a6%b9%e0%a7%80/": "20261116075916",
-   "https://www.frommuslims.com/%e0%a6%b0%e0%a6%be%e0%a6%b8%e0%a7%81%e0%a6%b2%e0%a7%87%e0%a6%b0-%e0%a6%a8%e0%a6%ac%e0%a7%81%e0%a6%af%e0%a6%bc%e0%a6%a4%e0%a7%87%e0%a6%b0-%e0%a6%b8%e0%a6%a4%e0%a7%8d%e0%a6%af%e0%a6%be%e0%a6%a4%e0%a6%be/": "20261116080057",
-   "https://www.insightzonebd.com/মহাবিশ্বের-অসীম-অতীত-কী-সম্ভব": "20261116080043",
-   "https://www.insightzonebd.com/গড-অফ-দ্য-গ্যাপস": "20261116075911",
-   "https://www.insightzonebd.com/ইসলামে-কী-যুক্তি-চর্চা-হারাম-যুক্তিবিদ্যা-ও-ইলমুল-কালাম": "20261116080046",
-   "https://www.insightzonebd.com/ইসলামে-মুরতাদের-শাস্তি-মৃত্যুদন্ড-কী-অমানবিক": "20261116080050",
-   "https://www.insightzonebd.com/ইসলামে-জিহাদের-বিধান": "20261116080051",
-   "https://www.insightzonebd.com/ইসলামী-রাষ্ট্রে-অমুসলিম": "20261116080053",
-   "https://www.insightzonebd.com/মুসলিমরা-তওবা-করলে-কি-সব-অপরাধই-ক্ষমা-হয়ে-যায়": "20261116080056"
-  },
-  "minutes": 90,
-  "run": 24
- },
- "done": 91,
- "skipped": 492,
- "failed": [
-  [
-   "https://www.frommuslims.com/%e0%a6%86%e0%a6%b2%e0%a7%8d%e0%a6%b2%e0%a6%be%e0%a6%b9%e0%a6%b0-%e0%a6%b8%e0%a6%bf%e0%a6%ab%e0%a6%be%e0%a6%a4-%e0%a6%86%e0%a6%95%e0%a6%b2-%e0%a6%a8%e0%a6%be-%e0%a6%93%e0%a6%b9%e0%a7%80/",
-   "HTTP 404"
-  ],
-  [
-   "https://www.insightzonebd.com/মহাবিশ্বের-অসীম-অতীত-কী-সম্ভব",
-   "no content"
-  ],
-  [
-   "https://www.insightzonebd.com/গড-অফ-দ্য-গ্যাপস",
-   "no content"
-  ],
-  [
-   "https://www.frommuslims.com/%e0%a6%ac%e0%a7%80%e0%a6%b0%e0%a7%8d%e0%a6%af-%e0%a6%95%e0%a6%bf-%e0%a6%ae%e0%a7%87%e0%a6%b0%e0%a7%81%e0%a6%a6%e0%a6%a3%e0%a7%8d%e0%a6%a1-%e0%a6%93-%e0%a6%ac%e0%a6%95%e0%a7%8d%e0%a6%b7%e0%a6%aa/",
-   "not archived"
-  ],
-  [
-   "https://www.frommuslims.com/%e0%a6%86%e0%a6%af%e0%a6%bc%e0%a6%bf%e0%a6%b6%e0%a6%be-%e0%a6%b0%e0%a6%be-%e0%a6%95%e0%a6%bf-%e0%a6%ac%e0%a7%8b%e0%a6%a7%e0%a6%b8%e0%a6%ae%e0%a7%8d%e0%a6%aa%e0%a6%a8%e0%a7%8d%e0%a6%a8-%e0%a6%a8/",
-   "not archived"
-  ],
-  [
-   "https://www.frommuslims.com/%e0%a6%b0%e0%a6%be%e0%a6%b8%e0%a7%82%e0%a6%b2-%ef%b7%ba-%e0%a6%95%e0%a6%bf-%e0%a6%b8%e0%a6%be%e0%a6%93%e0%a6%a6%e0%a6%be-%e0%a6%b0%e0%a6%be-%e0%a6%95%e0%a7%87/",
-   "not archived"
-  ],
-  [
-   "https://www.insightzonebd.com/ইসলামে-কী-যুক্তি-চর্চা-হারাম-যুক্তিবিদ্যা-ও-ইলমুল-কালাম",
-   "no content"
-  ],
-  [
-   "https://www.frommuslims.com/%e0%a6%b0%e0%a7%8b%e0%a6%ae-%e0%a6%b8%e0%a6%ae%e0%a7%8d%e0%a6%b0%e0%a6%be%e0%a6%9f%e0%a7%87%e0%a6%b0-%e0%a6%b8%e0%a6%be%e0%a6%ae%e0%a6%a8%e0%a7%87-%e0%a6%87%e0%a6%ae%e0%a6%be%e0%a6%ae-%e0%a6%ac/",
-   "not archived"
-  ],
-  [
-   "https://www.frommuslims.com/qna/?filter=all",
-   "not archived"
-  ],
-  [
-   "https://www.frommuslims.com/qna/?filter=open",
-   "not archived"
-  ],
-  [
-   "https://www.frommuslims.com/qna/?filter=resolved",
-   "not archived"
-  ],
-  [
-   "https://www.frommuslims.com/qna/?filter=closed",
-   "not archived"
-  ],
-  [
-   "https://www.frommuslims.com/qna/?filter=unanswered",
-   "not archived"
-  ],
-  [
-   "https://www.frommuslims.com/qna/%e0%a6%95%e0%a7%8b%e0%a6%b0%e0%a6%86%e0%a6%a8%e0%a7%87-%e0%a6%a6%e0%a6%bf%e0%a6%b0%e0%a6%b9%e0%a6%be%e0%a6%ae-%e0%a6%b6%e0%a6%ac%e0%a7%8d%e0%a6%a6-%e0%a6%a8%e0%a6%bf%e0%a6%af%e0%a6%bc%e0%a7%87/",
-   "not archived"
-  ],
-  [
-   "https://www.insightzonebd.com/question/154",
-   "not archived"
-  ],
-  [
-   "https://www.insightzonebd.com/question/142",
-   "not archived"
-  ],
-  [
-   "https://www.insightzonebd.com/question/133",
-   "not archived"
-  ],
-  [
-   "https://www.insightzonebd.com/ইসলামে-মুরতাদের-শাস্তি-মৃত্যুদন্ড-কী-অমানবিক",
-   "no content"
-  ],
-  [
-   "https://www.insightzonebd.com/মুসলিমরা-তওবা-করলে-কি-সব-অপরাধই-ক্ষমা-হয়ে-যায়",
-   "no content"
-  ],
-  [
-   "https://www.insightzonebd.com/ইসলামে-জিহাদের-বিধান",
-   "no content"
-  ],
-  [
-   "https://www.insightzonebd.com/ইসলামী-রাষ্ট্রে-অমুসলিম",
-   "no content"
-  ],
-  [
-   "https://www.frommuslims.com/qna/%e0%a6%95%e0%a7%88%e0%a6%b2%e0%a6%be%e0%a6%b8-%e0%a6%aa%e0%a6%b0%e0%a7%8d%e0%a6%ac%e0%a6%a4%e0%a7%87-%e0%a6%85%e0%a6%b2%e0%a7%8c%e0%a6%95%e0%a6%bf%e0%a6%95%e0%a6%a4%e0%a6%be-%e0%a6%b0%e0%a6%af/",
-   "no content"
-  ],
-  [
-   "https://www.frommuslims.com/%e0%a6%86%e0%a6%b0%e0%a6%ac%e0%a6%bf-%e0%a6%ad%e0%a6%be%e0%a6%b7%e0%a6%be%e0%a6%af%e0%a6%bc-%e0%a6%97%e0%a7%8b%e0%a6%b2%e0%a6%95%e0%a7%87%e0%a6%b0-%e0%a6%95%e0%a6%bf-%e0%a6%a6%e0%a7%88%e0%a6%b0/",
-   "not archived"
-  ],
-  [
-   "https://www.frommuslims.com/%e0%a6%b0%e0%a6%be%e0%a6%b8%e0%a7%81%e0%a6%b2%e0%a7%81%e0%a6%b2%e0%a7%8d%e0%a6%b2%e0%a6%be%e0%a6%b9-%ef%b7%ba-%e0%a6%93-%e0%a6%86%e0%a6%af%e0%a6%bc%e0%a6%bf%e0%a6%b6%e0%a6%be-%e0%a6%b0%e0%a6%be/",
-   "not archived"
-  ],
-  [
-   "https://www.frommuslims.com/%e0%a6%95%e0%a7%81%e0%a6%b0%e0%a6%86%e0%a6%a8%e0%a7%87%e0%a6%b0-%e0%a6%86%e0%a6%af%e0%a6%bc%e0%a6%be%e0%a6%a4-%e0%a6%ac%e0%a6%95%e0%a6%b0%e0%a7%80-%e0%a6%96%e0%a7%87%e0%a6%af%e0%a6%bc%e0%a7%87/",
-   "not archived"
-  ],
-  [
-   "https://www.frommuslims.com/%e0%a6%a6%e0%a6%be%e0%a6%9c%e0%a7%8d%e0%a6%9c%e0%a6%be%e0%a6%b2-%e0%a6%b9%e0%a6%bf%e0%a6%9c%e0%a6%ac%e0%a7%81%e0%a6%a4-%e0%a6%a4%e0%a6%be%e0%a6%93%e0%a6%b9%e0%a7%80%e0%a6%a6-%e0%a6%a8%e0%a6%be/",
-   "HTTP 404"
-  ],
-  [
-   "https://www.frommuslims.com/en/are-afghan-women-neglected-in-the-earthquake/",
-   "HTTP 404"
-  ],
-  [
-   "https://www.frommuslims.com/en/female-slaves-and-wives-sexual-purity-in-islam/",
-   "not archived"
-  ],
-  [
-   "https://www.frommuslims.com/en/what-is-umm-al-walad-is-selling-an-umm-al-walad-permissible/",
-   "not archived"
-  ],
-  [
-   "https://www.frommuslims.com/qna/%e0%a6%86%e0%a6%b2%e0%a6%bf%e0%a6%b0%e0%a6%be-%e0%a6%95%e0%a6%bf-%e0%a6%b0%e0%a6%be%e0%a6%b8%e0%a7%81%e0%a6%b2%e0%a6%b8-%e0%a6%8f%e0%a6%b0-%e0%a6%b8%e0%a7%8d%e0%a6%a5%e0%a6%b2%e0%a6%be%e0%a6%ad/",
-   "no content"
-  ],
-  [
-   "https://www.frommuslims.com/%e0%a6%aa%e0%a7%8d%e0%a6%b0%e0%a6%b6%e0%a7%8d%e0%a6%a8%e0%a7%8b%e0%a6%a4%e0%a7%8d%e0%a6%a4%e0%a6%b0-qa/",
-   "no content"
-  ]
- ],
- "bySource": {
-  "fm": {
-   "queued": 62,
-   "done": 41,
-   "failed": 21,
-   "passes": 4,
-   "unarchived": 15,
-   "busy": 26,
-   "lastErr": "TypeError: fetch failed ConnectTimeoutError: Connect Timeout Error (attempted address: web.archive.o",
-   "left": 0
-  },
-  "iz": {
-   "queued": 10,
-   "done": 0,
-   "failed": 10,
-   "passes": 3,
-   "busy": 6,
-   "lastErr": "TypeError: fetch failed ConnectTimeoutError: Connect Timeout Error (attempted address: web.archive.o",
-   "unarchived": 3,
-   "left": 0
-  }
- },
- "wayback": {
-  "iz": {
-   "cached": 7
-  },
-  "fm": {
-   "cached": 486
-  }
- },
- "api": {
-  "fm": {
-   "pages": 8,
-   "posts": 363,
-   "done": 50,
-   "errs": [],
-   "stored": 295,
-   "authors": 51,
-   "check": {
-    "n": 80,
-    "median": 1,
-    "near": 79,
-    "min": 0.967,
-    "max": 3.205
+  {
+   "u": "https://web.archive.org/web/20261116080051id_/https://www.insightzonebd.com/ইসলামে-জিহাদের-বিধান",
+   "status": 0,
+   "err": "HTTP 429",
+   "len": 0,
+   "title": "",
+   "h1": [],
+   "best": "body",
+   "tree": [],
+   "time": [],
+   "meta": [
+    "og:title=",
+    "article:published_time=",
+    "author=",
+    "og:site_name="
+   ],
+   "vids": {
+    "ids": [],
+    "at": []
    },
-   "ok": true,
-   "noAuthor": 12,
-   "unknown": {
-    "3663": "https://www.frommuslims.com/%e0%a6%95%e0%a7%81%e0%a6%b0%e0%a6%86%e0%a6%a8%e0%a7%87%e0%a6%b0-%e0%a6%86%e0%a6%af%e0%a6%bc%e0%a6%be%e0%a6%a4-%e0%a6%ac%e0%a6%95%e0%a6%b0%e0%a7%80-%e0%a6%96%e0%a7%87%e0%a6%af%e0%a6%bc%e0%a7%87/",
-    "4288": "https://www.frommuslims.com/%e0%a6%a6%e0%a6%be%e0%a6%9c%e0%a7%8d%e0%a6%9c%e0%a6%be%e0%a6%b2-%e0%a6%b9%e0%a6%bf%e0%a6%9c%e0%a6%ac%e0%a7%81%e0%a6%a4-%e0%a6%a4%e0%a6%be%e0%a6%93%e0%a6%b9%e0%a7%80%e0%a6%a6-%e0%a6%a8%e0%a6%be/",
-    "5027": "https://www.frommuslims.com/en/what-is-umm-al-walad-is-selling-an-umm-al-walad-permissible/",
-    "6161": "https://www.frommuslims.com/%e0%a6%b0%e0%a6%be%e0%a6%b8%e0%a7%82%e0%a6%b2-%ef%b7%ba-%e0%a6%95%e0%a6%bf-%e0%a6%b8%e0%a6%be%e0%a6%93%e0%a6%a6%e0%a6%be-%e0%a6%b0%e0%a6%be-%e0%a6%95%e0%a7%87/"
-   }
+   "sel": [
+    [
+     ".elementor-widget-theme-post-content",
+     0
+    ],
+    [
+     ".entry-content",
+     0
+    ],
+    [
+     "article",
+     0
+    ],
+    [
+     "main",
+     0
+    ],
+    [
+     ".post-content",
+     0
+    ],
+    [
+     "[class*='prose']",
+     0
+    ],
+    [
+     "h1",
+     0
+    ],
+    [
+     "[class*='author']",
+     0
+    ],
+    [
+     "time",
+     0
+    ]
+   ]
   }
- },
- "total": 19963
+ ],
+ "total": 19964
 }
