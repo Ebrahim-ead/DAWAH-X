@@ -273,6 +273,10 @@ async function get(u,ms=30000){let last;for(let a=0;a<3;a++){try{const ac=new Ab
    if(!Array.isArray(arr)){info.errs.push([n,r.status||0,(r.err||'').slice(0,60)]);await sleep(src.delay);continue}
    info.pages++;for(const p of arr)if(p&&p.link&&p.content)posts.set(wbNorm(p.link),{p,w:m[1]});await sleep(src.delay)}
   info.posts=posts.size;
+  /* ঠিকানা বদলে যাওয়া লেখা: ক্যাটালগের শিরোনাম হুবহু মিললে (এবং একটিই মিললে) সেটিই ধরা হয়; প্রশ্নোত্তরের ঠিকানায় নয় */
+  const nt=t=>String(t||'').normalize('NFC').replace(/[^\p{L}\p{N}]+/gu,'').toLowerCase(),byTitle=new Map();
+  for(const o of posts.values()){const k=nt(cheerio.load('<i>'+((o.p.title&&o.p.title.rendered)||'')+'</i>')('i').text());if(k.length>=8)byTitle.set(k,byTitle.has(k)?null:o)}
+  const find=it=>posts.get(wbNorm(it.u))||(/\/qna\//.test(it.u)?null:(byTitle.get(nt(it.t))||null));
   const make=o=>{const p=o.p,$=cheerio.load('<html><head><meta property="article:published_time" content="'+esc(String(p.date_gmt||p.date||''))+'"></head><body><div id="the-post"><h1 class="post-title entry-title">'+((p.title&&p.title.rendered)||'')+'</h1><div class="entry-content">'+((p.content&&p.content.rendered)||'')+'</div></div></body></html>');
    const x=src.extract($,p.link);let html=x.body&&x.body.length?clean($,x.body,p.link):'';if(src.tidy)html=src.tidy(html);return{title:(x.title||'').replace(/\s+/g,' ').trim(),html,date:(x.date||'').trim()}};
   const cat=new Map();for(const r of[...builtinRows(),...catalogRows()])if(sourceOf(r[2])===s)cat.set(wbNorm(r[2]),keyOfUrl(r[2]));
@@ -280,12 +284,12 @@ async function get(u,ms=30000){let last;for(let a=0;a<3;a++){try{const ac=new Ab
   for(const[pth,o]of posts){const k=cat.get(pth);if(!k)continue;const rec=loadBucket(bucketOf(k)).data[k];if(!rec)continue;stored++;
    const ids=o.p.coauthors||[];if(ids.length===1&&rec.a){const c=(names[ids[0]]=names[ids[0]]||{});c[rec.a]=(c[rec.a]||0)+1}
    if(ratios.length<80){try{ratios.push(+(textLen(make(o).html)/Math.max(1,textLen(rec.h))).toFixed(3))}catch(e){ratios.push(0)}}}
-  const who=id=>{const c=names[id];return c?Object.keys(c).sort((a,b)=>c[b]-c[a])[0]:''};
+  const given=REQ.apiNames||{},who=id=>{if(given[id])return given[id];const c=names[id];return c?Object.keys(c).sort((a,b)=>c[b]-c[a])[0]:''};
   const sorted=ratios.slice().sort((a,b)=>a-b),med=sorted[sorted.length>>1]||0,near=ratios.filter(v=>v>0.9&&v<1.1).length;
   info.stored=stored;info.authors=Object.keys(names).length;info.check={n:ratios.length,median:med,near,min:sorted[0],max:sorted[sorted.length-1]};
   info.ok=!!REQ.apiForce||(ratios.length>=10&&med>0.97&&med<1.03&&near>=0.7*ratios.length);
-  if(info.ok)queue[s]=queue[s].filter(it=>{const o=posts.get(wbNorm(it.u));if(!o)return true;
-   const ids=o.p.coauthors||[],au=ids.map(who);if(!ids.length||au.some(a=>!a)){info.noAuthor=(info.noAuthor||0)+1;return true}
+  if(info.ok)queue[s]=queue[s].filter(it=>{const o=find(it);if(!o)return true;if(!posts.get(wbNorm(it.u)))info.byTitle=(info.byTitle||0)+1;
+   const ids=o.p.coauthors||[],au=ids.map(who);if(!ids.length||au.some(a=>!a)){info.noAuthor=(info.noAuthor||0)+1;(info.unknown=info.unknown||{})[ids.filter(i=>!who(i)).join('+')||'none']=o.p.link;return true}
    try{const y=make(o);if(!y.title||textLen(y.html)<40)return true;
     const b=loadBucket(bucketOf(it.k));b.data[it.k]={u:it.u,s,c:it.c,t:y.title,l:it.t,d:y.date.slice(0,10),a:[...new Set(au)].join(', '),h:y.html,w:o.w};if(src.ver)b.data[it.k].v=src.ver;b.dirty=true;info.done++;report.done++;return false}
    catch(e){info.errs.push([it.u.slice(-40),String(e).slice(0,60)]);return true}});
@@ -297,7 +301,7 @@ async function get(u,ms=30000){let last;for(let a=0;a<3;a++){try{const ac=new Ab
   if(Date.now()-lastPush>(REQ.push||30)*60000){lastPush=Date.now();if(!process.env.GITHUB_ACTIONS||!process.env.GITHUB_REF_NAME)return;
    try{report.total=flush();report.partial=new Date().toISOString();fs.writeFileSync(path.join(OUT,'_report.json'),JSON.stringify(report,null,1));
     /* rebase-এর জন্যও পরিচয় লাগে, তাই আগে config; rebase আটকে গেলে বাতিল করে পরের বার আবার চেষ্টা */
-    require('child_process').execSync('git config user.name "github-actions[bot]" && git config user.email "41898282+github-actions[bot]@users.noreply.github.com" && git add texts && (git diff --cached --quiet || git commit -q -m "Import library texts (automated, partial)") && (git pull -q --rebase origin "$GITHUB_REF_NAME" || (git rebase --abort; exit 1)) && git push -q origin "HEAD:$GITHUB_REF_NAME"',{cwd:ROOT,stdio:'ignore',timeout:300000})}
+    require('child_process').execSync('git config user.name "github-actions[bot]" && git config user.email "41898282+github-actions[bot]@users.noreply.github.com" && git add texts && (git diff --cached --quiet || git commit -q -m "Import library texts (automated, partial)") && (git pull -q --rebase -X theirs origin "$GITHUB_REF_NAME" || (git rebase --abort; exit 1)) && git push -q origin "HEAD:$GITHUB_REF_NAME"',{cwd:ROOT,stdio:'ignore',timeout:300000})}
    catch(e){report.checkpointErr=String(e).slice(0,160)}}};
  await Promise.all(Object.keys(queue).map(async s=>{const src=SOURCES[s],st=report.bySource[s]={queued:queue[s].length,done:0,failed:0};let streak=0;
   let list=queue[s].slice(0,(REQ.limits&&REQ.limits[s])||limit);
