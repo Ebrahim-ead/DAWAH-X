@@ -66,6 +66,7 @@ Each page is its own `.html` file containing the shared chrome (head, SVG sprite
 - Site URL lives in `tools/site.json`; `tools/set-domain.cjs` rewrites it everywhere (see `domain-setup.md`).
 - Importer option `imgCheck:true` reports the HTTP status of every image inside stored texts (`texts/_report.json` → `imgCheck`). Run 33: 1,790 unique images, 1,762 OK, 28 dead.
 - TikTok was removed on the owner's instruction; do not add it back.
+- Owner's personal site: `LINKS.personal` in `app.js` (`https://ebrahim-ead.github.io/ead/`) feeds every `[data-link="personal"]` element — the footer line `.copy-by` on every page («পরিচালনায়: Ebrahim Ead») and the `.about-owner` block on `about.html`. It is an external link by the owner's request (opens in a new tab); the rule that content cards stay on the site is unchanged. `.copy` is a flex row with two children, so keep the copyright text wrapped in its own `<span>`.
 - The footer e-mail subscribe box was removed on the owner's instruction (2026-11); two follow buttons (`.follow`) replace it. `SUBSCRIBE_ACTION` no longer exists.
 
 ## List paging (questions.html / fatwa.html)

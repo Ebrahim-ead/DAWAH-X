@@ -681,3 +681,12 @@ a,button,input,select,textarea,.chip,.qcard{touch-action:manipulation;-webkit-ta
 @media(max-width:420px){.ask-sug{padding:11px}.ask-vid{grid-template-columns:104px minmax(0,1fr);gap:10px}}
 /* এই বাক্সের কার্ড স্ক্রল-অ্যানিমেশনের অপেক্ষায় থাকে না — লেখার সাথে সাথেই দেখা যায় */
 .ask-sug [data-reveal]{opacity:1;transform:none;transition:border-color .2s,background .2s}
+
+/* ফুটারের শেষ সারি: বামে পরিচালকের ব্যক্তিগত সাইটের লিংক, ডানে কপিরাইট */
+.copy{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 18px;text-align:left}
+.copy-by{font-size:13px}
+.copy-by a{display:inline-block;padding:6px 2px;color:var(--gold2);font-weight:600;text-decoration:underline;text-underline-offset:3px}
+.copy-by a:focus-visible,.about-owner-link:focus-visible{outline:2px solid var(--gold);outline-offset:2px;border-radius:4px}
+.about-owner{margin:18px auto 4px;max-width:720px;padding:14px 16px;border:1px solid rgba(246,196,83,.22);border-radius:12px;background:rgba(246,196,83,.04);text-align:center;color:rgba(237,243,250,.9);font-size:14.5px;line-height:1.8}
+.about-owner b{color:var(--text)}
+.about-owner-link{display:inline-block;padding:4px 2px;color:var(--gold2);font-weight:600;text-decoration:underline;text-underline-offset:3px;overflow-wrap:anywhere}

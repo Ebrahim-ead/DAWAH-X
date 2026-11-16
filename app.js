@@ -5,7 +5,8 @@
 const LINKS={
   facebook:"https://www.facebook.com/profile.php?id=61595349861689",
   youtube:"https://www.youtube.com/@ead-s3b",
-  whatsapp:"https://wa.me/8801783543026" /* WhatsApp নম্বর: দেশের কোডসহ, + বা ফাঁকা ছাড়া */
+  whatsapp:"https://wa.me/8801783543026", /* WhatsApp নম্বর: দেশের কোডসহ, + বা ফাঁকা ছাড়া */
+  personal:"https://ebrahim-ead.github.io/ead/" /* পরিচালকের ব্যক্তিগত সাইট — ফুটার ও “আমাদের সম্পর্কে” পাতার লিংক */
 };
 const MESSENGER="https://m.me/61595349861689"; /* প্রশ্ন এই Messenger ইনবক্সে যায় */
 const ASK_ACTION=""; /* ঐচ্ছিক: Formspree URL দিলে প্রশ্ন সরাসরি ইমেইলে আসবে, যেমন https://formspree.io/f/xxxxxx */
