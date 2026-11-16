@@ -45,7 +45,9 @@ function safeArticle(html){
    if(/^x_?(ftn|ftnref|edn|ednref)\d+$/.test(id))el.id=id;
    if(/^#x_?(ftn|ftnref|edn|ednref)\d+$/.test(h))el.setAttribute("href",h);
    else if(/^https?:\/\//i.test(h)){el.setAttribute("href",h);el.target="_blank";el.rel="noopener nofollow"}}
-  if(n.tagName==="IMG"){const src=n.getAttribute("src")||"";if(!/^https:\/\//i.test(src))return;el.src=src;el.alt=n.getAttribute("alt")||"";el.loading="lazy";el.decoding="async";el.referrerPolicy="no-referrer"}
+  if(n.tagName==="IMG"){const src=n.getAttribute("src")||"";if(!/^https:\/\//i.test(src))return;el.src=src;el.alt=n.getAttribute("alt")||"";el.loading="lazy";el.decoding="async";el.referrerPolicy="no-referrer";
+   /* ছবি মূল সাইট থেকে আসে; না এলে ভাঙা ছবির বদলে একটি ছোট টীকা */
+   el.addEventListener("error",()=>{const s=document.createElement("span");s.className="imgmiss";s.textContent="[ছবি"+(el.alt?": "+el.alt:"")+" — মূল পেজে দেখুন]";el.replaceWith(s)},{once:true})}
   copy(n,el);dst.appendChild(el)})};
  copy(doc.body.firstChild,out);
  /* শিরোনামের স্তর সাজানো: পাতার h1-এর পরে h2 থেকে শুরু, মাঝে কোনো স্তর বাদ না পড়ে (স্ক্রিন-রিডারের জন্য); লেখা বদলায় না */

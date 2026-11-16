@@ -44,7 +44,13 @@ const SOURCES={
    if(junk)throw new Error('junk in content: '+junk[0]);
    return{title,html,date:($('meta[property="article:published_time"]').attr('content')||'').slice(0,10),author:($('meta[name="author"]').attr('content')||'').trim()}}},
  /* wayback: সাইটটি রানারকে ঢুকতে দেয় না, তাই Internet Archive-এ সংরক্ষিত সর্বশেষ কপি থেকে পড়া হয় */
- fm:{host:'www.frommuslims.com',delay:13000,wayback:'frommuslims.com',extract($,base){
+ fm:{/* লেখা নয় এমন অংশ বাদ: "আরো পড়ুন / Read More" বাক্স, ধারাবাহিকের আগে-পরের লিংক, উদ্ধৃতি-বোতামের লেখা, ফাঁকা তালিকা */
+   tidy(html){return html.replace(/<a [^>]*>\s*<p>\s*(?:Read More|আর[োও] প)[\s\S]*?<\/a>/g,'').replace(/<p>\s*Citation (?:style:|is loading\.\.\.)\s*<\/p>/g,'')
+    .replace(/Series Navigation\s*(?:<a [^>]*>[^<]*<\/a>\s*)+/g,'').replace(/<(ul|ol)>\s*<\/\1>/g,'').replace(/<table>[^<]+<tbody>/g,'<table><tbody>').trim()},
+   /* লেখকের নামের সাথে জুড়ে যাওয়া তারিখ ("… এপ্রিল 3, 2025", "… 1 সপ্তাহ ago", "… Last Updated:") বাদ */
+   who(a){return a.replace(/\s*(?:January|February|March|April|May|June|July|August|September|October|November|December|জানু(?:\u09df|\u09af\u09bc)ারি|ফেব্রু(?:\u09df|\u09af\u09bc)ারি|মার্চ|এপ্রিল|মে|জুন|জুলাই|আগস্ট|সেপ্টেম্বর|অক্টোবর|নভেম্বর|ডিসেম্বর)\s+[0-9০-৯]{1,2},\s+[0-9০-৯]{4}.*$/,'')
+    .replace(/\s*[0-9০-৯]+\s+\S+\s+ago.*$/,'').replace(/\s*Last Updated.*$/,'').replace(/\s+/g,' ').trim()},
+   host:'www.frommuslims.com',delay:13000,wayback:'frommuslims.com',extract($,base){
    const title=$('h1.post-title,h1.entry-title').first().text(),name=(e,word)=>$(e).children('span').first().text().replace(/<img\b[^>]*>/g,' ').replace(/\s+/g,' ').trim().split(' '+word+' ')[0].replace(/\s+Staff$/,'').trim();
    /* প্রশ্নোত্তর পেজ (DW Question & Answer): প্রশ্ন + সব উত্তর; মন্তব্য, ভোট, শেয়ার বাদ */
    if($('.dwqa-questions-archive,.dwqa-questions-list').length&&!$('.dwqa-single-question').length)return{title,html:''}; /* প্রশ্নের তালিকা-পাতা, লেখা নয় */
@@ -59,7 +65,7 @@ const SOURCES={
    body.find('.wp-block-wptelegram-widget-join-channel,.post-bottom-meta,.stream-item,#jp-relatedposts,.sharedaddy,#ez-toc-container,.ez-toc-container,.code-block,.addtoany_share_save_container,.yarpp-related,.share-buttons,.post-shortlink,.footnote_referrer_base,.footnote_reference_container_collapse_button').remove();
    body.find('table caption').remove();
    body.find('p,div').filter((k,e)=>/^(Citation is loading\.\.\.|Citation style:)$/.test($(e).text().replace(/\s+/g,' ').trim())).remove();
-   body.children('div').filter((k,e)=>{const t=$(e).text().replace(/\s+/g,' ').trim();return t.length<260&&/^আর[োও] পড়ুন/.test(t)}).remove();
+   body.children('div').filter((k,e)=>{const t=$(e).text().replace(/\s+/g,' ').trim();return t.length<260&&/^(আর[োও] প|Read More\.\.\.)/.test(t)}).remove();
    /* টীকা: পূর্ণ তালিকা থাকলে ভাসমান কপি বাদ; না থাকলে ভাসমান লেখা দিয়ে নিচে তালিকা */
    const refs=$('.footnote_plugin_text');
    if(refs.length){body.find('.footnote_tooltip').remove();const box=$('.footnotes_reference_container').first();if(box.length&&!body.find('.footnote_plugin_text').length)body.append(box)}
@@ -68,7 +74,7 @@ const SOURCES={
    body.find('.footnote_backlink').each((k,e)=>{$(e).replaceWith(esc($(e).text().replace(/[^0-9০-৯]/g,'')))});
    const info=$('#post-extra-info').first().text().replace(/\s+/g,' ').trim();
    return{title,body,date:($('meta[property="article:published_time"]').attr('content')||'').slice(0,10),
-    author:$('#the-post .meta-author a,#the-post a.author-name').first().text()||info.replace(/\s*(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},\s+\d{4}.*$/,'').replace(/\s*\d+\s+(seconds?|minutes?|hours?|days?|weeks?|months?|years?)\s+ago.*$/,'').replace(/\s*Last Updated.*$/,'')}}}
+    author:SOURCES.fm.who($('#the-post .meta-author a,#the-post a.author-name').first().text()||info)}}}
 };
 const sourceOf=u=>{try{const h=new URL(u).host;return Object.keys(SOURCES).find(k=>SOURCES[k].host===h)||null}catch(e){return null}};
 
@@ -170,9 +176,7 @@ function migrate(){for(const f of fs.readdirSync(OUT)){if(!/^[0-9a-f]{3}\.json$/
    if(x.s==='iz'&&x.w){if(notArticle(x.t,x.h)){delete b.data[k];b.dirty=true;continue}const h=SOURCES.iz.tidy(x.h,x.t);if(h!==x.h){x.h=h;b.dirty=true}continue}
    if(x.s!=='fm')continue;
    if(/^<p>Filter:<a /.test(x.h)){delete b.data[k];b.dirty=true;continue} /* প্রশ্নের তালিকা-পাতা */
-   if(!/\/qna\//.test(x.u)){const h=x.h.replace(/<p>Citation is loading\.\.\.<\/p>/g,'').replace(/<p>Citation style:<\/p>/g,'').replace(/<table>[^<]+<tbody>/g,'<table><tbody>').replace(/\s+$/,''),
-     a=x.a.replace(/\s*\d+\s+(seconds?|minutes?|hours?|days?|weeks?|months?|years?)\s+ago.*$/,'').replace(/\s*Last Updated.*$/,'');
-    if(h!==x.h||a!==x.a){x.h=h;x.a=a;b.dirty=true}continue}
+   if(!/\/qna\//.test(x.u)){const h=SOURCES.fm.tidy(x.h),a=SOURCES.fm.who(x.a);if(h!==x.h||a!==x.a){x.h=h;x.a=a;b.dirty=true}continue}
    const h=x.h.replace(/^<h3>প্রশ্ন<\/h3>/,'<h2>প্রশ্ন</h2>').replace(/<h3>উত্তর<\/h3>/g,'<h2>উত্তর</h2>').replace(/&lt;img\b[^<]*?&gt;/g,'').replace(/<p>— [^<]*(@|\[email)[^<]*<\/p>/g,'').replace(/^<h2>প্রশ্ন<\/h2><p><\/p>/,'<h2>প্রশ্ন</h2><p>'+esc(x.t)+'</p>');
    const a=[...new Set(x.a.replace(/<img\b[^>]*>/g,' ').split(',').map(v=>v.replace(/\s+/g,' ').trim()).filter(Boolean))].join(', ');
    if(h!==x.h||a!==x.a){x.h=h;x.a=a;b.dirty=true}}}}
@@ -250,7 +254,7 @@ async function get(u,ms=30000){let last;for(let a=0;a<3;a++){try{const ac=new Ab
      else if(r.status===200){r.final=it.u;r.w=w.ts}}
     else r=await get(it.u);
     if(r.status!==200)fail=r.err||('HTTP '+r.status);
-    else{try{const $=cheerio.load(r.html);const x=src.extract($,r.final||it.u);const html=x.html!==undefined?x.html:(x.body&&x.body.length?clean($,x.body,r.final||it.u):'');const title=(x.title||'').replace(/\s+/g,' ').trim();
+    else{try{const $=cheerio.load(r.html);const x=src.extract($,r.final||it.u);let html=x.html!==undefined?x.html:(x.body&&x.body.length?clean($,x.body,r.final||it.u):'');if(src.tidy)html=src.tidy(html,(x.title||'').replace(/\s+/g,' ').trim());const title=(x.title||'').replace(/\s+/g,' ').trim();
       if(!title||textLen(html)<40)fail='no content';
       else if(src.fuzzy&&!sameTitle(title,it.t))fail='title mismatch: '+title.slice(0,70);
       else if(src.fuzzy&&notArticle(title,html))fail='not the article (download page): '+title.slice(0,70);
