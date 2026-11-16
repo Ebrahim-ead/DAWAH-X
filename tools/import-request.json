@@ -1,19 +1,17 @@
 {
- "set": "none",
- "hosts": [],
- "probe": [
-  "https://web.archive.org/web/20261116075911id_/https://www.insightzonebd.com/%E0%A6%97%E0%A6%A1-%E0%A6%85%E0%A6%AB-%E0%A6%A6%E0%A7%8D%E0%A6%AF-%E0%A6%97%E0%A7%8D%E0%A6%AF%E0%A6%BE%E0%A6%AA%E0%A6%B8",
-  "https://web.archive.org/web/20261116080051id_/https://www.insightzonebd.com/%E0%A6%87%E0%A6%B8%E0%A6%B2%E0%A6%BE%E0%A6%AE%E0%A7%87-%E0%A6%9C%E0%A6%BF%E0%A6%B9%E0%A6%BE%E0%A6%A6%E0%A7%87%E0%A6%B0-%E0%A6%AC%E0%A6%BF%E0%A6%A7%E0%A6%BE%E0%A6%A8"
+ "set": "all",
+ "hosts": [
+  "iz"
  ],
- "probeRaw": [
-  ".post-body",
-  0,
-  9000
- ],
- "probeKids": 4,
- "sel": [
-  "h1"
- ],
- "minutes": 10,
- "run": 27
+ "ts": {
+  "https://www.insightzonebd.com/মহাবিশ্বের-অসীম-অতীত-কী-সম্ভব": "20261116080043",
+  "https://www.insightzonebd.com/গড-অফ-দ্য-গ্যাপস": "20261116075911",
+  "https://www.insightzonebd.com/ইসলামে-কী-যুক্তি-চর্চা-হারাম-যুক্তিবিদ্যা-ও-ইলমুল-কালাম": "20261116080046",
+  "https://www.insightzonebd.com/ইসলামে-মুরতাদের-শাস্তি-মৃত্যুদন্ড-কী-অমানবিক": "20261116080050",
+  "https://www.insightzonebd.com/ইসলামে-জিহাদের-বিধান": "20261116080051",
+  "https://www.insightzonebd.com/ইসলামী-রাষ্ট্রে-অমুসলিম": "20261116080053",
+  "https://www.insightzonebd.com/মুসলিমরা-তওবা-করলে-কি-সব-অপরাধই-ক্ষমা-হয়ে-যায়": "20261116080056"
+ },
+ "minutes": 25,
+ "run": 28
 }

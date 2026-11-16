@@ -32,6 +32,32 @@ const SOURCES={
     .replace(/\s*<p>\s*URL Copied\s*<\/p>/g,'').replace(/(<\/(?:p|ol|ul|blockquote|h[234]|table)>)\s*([^<\s][^<]{0,80}?)\s*(<(?:ol|ul)>)/g,'$1<p>$2</p>$3').trim()},
    host:'www.insightzonebd.com',delay:13000,wayback:'insightzonebd.com',fuzzy:true,extract($,base){
    const title=($('meta[property="og:title"]').attr('content')||$('title').first().text()).replace(/\s+/g,' ').replace(/\s*[-–|]\s*Insight Zone\s*$/i,'').trim();
+   /* নতুন সাইট (২০২৬, WordPress নয়): main.post-main > h1.post-content-title, .post-meta-left (লেখক, তারিখ, পঠিত), .post-body।
+      লেখায় অনুচ্ছেদ-ট্যাগ প্রায়ই নেই — ফাঁকা লাইন = নতুন অনুচ্ছেদ, এক লাইন-ভাঙা = <br>; টীকা লেখার ভেতরে "(( … ))" আকারে (সাইট নিজে এগুলোকে নম্বর দেয়) */
+   const nb=$('.post-main .post-body').first();
+   if(nb.length){const t2=$('h1.post-content-title').first().text().replace(/\s+/g,' ').trim()||title.replace(/\s*[-–|]\s*ইনসাইট জোন\s*$/,'').trim();
+    const meta=$('.post-main .post-meta-left > span').toArray().map(e=>$(e).text().replace(/\s+/g,' ').trim());
+    const DM=/\b(\d{1,2}) (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*,? (\d{4})\b/,dm=DM.exec(meta.join(' | '));
+    const date=dm?dm[3]+'-'+String('JanFebMarAprMayJunJulAugSepOctNovDec'.indexOf(dm[2])/3+1).padStart(2,'0')+'-'+dm[1].padStart(2,'0'):'';
+    const author=meta[0]&&!DM.test(meta[0])&&!/বার পঠিত/.test(meta[0])?meta[0]:'';
+    nb.find('.post-footnotes-box,.share-box,.post-toc,script,style').remove();
+    for(let k=0;k<6&&nb.find('span').length;k++)nb.find('span').each((i,e)=>{$(e).replaceWith($(e).contents())});
+    const BL=new Set(['p','h1','h2','h3','h4','h5','h6','ul','ol','blockquote','table','div','figure','hr','pre','section']);
+    const autop=c=>{const out=[];let buf=[];
+     const flush=()=>{if(!buf.length)return;const h=buf.map(n=>$.html(n)).join('');buf=[];
+      for(const part of h.split(/\n[ \t\r]*\n/)){const t=part.replace(/^\s+|\s+$/g,'');if(t.replace(/<[^>]+>|&nbsp;|\s/g,'')||/<img\b/.test(t))out.push('<p>'+t.replace(/[ \t\r]*\n[ \t\r]*/g,'<br>')+'</p>')}};
+     for(const n of(c.children||[]).slice()){if(n.type==='tag'&&BL.has(n.tagName.toLowerCase())){flush();out.push($.html(n))}else if(n.type==='text'||n.type==='tag')buf.push(n)}
+     flush();$(c).html(out.join('\n'))};
+    for(const q of nb.find('blockquote').toArray().reverse())autop(q);
+    autop(nb.get(0));
+    let html=clean($,nb,base);const notes=[],bal=x=>['b','i','u','a','sup'].every(t=>(x.match(new RegExp('<'+t+'\\b','g'))||[]).length===(x.match(new RegExp('</'+t+'>','g'))||[]).length);
+    html=html.replace(/\s*\(\(((?:(?!\(\(|\)\)|<\/?(?:p|blockquote|h[234]|li|ul|ol|table|tr|td|th)\b)[\s\S])*?)\)\)/g,(m,t)=>{const x=t.replace(/^(?:\s|<br>)+|(?:\s|<br>)+$/g,'');
+     if(!x.replace(/<[^>]+>/g,'').trim()||!bal(x))return m;notes.push(x);return'<sup>'+notes.length+'</sup>'});
+    if(notes.length)html+='<h2>তথ্যসূত্র</h2><ol>'+notes.map(x=>'<li>'+x+'</li>').join('')+'</ol>';
+    html=SOURCES.iz.tidy(html,t2);
+    const junk=html.replace(/<[^>]+>/g,' ').match(/Leave a Comment|Post Comment|শেয়ার করুন|লিংক কপি|বার পঠিত|সূচিপত্র/);
+    if(junk)throw new Error('junk in content: '+junk[0]);
+    return{title:t2,html,date,author}}
    let body=$('.elementor-widget-theme-post-content').first();if(!body.length)body=$('.entry-content').first();if(!body.length)body=$('article').first();
    if(!body.length)return{title,html:''};
    body.find('.post-views,#wpd-post-rating,.wpd-rating,#comments,.comments-area,#wpdcom,[id^="wpd"],[class*="wpdiscuz"],[class*="wpd-"],.sharedaddy,.addtoany_share_save_container,#ez-toc-container,.ez-toc-container,.lwptoc,#toc_container,nav,.post-navigation,.elementor-post-navigation,.elementor-widget-share-buttons,.elementor-widget-post-navigation,.elementor-widget-post-comments,.elementor-widget-posts,.elementor-widget-post-info,.jp-relatedposts,.yarpp-related').remove();
