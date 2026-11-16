@@ -3,13 +3,14 @@
    ১) search/  — লেখার ভেতরের শব্দের সূচি (প্রশ্নোত্তর ও ফতোয়া পাতার সার্চ-বক্স এখান থেকে খোঁজে)
    ২) rel/     — প্রতিটি লেখার নিচে "এ বিষয়ে আরও পড়ুন"-এর তালিকা
    ৩) s/       — প্রতিটি লেখার ছোট শেয়ার-পাতা (Facebook/WhatsApp-এ লেখার নিজের শিরোনাম দেখানোর জন্য)
+   search/titles.json, search/tNN.json — শুধু শিরোনামের শব্দের সূচি (প্রশ্ন পাঠানোর পাতা লেখার সময় মিলে-যাওয়া লেখা দেখাতে এটি ব্যবহার করে)
    চালানো: node tools/build-site-data.cjs            (সাইটের ঠিকানা tools/site.json থেকে নেয়) */
 'use strict';
 const fs=require('fs'),path=require('path');
 const ROOT=path.join(__dirname,'..'),TEXTS=path.join(ROOT,'texts');
 const SITE=JSON.parse(fs.readFileSync(path.join(__dirname,'site.json'),'utf8')).url.replace(/\/*$/,'/');
 const SHARDS=512,REL_N=5;
-const ONLY=process.argv[2]||''; /* "search" | "rel" | "share" দিলে শুধু সেটি */
+const ONLY=process.argv[2]||''; /* "search" | "titles" | "rel" | "share" দিলে শুধু সেটি ("search" দিলে titles-ও হয়) */
 
 /* ---- app.js-এর foldBn()/searchTokens()/searchShard()-এর সাথে হুবহু এক হতে হবে ---- */
 const BN_DIGITS='০১২৩৪৫৬৭৮৯';
@@ -51,6 +52,26 @@ if(!ONLY||ONLY==='search'){
  fs.writeFileSync(path.join(out,'keys.txt'),docs.map(d=>d.k).join(''));
  fs.writeFileSync(path.join(out,'meta.json'),JSON.stringify({v:1,n:N,shards:SHARDS,stop:stop.sort()}));
  console.log('search: tokens',kept,'postings',np,'stop',stop.length,'MB',(size/1e6).toFixed(1),'largest shard KB',Math.round(max/1e3));
+}
+
+/* ---- ১খ) শিরোনামের সূচি (প্রশ্ন পাঠানোর পাতার জন্য): search/titles.json + search/tNN.json
+   titles.json = {v,n,shards,side,len}; side = প্রতিটি লেখার জন্য ১ বিট (base64): ১ = ফতোয়ার দিক (from=f), ০ = প্রশ্নোত্তরের দিক (from=q)
+                 len = প্রতিটি লেখার জন্য ১ অক্ষর: শিরোনামে কয়টি শব্দ (০–৬৩; নিচের LEN_CHARS-এর অবস্থান) — ছোট শিরোনামের মিলকে বেশি গুরুত্ব দিতে
+   tNN.json    = {শব্দ: কোন কোন লেখার শিরোনামে আছে} — search/NNN.json-এর মতোই সংকেত ও একই ভাগের নিয়ম (শুধু ভাগ ৬৪টি);
+                 শুধু-সংখ্যা এবং ১২%-এর বেশি শিরোনামে থাকা শব্দ বাদ ---- */
+if(!ONLY||ONLY==='search'||ONLY==='titles'){
+ const TSHARDS=64,post=new Map(),LEN_CHARS='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';let len='';
+ docs.forEach((d,i)=>{const seen=new Set(searchTokens(d.t).filter(t=>!/[\u0600-\u06ff]/.test(t)&&!/^\d+$/.test(t)));len+=LEN_CHARS[Math.min(63,seen.size)];
+  for(const t of seen){let a=post.get(t);if(!a)post.set(t,a=[]);a.push(i)}});
+ const cap=Math.floor(N*0.12),files=Array.from({length:TSHARDS},()=>({}));let kept=0,dropped=0;
+ for(const[tok,a]of[...post].sort((x,y)=>x[0]<y[0]?-1:1)){if(a.length>cap){dropped++;continue}
+  const bytes=[];let prev=-1;for(const id of a){let v=id-prev;prev=id;while(v>127){bytes.push((v&127)|128);v>>>=7}bytes.push(v)}
+  files[shardOf(tok)%TSHARDS][tok]=Buffer.from(bytes).toString('base64').replace(/=+$/,'');kept++}
+ const bits=Buffer.alloc(Math.ceil(N/8));docs.forEach((d,i)=>{if(sideOf(d.s)==='f')bits[i>>3]|=1<<(i&7)});
+ const out=path.join(ROOT,'search');fs.mkdirSync(out,{recursive:true});let size=0,max=0;
+ files.forEach((o,i)=>{const s=JSON.stringify(o);size+=Buffer.byteLength(s);max=Math.max(max,Buffer.byteLength(s));fs.writeFileSync(path.join(out,'t'+String(i).padStart(2,'0')+'.json'),s)});
+ fs.writeFileSync(path.join(out,'titles.json'),JSON.stringify({v:1,n:N,shards:TSHARDS,side:bits.toString('base64'),len}));
+ console.log('titles: tokens',kept,'dropped (too common)',dropped,'KB',Math.round(size/1e3),'largest shard KB',Math.round(max/1e3));
 }
 
 /* ---- ২) "এ বিষয়ে আরও পড়ুন" ---- */

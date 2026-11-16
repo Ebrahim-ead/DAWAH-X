@@ -31,6 +31,14 @@ Each page is its own `.html` file containing the shared chrome (head, SVG sprite
 
 `LINKS.whatsapp` in `app.js` (`https://wa.me/8801783543026`) feeds every `[data-link="whatsapp"]` element and the `#askwa` button on `ask.html`, which opens WhatsApp with the question prefilled (text is cut at 700 characters and also copied to the clipboard). Sprite symbol: `#wa`.
 
+## Ask form (`ask.html`)
+
+- Fields: `#an` name, `#ac` contact, `#at` topic, `#ar` religious identity (**required**; `compose()` in `app.js` blocks sending and focuses the select while it is empty), `#aq` question. The identity goes into the chat text ("ধর্মীয় পরিচয়: …") and into the form data as `religion`; `__forms.html` must list the same field names for Netlify.
+- Draft: the five fields are kept in `sessionStorage` (`dawahx-ask-draft`), because matching texts open in a new tab and the visitor comes back to the form.
+- Matching content while typing: `showSuggestions()` (600 ms debounce, 6+ characters) calls `SUGGEST.find(q)` and fills `#asksug` with up to 3 Q&A/article cards, 3 fatwa cards (`a.qcard.qcard-own` → `read.html?k=…`, new tab) and up to 2 videos (`button.ask-vid[data-video-id]`, opened by the lightbox in `effects.js`). Nothing in the box may link to another site.
+- `SUGGEST` reads `search/titles.json` + `search/tNN.json` (title-word index, 64 shards), the body shards `search/NNN.json` for word weights, `rel/*.json` for titles, and `youtube-videos.json` for videos. A text is shown only if most of the meaningful question words are in its title (at least two words, or one rare word). Greetings, question words and verb forms are listed in `ASK_SKIP` (folded spelling); add to it when a filler word causes wrong matches. Do not loosen the gate to single common words, and keep stems under 4 letters on exact match.
+- `#asksug` cards are exempt from the scroll-reveal animation (`.ask-sug [data-reveal]` in `style.css`); without that they stay invisible until scrolled into view.
+
 ## On-site reader for library texts (`read.html`, `texts/`)
 
 - `tools/import-texts.cjs` (run by `.github/workflows/import-texts.yml`; the sandbox cannot reach the source sites, GitHub runners can) fetches catalogue URLs, extracts the article with per-source selectors (`SOURCES`: `ai` al-itisam.com, `at` at-tahreek.com, `ra` response-to-anti-islam.com, `ia` islamicauthors.com), reduces it to an allow-list of tags and stores `{u,s,c,t,l,d,a,h}` in `texts/<last 3 hex of key>.json`. The workflow commits `texts/` back to the branch; pull before committing.
@@ -50,7 +58,7 @@ Each page is its own `.html` file containing the shared chrome (head, SVG sprite
 - Controls: `tools/import-request.json` (`set`, `hosts`, `limits`, `minutes`, bump `run` to trigger). A push that changes that file on any `arena/**` branch starts the workflow; `workflow_dispatch` works once the workflow is on `main`.
 
 ## Search index, related lists, share pages, topics (added 2026-11)
-- `tools/build-site-data.cjs` regenerates `search/` (512 token shards + `meta.json` + `keys.txt`), `rel/` (256 files) and `s/<key>.html` (one per text) from `texts/`. The import workflow runs it after every import and commits the three folders. Never edit them by hand; never `git add` half of them.
+- `tools/build-site-data.cjs` regenerates `search/` (512 token shards + `meta.json` + `keys.txt`, plus the title index `titles.json` + `t00…t63.json`; `titles` as argument rebuilds only that), `rel/` (256 files) and `s/<key>.html` (one per text) from `texts/`. The import workflow runs it after every import and commits the three folders. Never edit them by hand; never `git add` half of them.
 - `foldBn()`, `searchTokens()`, `searchShard()` exist twice — in `app.js` and in the builder — and must stay identical, otherwise the client looks in the wrong shard.
 - Library search (`setupLibrary`, `cfg.deep`): title matches first, then rows whose text key is in `DEEP.find(query)`; cards from body-only matches carry class `qcard-deep`. The reader highlights `?q=` terms (`markHits`).
 - Share links point to `s/<key>.html` (og tags + JS redirect to `read.html`). Do not add a canonical/og:url pointing at `read.html` there, or crawlers will take the generic preview.
