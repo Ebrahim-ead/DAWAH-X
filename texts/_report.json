@@ -39,9 +39,9 @@
    "done": 1,
    "failed": 5,
    "passes": 1,
-   "saves": 13,
+   "saves": 24,
    "lastSave": "0 TypeError: fetch failed ConnectTimeoutEr",
-   "busy": 36,
+   "busy": 73,
    "lastErr": "TypeError: fetch failed ConnectTimeoutError: Connect Timeout Error (attempted address: web.archive.o",
    "unarchived": 5
   }
@@ -52,5 +52,5 @@
   }
  },
  "total": 19872,
- "partial": "2026-11-16T08:29:00.084Z"
+ "partial": "2026-11-16T08:59:04.954Z"
 }
