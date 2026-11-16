@@ -221,7 +221,11 @@ async function get(u,ms=30000){let last;for(let a=0;a<3;a++){try{const ac=new Ab
  let WBP=null;
  for(let u of REQ.probe||[]){ /* "wb:<ঠিকানা>" = Internet Archive-এর সর্বশেষ সফল কপি */
   if(u.startsWith('wb:')){const dom=new URL(u.slice(3)).host.replace(/^www\./,'');WBP=WBP||{};WBP[dom]=WBP[dom]||(await waybackMap(dom)).map;const w=WBP[dom].get(wbNorm(u.slice(3)));if(!w){report.probe.push({u,status:'not archived'});continue}u='https://web.archive.org/web/'+w.ts+'id_/'+w.orig}
-  const r=await get(u,60000);const $=cheerio.load(r.html);$('script,style,noscript,svg,iframe').remove();
+  const r=await get(u,60000);const $=cheerio.load(r.html);
+  /* ভিডিওর খোঁজ (iframe মুছে ফেলার আগে): কোন উপাদানে, কোন বৈশিষ্ট্যে ভিডিওর ঠিকানা আছে */
+  const vids={ids:[...new Set(r.html.match(/(?:youtube(?:-nocookie)?\.com\/(?:embed\/|watch\?v=)|youtu\.be\/)[\w-]{6,20}/g)||[])].slice(0,8),
+   at:$('iframe,[data-video],[data-video-id],[data-src*="youtu"],[data-lazy-src*="youtu"],a[href*="youtu"],meta[property^="og:video"]').toArray().slice(0,8).map(e=>e.tagName+'.'+(e.attribs.class||'')+' '+JSON.stringify(Object.fromEntries(Object.entries(e.attribs).filter(([k])=>/^(src|href|content|data-)/.test(k)).map(([k,v])=>[k,v.slice(0,100)])))+' < '+$(e).parents().toArray().slice(0,5).map(p=>p.tagName+(p.attribs.id?'#'+p.attribs.id:'')+(p.attribs.class?'.'+p.attribs.class.trim().split(/\s+/).slice(0,3).join('.'):'')).join(' < '))};
+  $('script,style,noscript,svg,iframe').remove();
   const sig=e=>e.tagName+(e.attribs.id?'#'+e.attribs.id:'')+(e.attribs.class?'.'+e.attribs.class.trim().split(/\s+/).slice(0,4).join('.'):'');
   const walk=(e,d)=>$(e).children().toArray().slice(0,REQ.probeKids||22).map(c=>{const t=$(c).text().replace(/\s+/g,' ').trim();const o={s:sig(c),n:t.length,t:t.slice(0,40)};if(d<4&&t.length>200&&$(c).children().length)o.c=walk(c,d+1);return o});
   const o={u,status:r.status,err:r.err,final:r.final,len:r.html.length,title:$('title').text().trim().slice(0,80),h1:$('h1').toArray().slice(0,3).map(h=>({t:$(h).text().trim().slice(0,50),path:$(h).parents().toArray().slice(0,6).map(sig)}))};
@@ -229,6 +233,7 @@ async function get(u,ms=30000){let last;for(let a=0;a<3;a++){try{const ac=new Ab
   if(!best)best=$('main,article,body').first().get(0);if(best){o.best=sig(best);o.tree=walk(best,0)}
   o.time=$('time').toArray().slice(0,3).map(t=>sig(t)+' '+$(t).text().trim().slice(0,30)+' '+(t.attribs.datetime||''));
   o.meta=['og:title','article:published_time','author','og:site_name'].map(n=>n+'='+($('meta[property="'+n+'"],meta[name="'+n+'"]').attr('content')||'').slice(0,50));
+  o.vids=vids;
   if(REQ.sel)o.sel=REQ.sel.map(q=>[q,$(q).length,...$(q).toArray().slice(0,2).map(e=>sig(e)+' > '+$(e).children().toArray().slice(0,6).map(sig).join(' , ')+' :: '+$(e).text().replace(/\s+/g,' ').trim().slice(0,110))]);
   report.probe.push(o)}
  migrate(); /* তালিকা তৈরির আগে, যাতে মুছে দেওয়া রেকর্ড এই রানেই আবার আনা হয় */
