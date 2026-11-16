@@ -27,7 +27,7 @@
    "meta[name='author']"
   ]
  },
- "done": 255,
+ "done": 313,
  "skipped": 96,
  "failed": [
   [
@@ -510,11 +510,11 @@
  "bySource": {
   "fm": {
    "queued": 504,
-   "done": 250,
+   "done": 308,
    "failed": 110,
-   "passes": 2,
+   "passes": 3,
    "unarchived": 107,
-   "busy": 224,
+   "busy": 265,
    "lastErr": "TypeError: fetch failed ConnectTimeoutError: Connect Timeout Error (attempted address: web.archive.o"
   },
   "iz": {
@@ -647,6 +647,6 @@
    "cached": 486
   }
  },
- "total": 19730,
- "partial": "2026-11-16T05:37:15.647Z"
+ "total": 19788,
+ "partial": "2026-11-16T06:07:37.929Z"
 }
