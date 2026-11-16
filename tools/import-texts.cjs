@@ -250,6 +250,9 @@ async function get(u,ms=30000){let last;for(let a=0;a<3;a++){try{const ac=new Ab
     const at=['id','class','href','datetime','itemprop','rel'].filter(k=>n.attribs[k]).map(k=>' '+k+'="'+n.attribs[k].slice(0,k==='href'?40:90)+'"').join('');
     return'<'+n.tagName+at+'>'+(n.children||[]).map(sk).join('')+'</'+n.tagName+'>'};
    const all=root?sk(root):'',lim=REQ.probeLen||40000;o.html=all.length>lim?all.slice(0,lim*0.6)+' ⋯⋯ '+all.slice(-lim*0.4):all;o.htmlLen=all.length}
+  /* probeRaw: ["<সিলেক্টর>",শুরু,দৈর্ঘ্য] — মূল HTML-এর একটি টুকরো হুবহু (ফাঁকা জায়গা, লাইন-ভাঙা সহ) */
+  if(Array.isArray(REQ.probeRaw)){const raw=cheerio.load(r.html)(REQ.probeRaw[0]).first();const h=raw.length?cheerio.load(r.html).html(raw):'';o.rawLen=h.length;o.raw=h.slice(REQ.probeRaw[1]||0,(REQ.probeRaw[1]||0)+(REQ.probeRaw[2]||6000));
+   o.css=(r.html.match(/[^{}]*\.post-body[^{}]*\{[^}]*\}/g)||[]).slice(0,30).map(x=>x.replace(/\s+/g,' ').trim().slice(0,200));o.links=[...r.html.matchAll(/<link[^>]+rel=["']stylesheet["'][^>]*>/g)].map(m=>m[0].slice(0,200)).slice(0,12)}
   report.probe.push(o)}
  migrate(); /* তালিকা তৈরির আগে, যাতে মুছে দেওয়া রেকর্ড এই রানেই আবার আনা হয় */
  const want=new Set(REQ.hosts||Object.keys(SOURCES)),seen=new Set(),queue={};

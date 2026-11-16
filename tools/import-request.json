@@ -1,86 +1,19 @@
 {
- "set": "all",
- "hosts": [
-  "fm"
- ],
- "api": {
-  "fm": [
-   [
-    1,
-    "20261116091257"
-   ],
-   [
-    2,
-    "20261116091258"
-   ],
-   [
-    3,
-    "20261116091237"
-   ],
-   [
-    4,
-    "20261116091321"
-   ],
-   [
-    5,
-    "20261116091322"
-   ],
-   [
-    6,
-    "20261116091323"
-   ],
-   [
-    7,
-    "20261116091343"
-   ],
-   [
-    8,
-    "20261116091344"
-   ]
-  ]
- },
- "apiNames": {
-  "3663": "M. M. Apurba",
-  "4288": "ব্রাদার শফিকুল ইসলাম",
-  "5027": "LLM",
-  "6161": "studentsharifulislam6@gmail.com"
- },
- "ts": {
-  "https://www.frommuslims.com/%e0%a6%ac%e0%a7%80%e0%a6%b0%e0%a7%8d%e0%a6%af-%e0%a6%95%e0%a6%bf-%e0%a6%ae%e0%a7%87%e0%a6%b0%e0%a7%81%e0%a6%a6%e0%a6%a3%e0%a7%8d%e0%a6%a1-%e0%a6%93-%e0%a6%ac%e0%a6%95%e0%a7%8d%e0%a6%b7%e0%a6%aa/": "20261116094917",
-  "https://www.frommuslims.com/%e0%a6%86%e0%a6%af%e0%a6%bc%e0%a6%bf%e0%a6%b6%e0%a6%be-%e0%a6%b0%e0%a6%be-%e0%a6%95%e0%a6%bf-%e0%a6%ac%e0%a7%8b%e0%a6%a7%e0%a6%b8%e0%a6%ae%e0%a7%8d%e0%a6%aa%e0%a6%a8%e0%a7%8d%e0%a6%a8-%e0%a6%a8/": "20261116090321",
-  "https://www.frommuslims.com/%e0%a6%b0%e0%a6%be%e0%a6%b8%e0%a7%82%e0%a6%b2-%ef%b7%ba-%e0%a6%95%e0%a6%bf-%e0%a6%b8%e0%a6%be%e0%a6%93%e0%a6%a6%e0%a6%be-%e0%a6%b0%e0%a6%be-%e0%a6%95%e0%a7%87/": "20261116094920",
-  "https://www.frommuslims.com/%e0%a6%b0%e0%a7%8b%e0%a6%ae-%e0%a6%b8%e0%a6%ae%e0%a7%8d%e0%a6%b0%e0%a6%be%e0%a6%9f%e0%a7%87%e0%a6%b0-%e0%a6%b8%e0%a6%be%e0%a6%ae%e0%a6%a8%e0%a7%87-%e0%a6%87%e0%a6%ae%e0%a6%be%e0%a6%ae-%e0%a6%ac/": "20261116094954",
-  "https://www.frommuslims.com/%e0%a6%86%e0%a6%b0%e0%a6%ac%e0%a6%bf-%e0%a6%ad%e0%a6%be%e0%a6%b7%e0%a6%be%e0%a6%af%e0%a6%bc-%e0%a6%97%e0%a7%8b%e0%a6%b2%e0%a6%95%e0%a7%87%e0%a6%b0-%e0%a6%95%e0%a6%bf-%e0%a6%a6%e0%a7%88%e0%a6%b0/": "20261116095016",
-  "https://www.frommuslims.com/%e0%a6%b0%e0%a6%be%e0%a6%b8%e0%a7%81%e0%a6%b2%e0%a7%81%e0%a6%b2%e0%a7%8d%e0%a6%b2%e0%a6%be%e0%a6%b9-%ef%b7%ba-%e0%a6%93-%e0%a6%86%e0%a6%af%e0%a6%bc%e0%a6%bf%e0%a6%b6%e0%a6%be-%e0%a6%b0%e0%a6%be/": "20261116095018",
-  "https://www.frommuslims.com/%e0%a6%95%e0%a7%81%e0%a6%b0%e0%a6%86%e0%a6%a8%e0%a7%87%e0%a6%b0-%e0%a6%86%e0%a6%af%e0%a6%bc%e0%a6%be%e0%a6%a4-%e0%a6%ac%e0%a6%95%e0%a6%b0%e0%a7%80-%e0%a6%96%e0%a7%87%e0%a6%af%e0%a6%bc%e0%a7%87/": "20261116095020",
-  "https://www.frommuslims.com/%e0%a6%a6%e0%a6%be%e0%a6%9c%e0%a7%8d%e0%a6%9c%e0%a6%be%e0%a6%b2-%e0%a6%b9%e0%a6%bf%e0%a6%9c%e0%a6%ac%e0%a7%81%e0%a6%a4-%e0%a6%a4%e0%a6%be%e0%a6%93%e0%a6%b9%e0%a7%80%e0%a6%a6-%e0%a6%a8%e0%a6%be/": "20261116095110",
-  "https://www.frommuslims.com/en/are-afghan-women-neglected-in-the-earthquake/": "20261116095050",
-  "https://www.frommuslims.com/en/female-slaves-and-wives-sexual-purity-in-islam/": "20261116095051",
-  "https://www.frommuslims.com/en/what-is-umm-al-walad-is-selling-an-umm-al-walad-permissible/": "20261116095052"
- },
+ "set": "none",
+ "hosts": [],
  "probe": [
   "https://web.archive.org/web/20261116075911id_/https://www.insightzonebd.com/%E0%A6%97%E0%A6%A1-%E0%A6%85%E0%A6%AB-%E0%A6%A6%E0%A7%8D%E0%A6%AF-%E0%A6%97%E0%A7%8D%E0%A6%AF%E0%A6%BE%E0%A6%AA%E0%A6%B8",
   "https://web.archive.org/web/20261116080051id_/https://www.insightzonebd.com/%E0%A6%87%E0%A6%B8%E0%A6%B2%E0%A6%BE%E0%A6%AE%E0%A7%87-%E0%A6%9C%E0%A6%BF%E0%A6%B9%E0%A6%BE%E0%A6%A6%E0%A7%87%E0%A6%B0-%E0%A6%AC%E0%A6%BF%E0%A6%A7%E0%A6%BE%E0%A6%A8"
  ],
- "probeHtml": true,
- "probeDepth": 7,
- "probeKids": 30,
- "probeText": 16,
- "probeLen": 45000,
- "sel": [
-  "main",
-  "article",
-  "h1",
-  "time",
-  "[class*='author']",
-  "[class*='content']",
-  "[class*='toc']",
-  "[class*='prose']",
-  "[class*='footnote']",
-  "sup",
-  "[class*='related']",
-  "[class*='comment']"
+ "probeRaw": [
+  ".post-body",
+  0,
+  9000
  ],
- "minutes": 25,
- "run": 26
+ "probeKids": 4,
+ "sel": [
+  "h1"
+ ],
+ "minutes": 10,
+ "run": 27
 }
