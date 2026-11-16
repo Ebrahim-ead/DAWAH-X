@@ -64,6 +64,8 @@ const SOURCES={
    who(a){return a.replace(/\s*(?:January|February|March|April|May|June|July|August|September|October|November|December|জানু(?:\u09df|\u09af\u09bc)ারি|ফেব্রু(?:\u09df|\u09af\u09bc)ারি|মার্চ|এপ্রিল|মে|জুন|জুলাই|আগস্ট|সেপ্টেম্বর|অক্টোবর|নভেম্বর|ডিসেম্বর)\s+[0-9০-৯]{1,2},\s+[0-9০-৯]{4}.*$/,'')
     .replace(/\s*[0-9০-৯]+\s+\S+\s+ago.*$/,'').replace(/\s*Last Updated.*$/,'').replace(/\s+/g,' ').trim()},
    ver:3, /* নিষ্কাশন-নিয়মের সংস্করণ; নতুন রেকর্ডে v হিসেবে থাকে */
+   /* WordPress REST API: এক অনুরোধে ৫০টি লেখা (শুধু সাধারণ লেখা; প্রশ্নোত্তর এতে নেই) */
+   api:n=>'https://www.frommuslims.com/wp-json/wp/v2/posts?per_page=50&page='+n+'&_fields=link,date_gmt,title,content,coauthors',
    host:'www.frommuslims.com',delay:13000,wayback:'frommuslims.com',extract($,base){
    /* বসানো ইউটিউব ভিডিওর (iframe) জায়গায় ভিডিওর ঠিকানা, নইলে ভিডিও-নির্ভর লেখা ফাঁকা থেকে যায় */
    $('iframe').each((k,e)=>{const m=/(?:youtube(?:-nocookie)?\.com\/embed\/|youtu\.be\/)([\w-]{6,20})/.exec($(e).attr('data-src')||$(e).attr('data-lazy-src')||$(e).attr('src')||'');if(!m)return;
@@ -260,6 +262,34 @@ async function get(u,ms=30000){let last;for(let a=0;a<3;a++){try{const ac=new Ab
   if(!w.info.err&&hit.length)fs.writeFileSync(cf,JSON.stringify(Object.fromEntries(hit.map(u=>{const k=wbNorm(u),v=w.map.get(k);return[k,[v.ts,v.orig]]}))))}
  /* ts: {"<পাতার ঠিকানা>":"<১৪ অঙ্কের সময়>"} — CDX সূচিতে এখনো ওঠেনি এমন নতুন কপি সরাসরি ধরিয়ে দেওয়া যায় */
  if(REQ.ts)for(const u of Object.keys(REQ.ts)){const s=sourceOf(u);if(s&&WB[s]&&/^\d{14}$/.test(REQ.ts[u]))WB[s].set(wbNorm(u),{ts:REQ.ts[u],orig:u,pin:true})}
+ /* api: {"fm":[1,2,[3,"<সময়>"]]} — সাইটের REST API-র পাতাগুলোর Internet Archive কপি থেকে লেখা নেওয়া (এক কপিতে অনেক লেখা)।
+    আগে থেকে রাখা লেখার সাথে দৈর্ঘ্য মিলিয়ে দেখা হয়; না মিললে এ পথে কিছুই নেওয়া হয় না। লেখকের নাম: API শুধু লেখকের নম্বর দেয়,
+    তাই আগে আনা (এক লেখকের) লেখা থেকে নম্বর→নাম জেনে নেওয়া হয়; কোনো নম্বরের নাম জানা না থাকলে লেখাটি সাধারণ পথের জন্য থেকে যায় */
+ if(REQ.api)for(const s of Object.keys(REQ.api)){const src=SOURCES[s];if(!src||!src.api||!queue[s])continue;
+  const info=(report.api=report.api||{})[s]={pages:0,posts:0,done:0,errs:[]},posts=new Map();
+  for(const pg of REQ.api[s]){const n=Array.isArray(pg)?pg[0]:pg,ts=Array.isArray(pg)?pg[1]:'';let r={};
+   for(let a=0;a<8;a++){r=await getOnce('https://web.archive.org/web/'+(ts||'20301231235959')+'id_/'+src.api(n),240000);if(!r.busy)break;await sleep(30000)}
+   const m=/\/web\/(\d{14})id_\//.exec(r.final||'');let arr=null;if(r.status===200&&m)try{arr=JSON.parse(r.html)}catch(e){}
+   if(!Array.isArray(arr)){info.errs.push([n,r.status||0,(r.err||'').slice(0,60)]);await sleep(src.delay);continue}
+   info.pages++;for(const p of arr)if(p&&p.link&&p.content)posts.set(wbNorm(p.link),{p,w:m[1]});await sleep(src.delay)}
+  info.posts=posts.size;
+  const make=o=>{const p=o.p,$=cheerio.load('<html><head><meta property="article:published_time" content="'+esc(String(p.date_gmt||p.date||''))+'"></head><body><div id="the-post"><h1 class="post-title entry-title">'+((p.title&&p.title.rendered)||'')+'</h1><div class="entry-content">'+((p.content&&p.content.rendered)||'')+'</div></div></body></html>');
+   const x=src.extract($,p.link);let html=x.body&&x.body.length?clean($,x.body,p.link):'';if(src.tidy)html=src.tidy(html);return{title:(x.title||'').replace(/\s+/g,' ').trim(),html,date:(x.date||'').trim()}};
+  const cat=new Map();for(const r of[...builtinRows(),...catalogRows()])if(sourceOf(r[2])===s)cat.set(wbNorm(r[2]),keyOfUrl(r[2]));
+  const names={},ratios=[];let stored=0;
+  for(const[pth,o]of posts){const k=cat.get(pth);if(!k)continue;const rec=loadBucket(bucketOf(k)).data[k];if(!rec)continue;stored++;
+   const ids=o.p.coauthors||[];if(ids.length===1&&rec.a){const c=(names[ids[0]]=names[ids[0]]||{});c[rec.a]=(c[rec.a]||0)+1}
+   if(ratios.length<80){try{ratios.push(+(textLen(make(o).html)/Math.max(1,textLen(rec.h))).toFixed(3))}catch(e){ratios.push(0)}}}
+  const who=id=>{const c=names[id];return c?Object.keys(c).sort((a,b)=>c[b]-c[a])[0]:''};
+  const sorted=ratios.slice().sort((a,b)=>a-b),med=sorted[sorted.length>>1]||0,near=ratios.filter(v=>v>0.9&&v<1.1).length;
+  info.stored=stored;info.authors=Object.keys(names).length;info.check={n:ratios.length,median:med,near,min:sorted[0],max:sorted[sorted.length-1]};
+  info.ok=!!REQ.apiForce||(ratios.length>=10&&med>0.97&&med<1.03&&near>=0.7*ratios.length);
+  if(info.ok)queue[s]=queue[s].filter(it=>{const o=posts.get(wbNorm(it.u));if(!o)return true;
+   const ids=o.p.coauthors||[],au=ids.map(who);if(!ids.length||au.some(a=>!a)){info.noAuthor=(info.noAuthor||0)+1;return true}
+   try{const y=make(o);if(!y.title||textLen(y.html)<40)return true;
+    const b=loadBucket(bucketOf(it.k));b.data[it.k]={u:it.u,s,c:it.c,t:y.title,l:it.t,d:y.date.slice(0,10),a:[...new Set(au)].join(', '),h:y.html,w:o.w};if(src.ver)b.data[it.k].v=src.ver;b.dirty=true;info.done++;report.done++;return false}
+   catch(e){info.errs.push([it.u.slice(-40),String(e).slice(0,60)]);return true}});
+  flush()}
  const deadline=Date.now()+(REQ.minutes||300)*60000,limit=REQ.limit||Infinity;let lastFlush=Date.now();
  /* প্রতি ২ মিনিটে ফাইলে লেখা; প্রতি REQ.push (ডিফল্ট ৩০) মিনিটে শাখায় জমা, যাতে লম্বা রানের মাঝপথের ফল হারিয়ে না যায় */
  let lastPush=Date.now();
