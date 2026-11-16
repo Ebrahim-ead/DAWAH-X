@@ -1,5 +1,5 @@
 {
- "at": "2026-11-16T10:37:57.193Z",
+ "at": "2026-11-16T10:41:02.736Z",
  "request": {
   "set": "all",
   "hosts": [
@@ -7,9 +7,9 @@
    "ai"
   ],
   "minutes": 20,
-  "run": 31
+  "run": 32
  },
- "done": 0,
+ "done": 3,
  "skipped": 19022,
  "failed": [
   [
@@ -17,107 +17,15 @@
    "no content"
   ],
   [
-   "https://at-tahreek.com/article_details/6226",
-   "no content (redirected to https://at-tahreek.com/)"
-  ],
-  [
-   "https://at-tahreek.com/article_details/6177",
-   "no content (redirected to https://at-tahreek.com/)"
-  ],
-  [
-   "https://at-tahreek.com/article_details/6146",
-   "no content (redirected to https://at-tahreek.com/)"
-  ],
-  [
-   "https://at-tahreek.com/article_details/6039",
-   "no content (redirected to https://at-tahreek.com/)"
-  ],
-  [
-   "https://at-tahreek.com/article_details/5730",
-   "no content (redirected to https://at-tahreek.com/)"
-  ],
-  [
-   "https://at-tahreek.com/article_details/5689",
-   "no content (redirected to https://at-tahreek.com/)"
-  ],
-  [
-   "https://at-tahreek.com/article_details/5679",
-   "no content (redirected to https://at-tahreek.com/)"
-  ],
-  [
-   "https://at-tahreek.com/article_details/5674",
-   "no content (redirected to https://at-tahreek.com/)"
-  ],
-  [
-   "https://at-tahreek.com/article_details/5667",
-   "no content (redirected to https://at-tahreek.com/)"
-  ],
-  [
-   "https://at-tahreek.com/article_details/5634",
-   "no content (redirected to https://at-tahreek.com/)"
-  ],
-  [
-   "https://at-tahreek.com/article_details/5630",
-   "no content (redirected to https://at-tahreek.com/)"
-  ],
-  [
-   "https://at-tahreek.com/article_details/5629",
-   "no content (redirected to https://at-tahreek.com/)"
-  ],
-  [
-   "https://at-tahreek.com/article_details/5549",
-   "no content (redirected to https://at-tahreek.com/)"
-  ],
-  [
-   "https://at-tahreek.com/article_details/5499",
-   "no content (redirected to https://at-tahreek.com/)"
-  ],
-  [
-   "https://at-tahreek.com/article_details/5484",
-   "no content (redirected to https://at-tahreek.com/)"
-  ],
-  [
-   "https://at-tahreek.com/article_details/5475",
-   "no content (redirected to https://at-tahreek.com/)"
-  ],
-  [
-   "https://at-tahreek.com/article_details/12139",
-   "no content (redirected to https://at-tahreek.com/)"
-  ],
-  [
    "https://at-tahreek.com/article_details/10060",
-   "no content"
-  ],
-  [
-   "https://at-tahreek.com/article_details/5603",
-   "no content (redirected to https://at-tahreek.com/)"
-  ],
-  [
-   "https://at-tahreek.com/article_details/5537",
-   "no content (redirected to https://at-tahreek.com/)"
-  ],
-  [
-   "https://at-tahreek.com/article_details/5083",
-   "no content (redirected to https://at-tahreek.com/)"
-  ],
-  [
-   "https://at-tahreek.com/article_details/3791",
-   "no content"
-  ],
-  [
-   "https://at-tahreek.com/article_details/3790",
-   "no content"
-  ],
-  [
-   "https://at-tahreek.com/article_details/3789",
    "no content"
   ]
  ],
  "bySource": {
   "at": {
-   "queued": 24,
-   "done": 0,
-   "failed": 24,
+   "queued": 4,
+   "done": 3,
+   "failed": 1,
    "passes": 1
   },
   "ai": {
@@ -127,5 +35,5 @@
    "passes": 1
   }
  },
- "total": 20002
+ "total": 20005
 }
