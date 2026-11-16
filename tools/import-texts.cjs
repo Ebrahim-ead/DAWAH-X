@@ -46,11 +46,28 @@ const SOURCES={
  /* wayback: সাইটটি রানারকে ঢুকতে দেয় না, তাই Internet Archive-এ সংরক্ষিত সর্বশেষ কপি থেকে পড়া হয় */
  fm:{/* লেখা নয় এমন অংশ বাদ: "আরো পড়ুন / Read More" বাক্স, ধারাবাহিকের আগে-পরের লিংক, উদ্ধৃতি-বোতামের লেখা, ফাঁকা তালিকা */
    tidy(html){return html.replace(/<a [^>]*>\s*<p>\s*(?:Read More|আর[োও] প)[\s\S]*?<\/a>/g,'').replace(/<p>\s*Citation (?:style:|is loading\.\.\.)\s*<\/p>/g,'')
-    .replace(/Series Navigation\s*(?:<a [^>]*>[^<]*<\/a>\s*)+/g,'').replace(/<(ul|ol)>\s*<\/\1>/g,'').replace(/<table>[^<]+<tbody>/g,'<table><tbody>').trim()},
+    .replace(/Series Navigation\s*(?:<a [^>]*>[^<]*<\/a>\s*)+/g,'').replace(/<table>[^<]+<tbody>/g,'<table><tbody>')
+    /* সূচি-বাক্স ("Contents / Hide" ও মূল পাতার ভেতরের লিংকগুলো) */
+    .replace(/<p>\s*<b>Contents<\/b>\s*<a [^>]*>(?:Hide|Show)<\/a>\s*<\/p>\s*(?:(?:<p>\s*)?<a href="[^"]*#[^"]*"[^>]*>[^<]*<\/a>(?:\s*<\/p>)?\s*)*/g,'')
+    /* ধারাবাহিকের বাক্স: "This entry is part … in the series …" ও পর্বগুলোর ছবি-শিরোনাম-তারিখের তালিকা */
+    .replace(/(<p>\s*This entry is part [^<]*<a [^>]*>[^<]*<\/a>\s*<\/p>\s*)<h3>[^<]*<\/h3>\s*(?:(?:<p>\s*<a [^>]*>\s*<img [^>]*>\s*<\/a>\s*<\/p>\s*)?<h4>\s*<a [^>]*>[^<]*<\/a>\s*<\/h4>\s*<p>[^<]{3,30}[0-9০-৯]{4}\s*<\/p>\s*)+/g,'$1')
+    .replace(/<p>\s*This entry is part [^<]*<a [^>]*>[^<]*<\/a>\s*<\/p>/g,'')
+    /* ভিডিও-প্লেয়ারের বোতামের লেখা বাদ; ভিডিওর ছবির জায়গায় ভিডিওর ঠিকানা */
+    .replace(/<img src="https:\/\/i\.ytimg\.com\/vi\/([\w-]{6,20})\/[^"]*" alt="video"[^>]*>/g,'<p><a href="https://www.youtube.com/watch?v=$1" rel="noopener nofollow" target="_blank">https://www.youtube.com/watch?v=$1</a></p>')
+    .replace(/<p>\s*<a [^>]*>\s*<b>Embed<\/b>\s*<\/a>\s*<\/p>/g,'').replace(/<p>\s*Copy and paste this HTML code into your webpage to embed\.\s*<\/p>/g,'')
+    .replace(/<a href="https?:\/\/www\.intellywp\.com[^"]*"[^>]*>[\s\S]*?<\/a>/g,'')
+    /* ধারাবাহিকের অন্য দুই রকম বাক্স: "This is post … in the series …" + পর্বের তালিকা; লেখার একদম শুরুতে ধারাবাহিকের নাম + পর্বের তালিকা */
+    .replace(/<p>\s*This is post [^<]*<i>[^<]*<\/i>\s*<\/p>\s*<ol>(?:\s*<li>(?:[^<]*|\s*<a [^>]*>[^<]*<\/a>\s*)<\/li>)+\s*<\/ol>/g,'')
+    .replace(/^\s*<p>\s*<br>\s*<a [^>]*>[^<]*<\/a>\s*<\/p>\s*<ul>(?:\s*<li>(?:[^<]*|\s*<a [^>]*>[^<]*<\/a>\s*)<\/li>)+\s*<\/ul>/,'')
+    .replace(/<li>\s*<\/li>/g,'').replace(/<(ul|ol)>\s*<\/\1>/g,'').replace(/<p>\s*<\/p>/g,'').trim()},
    /* লেখকের নামের সাথে জুড়ে যাওয়া তারিখ ("… এপ্রিল 3, 2025", "… 1 সপ্তাহ ago", "… Last Updated:") বাদ */
    who(a){return a.replace(/\s*(?:January|February|March|April|May|June|July|August|September|October|November|December|জানু(?:\u09df|\u09af\u09bc)ারি|ফেব্রু(?:\u09df|\u09af\u09bc)ারি|মার্চ|এপ্রিল|মে|জুন|জুলাই|আগস্ট|সেপ্টেম্বর|অক্টোবর|নভেম্বর|ডিসেম্বর)\s+[0-9০-৯]{1,2},\s+[0-9০-৯]{4}.*$/,'')
     .replace(/\s*[0-9০-৯]+\s+\S+\s+ago.*$/,'').replace(/\s*Last Updated.*$/,'').replace(/\s+/g,' ').trim()},
+   ver:2, /* নিষ্কাশন-নিয়মের সংস্করণ; নতুন রেকর্ডে v হিসেবে থাকে */
    host:'www.frommuslims.com',delay:13000,wayback:'frommuslims.com',extract($,base){
+   /* বসানো ইউটিউব ভিডিওর (iframe) জায়গায় ভিডিওর ঠিকানা, নইলে ভিডিও-নির্ভর লেখা ফাঁকা থেকে যায় */
+   $('iframe').each((k,e)=>{const m=/(?:youtube(?:-nocookie)?\.com\/embed\/|youtu\.be\/)([\w-]{6,20})/.exec($(e).attr('data-src')||$(e).attr('data-lazy-src')||$(e).attr('src')||'');if(!m)return;
+    const u='https://www.youtube.com/watch?v='+m[1],a='<a href="'+u+'">'+u+'</a>';$(e).replaceWith($(e).closest('p').length?a:'<div>'+a+'</div>')});
    const title=$('h1.post-title,h1.entry-title').first().text(),name=(e,word)=>$(e).children('span').first().text().replace(/<img\b[^>]*>/g,' ').replace(/\s+/g,' ').trim().split(' '+word+' ')[0].replace(/\s+Staff$/,'').trim();
    /* প্রশ্নোত্তর পেজ (DW Question & Answer): প্রশ্ন + সব উত্তর; মন্তব্য, ভোট, শেয়ার বাদ */
    if($('.dwqa-questions-archive,.dwqa-questions-list').length&&!$('.dwqa-single-question').length)return{title,html:''}; /* প্রশ্নের তালিকা-পাতা, লেখা নয় */
@@ -176,7 +193,9 @@ function migrate(){for(const f of fs.readdirSync(OUT)){if(!/^[0-9a-f]{3}\.json$/
    if(x.s==='iz'&&x.w){if(notArticle(x.t,x.h)){delete b.data[k];b.dirty=true;continue}const h=SOURCES.iz.tidy(x.h,x.t);if(h!==x.h){x.h=h;b.dirty=true}continue}
    if(x.s!=='fm')continue;
    if(/^<p>Filter:<a /.test(x.h)){delete b.data[k];b.dirty=true;continue} /* প্রশ্নের তালিকা-পাতা */
-   if(!/\/qna\//.test(x.u)){const h=SOURCES.fm.tidy(x.h),a=SOURCES.fm.who(x.a);if(h!==x.h||a!==x.a){x.h=h;x.a=a;b.dirty=true}continue}
+   if(!/\/qna\//.test(x.u)){const h=SOURCES.fm.tidy(x.h),a=SOURCES.fm.who(x.a);
+    /* পুরোনো নিয়মে আনা ভিডিও-নির্ভর বা প্রায় ফাঁকা লেখা মুছে আবার আনা হয় (ভিডিওর ঠিকানা তখন বাদ পড়ত) */
+    if(!x.v&&(textLen(h)<600||(/ভিডিও|video/i.test(h)&&!/youtu/.test(h)))){delete b.data[k];b.dirty=true;continue}if(h!==x.h||a!==x.a){x.h=h;x.a=a;b.dirty=true}continue}
    const h=x.h.replace(/^<h3>প্রশ্ন<\/h3>/,'<h2>প্রশ্ন</h2>').replace(/<h3>উত্তর<\/h3>/g,'<h2>উত্তর</h2>').replace(/&lt;img\b[^<]*?&gt;/g,'').replace(/<p>— [^<]*(@|\[email)[^<]*<\/p>/g,'').replace(/^<h2>প্রশ্ন<\/h2><p><\/p>/,'<h2>প্রশ্ন</h2><p>'+esc(x.t)+'</p>');
    const a=[...new Set(x.a.replace(/<img\b[^>]*>/g,' ').split(',').map(v=>v.replace(/\s+/g,' ').trim()).filter(Boolean))].join(', ');
    if(h!==x.h||a!==x.a){x.h=h;x.a=a;b.dirty=true}}}}
@@ -258,7 +277,7 @@ async function get(u,ms=30000){let last;for(let a=0;a<3;a++){try{const ac=new Ab
       if(!title||textLen(html)<40)fail='no content';
       else if(src.fuzzy&&!sameTitle(title,it.t))fail='title mismatch: '+title.slice(0,70);
       else if(src.fuzzy&&notArticle(title,html))fail='not the article (download page): '+title.slice(0,70);
-      else{const b=loadBucket(bucketOf(it.k));b.data[it.k]={u:it.u,s,c:it.c,t:title,l:it.t,d:(x.date||'').trim(),a:(x.author||'').replace(/\s+/g,' ').trim(),h:html};if(r.w)b.data[it.k].w=r.w;b.dirty=true;st.done++;report.done++;streak=0}}catch(e){fail='parse: '+String(e).slice(0,80)}}
+      else{const b=loadBucket(bucketOf(it.k));b.data[it.k]={u:it.u,s,c:it.c,t:title,l:it.t,d:(x.date||'').trim(),a:(x.author||'').replace(/\s+/g,' ').trim(),h:html};if(r.w)b.data[it.k].w=r.w;if(src.ver)b.data[it.k].v=src.ver;b.dirty=true;st.done++;report.done++;streak=0}}catch(e){fail='parse: '+String(e).slice(0,80)}}
     if(fail){st.failed++;if(!src.wayback)streak++;if(report.failed.length<400)report.failed.push([it.u,fail])}
     await sleep(src.delay)}
    list=again;if(stop||!src.wayback)break}
