@@ -27,7 +27,7 @@
    "meta[name='author']"
   ]
  },
- "done": 374,
+ "done": 397,
  "skipped": 96,
  "failed": [
   [
@@ -509,17 +509,22 @@
   [
    "https://www.frommuslims.com/%e0%a6%a4%e0%a6%be%e0%a6%b2%e0%a6%bf%e0%a6%ac%e0%a6%be%e0%a6%a8-%e0%a6%93-%e0%a6%a8%e0%a6%be%e0%a6%b0%e0%a7%80%e0%a6%a6%e0%a7%87%e0%a6%b0-%e0%a6%b2%e0%a7%87%e0%a6%96%e0%a6%be-%e0%a6%ac%e0%a6%87/",
    "HTTP 404"
+  ],
+  [
+   "https://www.frommuslims.com/%e0%a6%b0%e0%a6%ac%e0%a7%80%e0%a6%a8%e0%a7%8d%e0%a6%a6%e0%a7%8d%e0%a6%b0%e0%a6%a8%e0%a6%be%e0%a6%a5%e0%a7%87%e0%a6%b0-%e0%a6%b8%e0%a6%be%e0%a6%ae%e0%a7%8d%e0%a6%aa%e0%a7%8d%e0%a6%b0%e0%a6%a6%e0%a6%be/",
+   "HTTP 404"
   ]
  ],
  "bySource": {
   "fm": {
    "queued": 504,
-   "done": 369,
-   "failed": 111,
-   "passes": 4,
+   "done": 392,
+   "failed": 112,
+   "passes": 21,
    "unarchived": 107,
-   "busy": 303,
-   "lastErr": "TypeError: fetch failed ConnectTimeoutError: Connect Timeout Error (attempted address: web.archive.o"
+   "busy": 336,
+   "lastErr": "TypeError: fetch failed ConnectTimeoutError: Connect Timeout Error (attempted address: web.archive.o",
+   "left": 0
   },
   "iz": {
    "queued": 14,
@@ -651,6 +656,5 @@
    "cached": 486
   }
  },
- "total": 19849,
- "partial": "2026-11-16T06:37:38.876Z"
+ "total": 19872
 }
