@@ -24,8 +24,23 @@ const SOURCES={
     /* লেখক-কার্ডের লেখা: "<ছবির আদ্যক্ষর> <নাম> <সংখ্যা> আর্টিকেল …" */
     author:(t=>{const m=t.match(/^\S{1,2}\s+(.{2,140}?)\s+[0-9০-৯]+\s*আর্টিকেল/);return m?m[1]:''})(art.find('.author-card').first().text().replace(/\s+/g,' ').trim())}}}
 ,
- /* manual: রানার থেকে আনা যায় না (Cloudflare); লেখা tools/add-texts.cjs দিয়ে tools/manual/ থেকে যোগ হয় */
- iz:{host:'www.insightzonebd.com',manual:true},
+ /* insightzonebd.com: রানার থেকে সরাসরি আনা যায় না (Cloudflare)। প্রশ্নোত্তর tools/add-texts.cjs দিয়ে tools/manual/ থেকে যোগ হয়;
+    প্রবন্ধ আসে Internet Archive-এ থাকা পুরোনো (WordPress) সংস্করণের কপি থেকে। পুরোনো ঠিকানা একটু আলাদা হতে পারে (fuzzy), তাই শিরোনাম মিলিয়ে নেওয়া হয়। */
+ iz:{host:'www.insightzonebd.com',delay:13000,wayback:'insightzonebd.com',fuzzy:true,extract($,base){
+   const title=($('meta[property="og:title"]').attr('content')||$('title').first().text()).replace(/\s+/g,' ').replace(/\s*[-–|]\s*Insight Zone\s*$/i,'').trim();
+   let body=$('.elementor-widget-theme-post-content').first();if(!body.length)body=$('.entry-content').first();if(!body.length)body=$('article').first();
+   if(!body.length)return{title,html:''};
+   body.find('.post-views,#wpd-post-rating,.wpd-rating,#comments,.comments-area,#wpdcom,[id^="wpd"],[class*="wpdiscuz"],[class*="wpd-"],.sharedaddy,.addtoany_share_save_container,#ez-toc-container,.ez-toc-container,.lwptoc,#toc_container,nav,.post-navigation,.elementor-post-navigation,.elementor-widget-share-buttons,.elementor-widget-post-navigation,.elementor-widget-post-comments,.elementor-widget-posts,.elementor-widget-post-info,.jp-relatedposts,.yarpp-related').remove();
+   /* টীকা: লেখার ভেতরের নম্বর <sup>; তালিকার "[↩]" ফেরত-লিংক বাদ */
+   body.find('a.footnote-back-link,a[href^="#identifier_"]').remove();
+   body.find('a.footnote-identifier-link,a[href^="#footnote_"]').each((k,e)=>{$(e).replaceWith('<sup>'+esc($(e).text().replace(/\s+/g,''))+'</sup>')});
+   let html=clean($,body,base).replace(/\s*\[\s*\]\s*(?=<\/li>)/g,'');
+   /* লেখার শুরুতে শিরোনামের পুনরাবৃত্তি বাদ (পাতার শিরোনামে আগেই আছে) */
+   const flat=t=>t.replace(/<[^>]+>/g,'').replace(/[\s?!।:;,.\-–—'"‘’“”]+/g,'').normalize('NFC');
+   html=html.replace(/^<h2>(.*?)<\/h2>\s*/,(m,t)=>flat(t)===flat(esc(title))?'':m);
+   const junk=html.replace(/<[^>]+>/g,' ').match(/wpDiscuz|Post Views|Article Rating|Notify of|Inline Feedbacks|Leave a (Reply|Comment)|Skip to content/);
+   if(junk)throw new Error('junk in content: '+junk[0]);
+   return{title,html,date:($('meta[property="article:published_time"]').attr('content')||'').slice(0,10),author:($('meta[name="author"]').attr('content')||'').trim()}}},
  /* wayback: সাইটটি রানারকে ঢুকতে দেয় না, তাই Internet Archive-এ সংরক্ষিত সর্বশেষ কপি থেকে পড়া হয় */
  fm:{host:'www.frommuslims.com',delay:13000,wayback:'frommuslims.com',extract($,base){
    const title=$('h1.post-title,h1.entry-title').first().text(),name=(e,word)=>$(e).children('span').first().text().replace(/<img\b[^>]*>/g,' ').replace(/\s+/g,' ').trim().split(' '+word+' ')[0].replace(/\s+Staff$/,'').trim();
@@ -112,7 +127,12 @@ const flush=()=>{for(const[b,o]of buckets)if(o.dirty){fs.writeFileSync(bucketFil
  idx.missing.sort();idx.keys.sort();fs.writeFileSync(path.join(OUT,'index.json'),JSON.stringify(idx));return n};
 
 /* ---- Internet Archive (Wayback Machine) ---- */
-const wbNorm=u=>{try{let p=new URL(u).pathname;try{p=decodeURIComponent(p)}catch(e){}return p.replace(/\/+$/,'')}catch(e){return''}};
+const wbNorm=u=>{try{let p=new URL(u).pathname;try{p=decodeURIComponent(p)}catch(e){}return p.replace(/\/+$/,'').normalize('NFC')}catch(e){return''}};
+/* শিরোনাম/ঠিকানার শব্দ মিলিয়ে দেখা */
+const words=t=>[...new Set(String(t).normalize('NFC').split(/[^\u0980-\u09ffA-Za-z0-9]+/).filter(w=>w.length>1))];
+const sameTitle=(a,b)=>{const A=words(a),B=words(b),n=A.filter(w=>B.includes(w)).length;return n>=Math.min(3,A.length,B.length)&&n>=0.75*Math.min(A.length,B.length)};
+/* পুরোনো ঠিকানার সাথে আংশিক মিল: শব্দ এক, বা একটি অন্যটির শুরু (কাটা পড়া স্লাগ) */
+const slugLike=(a,b)=>{const A=words(a),B=words(b),hit=A.filter(w=>B.some(v=>v===w||(Math.min(v.length,w.length)>=4&&(v.startsWith(w)||w.startsWith(v))))).length;return hit>=2&&hit>=0.6*Math.min(A.length,B.length)?hit/Math.max(A.length,B.length):0};
 /* প্রতিটি পেজের সর্বশেষ সফল (200) কপি: path → {ts,orig} */
 async function waybackMap(domain){const map=new Map(),info={rows:0,pages:0};let resume='';
  for(let i=0;i<60;i++){const r=await getSlow('https://web.archive.org/cdx/search/cdx?url='+domain+'&matchType=domain&output=json&fl=timestamp,original&filter=statuscode:200&filter=mimetype:text/html&limit=15000&showResumeKey=true'+(resume?'&resumeKey='+encodeURIComponent(resume):''),180000);
@@ -157,6 +177,9 @@ async function get(u,ms=30000){let last;for(let a=0;a<3;a++){try{const ac=new Ab
 
 (async()=>{
  fs.mkdirSync(OUT,{recursive:true});
+ /* স্থানীয় পরীক্ষা: IMPORT_TEST="<উৎস>,<html ফাইল>,<ঠিকানা>" দিলে শুধু সেই ফাইল থেকে লেখা বের করে দেখায় */
+ if(process.env.IMPORT_TEST){const[ts,tf,tu]=process.env.IMPORT_TEST.split(',');const $=cheerio.load(fs.readFileSync(tf,'utf8'));const x=SOURCES[ts].extract($,tu);
+  console.log(JSON.stringify({title:x.title,date:x.date,author:x.author,html:x.html!==undefined?x.html:clean($,x.body,tu)},null,1));return}
  const report={at:new Date().toISOString(),request:REQ,done:0,skipped:0,failed:[],bySource:{}};
  /* ping: কোনো ঠিকানা (ফিড/API/সাইটম্যাপ) এই সার্ভার থেকে খোলে কি না দেখার জন্য */
  if(REQ.ping)report.ping=[];
@@ -168,7 +191,7 @@ async function get(u,ms=30000){let last;for(let a=0;a<3;a++){try{const ac=new Ab
  /* probe: অচেনা সাইটের পেজের গঠন দেখার জন্য (texts/_report.json-এ যায়) */
  let WBP=null;
  for(let u of REQ.probe||[]){ /* "wb:<ঠিকানা>" = Internet Archive-এর সর্বশেষ সফল কপি */
-  if(u.startsWith('wb:')){WBP=WBP||(await waybackMap('frommuslims.com')).map;const w=WBP.get(wbNorm(u.slice(3)));if(!w){report.probe.push({u,status:'not archived'});continue}u='https://web.archive.org/web/'+w.ts+'id_/'+w.orig}
+  if(u.startsWith('wb:')){const dom=new URL(u.slice(3)).host.replace(/^www\./,'');WBP=WBP||{};WBP[dom]=WBP[dom]||(await waybackMap(dom)).map;const w=WBP[dom].get(wbNorm(u.slice(3)));if(!w){report.probe.push({u,status:'not archived'});continue}u='https://web.archive.org/web/'+w.ts+'id_/'+w.orig}
   const r=await get(u,60000);const $=cheerio.load(r.html);$('script,style,noscript,svg,iframe').remove();
   const sig=e=>e.tagName+(e.attribs.id?'#'+e.attribs.id:'')+(e.attribs.class?'.'+e.attribs.class.trim().split(/\s+/).slice(0,4).join('.'):'');
   const walk=(e,d)=>$(e).children().toArray().slice(0,REQ.probeKids||22).map(c=>{const t=$(c).text().replace(/\s+/g,' ').trim();const o={s:sig(c),n:t.length,t:t.slice(0,40)};if(d<4&&t.length>200&&$(c).children().length)o.c=walk(c,d+1);return o});
@@ -186,9 +209,13 @@ async function get(u,ms=30000){let last;for(let a=0;a<3;a++){try{const ac=new Ab
   if(loadBucket(bucketOf(k)).data[k]){report.skipped++;continue}(queue[s]=queue[s]||[]).push({k,s,c:r[0],t:r[1],u:r[2]})}
  const WB={};
  for(const s of Object.keys(SOURCES))if(SOURCES[s].wayback&&(queue[s]||REQ.wayback)){const cf=path.join(OUT,'_wayback-'+s+'.json');
-  if(fs.existsSync(cf)&&!REQ.wayback){WB[s]=new Map(Object.entries(JSON.parse(fs.readFileSync(cf,'utf8'))).map(([k,v])=>[k,{ts:v[0],orig:v[1]}]));(report.wayback=report.wayback||{})[s]={cached:WB[s].size};continue}
+  if(fs.existsSync(cf)&&!REQ.wayback){WB[s]=new Map(Object.entries(JSON.parse(fs.readFileSync(cf,'utf8'))).map(([k,v])=>[k.normalize('NFC'),{ts:v[0],orig:v[1]}]));(report.wayback=report.wayback||{})[s]={cached:WB[s].size};continue}
   const w=await waybackMap(SOURCES[s].wayback);WB[s]=w.map;
-  const all=[...new Set([...builtinRows(),...catalogRows()].map(r=>r[2]).filter(u=>sourceOf(u)===s))],hit=all.filter(u=>!/\?/.test(u)&&w.map.has(wbNorm(u)));
+  const all=[...new Set([...builtinRows(),...catalogRows()].map(r=>r[2]).filter(u=>sourceOf(u)===s))];
+  if(SOURCES[s].fuzzy){const paths=[...w.map.keys()];w.info.fuzzy=[];for(const u of all){const k=wbNorm(u);if(/\?/.test(u)||w.map.has(k)||/^\/question\//.test(k))continue;
+    let best='',sc=0;for(const p2 of paths){if((p2.match(/\//g)||[]).length!==1)continue;const v=slugLike(k,p2);if(v>sc){sc=v;best=p2}}
+    if(best){w.map.set(k,w.map.get(best));w.info.fuzzy.push([k,best])}}}
+  const hit=all.filter(u=>!/\?/.test(u)&&w.map.has(wbNorm(u)));
   w.info.catalog=all.length;w.info.matched=hit.length;w.info.newest=hit.map(u=>w.map.get(wbNorm(u)).ts.slice(0,4)).reduce((o,y)=>(o[y]=(o[y]||0)+1,o),{});
   w.info.qna=[all.filter(u=>/\/qna\/./.test(u)).length,hit.filter(u=>/\/qna\/./.test(u)).length];w.info.unmatched=all.filter(u=>!hit.includes(u)).slice(0,8).map(u=>{try{return decodeURI(u)}catch(e){return u}});(report.wayback=report.wayback||{})[s]=w.info;
   if(!w.info.err&&hit.length)fs.writeFileSync(cf,JSON.stringify(Object.fromEntries(hit.map(u=>{const k=wbNorm(u),v=w.map.get(k);return[k,[v.ts,v.orig]]}))))}
@@ -219,6 +246,7 @@ async function get(u,ms=30000){let last;for(let a=0;a<3;a++){try{const ac=new Ab
     if(r.status!==200)fail=r.err||('HTTP '+r.status);
     else{try{const $=cheerio.load(r.html);const x=src.extract($,r.final||it.u);const html=x.html!==undefined?x.html:(x.body&&x.body.length?clean($,x.body,r.final||it.u):'');const title=(x.title||'').replace(/\s+/g,' ').trim();
       if(!title||textLen(html)<40)fail='no content';
+      else if(src.fuzzy&&!sameTitle(title,it.t))fail='title mismatch: '+title.slice(0,70);
       else{const b=loadBucket(bucketOf(it.k));b.data[it.k]={u:it.u,s,c:it.c,t:title,l:it.t,d:(x.date||'').trim(),a:(x.author||'').replace(/\s+/g,' ').trim(),h:html};if(r.w)b.data[it.k].w=r.w;b.dirty=true;st.done++;report.done++;streak=0}}catch(e){fail='parse: '+String(e).slice(0,80)}}
     if(fail){st.failed++;if(!src.wayback)streak++;if(report.failed.length<400)report.failed.push([it.u,fail])}
     await sleep(src.delay)}
