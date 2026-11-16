@@ -9,7 +9,7 @@ const LINKS={
   personal:"https://ebrahim-ead.github.io/ead/" /* পরিচালকের ব্যক্তিগত সাইট — ফুটার ও “আমাদের সম্পর্কে” পাতার লিংক */
 };
 const MESSENGER="https://m.me/61595349861689"; /* প্রশ্ন এই Messenger ইনবক্সে যায় */
-const ASK_ACTION="https://formspree.io/f/xgakagde"; /* Formspree ফর্ম: "প্রশ্ন পাঠান" চাপলে প্রশ্ন সরাসরি এই ফর্মের ইমেইলে আসে। ফাঁকা ("") রাখলে আগের মতো Messenger খোলে */
+const ASK_ACTION="https://formsubmit.co/ajax/www.mdrazu55555@gmail.com"; /* FormSubmit (formsubmit.co): "প্রশ্ন পাঠান" চাপলে প্রশ্ন সরাসরি এই ইমেইল ঠিকানায় আসে। ঠিকানা বদলাতে /ajax/-এর পরের অংশ বদলান (FormSubmit-এর দেওয়া এলোমেলো কোডও বসানো যায়, তাতে ঠিকানাটি কোডে দেখা যায় না)। ফাঁকা ("") রাখলে আগের মতো Messenger খোলে */
 /* ================================== */
 
 const $=id=>document.getElementById(id);
@@ -956,7 +956,7 @@ setupLibrary({id:"f",deep:PAGE==="fatwa",rows:FT,manifest:PAGE==="fatwa"?FATWA_P
 /* ===== প্রশ্ন পাঠানো =====
    "WhatsApp-এ পাঠান": প্রশ্নটি লেখা অবস্থায় DAWAH X-এর WhatsApp চ্যাট খোলে (সব হোস্টে কাজ করে)।
    দ্বিতীয় বোতাম:
-   ১) ASK_ACTION দিলে প্রশ্ন সেই ঠিকানায় (যেমন Formspree) সরাসরি জমা হয়।
+   ১) ASK_ACTION দিলে প্রশ্ন সেই ঠিকানায় (এখন FormSubmit) সরাসরি জমা হয়।
    ২) সাইট Netlify-তে থাকলে Netlify Forms-এ (`question` ফর্ম) জমা হয়।
    ৩) অন্যথায় (যেমন GitHub Pages) প্রশ্ন কপি হয়ে DAWAH X-এর Messenger খোলে।
    WhatsApp/Messenger-এ ভিজিটর Send চাপলে তবেই প্রশ্ন পৌঁছায়। */
@@ -1041,12 +1041,17 @@ setupLibrary({id:"f",deep:PAGE==="fatwa",rows:FT,manifest:PAGE==="fatwa"?FATWA_P
    try{
     let ok=false;
     if(ASK_ACTION){
-     /* Formspree: ফাঁকা ঘর বাদ; _subject = ইমেইলের শিরোনাম; যোগাযোগের ঘরে ইমেইল থাকলে email হিসেবেও যায় (তখন ইমেইলে Reply চাপলেই উত্তর দেওয়া যায়) */
+     /* FormSubmit: ফাঁকা ঘর বাদ; _subject = ইমেইলের শিরোনাম; _captcha:"false" = কোনো reCAPTCHA নয়; _template:"table" = ইমেইলে ঘরগুলো ছকে;
+        যোগাযোগের ঘরে ইমেইল থাকলে email ও _replyto হিসেবেও যায় (তখন ইমেইলে Reply চাপলেই উত্তর দেওয়া যায়)।
+        উত্তরে success "true" না এলে (যেমন ফর্ম এখনো সক্রিয় করা হয়নি) জমা হয়নি ধরে Messenger/WhatsApp-এর পথ দেখানো হয় */
      const out={};for(const k in data)if(data[k])out[k]=data[k];
-     out._subject="DAWAH X — নতুন প্রশ্ন ("+data.topic+")";
-     if(/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(data.contact))out.email=data.contact;
+     out._subject="DAWAH X — নতুন প্রশ্ন ("+data.topic+")";out._captcha="false";out._template="table";
+     if(/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(data.contact)){out.email=data.contact;out._replyto=data.contact}
      const ctl=typeof AbortController==="function"?new AbortController():null,timer=ctl?setTimeout(()=>ctl.abort(),20000):0;
-     try{const r=await fetch(ASK_ACTION,{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json"},body:JSON.stringify(out),signal:ctl?ctl.signal:undefined});ok=r.ok}
+     try{const r=await fetch(ASK_ACTION,{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json"},body:JSON.stringify(out),signal:ctl?ctl.signal:undefined});
+      let j=null;try{j=await r.json()}catch(e){}
+      /* FormSubmit সফল হলে {"success":"true"} দেয়; অন্য কিছু এলে (ত্রুটির পাতা, "needs Activation") জমা হয়নি ধরা হয়, যাতে প্রশ্ন নীরবে হারিয়ে না যায় */
+      ok=r.ok&&(/formsubmit\.co/i.test(ASK_ACTION)?Boolean(j)&&String(j.success)==="true":!(j&&typeof j==="object"&&"success" in j&&String(j.success)!=="true"))}
      finally{clearTimeout(timer)}}
     else{const body=new URLSearchParams({"form-name":"question",...data,"bot-field":""});
      const r=await fetch("__forms.html",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:body.toString()});
