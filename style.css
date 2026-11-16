@@ -590,6 +590,8 @@ a,button,input,select,textarea,.chip,.qcard{touch-action:manipulation;-webkit-ta
 .article-body h3,.article-body h4{margin:26px 0 8px;color:#fff;font-size:clamp(18px,2.4vw,21px);line-height:1.5}
 .article-body blockquote{margin:18px 0;padding:14px 18px;border-left:3px solid var(--gold);border-radius:0 12px 12px 0;background:rgba(255,255,255,.04)}
 .article-body blockquote p:last-child{margin-bottom:0}
+.article-video{margin:4px 0 14px;border-radius:14px;border:1px solid var(--line);box-shadow:0 10px 36px rgba(0,0,0,.35)}
+.article-video-tip{margin:0;color:var(--muted,#9fb0c3);font-size:14.5px}
 .article-body img{display:block;max-width:100%;height:auto;margin:18px auto;border-radius:10px}
 .article-body .imgmiss{display:block;margin:14px 0;color:var(--muted);font-size:14px}
 .article-body table{display:block;max-width:100%;overflow-x:auto;margin:18px 0;border-collapse:collapse;font-size:15px}

@@ -366,7 +366,9 @@ async function get(u,ms=30000){let last;for(let a=0;a<3;a++){try{const ac=new Ab
     else r=await get(it.u);
     if(r.status!==200)fail=r.err||('HTTP '+r.status);
     else{try{const $=cheerio.load(r.html);const x=src.extract($,r.final||it.u);let html=x.html!==undefined?x.html:(x.body&&x.body.length?clean($,x.body,r.final||it.u):'');if(src.tidy)html=src.tidy(html,(x.title||'').replace(/\s+/g,' ').trim());const title=(x.title||'').replace(/\s+/g,' ').trim();
-      if(!title||textLen(html)<40)fail='no content';
+      /* পত্রিকার প্রশ্নোত্তরে (শিরোনাম "প্রশ্ন …", লেখা "উত্তর …") এক বাক্যের উত্তরও পূর্ণ লেখা, যেমন "উত্তরঃ এটি কোন হাদীছ নয়।" */
+      const min=/^প্রশ্ন/.test(title)&&/^(?:<[^>]+>|\s)*উত্তর/.test(html)?12:40;
+      if(!title||textLen(html)<min)fail='no content';
       else if(src.fuzzy&&!r.pin&&!sameTitle(title,it.t))fail='title mismatch: '+title.slice(0,70);
       else if(src.fuzzy&&notArticle(title,html))fail='not the article (download page): '+title.slice(0,70);
       else{const b=loadBucket(bucketOf(it.k));b.data[it.k]={u:it.u,s,c:it.c,t:title,l:it.t,d:(x.date||'').trim(),a:noMail((x.author||'').replace(/\s+/g,' ').trim()),h:html};if(r.w)b.data[it.k].w=r.w;if(src.ver)b.data[it.k].v=src.ver;b.dirty=true;st.done++;report.done++;streak=0}}catch(e){fail='parse: '+String(e).slice(0,80)}}
