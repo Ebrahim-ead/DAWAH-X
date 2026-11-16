@@ -1,1 +1,1 @@
-{"set":"all","hosts":["fm","iz"],"minutes":300,"run":18,"probe":["wb:https://www.insightzonebd.com/বিজ্ঞান-কি"],"sel":[".elementor-widget-theme-post-content",".entry-content","article",".post-views","ol.footnotes","a[href^='#footnote_']","a[href^='#identifier_']","#wpdcom","#comments","[class*='wpd']","h1","h2","meta[name='author']"]}
+{"set":"all","hosts":["fm","iz"],"minutes":45,"run":19}
