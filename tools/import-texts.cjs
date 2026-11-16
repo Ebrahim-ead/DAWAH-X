@@ -16,7 +16,8 @@ const SOURCES={
    return{title:$('.section-title h1').first().text(),body:$('.post-cont-wrapper').first(),date:(meta.match(/[\u0980-\u09ff]+\s+[০-৯0-9]{1,2},\s*[০-৯0-9]{4}/)||[''])[0],author:''}}},
  ra:{host:'www.response-to-anti-islam.com',delay:500,extract($){const head=$('h1.post-title').first().parent();
    return{title:$('h1.post-title').first().text(),body:$('.entry-content').first(),date:(head.text().match(/[A-Z][a-z]{2} \d{1,2}, \d{4}/)||[''])[0],author:head.find('a[href*="author_id"]').first().text()}}},
- at:{host:'at-tahreek.com',delay:350,extract($){const body=$('.main_content_area .article-details').first();body.find('.subjects,.fb-comments,#fb-root,.related-articles').remove();
+ /* cardTitle: কিছু পাতার শিরোনামে ভাঙা HTML থাকায় h1 ফাঁকা আসে; তখন তালিকার শিরোনামই নেওয়া হয় */
+ at:{host:'at-tahreek.com',delay:350,cardTitle:true,extract($){const body=$('.main_content_area .article-details').first();body.find('.subjects,.fb-comments,#fb-root,.related-articles').remove();
    const crumbs=$('.styled_breadcumb a').toArray().map(a=>$(a).text().replace(/\s+/g,' ').trim()).filter(Boolean);
    return{title:$('.bread-title h1').first().text(),body,date:crumbs.find(t=>/[০-৯0-9]{4}/.test(t))||'',author:''}}},
  ia:{host:'islamicauthors.com',delay:600,extract($){const art=$('article.article-body').first();
@@ -365,7 +366,7 @@ async function get(u,ms=30000){let last;for(let a=0;a<3;a++){try{const ac=new Ab
      else if(r.status===200){r.final=it.u;r.w=r.w||w.ts;r.pin=!!(w&&w.pin)}}
     else r=await get(it.u);
     if(r.status!==200)fail=r.err||('HTTP '+r.status);
-    else{try{const $=cheerio.load(r.html);const x=src.extract($,r.final||it.u);let html=x.html!==undefined?x.html:(x.body&&x.body.length?clean($,x.body,r.final||it.u):'');if(src.tidy)html=src.tidy(html,(x.title||'').replace(/\s+/g,' ').trim());const title=(x.title||'').replace(/\s+/g,' ').trim();
+    else{try{const $=cheerio.load(r.html);const x=src.extract($,r.final||it.u);let html=x.html!==undefined?x.html:(x.body&&x.body.length?clean($,x.body,r.final||it.u):'');if(src.tidy)html=src.tidy(html,(x.title||'').replace(/\s+/g,' ').trim());const title=(x.title||'').replace(/\s+/g,' ').trim()||(src.cardTitle&&textLen(html)>=40?it.t:'');
       /* পত্রিকার প্রশ্নোত্তরে (শিরোনাম "প্রশ্ন …", লেখা "উত্তর …") এক বাক্যের উত্তরও পূর্ণ লেখা, যেমন "উত্তরঃ এটি কোন হাদীছ নয়।" */
       const min=/^প্রশ্ন/.test(title)&&/^(?:<[^>]+>|\s)*উত্তর/.test(html)?12:40;
       if(!title||textLen(html)<min)fail='no content'+(r.final&&r.final.replace(/\/$/,'')!==it.u.replace(/\/$/,'')?' (redirected to '+r.final.slice(0,90)+')':'');
