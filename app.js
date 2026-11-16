@@ -350,7 +350,8 @@ function setupLibrary(cfg){
   setStatus(cfg.loadingText);draw();
   try{
    await Promise.all(jobs);
-   setStatus(loaded.size===manifest.length?`সম্পূর্ণ সূচি প্রস্তুত · ${formatCount(total)}টি রেফারেন্স`:`${category===ALL?"সূচি":category+" বিভাগ"} প্রস্তুত · ${formatCount(selected.reduce((n,x)=>n+x.count,0))}টি রেফারেন্স`);
+   /* সংখ্যাটি তালিকার প্রকৃত সারি থেকে (বাছাইকৃত + পূর্ণ সূচি, একই লিংক একবার) — নিচের পৃষ্ঠা-বারের "মোট"-এর সাথে মেলে */
+   setStatus(loaded.size===manifest.length?`সম্পূর্ণ সূচি প্রস্তুত · ${formatCount(rows.length)}টি রেফারেন্স`:`${category===ALL?"সূচি":category+" বিভাগ"} প্রস্তুত · ${formatCount(rows.filter(x=>inCategory(x,category)).length)}টি রেফারেন্স`);
   }catch(e){
    await Promise.allSettled(jobs);failed=true;
    setStatus("সূচি লোড হয়নি — ইন্টারনেট সংযোগ দেখে আবার সার্চ/বিভাগ নির্বাচন করুন।");
@@ -385,7 +386,7 @@ function setupLibrary(cfg){
  search.addEventListener("input",()=>onSearch(false));
  search.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();onSearch(true)}});
 
- if(manifest.length)setStatus(`${cfg.label} (${formatCount(total)}টি) — সার্চ করলে, বিভাগ বাছলে বা পরের পৃষ্ঠাগুলোতে গেলে লোড হবে।`);
+ if(manifest.length)setStatus(`${cfg.label} (প্রায় ${formatCount(base.length+total)}টি) — সার্চ করলে, বিভাগ বাছলে বা পরের পৃষ্ঠাগুলোতে গেলে লোড হবে।`);
  /* ঠিকানায় রাখা অবস্থা ফেরানো (?c=বিভাগ &s=খোঁজ &p=পৃষ্ঠা) */
  if(own){const P=new URLSearchParams(location.search),c=P.get("c"),s=(P.get("s")||"").trim().slice(0,80),p=parseInt(P.get("p"),10);
   if(c&&cats.includes(c)){cur=c;restored=true}
@@ -945,8 +946,8 @@ const QUESTION_PARTS=[
 const FATWA_PARTS=[
  {category:"আত-তাহরীক",src:"fatwa-catalog-part-00.js",count:7996},
  {category:"আল-ইতিছাম",src:"fatwa-catalog-part-01.js",count:4641},
- {category:"আত-তাহরীক · প্রবন্ধ",src:"fatwa-catalog-part-02.js",count:3600},
- {category:"আল-ইতিছাম · প্রবন্ধ",src:"fatwa-catalog-part-03.js",count:2253},
+ {category:"আত-তাহরীক · প্রবন্ধ",src:"fatwa-catalog-part-02.js",count:3599},
+ {category:"আল-ইতিছাম · প্রবন্ধ",src:"fatwa-catalog-part-03.js",count:2252},
  {category:"আল-ইতিছাম · অতিরিক্ত প্রশ্নোত্তর",src:"fatwa-catalog-part-04.js",count:143}
 ];
 setupLibrary({id:"q",deep:PAGE==="qa",eager:true,rows:QS,manifest:PAGE==="qa"?QUESTION_PARTS:[],partsKey:"DAWAH_QUESTIONS_PARTS",label:"পূর্ণ সূচি",loadingText:"পূর্ণ প্রশ্নোত্তর সূচি লোড হচ্ছে…"});
@@ -1052,3 +1053,8 @@ setupLibrary({id:"f",deep:PAGE==="fatwa",rows:FT,manifest:PAGE==="fatwa"?FATWA_P
    btn.disabled=false;
   });
  }}
+
+/* ---- অফলাইন: আগে খোলা পাতা ও পড়া লেখা ইন্টারনেট ছাড়াও খোলে (sw.js) ---- */
+if(navigator.serviceWorker&&(location.protocol==="https:"||location.hostname==="localhost"||location.hostname==="127.0.0.1")){
+ window.addEventListener("load",()=>{navigator.serviceWorker.register("sw.js").catch(()=>{})});
+}
