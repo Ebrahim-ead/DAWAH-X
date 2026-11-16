@@ -1,1 +1,1 @@
-{"set":"none","hosts":[],"minutes":10,"run":21,"probe":["wb:https://www.frommuslims.com/an-academic-response-to-the-claim-of-so-called-satanic-verses-made-by-christians-and-orientalists/","wb:https://www.frommuslims.com/%e0%a6%b0%e0%a6%ae%e0%a6%9c%e0%a6%be%e0%a6%a8%e0%a7%87-%e0%a6%b6%e0%a6%af%e0%a6%bc%e0%a6%a4%e0%a6%be%e0%a6%a8-%e0%a6%ac%e0%a6%a8%e0%a7%8d%e0%a6%a6%e0%a6%bf/"],"sel":[".featured-area","#the-post .featured-area",".tie-fluid-width-video-wrapper",".post-format-video",".entry-content"]}
+{"set":"all","hosts":["fm","iz"],"minutes":45,"run":22}

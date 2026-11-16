@@ -63,11 +63,11 @@ const SOURCES={
    /* লেখকের নামের সাথে জুড়ে যাওয়া তারিখ ("… এপ্রিল 3, 2025", "… 1 সপ্তাহ ago", "… Last Updated:") বাদ */
    who(a){return a.replace(/\s*(?:January|February|March|April|May|June|July|August|September|October|November|December|জানু(?:\u09df|\u09af\u09bc)ারি|ফেব্রু(?:\u09df|\u09af\u09bc)ারি|মার্চ|এপ্রিল|মে|জুন|জুলাই|আগস্ট|সেপ্টেম্বর|অক্টোবর|নভেম্বর|ডিসেম্বর)\s+[0-9০-৯]{1,2},\s+[0-9০-৯]{4}.*$/,'')
     .replace(/\s*[0-9০-৯]+\s+\S+\s+ago.*$/,'').replace(/\s*Last Updated.*$/,'').replace(/\s+/g,' ').trim()},
-   ver:2, /* নিষ্কাশন-নিয়মের সংস্করণ; নতুন রেকর্ডে v হিসেবে থাকে */
+   ver:3, /* নিষ্কাশন-নিয়মের সংস্করণ; নতুন রেকর্ডে v হিসেবে থাকে */
    host:'www.frommuslims.com',delay:13000,wayback:'frommuslims.com',extract($,base){
    /* বসানো ইউটিউব ভিডিওর (iframe) জায়গায় ভিডিওর ঠিকানা, নইলে ভিডিও-নির্ভর লেখা ফাঁকা থেকে যায় */
    $('iframe').each((k,e)=>{const m=/(?:youtube(?:-nocookie)?\.com\/embed\/|youtu\.be\/)([\w-]{6,20})/.exec($(e).attr('data-src')||$(e).attr('data-lazy-src')||$(e).attr('src')||'');if(!m)return;
-    const u='https://www.youtube.com/watch?v='+m[1],a='<a href="'+u+'">'+u+'</a>';$(e).replaceWith($(e).closest('p').length?a:'<div>'+a+'</div>')});
+    const u='https://www.youtube.com/watch?v='+m[1],a='<a class="yt-embed" href="'+u+'">'+u+'</a>';$(e).replaceWith($(e).closest('p').length?a:'<div>'+a+'</div>')});
    const title=$('h1.post-title,h1.entry-title').first().text(),name=(e,word)=>$(e).children('span').first().text().replace(/<img\b[^>]*>/g,' ').replace(/\s+/g,' ').trim().split(' '+word+' ')[0].replace(/\s+Staff$/,'').trim();
    /* প্রশ্নোত্তর পেজ (DW Question & Answer): প্রশ্ন + সব উত্তর; মন্তব্য, ভোট, শেয়ার বাদ */
    if($('.dwqa-questions-archive,.dwqa-questions-list').length&&!$('.dwqa-single-question').length)return{title,html:''}; /* প্রশ্নের তালিকা-পাতা, লেখা নয় */
@@ -81,6 +81,10 @@ const SOURCES={
    const body=$('#the-post .entry-content,.entry-content').first();
    body.find('.wp-block-wptelegram-widget-join-channel,.post-bottom-meta,.stream-item,#jp-relatedposts,.sharedaddy,#ez-toc-container,.ez-toc-container,.code-block,.addtoany_share_save_container,.yarpp-related,.share-buttons,.post-shortlink,.footnote_referrer_base,.footnote_reference_container_collapse_button').remove();
    body.find('table caption').remove();
+   /* ভিডিও-পোস্ট: ভিডিওটি লেখার ওপরে (featured area) বসানো থাকে, লেখার ভেতরে নয়; তার ঠিকানা লেখার শুরুতে রাখা হয় */
+   {const out=$('#the-post a.yt-embed').filter((k,e)=>!$(e).closest('.entry-content').length).first();let u=out.attr('href')||'';
+    if(!u){const head=$('#the-post').clone();head.find('.entry-content,#related-posts,.related-posts,#comments,.post-components').remove();const m=/youtube(?:-nocookie)?\.com\/embed\/([\w-]{6,20})/.exec($.html(head)||'');if(m)u='https://www.youtube.com/watch?v='+m[1]}
+    if(u&&!($.html(body)||'').includes(u.slice(-11)))body.prepend('<p><a href="'+u+'">'+u+'</a></p>')}
    body.find('p,div').filter((k,e)=>/^(Citation is loading\.\.\.|Citation style:)$/.test($(e).text().replace(/\s+/g,' ').trim())).remove();
    body.children('div').filter((k,e)=>{const t=$(e).text().replace(/\s+/g,' ').trim();return t.length<260&&/^(আর[োও] প|Read More\.\.\.)/.test(t)}).remove();
    /* টীকা: পূর্ণ তালিকা থাকলে ভাসমান কপি বাদ; না থাকলে ভাসমান লেখা দিয়ে নিচে তালিকা */
@@ -195,7 +199,7 @@ function migrate(){for(const f of fs.readdirSync(OUT)){if(!/^[0-9a-f]{3}\.json$/
    if(/^<p>Filter:<a /.test(x.h)){delete b.data[k];b.dirty=true;continue} /* প্রশ্নের তালিকা-পাতা */
    if(!/\/qna\//.test(x.u)){const h=SOURCES.fm.tidy(x.h),a=SOURCES.fm.who(x.a);
     /* পুরোনো নিয়মে আনা ভিডিও-নির্ভর বা প্রায় ফাঁকা লেখা মুছে আবার আনা হয় (ভিডিওর ঠিকানা তখন বাদ পড়ত) */
-    if(!x.v&&(textLen(h)<600||(/ভিডিও|video/i.test(h)&&!/youtu/.test(h)))){delete b.data[k];b.dirty=true;continue}if(h!==x.h||a!==x.a){x.h=h;x.a=a;b.dirty=true}continue}
+    if((x.v||1)<3&&(textLen(h)<600||(/ভিডিও|video/i.test(h)&&!/youtu/.test(h)))){delete b.data[k];b.dirty=true;continue}if(h!==x.h||a!==x.a){x.h=h;x.a=a;b.dirty=true}continue}
    const h=x.h.replace(/^<h3>প্রশ্ন<\/h3>/,'<h2>প্রশ্ন</h2>').replace(/<h3>উত্তর<\/h3>/g,'<h2>উত্তর</h2>').replace(/&lt;img\b[^<]*?&gt;/g,'').replace(/<p>— [^<]*(@|\[email)[^<]*<\/p>/g,'').replace(/^<h2>প্রশ্ন<\/h2><p><\/p>/,'<h2>প্রশ্ন</h2><p>'+esc(x.t)+'</p>');
    const a=[...new Set(x.a.replace(/<img\b[^>]*>/g,' ').split(',').map(v=>v.replace(/\s+/g,' ').trim()).filter(Boolean))].join(', ');
    if(h!==x.h||a!==x.a){x.h=h;x.a=a;b.dirty=true}}}}
