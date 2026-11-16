@@ -231,6 +231,7 @@ async function get(u,ms=30000){let last;for(let a=0;a<3;a++){try{const ac=new Ab
   o.meta=['og:title','article:published_time','author','og:site_name'].map(n=>n+'='+($('meta[property="'+n+'"],meta[name="'+n+'"]').attr('content')||'').slice(0,50));
   if(REQ.sel)o.sel=REQ.sel.map(q=>[q,$(q).length,...$(q).toArray().slice(0,2).map(e=>sig(e)+' > '+$(e).children().toArray().slice(0,6).map(sig).join(' , ')+' :: '+$(e).text().replace(/\s+/g,' ').trim().slice(0,110))]);
   report.probe.push(o)}
+ migrate(); /* তালিকা তৈরির আগে, যাতে মুছে দেওয়া রেকর্ড এই রানেই আবার আনা হয় */
  const want=new Set(REQ.hosts||Object.keys(SOURCES)),seen=new Set(),queue={};
  const rows=REQ.set==='all'?[...builtinRows(),...catalogRows()]:REQ.set==='builtin'?builtinRows():[];
  for(const r of[...builtinRows(),...catalogRows()]){const s=sourceOf(r[2]);if(s)(WANT[s]=WANT[s]||new Set()).add(keyOfUrl(r[2]))}
@@ -249,7 +250,6 @@ async function get(u,ms=30000){let last;for(let a=0;a<3;a++){try{const ac=new Ab
   w.info.qna=[all.filter(u=>/\/qna\/./.test(u)).length,hit.filter(u=>/\/qna\/./.test(u)).length];w.info.unmatched=all.filter(u=>!hit.includes(u)).slice(0,8).map(u=>{try{return decodeURI(u)}catch(e){return u}});(report.wayback=report.wayback||{})[s]=w.info;
   if(!w.info.err&&hit.length)fs.writeFileSync(cf,JSON.stringify(Object.fromEntries(hit.map(u=>{const k=wbNorm(u),v=w.map.get(k);return[k,[v.ts,v.orig]]}))))}
  const deadline=Date.now()+(REQ.minutes||300)*60000,limit=REQ.limit||Infinity;let lastFlush=Date.now();
- migrate();
  /* প্রতি ২ মিনিটে ফাইলে লেখা; প্রতি REQ.push (ডিফল্ট ৩০) মিনিটে শাখায় জমা, যাতে লম্বা রানের মাঝপথের ফল হারিয়ে না যায় */
  let lastPush=Date.now();
  const tick=()=>{if(Date.now()-lastFlush>120000){lastFlush=Date.now();flush()}
