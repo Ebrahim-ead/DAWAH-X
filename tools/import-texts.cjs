@@ -251,6 +251,20 @@ async function get(u,ms=30000){let last;for(let a=0;a<3;a++){try{const ac=new Ab
   try{const j=JSON.parse(r.html);o.json=Array.isArray(j)?{array:j.length,keys:j[0]&&typeof j[0]==='object'?Object.keys(j[0]).slice(0,30):[]}:{keys:Object.keys(j).slice(0,60)}}
   catch(e){o.head=r.html.replace(/\s+/g,' ').slice(0,160);o.locs=(r.html.match(/<loc>[^<]{0,120}/g)||[]).slice(0,6)}
   report.ping.push(o);await sleep(400)}
+ /* imgCheck: রাখা লেখাগুলোর ভেতরের ছবি এই সার্ভার থেকে খোলে কি না (অবস্থা-কোড ও ধরন)। পাঠকের ব্রাউজারের মতোই Referer ছাড়া অনুরোধ যায়।
+    কোনো সাইট প্রথম ৬টি অনুরোধেই 403 দিলে (সার্ভার-ঠিকানা আটকানো) সেই সাইট "blocked" ধরে বাকিগুলো বাদ দেওয়া হয়। */
+ if(REQ.imgCheck){const list=new Map();
+  for(const bf of fs.readdirSync(OUT)){if(!/^[0-9a-f]{3}\.json$/.test(bf))continue;const d=JSON.parse(fs.readFileSync(path.join(OUT,bf),'utf8'));
+   for(const k in d)for(const m of String(d[k].h||'').matchAll(/<img\b[^>]*?\bsrc="([^"]+)"/g)){const u=m[1].replace(/&amp;/g,'&');if(!list.has(u))list.set(u,[d[k].s,k])}}
+  const ic={unique:list.size,byHost:{},bad:[]},hosts={};
+  for(const[u,v]of list){let h='?';try{h=new URL(u).host}catch(e){}(hosts[h]=hosts[h]||[]).push([u,v])}
+  const one=async u=>{try{const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),25000);const res=await fetch(u,{headers:{'user-agent':UA,'accept':'image/avif,image/webp,image/*,*/*;q=0.8'},redirect:'follow',signal:ac.signal});
+    const o={st:res.status,ty:(res.headers.get('content-type')||'').split(';')[0]};try{await res.body.cancel()}catch(e){}clearTimeout(tm);return o}catch(e){return{st:0,ty:String(e&&e.cause&&e.cause.code||e&&e.name||e).slice(0,40)}}};
+  await Promise.all(Object.keys(hosts).map(async h=>{const o=ic.byHost[h]={n:hosts[h].length,ok:0,bad:0,codes:{}};let i=0;
+   for(const[u,v]of hosts[h]){let r=await one(u);if(r.st===0||r.st>=500||r.st===429){await sleep(3000);r=await one(u)}
+    const good=r.st===200&&/^image\//.test(r.ty);o.codes[r.st]=(o.codes[r.st]||0)+1;if(good)o.ok++;else{o.bad++;if(ic.bad.length<700)ic.bad.push([v[0],v[1],u,r.st,r.ty])}
+    i++;if(i===6&&o.ok===0&&o.codes[403]===6){o.blocked=true;break}await sleep(250)}}));
+  report.imgCheck=ic}
  if(REQ.probe)report.probe=[];
  /* probe: অচেনা সাইটের পেজের গঠন দেখার জন্য (texts/_report.json-এ যায়) */
  let WBP=null;

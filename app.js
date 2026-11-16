@@ -5,12 +5,10 @@
 const LINKS={
   facebook:"https://www.facebook.com/profile.php?id=61595349861689",
   youtube:"https://www.youtube.com/@ead-s3b",
-  whatsapp:"https://wa.me/8801783543026", /* WhatsApp নম্বর: দেশের কোডসহ, + বা ফাঁকা ছাড়া */
-  tiktok:"https://tiktok.com/@YOUR_ID" /* TikTok আইডি দিলে ফুটারে আইকন দেখাবে */
+  whatsapp:"https://wa.me/8801783543026" /* WhatsApp নম্বর: দেশের কোডসহ, + বা ফাঁকা ছাড়া */
 };
 const MESSENGER="https://m.me/61595349861689"; /* প্রশ্ন এই Messenger ইনবক্সে যায় */
 const ASK_ACTION=""; /* ঐচ্ছিক: Formspree URL দিলে প্রশ্ন সরাসরি ইমেইলে আসবে, যেমন https://formspree.io/f/xxxxxx */
-const SUBSCRIBE_ACTION=""; /* ঐচ্ছিক: Formspree/Mailchimp ইত্যাদির URL দিলে ইমেইল সংগ্রহ হবে */
 /* ================================== */
 
 const $=id=>document.getElementById(id);
@@ -34,7 +32,7 @@ document.querySelectorAll("[data-copy-link]").forEach(b=>b.addEventListener("cli
 /* ---- read.html: আমদানি করা লেখা দেখানো ---- */
 const READ_TAGS={P:1,BR:1,B:1,I:1,U:1,SUP:1,SUB:1,H2:1,H3:1,H4:1,UL:1,OL:1,LI:1,BLOCKQUOTE:1,TABLE:1,THEAD:1,TBODY:1,TR:1,TD:1,TH:1,A:1,IMG:1};
 /* উৎসের HTML আবার ছেঁকে নেওয়া হয়: শুধু নিরীহ ট্যাগ ও নিরাপদ লিংক থাকে */
-function safeArticle(html){
+function safeArticle(html,pageUrl){
  const doc=new DOMParser().parseFromString("<div>"+html+"</div>","text/html"),out=document.createDocumentFragment();
  const copy=(src,dst)=>{src.childNodes.forEach(n=>{
   if(n.nodeType===3){dst.appendChild(document.createTextNode(n.nodeValue));return}
@@ -46,8 +44,11 @@ function safeArticle(html){
    if(/^#x_?(ftn|ftnref|edn|ednref)\d+$/.test(h))el.setAttribute("href",h);
    else if(/^https?:\/\//i.test(h)){el.setAttribute("href",h);el.target="_blank";el.rel="noopener nofollow"}}
   if(n.tagName==="IMG"){const src=n.getAttribute("src")||"";if(!/^https:\/\//i.test(src))return;el.src=src;el.alt=n.getAttribute("alt")||"";el.loading="lazy";el.decoding="async";el.referrerPolicy="no-referrer";
-   /* ছবি মূল সাইট থেকে আসে; না এলে ভাঙা ছবির বদলে একটি ছোট টীকা */
-   el.addEventListener("error",()=>{const s=document.createElement("span");s.className="imgmiss";s.textContent="[ছবি"+(el.alt?": "+el.alt:"")+" — মূল পেজে দেখুন]";el.replaceWith(s)},{once:true})}
+   /* ছবি মূল সাইট থেকে আসে। না এলে একবার Internet Archive-এ রাখা কপি চেষ্টা করা হয়; সেটিও না এলে ভাঙা ছবির বদলে মূল পেজের লিংকসহ ছোট টীকা */
+   let retried=false;el.addEventListener("error",()=>{
+    if(!retried&&!/^https:\/\/web\.archive\.org\//i.test(src)){retried=true;el.src="https://web.archive.org/web/2im_/"+src;return}
+    const s=document.createElement(pageUrl?"a":"span");s.className="imgmiss";s.textContent="[ছবি"+(el.alt?": "+el.alt:"")+" — মূল পেজে দেখুন"+(pageUrl?" ↗":"")+"]";
+    if(pageUrl){s.href=pageUrl;s.target="_blank";s.rel="noopener nofollow"}el.replaceWith(s)})}
   copy(n,el);dst.appendChild(el)})};
  copy(doc.body.firstChild,out);
  /* শিরোনামের স্তর সাজানো: পাতার h1-এর পরে h2 থেকে শুরু, মাঝে কোনো স্তর বাদ না পড়ে (স্ক্রিন-রিডারের জন্য); লেখা বদলায় না */
@@ -64,8 +65,30 @@ if(readTitle){
  if(back){back.href=backHref;back.textContent=backLabel}
  if(nav&&from==="f"){nav.classList.remove("on");const f=document.querySelector('#menu a[href="fatwa.html"]');if(f)f.classList.add("on")}
  const fail=msg=>{readTitle.textContent="লেখাটি পাওয়া যায়নি";body.innerHTML=`<p>${msg}</p><p><a class="askbtn" href="${backHref}">${backLabel} তালিকায় ফিরে যান</a></p>`};
- const shareLinks=t=>{const url=location.href.split("#")[0],share=encodeURIComponent(t+"\n"+url);
+ /* লেখার শেয়ার-লিংক s/<চাবি>.html — সেখানে লেখার নিজের শিরোনাম থাকে (Facebook/WhatsApp-এর প্রিভিউয়ের জন্য), খুললে এই পাতাতেই আসে */
+ const shareLinks=(t,k)=>{const url=k?new URL("s/"+k+".html",location.href).href:location.href.split("#")[0],share=encodeURIComponent(t+"\n"+url);
+  const cp=document.querySelector("#read-share [data-copy-link]");if(cp)cp.dataset.copyLink=url;
   $("read-wa").href="https://wa.me/?text="+share;$("read-fb").href="https://www.facebook.com/sharer/sharer.php?u="+encodeURIComponent(url);$("read-share").hidden=false};
+ /* সার্চ থেকে এলে (…&q=শব্দ) লেখার ভেতরে শব্দগুলো দাগিয়ে দেখানো হয়; বানানভেদও ধরা হয় */
+ const markHits=(root,q)=>{const terms=[...new Set(searchTokens(q).slice(0,6).flatMap(searchAlts))];if(!terms.length)return;
+  const VAR={"ি":"[িী]","ু":"[ুূ]","ই":"[ইঈ]","উ":"[উঊ]","স":"[সশষছ]","জ":"[জয]","ন":"[নণ]","ত":"(?:ত্ব|ত|ৎ)","ক":"(?:ক্ব|ক)","\u09df":"(?:\u09af\u09bc|\u09df)","\u09dc":"(?:\u09a1\u09bc|\u09dc)","\u09dd":"(?:\u09a2\u09bc|\u09dd)"};
+  const pat=terms.map(t=>[...t].map(c=>/[0-9]/.test(c)?"["+c+BN_DIGITS[+c]+"]":VAR[c]||c.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")).join("[\\u200c\\u200d\\u0981‘’'ʼ]*")).join("|");
+  let re;try{re=new RegExp("(^|[^\\p{L}\\p{M}\\p{N}])((?:"+pat+")[\\p{L}\\p{M}\\p{N}]*)","giu")}catch(e){return}
+  const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT),nodes=[];while(walker.nextNode())nodes.push(walker.currentNode);
+  let n=0,first=null;
+  for(const node of nodes){if(n>=300)break;const v=node.nodeValue;re.lastIndex=0;let m,last=0,frag=null;
+   while(n<300&&(m=re.exec(v))){const a=m.index+m[1].length,b=a+m[2].length;frag=frag||document.createDocumentFragment();
+    const mk=document.createElement("mark");mk.className="hit";mk.textContent=v.slice(a,b);frag.append(v.slice(last,a),mk);first=first||mk;last=b;n++}
+   if(frag){frag.append(v.slice(last));node.replaceWith(frag)}}
+  if(!first)return;
+  const bar=document.createElement("p"),go=document.createElement("button");bar.className="hitbar";go.type="button";go.textContent="প্রথম মিলে যান ↓";
+  go.addEventListener("click",()=>first.scrollIntoView({block:"center",behavior:"smooth"}));
+  bar.append("“"+q.trim()+"” — এই লেখায় "+formatCount(n)+(n>=300?"+":"")+" জায়গায় পাওয়া গেছে। ",go);root.before(bar)};
+ /* "এ বিষয়ে আরও পড়ুন": rel/<চাবির শেষ ২ অক্ষর>.json → {চাবি:[শিরোনাম,বিভাগ,"সম্পর্কিত চাবিগুলো"]} */
+ const showRelated=k=>{const box=$("read-more");if(!box)return;const file=x=>fetch("rel/"+x.slice(-2)+".json").then(r=>r.ok?r.json():{}).catch(()=>({}));
+  file(k).then(own=>{const me=own[k],ks=me&&me[2]?me[2].match(/.{14}/g)||[]:[];if(!ks.length)return;
+   return Promise.all(ks.map(file)).then(parts=>{const items=ks.map((x,i)=>{const r=parts[i][x];return r&&r[0]?[x,r[0],r[1]]:null}).filter(Boolean);if(!items.length)return;
+    box.querySelector(".more-list").innerHTML=items.map(r=>`<a class="qcard qcard-own" href="read.html?k=${r[0]}&from=${from}"><small>${escHTML(r[2]||"")}</small><b>${escHTML(r[1])}</b><span>এখানেই পড়ুন ›</span></a>`).join("");box.hidden=false})})};
  /* read.html?v=<id>: তালিকার ইউটিউব ভিডিও এই পাতাতেই চলে (SITE_VIDEOS-এ থাকা ভিডিওই শুধু) */
  const showVideo=()=>{
   if(!siteVideo(vid)){readTitle.textContent="ভিডিওটি পাওয়া যায়নি";body.innerHTML=`<p>এই ভিডিওটি সাইটের তালিকায় নেই।</p><p><a class="askbtn" href="${backHref}">${backLabel} তালিকায় ফিরে যান</a></p>`;return}
@@ -89,26 +112,14 @@ if(readTitle){
   readTitle.textContent=toLatinDigits(x.t);document.title=toLatinDigits(x.t)+" — DAWAH X";
   const cat=$("read-cat");if(cat&&x.c){cat.textContent=x.c;cat.hidden=false}
   $("read-meta").innerHTML=[srcName,x.a,x.d].filter(Boolean).map(v=>`<span>${escHTML(v)}</span>`).join('<span aria-hidden="true">·</span>');
-  body.textContent="";body.appendChild(safeArticle(x.h));
+  body.textContent="";body.appendChild(safeArticle(x.h,/^https?:\/\//i.test(x.u||"")?x.u:""));
   $("read-credit").innerHTML=`এই লেখাটি <b>${escHTML(srcName)}</b>-এর (${escHTML(hostOf(x.u))})। প্রকাশকের অনুমতিক্রমে এখানে হুবহু তুলে ধরা হয়েছে; লেখার স্বত্ব মূল প্রকাশকের।`+(/^\d{8}/.test(x.w||"")?` এই কপিটি Internet Archive-এ সংরক্ষিত ${x.w.slice(0,4)}-${x.w.slice(4,6)}-${x.w.slice(6,8)} তারিখের সংস্করণ থেকে নেওয়া; মূল পেজে এরপর পরিবর্তন হয়ে থাকতে পারে।`:"");
   $("read-original").href=x.u;$("read-source").hidden=false;
-  shareLinks(x.t);
+  shareLinks(x.t,key);
+  markHits(body,P.get("q")||"");
+  showRelated(key);
   if(location.hash){const t=document.getElementById(location.hash.slice(1));if(t)t.scrollIntoView()}
  }).catch(()=>fail("লেখাটি লোড করা যায়নি। ইন্টারনেট সংযোগ দেখে আবার চেষ্টা করুন।"))}
-
-/* ---- ইমেইল সাবস্ক্রিপশন ---- */
-{const sb=$("sb"),em=$("em"),subm=$("subm");
- if(sb&&em&&subm){
-  const subscribe=async()=>{const v=em.value.trim();
-   if(!/^\S+@\S+\.\S+$/.test(v)){subm.textContent="সঠিক ইমেইল দিন।";em.focus();return}
-   if(!SUBSCRIBE_ACTION){subm.replaceChildren("ইমেইল সাবস্ক্রিপশন শীঘ্রই চালু হবে। আপাতত আমাদের ",Object.assign(document.createElement("a"),{href:LINKS.facebook,target:"_blank",rel:"noopener noreferrer",textContent:"Facebook Page"})," ফলো করুন।");return}
-   sb.disabled=true;
-   try{const r=await fetch(SUBSCRIBE_ACTION,{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json"},body:JSON.stringify({email:v})});if(!r.ok)throw new Error("subscribe failed");subm.textContent="ধন্যবাদ! আপনি যুক্ত হয়েছেন।";em.value=""}
-   catch(e){subm.textContent="দুঃখিত, পরে আবার চেষ্টা করুন।"}
-   sb.disabled=false};
-  sb.addEventListener("click",subscribe);
-  em.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();subscribe()}});
- }}
 
 /* ===== লাইব্রেরি (প্রশ্নোত্তর ও ফতোয়া) — সাধারণ কোড ===== */
 const ALL="সব",LIBRARY_PAGE_SIZE=20;
@@ -117,7 +128,34 @@ const toLatinDigits=v=>String(v).replace(/[০-৯]/g,d=>String(BN_DIGITS.indexO
 /* escAttr: শুধু HTML escape (লিংকের জন্য — সংখ্যা বদলানো যাবে না); escHTML: দৃশ্যমান লেখার জন্য, সংখ্যা ইংরেজিতে */
 const escAttr=v=>String(v).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll("\"","&quot;");
 const escHTML=v=>escAttr(toLatinDigits(v));
-const normalizeSearchText=v=>toLatinDigits(String(v||"").normalize("NFC").toLowerCase()).trim().replace(/\s+/g," ");
+/* বানানভেদ মিলিয়ে নেওয়া: হাদিস/হাদীস/হাদীছ, নামাজ/নামায, ছালাত/সালাত, ক্বিয়াম/কিয়াম — সবই একই ধরা হয়।
+   foldBn(), searchTokens(), searchShard() — tools/build-site-data.cjs-এর সাথে হুবহু এক হতে হবে */
+const FOLD_MAP={"ী":"ি","ূ":"ু","ঈ":"ই","ঊ":"উ","ছ":"স","শ":"স","ষ":"স","য":"জ","ণ":"ন","ৎ":"ত"};
+const foldBn=v=>toLatinDigits(String(v||"").normalize("NFC").toLowerCase()).replace(/[\u200b-\u200d\u00ad\ufeff\u0981]/g,"").replace(/([\p{L}\p{M}])[‘’'ʼ](?=\p{L})/gu,"$1").replace(/\u09af\u09bc/g,"\u09df").replace(/\u09a1\u09bc/g,"\u09dc").replace(/\u09a2\u09bc/g,"\u09dd")
+ .replace(/([কত])\u09cd\u09ac/g,"$1").replace(/[ীূঈঊছশষযণৎ]/g,c=>FOLD_MAP[c]);
+const searchTokens=v=>(foldBn(v).match(/[\p{L}\p{M}\p{N}]+/gu)||[]).filter(t=>{const n=[...t].length;return n>=2&&n<=30});
+const searchPrefix=t=>{const a=[...t];return a.slice(0,a[1]==="\u09cd"?5:3).join("")};
+const searchShard=(t,n)=>{let h=0x811c9dc5;const p=searchPrefix(t);for(let i=0;i<p.length;i++){h^=p.charCodeAt(i);h=Math.imul(h,0x01000193)}return (h>>>0)%n};
+const normalizeSearchText=v=>foldBn(v).trim().replace(/\s+/g," ");
+/* একই অর্থের ভিন্ন শব্দ/বানান (foldBn-এর পরের রূপে): একটি লিখলে অন্যগুলোও খোঁজা হয়; শব্দের শেষের বিভক্তি ("নামাজের") বজায় থাকে */
+const SEARCH_SYNONYMS=[["নামাজ","সালাত"],["রোজা","সি\u09dfাম","সাওম"],["কোরআন","কুরআন","কোরান","কুরান"],["অজু","ওজু","উজু"],["দো\u09dfা","দোআ","দুআ"],["জুমা","জুমআ","জুমুআ"],["কুরবানি","কোরবানি"],["ওহি","অহি"],["জ\u09dfিফ","জইফ"],["বিদআত","বেদাত"],["ফেরেসতা","ফিরিসতা"],["রাসুল","রসুল"],["মুহাম্মদ","মুহাম্মাদ","মোহাম্মদ"]];
+const searchAlts=t=>{for(const g of SEARCH_SYNONYMS)for(const m of g)if(t.startsWith(m)){const rest=t.slice(m.length);return g.map(x=>x+rest)}return [t]};
+/* ---- লেখার ভেতরে সার্চ: search/meta.json, search/keys.txt, search/<নম্বর>.json (শব্দ → কোন কোন লেখায় আছে) ----
+   শব্দের শুরু মিললেই ধরা হয় ("নামাজ" লিখলে "নামাজের"-ও আসে); একাধিক শব্দ দিলে সবগুলো যে লেখায় আছে সেটিই আসে */
+const DEEP={meta:null,stop:null,keys:"",shards:new Map(),ready:null,
+ init(){return this.ready||(this.ready=Promise.all([fetch("search/meta.json").then(r=>{if(!r.ok)throw 0;return r.json()}),fetch("search/keys.txt").then(r=>{if(!r.ok)throw 0;return r.text()})])
+  .then(([m,k])=>{this.meta=m;this.stop=new Set(m.stop);this.keys=k;return true}).catch(()=>{this.ready=null;return false}))},
+ shard(i){let p=this.shards.get(i);if(!p){p=fetch("search/"+String(i).padStart(3,"0")+".json").then(r=>{if(!r.ok)throw 0;return r.json()});this.shards.set(i,p);p.catch(()=>this.shards.delete(i))}return p},
+ ids(b64){const s=atob(b64),out=[];let v=0,sh=0,prev=-1;for(let i=0;i<s.length;i++){const c=s.charCodeAt(i);v|=(c&127)<<sh;if(c&128)sh+=7;else{prev+=v;out.push(prev);v=0;sh=0}}return out},
+ /* ফল: লেখার চাবির Set; খোঁজার মতো শব্দ না থাকলে বা সূচি না পাওয়া গেলে null */
+ async find(q){try{const terms=[...new Set(searchTokens(q))];if(!terms.length||!(await this.init()))return null;
+   const use=terms.filter(t=>!this.stop.has(t));if(!use.length)return null;
+   let acc=null;
+   for(const t of use){const set=new Set();
+    for(const a of searchAlts(t)){if(this.stop.has(a))continue;const sh=await this.shard(searchShard(a,this.meta.shards));
+     for(const tok in sh)if(tok.startsWith(a))for(const id of this.ids(sh[tok]))set.add(id)}
+    acc=acc?new Set([...acc].filter(x=>set.has(x))):set;if(!acc.size)break}
+   const out=new Set();for(const id of acc)out.add(this.keys.substr(id*14,14));return out}catch(e){return null}}};
 const hostOf=u=>{try{return new URL(u).hostname.replace(/^www\./,"")}catch(e){return""}};
 const formatCount=n=>new Intl.NumberFormat("en-US").format(n);
 /* ---- সাইটেই পড়ার লেখা (texts/…json; tools/import-texts.cjs দিয়ে আনা) ---- */
@@ -144,7 +182,10 @@ function setupLibrary(cfg){
  if(!search||!chips||!grid||!more)return null;
  const manifest=cfg.manifest||[];
  const total=manifest.reduce((n,x)=>n+x.count,0);
- const loaded=new Set(),pending=new Map(),textCache=new WeakMap();
+ const loaded=new Set(),pending=new Map(),textCache=new WeakMap(),keyCache=new WeakMap();
+ /* লেখার ভেতরে সার্চের ফল: deep = যেসব লেখায় শব্দগুলো আছে (চাবির Set), deepFor = কোন খোঁজের জন্য */
+ let deep=null,deepFor="",deepSeq=0,deepBusy=false;
+ const rowKey=row=>{let k=keyCache.get(row);if(k===undefined){k=localKeyOf(row[2]);if(LOCAL_TEXTS)keyCache.set(row,k)}return k};
  /* একই লিংক দুবার দেখানো হয় না: বাছাইকৃত সারি আগে থাকে, পূর্ণ সূচির একই লিংক সেটির বাড়তি বিভাগ (x[3]) হিসেবে যুক্ত হয় */
  const keyOf=u=>{try{return decodeURI(u)}catch(e){return u}};
  const rows=cfg.rows.slice(),index=new Map(rows.map(x=>[keyOf(x[2]),x]));
@@ -161,15 +202,19 @@ function setupLibrary(cfg){
  function draw(){
   const q=query(),terms=q?q.split(" "):[];
   chips.innerHTML=cats.map(c=>`<button type="button" class="chip${c===cur?" on":""}" data-c="${escAttr(c)}" aria-pressed="${c===cur}">${escHTML(c)}</button>`).join("");
-  const list=rows.filter(x=>inCategory(x,cur)&&terms.every(t=>rowText(x).includes(t)));
-  const ready=isReady(cur),loading=isLoading(cur);
+  /* শিরোনামে মিল আগে, তারপর যেগুলোর শুধু লেখার ভেতরে মিল */
+  const alts=terms.map(searchAlts),inTitle=x=>{const v=rowText(x);return alts.every(g=>g.some(t=>v.includes(t)))},useDeep=Boolean(q&&deep&&deepFor===q);
+  let list,titleHits=0;
+  if(useDeep){const a=[],b=[];for(const x of rows){if(!inCategory(x,cur))continue;if(inTitle(x))a.push(x);else if(deep.has(rowKey(x)))b.push(x)}list=a.concat(b);titleHits=a.length}
+  else{list=rows.filter(x=>inCategory(x,cur)&&inTitle(x));titleHits=list.length}
+  const ready=isReady(cur),loading=isLoading(cur),qs=q.length>=2?"&q="+encodeURIComponent(search.value.trim().slice(0,80)):"";
   if(list.length){
-   grid.innerHTML=list.slice(0,show).map(x=>{const k=localKeyOf(x[2]),v=k?"":videoIdOf(x[2]);return k
-    ?`<a class="qcard qcard-own" href="read.html?k=${k}&from=${cfg.id}"><small>${escHTML(x[0])}</small><b>${escHTML(x[1])}</b><span>এখানেই পড়ুন ›</span></a>`
+   grid.innerHTML=list.slice(0,show).map((x,i)=>{const k=localKeyOf(x[2]),v=k?"":videoIdOf(x[2]);return k
+    ?`<a class="qcard qcard-own${i>=titleHits?" qcard-deep":""}" href="read.html?k=${k}&from=${cfg.id}${qs}"><small>${escHTML(x[0])}</small><b>${escHTML(x[1])}</b><span>${i>=titleHits?"লেখার ভেতরে পাওয়া গেছে ›":"এখানেই পড়ুন ›"}</span></a>`
     :v?`<a class="qcard qcard-own" href="read.html?v=${encodeURIComponent(v)}&from=${cfg.id}"><small>${escHTML(x[0])}</small><b>${escHTML(x[1])}</b><span>এখানেই দেখুন ›</span></a>`
     :`<a class="qcard" href="${escAttr(x[2])}" target="_blank" rel="noopener"><small>${escHTML(x[0])}</small><b>${escHTML(x[1])}</b><span>${escHTML(hostOf(x[2]))} ↗</span></a>`}).join("");
   }else{
-   grid.innerHTML=`<p class="qnote">${loading?"লোড হচ্ছে…":failed&&!ready?"সূচি লোড হয়নি। ইন্টারনেট সংযোগ দেখে আবার চেষ্টা করুন।":"কিছু পাওয়া যায়নি।"}</p>`;
+   grid.innerHTML=`<p class="qnote">${loading||(deepBusy&&q)?"খোঁজা হচ্ছে…":failed&&!ready?"সূচি লোড হয়নি। ইন্টারনেট সংযোগ দেখে আবার চেষ্টা করুন।":"কিছু পাওয়া যায়নি।"}</p>`;
   }
   /* "আরও দেখুন": আরও ফলাফল থাকলে সেগুলো দেখায়; ফুরিয়ে গেলে এবং পূর্ণ সূচি লোড না হয়ে থাকলে সেটি লোড করে */
   remaining=Math.max(0,list.length-show);
@@ -179,7 +224,13 @@ function setupLibrary(cfg){
   if(loading)more.textContent="লোড হচ্ছে…";
   else if(remaining>0&&ready)more.innerHTML=`আরও দেখুন <span class="qmore-count">${formatCount(remaining)}</span>`;
   else more.textContent=remaining>0?"আরও দেখুন":"পূর্ণ সূচি লোড করুন";
+  if(q&&ready&&!loading&&!failed)setStatus(useDeep?`“${search.value.trim()}” — শিরোনামে ${formatCount(titleHits)}টি${list.length>titleHits?`, লেখার ভেতরে আরও ${formatCount(list.length-titleHits)}টি`:""} পাওয়া গেছে`:deepBusy?"লেখার ভেতরেও খোঁজা হচ্ছে…":`“${search.value.trim()}” — শিরোনামে ${formatCount(titleHits)}টি পাওয়া গেছে`);
  }
+ /* লেখার ভেতরে খোঁজা (৩ বা তার বেশি অক্ষর); ফল এলে তালিকা আবার আঁকা হয় */
+ function runDeep(){const q=query(),seq=++deepSeq;
+  if(!cfg.deep||q.length<3){deep=null;deepFor="";deepBusy=false;return}
+  if(deepFor===q&&deep){deepBusy=false;return}
+  deepBusy=true;DEEP.find(q).then(set=>{if(seq!==deepSeq)return;deepBusy=false;deep=set;deepFor=set?q:"";draw()})}
 
  function loadPart(entry){
   if(loaded.has(entry.category))return Promise.resolve();
@@ -219,7 +270,7 @@ function setupLibrary(cfg){
  document.querySelectorAll('a.library-link[data-cat][href="#'+cfg.id+'chips"]').forEach(a=>a.addEventListener("click",e=>{if(!cats.includes(a.dataset.cat))return;
   e.preventDefault();search.value="";cur=a.dataset.cat;show=LIBRARY_PAGE_SIZE;draw();load(cur);(stat||chips).scrollIntoView({block:"start"});chips.querySelector(".chip.on")?.focus({preventScroll:true})}));
  let drawTimer;
- const onSearch=now=>{clearTimeout(drawTimer);drawTimer=setTimeout(()=>{show=LIBRARY_PAGE_SIZE;draw();if(query().length>=2)load(cur)},now?0:160)};
+ const onSearch=now=>{clearTimeout(drawTimer);drawTimer=setTimeout(()=>{show=LIBRARY_PAGE_SIZE;runDeep();draw();if(query().length>=2)load(cur)},now?0:220)};
  search.addEventListener("input",()=>onSearch(false));
  search.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();onSearch(true)}});
  more.addEventListener("click",()=>{if(more.disabled)return;if(remaining>0){show+=LIBRARY_PAGE_SIZE;draw()}else load(cur)});
@@ -776,8 +827,8 @@ const FATWA_PARTS=[
  {category:"আল-ইতিছাম · প্রবন্ধ",src:"fatwa-catalog-part-03.js",count:2253},
  {category:"আল-ইতিছাম · অতিরিক্ত প্রশ্নোত্তর",src:"fatwa-catalog-part-04.js",count:143}
 ];
-setupLibrary({id:"q",rows:QS,manifest:PAGE==="qa"?QUESTION_PARTS:[],partsKey:"DAWAH_QUESTIONS_PARTS",label:"পূর্ণ সূচি",loadingText:"পূর্ণ প্রশ্নোত্তর সূচি লোড হচ্ছে…"});
-setupLibrary({id:"f",rows:FT,manifest:PAGE==="fatwa"?FATWA_PARTS:[],partsKey:"DAWAH_FATWAS_PARTS",label:"পূর্ণ ফতোয়া ও প্রবন্ধ সূচি",loadingText:"ফতোয়া ও প্রবন্ধ সূচি লোড হচ্ছে…"});
+setupLibrary({id:"q",deep:PAGE==="qa",rows:QS,manifest:PAGE==="qa"?QUESTION_PARTS:[],partsKey:"DAWAH_QUESTIONS_PARTS",label:"পূর্ণ সূচি",loadingText:"পূর্ণ প্রশ্নোত্তর সূচি লোড হচ্ছে…"});
+setupLibrary({id:"f",deep:PAGE==="fatwa",rows:FT,manifest:PAGE==="fatwa"?FATWA_PARTS:[],partsKey:"DAWAH_FATWAS_PARTS",label:"পূর্ণ ফতোয়া ও প্রবন্ধ সূচি",loadingText:"ফতোয়া ও প্রবন্ধ সূচি লোড হচ্ছে…"});
 
 /* ===== প্রশ্ন পাঠানো =====
    "WhatsApp-এ পাঠান": প্রশ্নটি লেখা অবস্থায় DAWAH X-এর WhatsApp চ্যাট খোলে (সব হোস্টে কাজ করে)।
@@ -789,8 +840,9 @@ setupLibrary({id:"f",rows:FT,manifest:PAGE==="fatwa"?FATWA_PARTS:[],partsKey:"DA
 {const btn=$("askbtn"),wa=$("askwa"),aq=$("aq"),msg=$("askm"),how=$("askhow");
  if(btn&&aq&&msg){
   const field=id=>($(id)?.value||"").trim();
-  const staticHost=location.protocol==="file:"||/(^|\.)github\.io$/i.test(location.hostname);
-  const directPossible=Boolean(ASK_ACTION)||!staticHost;
+  /* Netlify Forms শুধু Netlify-তে চলে; GitHub Pages বা নিজস্ব ডোমেইনে সরাসরি জমার জন্য ASK_ACTION লাগে */
+  const netlifyHost=/(^|\.)netlify\.app$/i.test(location.hostname);
+  const directPossible=Boolean(ASK_ACTION)||netlifyHost;
   const HOW_CHAT="বোতাম চাপলে আপনার প্রশ্ন লেখা অবস্থায় WhatsApp বা Messenger খুলবে; সেখানে Send চাপলেই প্রশ্নটি আমাদের কাছে পৌঁছাবে।";
   if(!directPossible){btn.textContent="Messenger-এ পাঠান";if(how)how.textContent=HOW_CHAT}
 

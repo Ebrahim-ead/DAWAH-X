@@ -606,3 +606,44 @@ a,button,input,select,textarea,.chip,.qcard{touch-action:manipulation;-webkit-ta
 .article-source p b{color:#fff}
 
 .article-head+.article-body{margin-top:22px}
+
+/* সার্চের মিল, "আরও পড়ুন" */
+.article-body mark.hit{background:rgba(246,196,83,.28);color:inherit;border-radius:4px;padding:0 2px;box-shadow:0 0 0 1px rgba(246,196,83,.35)}
+.hitbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:0 0 20px;padding:10px 14px;border:1px solid rgba(246,196,83,.32);border-radius:12px;background:rgba(246,196,83,.07);color:#dfe6f0;font-size:14px;line-height:1.7}
+.hitbar button{min-height:36px;padding:4px 14px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.05);color:var(--gold2);font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.hitbar button:hover{border-color:var(--gold)}
+.article-more{margin:34px 0 0;padding-top:24px;border-top:1px solid var(--line)}
+.article-more h2{margin:0 0 14px;font-size:20px;color:#fff}
+.article-more .qgrid{grid-template-columns:repeat(2,1fr)}
+@media(max-width:560px){.article-more .qgrid{grid-template-columns:1fr}}
+.qcard-deep>span{color:var(--gold2)}
+@media print{.hitbar{display:none!important}.article-body mark.hit{background:none;box-shadow:none}}
+/* বিষয়ভিত্তিক শুরুর পাতা (topics.html) ও হোমের "বিষয় ধরে পড়ুন" */
+.topic-nav{margin:0 0 26px}
+.topic-nav a.chip{display:inline-flex;align-items:center;min-height:44px;text-decoration:none}
+.topic{margin:0 0 30px;padding:22px;border:1px solid var(--line);border-radius:18px;background:rgba(255,255,255,.025);scroll-margin-top:120px}
+.topic-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px}
+.topic-head h2{margin:0;font-size:22px;line-height:1.5;color:#fff}
+.topic-count{color:var(--gold2);font-size:13px}
+.topic-intro{margin:6px 0 16px;color:var(--muted);font-size:15px;line-height:1.8}
+.topic-list{margin:0;padding:0;list-style:none;counter-reset:topic;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.topic-list li{counter-increment:topic;min-width:0}
+.topic-list a{display:grid;grid-template-columns:28px minmax(0,1fr);gap:2px 10px;height:100%;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.03);color:var(--text);text-decoration:none;transition:border-color .2s,background .2s}
+.topic-list a::before{content:counter(topic);grid-row:1/3;display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:rgba(246,196,83,.12);color:var(--gold2);font:700 13px/1 system-ui,sans-serif}
+.topic-list a:hover,.topic-list a:focus-visible{border-color:var(--gold);background:rgba(246,196,83,.07)}
+.topic-list b{font-weight:600;line-height:1.65;overflow-wrap:anywhere}
+.topic-list small{grid-column:2;color:var(--muted);font-size:12.5px}
+.topic-hint{margin:0 0 12px}
+.topic-hint a,.home-topics-all a{color:var(--gold2);font-weight:600}
+.home-topics{position:relative;z-index:2;padding:6px 0 34px}
+.home-topics .topic-nav{justify-content:center;margin-bottom:14px}
+.home-topics-all{margin:0;text-align:center;font-size:15px}
+@media(max-width:760px){.topic-list{grid-template-columns:1fr}.topic{padding:16px}.topic-head h2{font-size:20px}}
+/* খুব সরু পর্দা (৩২০px): ফুটার ও চ্যানেল-বার যেন পর্দার বাইরে না যায় */
+@media(max-width:560px){.fg{grid-template-columns:minmax(0,1fr)}.fg>*{min-width:0}}
+@media(max-width:380px){.channel-bar{flex-wrap:wrap}}
+/* ফুটার: ফলো করার বোতাম (আগের ইমেইল-বক্সের জায়গায়) */
+.follow{display:flex;flex-wrap:wrap;gap:10px}
+.follow-btn{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:8px 14px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.04);color:var(--text);font-size:14px;font-weight:600;text-decoration:none;transition:border-color .2s,background .2s}
+.follow-btn:hover,.follow-btn:focus-visible{border-color:var(--gold);background:rgba(246,196,83,.08)}
+.follow-btn .ic{width:20px;height:20px;flex:none}

@@ -1,16 +1,12 @@
 {
- "at": "2026-11-16T10:44:18.123Z",
+ "at": "2026-11-16T11:25:38.668Z",
  "request": {
-  "set": "all",
-  "hosts": [
-   "fm",
-   "iz"
-  ],
-  "minutes": 45,
-  "run": 22
+  "set": "none",
+  "hosts": [],
+  "run": 34
  },
  "done": 0,
- "skipped": 602,
+ "skipped": 0,
  "failed": [],
  "bySource": {},
  "total": 20005
