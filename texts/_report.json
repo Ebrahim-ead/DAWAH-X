@@ -1,15 +1,34 @@
 {
- "at": "2026-11-15T22:23:47.251Z",
+ "at": "2026-11-16T03:05:52.216Z",
  "request": {
   "set": "all",
   "hosts": [
-   "fm"
+   "fm",
+   "iz"
   ],
   "minutes": 300,
-  "run": 15
+  "run": 18,
+  "probe": [
+   "wb:https://www.insightzonebd.com/বিজ্ঞান-কি"
+  ],
+  "sel": [
+   ".elementor-widget-theme-post-content",
+   ".entry-content",
+   "article",
+   ".post-views",
+   "ol.footnotes",
+   "a[href^='#footnote_']",
+   "a[href^='#identifier_']",
+   "#wpdcom",
+   "#comments",
+   "[class*='wpd']",
+   "h1",
+   "h2",
+   "meta[name='author']"
+  ]
  },
- "done": 69,
- "skipped": 20,
+ "done": 72,
+ "skipped": 96,
  "failed": [
   [
    "https://www.frommuslims.com/%e0%a6%aa%e0%a7%8d%e0%a6%b0%e0%a6%be%e0%a6%a3%e0%a7%87%e0%a6%b0-%e0%a6%89%e0%a7%8e%e0%a6%aa%e0%a6%a4%e0%a7%8d%e0%a6%a4%e0%a6%bf/",
@@ -192,8 +211,20 @@
    "not archived"
   ],
   [
+   "https://www.insightzonebd.com/মহাবিশ্বের-অসীম-অতীত-কী-সম্ভব",
+   "title mismatch: মহাবিশ্ব কি অসীম?"
+  ],
+  [
+   "https://www.insightzonebd.com/গড-অফ-দ্য-গ্যাপস",
+   "not archived"
+  ],
+  [
    "https://www.frommuslims.com/qna/%e0%a6%87%e0%a6%b8%e0%a6%b2%e0%a6%be%e0%a6%ae-%e0%a6%85%e0%a6%a8%e0%a7%8d%e0%a6%af-%e0%a6%a7%e0%a6%b0%e0%a7%8d%e0%a6%ae-%e0%a6%95%e0%a7%87-%e0%a6%b8%e0%a6%a8%e0%a7%8d%e0%a6%ae%e0%a6%be%e0%a6%a8/",
    "not archived"
+  ],
+  [
+   "https://www.insightzonebd.com/ইসলামে-কী-যুক্তি-চর্চা-হারাম-যুক্তিবিদ্যা-ও-ইলমুল-কালাম",
+   "title mismatch: যুক্তিবিদ্যা কি? যুক্তিবিদ্যা কাকে বলে?"
   ],
   [
    "https://www.frommuslims.com/qna/%e0%a6%a8%e0%a6%be%e0%a6%ac%e0%a6%be%e0%a6%b2%e0%a7%87%e0%a6%97%e0%a6%a6%e0%a7%87%e0%a6%b0-%e0%a6%aa%e0%a6%b0%e0%a6%bf%e0%a6%95%e0%a7%8d%e0%a6%b7%e0%a6%be-%e0%a6%a8%e0%a7%87%e0%a6%87-%e0%a6%86/",
@@ -224,30 +255,178 @@
    "not archived"
   ],
   [
+   "https://www.insightzonebd.com/ইসলামে-মুরতাদের-শাস্তি-মৃত্যুদন্ড-কী-অমানবিক",
+   "not archived"
+  ],
+  [
+   "https://www.insightzonebd.com/ইসলামে-জিহাদের-বিধান",
+   "not archived"
+  ],
+  [
    "https://www.frommuslims.com/qna/%e0%a6%a8%e0%a6%ac%e0%a7%80-%e0%a6%95%e0%a6%b0%e0%a6%bf%e0%a6%ae-%e0%a6%b8%e0%a6%83-%e0%a6%8f%e0%a6%b0-%e0%a6%b8%e0%a7%81%e0%a6%aa%e0%a6%be%e0%a6%b0%e0%a6%bf%e0%a6%b6-%e0%a6%95%e0%a6%a4%e0%a7%8b/",
    "not archived"
   ],
   [
    "https://www.frommuslims.com/qna/%e0%a6%b8%e0%a6%be%e0%a6%a8%e0%a6%be-%e0%a6%ae%e0%a7%8d%e0%a6%af%e0%a6%be%e0%a6%a8%e0%a7%81%e0%a6%b8%e0%a7%8d%e0%a6%95%e0%a7%8d%e0%a6%b0%e0%a6%bf%e0%a6%aa%e0%a6%9f-%e0%a6%95%e0%a6%bf-%e0%a6%ad/",
    "not archived"
+  ],
+  [
+   "https://www.insightzonebd.com/question/154",
+   "not archived"
+  ],
+  [
+   "https://www.insightzonebd.com/question/142",
+   "not archived"
+  ],
+  [
+   "https://www.insightzonebd.com/question/133",
+   "not archived"
+  ],
+  [
+   "https://www.insightzonebd.com/মুসলিমরা-তওবা-করলে-কি-সব-অপরাধই-ক্ষমা-হয়ে-যায়",
+   "not archived"
   ]
  ],
  "bySource": {
   "fm": {
-   "queued": 573,
-   "done": 69,
+   "queued": 504,
+   "done": 67,
    "failed": 55,
    "passes": 1,
    "unarchived": 54,
-   "busy": 33,
+   "busy": 36,
    "lastErr": "TypeError: fetch failed ConnectTimeoutError: Connect Timeout Error (attempted address: web.archive.o"
+  },
+  "iz": {
+   "queued": 14,
+   "done": 5,
+   "failed": 9,
+   "passes": 1,
+   "unarchived": 7,
+   "left": 0
   }
  },
+ "probe": [
+  {
+   "u": "https://web.archive.org/web/20250623215402id_/https://www.insightzonebd.com/%E0%A6%AC%E0%A6%BF%E0%A6%9C%E0%A7%8D%E0%A6%9E%E0%A6%BE%E0%A6%A8-%E0%A6%95%E0%A6%BF/",
+   "status": 0,
+   "err": "HTTP 429",
+   "len": 0,
+   "title": "",
+   "h1": [],
+   "best": "body",
+   "tree": [],
+   "time": [],
+   "meta": [
+    "og:title=",
+    "article:published_time=",
+    "author=",
+    "og:site_name="
+   ],
+   "sel": [
+    [
+     ".elementor-widget-theme-post-content",
+     0
+    ],
+    [
+     ".entry-content",
+     0
+    ],
+    [
+     "article",
+     0
+    ],
+    [
+     ".post-views",
+     0
+    ],
+    [
+     "ol.footnotes",
+     0
+    ],
+    [
+     "a[href^='#footnote_']",
+     0
+    ],
+    [
+     "a[href^='#identifier_']",
+     0
+    ],
+    [
+     "#wpdcom",
+     0
+    ],
+    [
+     "#comments",
+     0
+    ],
+    [
+     "[class*='wpd']",
+     0
+    ],
+    [
+     "h1",
+     0
+    ],
+    [
+     "h2",
+     0
+    ],
+    [
+     "meta[name='author']",
+     0
+    ]
+   ]
+  }
+ ],
  "wayback": {
+  "iz": {
+   "rows": 530,
+   "pages": 1,
+   "urls": 323,
+   "fuzzy": [
+    [
+     "/মহাবিশ্বের-অসীম-অতীত-কী-সম্ভব",
+     "/মহাবিশ্ব-কি-অসীম"
+    ],
+    [
+     "/ইসলামে-কী-যুক্তি-চর্চা-হারাম-যুক্তিবিদ্যা-ও-ইলমুল-কালাম",
+     "/যুক্তিবিদ্যা-কি"
+    ],
+    [
+     "/কুরআনের-আয়াত-কি-ছাগলে-খেয়ে-ফেলেছিল",
+     "/কুরআনের-আয়াত-ছাগলে-খেয়"
+    ],
+    [
+     "/ইসলামী-রাষ্ট্রে-অমুসলিম",
+     "/ইসলামী-রাষ্ট্রে-অমুসলিমদ"
+    ]
+   ],
+   "catalog": 21,
+   "matched": 7,
+   "newest": {
+    "2024": 1,
+    "2025": 6
+   },
+   "qna": [
+    0,
+    0
+   ],
+   "unmatched": [
+    "https://www.insightzonebd.com/গড-অফ-দ্য-গ্যাপস",
+    "https://www.insightzonebd.com/ইসলামে-মুরতাদের-শাস্তি-মৃত্যুদন্ড-কী-অমানবিক",
+    "https://www.insightzonebd.com/ইসলামে-জিহাদের-বিধান",
+    "https://www.insightzonebd.com/question/173",
+    "https://www.insightzonebd.com/question/154",
+    "https://www.insightzonebd.com/question/142",
+    "https://www.insightzonebd.com/question/156",
+    "https://www.insightzonebd.com/question/148"
+   ]
+  },
   "fm": {
    "cached": 486
   }
  },
- "total": 19476,
- "partial": "2026-11-15T22:54:10.926Z"
+ "total": 19547,
+ "partial": "2026-11-16T03:36:54.518Z"
 }
