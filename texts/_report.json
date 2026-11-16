@@ -1,21 +1,31 @@
 {
- "at": "2026-11-16T10:25:10.610Z",
+ "at": "2026-11-16T10:28:11.712Z",
  "request": {
   "set": "all",
   "hosts": [
-   "fm"
+   "fm",
+   "iz"
   ],
-  "minutes": 10,
-  "run": 29,
-  "ts": {
-   "https://www.frommuslims.com/qna/%e0%a6%86%e0%a6%b2%e0%a6%bf%e0%a6%b0%e0%a6%be-%e0%a6%95%e0%a6%bf-%e0%a6%b0%e0%a6%be%e0%a6%b8%e0%a7%81%e0%a6%b2%e0%a6%b8-%e0%a6%8f%e0%a6%b0-%e0%a6%b8%e0%a7%8d%e0%a6%a5%e0%a6%b2%e0%a6%be%e0%a6%ad/": "20261116101959"
-  }
+  "minutes": 45,
+  "run": 22
  },
- "done": 1,
- "skipped": 583,
+ "done": 0,
+ "skipped": 602,
  "failed": [
   [
    "https://www.frommuslims.com/%e0%a6%86%e0%a6%b2%e0%a7%8d%e0%a6%b2%e0%a6%be%e0%a6%b9%e0%a6%b0-%e0%a6%b8%e0%a6%bf%e0%a6%ab%e0%a6%be%e0%a6%a4-%e0%a6%86%e0%a6%95%e0%a6%b2-%e0%a6%a8%e0%a6%be-%e0%a6%93%e0%a6%b9%e0%a7%80/",
+   "not archived"
+  ],
+  [
+   "https://www.insightzonebd.com/question/154",
+   "not archived"
+  ],
+  [
+   "https://www.insightzonebd.com/question/142",
+   "not archived"
+  ],
+  [
+   "https://www.insightzonebd.com/question/133",
    "not archived"
   ],
   [
@@ -53,15 +63,26 @@
  ],
  "bySource": {
   "fm": {
-   "queued": 10,
-   "done": 1,
+   "queued": 9,
+   "done": 0,
    "failed": 9,
    "passes": 1,
    "unarchived": 8,
    "left": 0
+  },
+  "iz": {
+   "queued": 3,
+   "done": 0,
+   "failed": 3,
+   "passes": 1,
+   "unarchived": 3,
+   "left": 0
   }
  },
  "wayback": {
+  "iz": {
+   "cached": 7
+  },
   "fm": {
    "cached": 486
   }
