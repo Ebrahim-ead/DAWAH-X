@@ -1,138 +1,393 @@
 {
- "at": "2026-11-16T09:49:25.303Z",
+ "at": "2026-11-16T09:56:33.269Z",
  "request": {
-  "set": "none",
-  "hosts": [],
-  "probe": [
-   "https://web.archive.org/web/20261116075911id_/https://www.insightzonebd.com/গড-অফ-দ্য-গ্যাপস",
-   "https://web.archive.org/web/20261116080051id_/https://www.insightzonebd.com/ইসলামে-জিহাদের-বিধান"
+  "set": "all",
+  "hosts": [
+   "fm"
   ],
-  "probeKids": 14,
-  "sel": [
-   ".elementor-widget-theme-post-content",
-   ".entry-content",
-   "article",
-   "main",
-   ".post-content",
-   "[class*='prose']",
-   "h1",
-   "[class*='author']",
-   "time"
-  ],
-  "minutes": 10,
-  "run": 25
- },
- "done": 0,
- "skipped": 0,
- "failed": [],
- "bySource": {},
- "probe": [
-  {
-   "u": "https://web.archive.org/web/20261116075911id_/https://www.insightzonebd.com/গড-অফ-দ্য-গ্যাপস",
-   "status": 0,
-   "err": "HTTP 429",
-   "len": 0,
-   "title": "",
-   "h1": [],
-   "best": "body",
-   "tree": [],
-   "time": [],
-   "meta": [
-    "og:title=",
-    "article:published_time=",
-    "author=",
-    "og:site_name="
-   ],
-   "vids": {
-    "ids": [],
-    "at": []
-   },
-   "sel": [
+  "api": {
+   "fm": [
     [
-     ".elementor-widget-theme-post-content",
-     0
+     1,
+     "20261116091257"
     ],
     [
-     ".entry-content",
-     0
+     2,
+     "20261116091258"
     ],
     [
-     "article",
-     0
+     3,
+     "20261116091237"
     ],
     [
-     "main",
-     0
+     4,
+     "20261116091321"
     ],
     [
-     ".post-content",
-     0
+     5,
+     "20261116091322"
     ],
     [
-     "[class*='prose']",
-     0
+     6,
+     "20261116091323"
     ],
     [
-     "h1",
-     0
+     7,
+     "20261116091343"
     ],
     [
-     "[class*='author']",
-     0
-    ],
-    [
-     "time",
-     0
+     8,
+     "20261116091344"
     ]
    ]
   },
+  "apiNames": {
+   "3663": "M. M. Apurba",
+   "4288": "ব্রাদার শফিকুল ইসলাম",
+   "5027": "LLM",
+   "6161": "studentsharifulislam6@gmail.com"
+  },
+  "ts": {
+   "https://www.frommuslims.com/%e0%a6%ac%e0%a7%80%e0%a6%b0%e0%a7%8d%e0%a6%af-%e0%a6%95%e0%a6%bf-%e0%a6%ae%e0%a7%87%e0%a6%b0%e0%a7%81%e0%a6%a6%e0%a6%a3%e0%a7%8d%e0%a6%a1-%e0%a6%93-%e0%a6%ac%e0%a6%95%e0%a7%8d%e0%a6%b7%e0%a6%aa/": "20261116094917",
+   "https://www.frommuslims.com/%e0%a6%86%e0%a6%af%e0%a6%bc%e0%a6%bf%e0%a6%b6%e0%a6%be-%e0%a6%b0%e0%a6%be-%e0%a6%95%e0%a6%bf-%e0%a6%ac%e0%a7%8b%e0%a6%a7%e0%a6%b8%e0%a6%ae%e0%a7%8d%e0%a6%aa%e0%a6%a8%e0%a7%8d%e0%a6%a8-%e0%a6%a8/": "20261116090321",
+   "https://www.frommuslims.com/%e0%a6%b0%e0%a6%be%e0%a6%b8%e0%a7%82%e0%a6%b2-%ef%b7%ba-%e0%a6%95%e0%a6%bf-%e0%a6%b8%e0%a6%be%e0%a6%93%e0%a6%a6%e0%a6%be-%e0%a6%b0%e0%a6%be-%e0%a6%95%e0%a7%87/": "20261116094920",
+   "https://www.frommuslims.com/%e0%a6%b0%e0%a7%8b%e0%a6%ae-%e0%a6%b8%e0%a6%ae%e0%a7%8d%e0%a6%b0%e0%a6%be%e0%a6%9f%e0%a7%87%e0%a6%b0-%e0%a6%b8%e0%a6%be%e0%a6%ae%e0%a6%a8%e0%a7%87-%e0%a6%87%e0%a6%ae%e0%a6%be%e0%a6%ae-%e0%a6%ac/": "20261116094954",
+   "https://www.frommuslims.com/%e0%a6%86%e0%a6%b0%e0%a6%ac%e0%a6%bf-%e0%a6%ad%e0%a6%be%e0%a6%b7%e0%a6%be%e0%a6%af%e0%a6%bc-%e0%a6%97%e0%a7%8b%e0%a6%b2%e0%a6%95%e0%a7%87%e0%a6%b0-%e0%a6%95%e0%a6%bf-%e0%a6%a6%e0%a7%88%e0%a6%b0/": "20261116095016",
+   "https://www.frommuslims.com/%e0%a6%b0%e0%a6%be%e0%a6%b8%e0%a7%81%e0%a6%b2%e0%a7%81%e0%a6%b2%e0%a7%8d%e0%a6%b2%e0%a6%be%e0%a6%b9-%ef%b7%ba-%e0%a6%93-%e0%a6%86%e0%a6%af%e0%a6%bc%e0%a6%bf%e0%a6%b6%e0%a6%be-%e0%a6%b0%e0%a6%be/": "20261116095018",
+   "https://www.frommuslims.com/%e0%a6%95%e0%a7%81%e0%a6%b0%e0%a6%86%e0%a6%a8%e0%a7%87%e0%a6%b0-%e0%a6%86%e0%a6%af%e0%a6%bc%e0%a6%be%e0%a6%a4-%e0%a6%ac%e0%a6%95%e0%a6%b0%e0%a7%80-%e0%a6%96%e0%a7%87%e0%a6%af%e0%a6%bc%e0%a7%87/": "20261116095020",
+   "https://www.frommuslims.com/%e0%a6%a6%e0%a6%be%e0%a6%9c%e0%a7%8d%e0%a6%9c%e0%a6%be%e0%a6%b2-%e0%a6%b9%e0%a6%bf%e0%a6%9c%e0%a6%ac%e0%a7%81%e0%a6%a4-%e0%a6%a4%e0%a6%be%e0%a6%93%e0%a6%b9%e0%a7%80%e0%a6%a6-%e0%a6%a8%e0%a6%be/": "20261116095110",
+   "https://www.frommuslims.com/en/are-afghan-women-neglected-in-the-earthquake/": "20261116095050",
+   "https://www.frommuslims.com/en/female-slaves-and-wives-sexual-purity-in-islam/": "20261116095051",
+   "https://www.frommuslims.com/en/what-is-umm-al-walad-is-selling-an-umm-al-walad-permissible/": "20261116095052"
+  },
+  "probe": [
+   "https://web.archive.org/web/20261116075911id_/https://www.insightzonebd.com/%E0%A6%97%E0%A6%A1-%E0%A6%85%E0%A6%AB-%E0%A6%A6%E0%A7%8D%E0%A6%AF-%E0%A6%97%E0%A7%8D%E0%A6%AF%E0%A6%BE%E0%A6%AA%E0%A6%B8",
+   "https://web.archive.org/web/20261116080051id_/https://www.insightzonebd.com/%E0%A6%87%E0%A6%B8%E0%A6%B2%E0%A6%BE%E0%A6%AE%E0%A7%87-%E0%A6%9C%E0%A6%BF%E0%A6%B9%E0%A6%BE%E0%A6%A6%E0%A7%87%E0%A6%B0-%E0%A6%AC%E0%A6%BF%E0%A6%A7%E0%A6%BE%E0%A6%A8"
+  ],
+  "probeHtml": true,
+  "probeDepth": 7,
+  "probeKids": 30,
+  "probeText": 16,
+  "probeLen": 45000,
+  "sel": [
+   "main",
+   "article",
+   "h1",
+   "time",
+   "[class*='author']",
+   "[class*='content']",
+   "[class*='toc']",
+   "[class*='prose']",
+   "[class*='footnote']",
+   "sup",
+   "[class*='related']",
+   "[class*='comment']"
+  ],
+  "minutes": 25,
+  "run": 26
+ },
+ "done": 10,
+ "skipped": 573,
+ "failed": [
+  [
+   "https://www.frommuslims.com/%e0%a6%86%e0%a6%b2%e0%a7%8d%e0%a6%b2%e0%a6%be%e0%a6%b9%e0%a6%b0-%e0%a6%b8%e0%a6%bf%e0%a6%ab%e0%a6%be%e0%a6%a4-%e0%a6%86%e0%a6%95%e0%a6%b2-%e0%a6%a8%e0%a6%be-%e0%a6%93%e0%a6%b9%e0%a7%80/",
+   "not archived"
+  ],
+  [
+   "https://www.frommuslims.com/%e0%a6%aa%e0%a7%8d%e0%a6%b0%e0%a6%b6%e0%a7%8d%e0%a6%a8%e0%a7%8b%e0%a6%a4%e0%a7%8d%e0%a6%a4%e0%a6%b0-qa/",
+   "no content"
+  ],
+  [
+   "https://www.frommuslims.com/qna/?filter=all",
+   "not archived"
+  ],
+  [
+   "https://www.frommuslims.com/qna/?filter=open",
+   "not archived"
+  ],
+  [
+   "https://www.frommuslims.com/qna/?filter=resolved",
+   "not archived"
+  ],
+  [
+   "https://www.frommuslims.com/qna/?filter=closed",
+   "not archived"
+  ],
+  [
+   "https://www.frommuslims.com/qna/?filter=unanswered",
+   "not archived"
+  ],
+  [
+   "https://www.frommuslims.com/qna/%e0%a6%95%e0%a7%8b%e0%a6%b0%e0%a6%86%e0%a6%a8%e0%a7%87-%e0%a6%a6%e0%a6%bf%e0%a6%b0%e0%a6%b9%e0%a6%be%e0%a6%ae-%e0%a6%b6%e0%a6%ac%e0%a7%8d%e0%a6%a6-%e0%a6%a8%e0%a6%bf%e0%a6%af%e0%a6%bc%e0%a7%87/",
+   "not archived"
+  ],
+  [
+   "https://www.frommuslims.com/qna/%e0%a6%86%e0%a6%b2%e0%a6%bf%e0%a6%b0%e0%a6%be-%e0%a6%95%e0%a6%bf-%e0%a6%b0%e0%a6%be%e0%a6%b8%e0%a7%81%e0%a6%b2%e0%a6%b8-%e0%a6%8f%e0%a6%b0-%e0%a6%b8%e0%a7%8d%e0%a6%a5%e0%a6%b2%e0%a6%be%e0%a6%ad/",
+   "no content"
+  ],
+  [
+   "https://www.frommuslims.com/qna/%e0%a6%95%e0%a7%88%e0%a6%b2%e0%a6%be%e0%a6%b8-%e0%a6%aa%e0%a6%b0%e0%a7%8d%e0%a6%ac%e0%a6%a4%e0%a7%87-%e0%a6%85%e0%a6%b2%e0%a7%8c%e0%a6%95%e0%a6%bf%e0%a6%95%e0%a6%a4%e0%a6%be-%e0%a6%b0%e0%a6%af/",
+   "not archived"
+  ]
+ ],
+ "bySource": {
+  "fm": {
+   "queued": 10,
+   "done": 0,
+   "failed": 10,
+   "passes": 1,
+   "unarchived": 8,
+   "left": 0
+  }
+ },
+ "probe": [
   {
-   "u": "https://web.archive.org/web/20261116080051id_/https://www.insightzonebd.com/ইসলামে-জিহাদের-বিধান",
-   "status": 0,
-   "err": "HTTP 429",
-   "len": 0,
-   "title": "",
-   "h1": [],
-   "best": "body",
-   "tree": [],
+   "u": "https://web.archive.org/web/20261116075911id_/https://www.insightzonebd.com/%E0%A6%97%E0%A6%A1-%E0%A6%85%E0%A6%AB-%E0%A6%A6%E0%A7%8D%E0%A6%AF-%E0%A6%97%E0%A7%8D%E0%A6%AF%E0%A6%BE%E0%A6%AA%E0%A6%B8",
+   "status": 200,
+   "final": "https://web.archive.org/web/20261116075911id_/https://www.insightzonebd.com/%E0%A6%97%E0%A6%A1-%E0%A6%85%E0%A6%AB-%E0%A6%A6%E0%A7%8D%E0%A6%AF-%E0%A6%97%E0%A7%8D%E0%A6%AF%E0%A6%BE%E0%A6%AA%E0%A6%B8",
+   "len": 212276,
+   "title": "\"গড অফ দ্য গ্যাপস\" নাস্তিকদের একটি জনপ্রিয় যুক্তির দার্শনিক পর্যালোচনা - ইনসাইট",
+   "h1": [
+    {
+     "t": "\"গড অফ দ্য গ্যাপস\" নাস্তিকদের একটি জনপ্রিয় যুক্তি",
+     "path": [
+      "main.post-main",
+      "div.post-container",
+      "div.container.container-post",
+      "body",
+      "html"
+     ]
+    }
+   ],
+   "best": "main.post-main",
+   "tree": [
+    {
+     "s": "div.post-featured-img-wrapper",
+     "n": 0,
+     "t": ""
+    },
+    {
+     "s": "h1.post-content-title",
+     "n": 71,
+     "t": "\"গড অফ দ্য গ্যাপস\" নাস্তিকদের একটি জনপ্র"
+    },
+    {
+     "s": "div.post-meta",
+     "n": 56,
+     "t": "সাজ্জাতুল মাওলা শান্ত 29 Apr, 2026 1,122"
+    },
+    {
+     "s": "div.post-body",
+     "n": 7691,
+     "t": "\"গড অফ দ্য গ্যাপস\" নাস্তিকদের একটি জনপ্র",
+     "c": [
+      {
+       "s": "h2",
+       "n": 71,
+       "t": "\"গড অফ দ্য গ্যাপস\" নাস্তিকদের একটি জনপ্র"
+      },
+      {
+       "s": "span",
+       "n": 191,
+       "t": "মানব ইতিহাসে প্রকৃতিকে বোঝার চেষ্টা সবসম"
+      },
+      {
+       "s": "span",
+       "n": 21,
+       "t": "এই দুনিয়া কীভাবে এলো?"
+      },
+      {
+       "s": "span",
+       "n": 0,
+       "t": ""
+      },
+      {
+       "s": "span",
+       "n": 7,
+       "t": "আমি কে?"
+      },
+      {
+       "s": "span",
+       "n": 0,
+       "t": ""
+      },
+      {
+       "s": "span",
+       "n": 14,
+       "t": "আমি এখানে কেন?"
+      },
+      {
+       "s": "span",
+       "n": 642,
+       "t": "এই প্রশ্নগুলোর উত্তর খুঁজতে গিয়েই সৃষ্টি"
+      },
+      {
+       "s": "span",
+       "n": 313,
+       "t": "উদাহরণস্বরূপ বলা হয়, এই মহাবিশ্বের উৎপত"
+      },
+      {
+       "s": "span",
+       "n": 164,
+       "t": "অথবা, প্রাচীন মানুষ অনেক সময় কোনো বিষয়ে "
+      },
+      {
+       "s": "span",
+       "n": 130,
+       "t": "কিন্তু বর্তমানে বিজ্ঞান এই ব্যাখ্যাগুলো "
+      },
+      {
+       "s": "span",
+       "n": 423,
+       "t": "এই প্রেক্ষাপটে নাস্তিকদের দাবি হলো—মানুষ"
+      },
+      {
+       "s": "h2",
+       "n": 23,
+       "t": "নাস্তিকদের দাবি ঠিক কী?"
+      },
+      {
+       "s": "span",
+       "n": 280,
+       "t": "আগেকার মানুষ বজ্রপাত, ঝড়, রোগব্যাধি বুঝ"
+      },
+      {
+       "s": "span",
+       "n": 232,
+       "t": "এই যুক্তির পাশাপাশি একটি গুরুত্বপূর্ণ দা"
+      },
+      {
+       "s": "h2",
+       "n": 40,
+       "t": "জ্ঞান কেবল বৈজ্ঞানিক পদ্ধতিতেই জানা যায়?"
+      },
+      {
+       "s": "span",
+       "n": 243,
+       "t": "নাস্তিকদের দাবি জ্ঞান কেবল বৈজ্ঞানিক পদ্"
+      },
+      {
+       "s": "span",
+       "n": 260,
+       "t": "এটিই হলো যুক্তির সবচেয়ে বড় ফাঁক। \"জ্ঞা"
+      },
+      {
+       "s": "span",
+       "n": 246,
+       "t": "কোনো কিছু বৈজ্ঞানিক হওয়ার অর্থ হলো, যা প"
+      },
+      {
+       "s": "span",
+       "n": 188,
+       "t": "বাস্তবে জ্ঞান অর্জনের পথ বহুমুখী। যুক্তি"
+      },
+      {
+       "s": "span",
+       "n": 49,
+       "t": "নাস্তিক নিউরো সায়েন্টিস্ট র‍্যামন্ড ট্যা"
+      },
+      {
+       "s": "blockquote",
+       "n": 174,
+       "t": "বিজ্ঞানের চোখে ধরা পড়েনি, তাই এর কোনো অ"
+      },
+      {
+       "s": "h2",
+       "n": 52,
+       "t": "\"গড অফ দ্য গ্যাপস\" এটি একটি Loaded Quest"
+      },
+      {
+       "s": "span",
+       "n": 537,
+       "t": "\"গড অফ দ্য গ্যাপস\" যুক্তির শুরুতেই একটি ",
+       "c": [
+        {
+         "s": "a",
+         "n": 29,
+         "t": "কামাল কমমোলজিক্যাল আর্গুমেন্ট"
+        },
+        {
+         "s": "a",
+         "n": 22,
+         "t": "কন্টিনজেন্সি আর্গমেন্ট"
+        }
+       ]
+      },
+      {
+       "s": "h2",
+       "n": 39,
+       "t": "ঐতিহাসিক দাবিটি অতিরঞ্জিত এবং অসম্পূর্ণ"
+      },
+      {
+       "s": "span",
+       "n": 352,
+       "t": "কিছু প্রাচীন সংস্কৃতিতে বজ্রপাতকে দেবতার"
+      },
+      {
+       "s": "h3",
+       "n": 53,
+       "t": "বিজ্ঞান \"কীভাবে\" বলে, \"কেন\" নয় — এই পার"
+      },
+      {
+       "s": "span",
+       "n": 318,
+       "t": "বিজ্ঞান ব্যাখ্যা করে বজ্রপাত কীভাবে হয় "
+      },
+      {
+       "s": "span",
+       "n": 129,
+       "t": "অর্থাৎ, বিজ্ঞান বজ্রপাতের মেকানিজম ব্যাখ"
+      },
+      {
+       "s": "span",
+       "n": 82,
+       "t": "বজ্রপাতের বৈজ্ঞানিক ব্যাখ্যা পাওয়া মানে "
+      }
+     ]
+    },
+    {
+     "s": "div.share-box",
+     "n": 56,
+     "t": "শেয়ার করুন: লিংক কপি WhatsApp Facebook T"
+    },
+    {
+     "s": "div",
+     "n": 28,
+     "t": "Leave a Comment Post Comment"
+    }
+   ],
    "time": [],
    "meta": [
-    "og:title=",
+    "og:title=\"গড অফ দ্য গ্যাপস\" নাস্তিকদের একটি জনপ্রিয় যুক্তি",
     "article:published_time=",
-    "author=",
-    "og:site_name="
+    "author=সাজ্জাতুল মাওলা শান্ত",
+    "og:site_name=ইনসাইট জোন"
    ],
    "vids": {
     "ids": [],
-    "at": []
+    "at": [
+     "a. {\"href\":\"https://www.youtube.com/@InsightZoneBD\"} < div.topbar-social-links < div.top-menu-right < div.top-menu-flex < div.container.container-header < div.top-menu-bar",
+     "a. {\"href\":\"https://www.youtube.com/@InsightZoneBD\"} < div.mobile-social-menu < div.mobile-social-dropdown < div.top-menu-right < div.top-menu-flex < div.container.container-header",
+     "a. {\"href\":\"https://www.youtube.com/@InsightZoneBD\"} < div.top-social < div < div.container < footer < body"
+    ]
    },
    "sel": [
     [
-     ".elementor-widget-theme-post-content",
-     0
-    ],
-    [
-     ".entry-content",
-     0
+     "main",
+     1,
+     "main.post-main > div.post-featured-img-wrapper , h1.post-content-title , div.post-meta , div.post-body , div.share-box , div :: \"গড অফ দ্য গ্যাপস\" নাস্তিকদের একটি জনপ্রিয় যুক্তির দার্শনিক পর্যালোচনা সাজ্জাতুল মাওলা শান্ত 29 Apr, 2026 1,1"
     ],
     [
      "article",
      0
     ],
     [
-     "main",
-     0
-    ],
-    [
-     ".post-content",
-     0
-    ],
-    [
-     "[class*='prose']",
-     0
-    ],
-    [
      "h1",
+     1,
+     "h1.post-content-title >  :: \"গড অফ দ্য গ্যাপস\" নাস্তিকদের একটি জনপ্রিয় যুক্তির দার্শনিক পর্যালোচনা"
+    ],
+    [
+     "time",
      0
     ],
     [
@@ -140,11 +395,724 @@
      0
     ],
     [
+     "[class*='content']",
+     1,
+     "h1.post-content-title >  :: \"গড অফ দ্য গ্যাপস\" নাস্তিকদের একটি জনপ্রিয় যুক্তির দার্শনিক পর্যালোচনা"
+    ],
+    [
+     "[class*='toc']",
+     0
+    ],
+    [
+     "[class*='prose']",
+     0
+    ],
+    [
+     "[class*='footnote']",
+     0
+    ],
+    [
+     "sup",
+     0
+    ],
+    [
+     "[class*='related']",
+     50,
+     "a.related-post > div , div :: ? কোরআনের আয়াতে ভুল নাকি হাদিসের বক্তব্য ভুল? (১) মুসলিম শরিফ এবং বোখা... 14 Nov, 2026 ইসলাম",
+     "a.related-post > div , div :: ? শ্রদ্ধেয় রাসুল ইসা (আঃ) সম্পর্কে মুসলিম আলেমদের মনগড়া বক্তব্য আর মিথ্যা... 14 Nov, 2026 ইসলাম"
+    ],
+    [
+     "[class*='comment']",
+     3,
+     "i.far.fa-comment >  :: ",
+     "i.far.fa-comment >  :: "
+    ]
+   ],
+   "html": "<main class=\"post-main\"><div class=\"post-featured-img-wrapper\"><img></img></div><h1 class=\"post-content-title\">\"গড অফ দ্য গ্যাপ…(71)</h1><div class=\"post-meta\"><div class=\"post-meta-left\"><span><i class=\"fas fa-user\"></i>সাজ্জাতুল মাওলা …(21)</span><span><i class=\"fas fa-calendar-alt\"></i>29 Apr, 2026</span><span><i class=\"fas fa-eye\"></i>1,122 বার পঠিত</span></div><div class=\"post-meta-share\"><span><i class=\"fas fa-share-alt\"></i>শেয়ার:</span><button class=\"share-btn copy\"><i class=\"fas fa-link\"></i></button><a class=\"share-btn wa\" href=\"https://api.whatsapp.com/send?text=\"><i class=\"fab fa-whatsapp\"></i></a><a class=\"share-btn fb\" href=\"https://www.facebook.com/sharer/sharer.p\"><i class=\"fab fa-facebook-f\"></i></a><a class=\"share-btn tg\" href=\"https://t.me/share/url?url=https://www.i\"><i class=\"fab fa-telegram-plane\"></i></a><a class=\"share-btn li\" href=\"https://www.linkedin.com/sharing/share-o\"><i class=\"fab fa-linkedin-in\"></i></a><button class=\"share-btn print\"><i class=\"fas fa-print\"></i></button></div></div><div class=\"post-body\"><h2><b>\"গড অফ দ্য গ্যাপ…(71)</b></h2><span>মানব ইতিহাসে প্র…(191)</span><span>এই দুনিয়া কীভাবে…(21)</span><span></span><span>আমি কে?</span><span></span><span>আমি এখানে কেন?</span><span>এই প্রশ্নগুলোর উ…(642)</span><span>উদাহরণস্বরূপ বলা…(313)</span><span>অথবা, প্রাচীন মা…(164)</span><span>কিন্তু বর্তমানে …(130)</span><span>এই প্রেক্ষাপটে ন…(423)</span><h2><b>নাস্তিকদের দাবি …(23)</b></h2><span>আগেকার মানুষ বজ্…(280)</span><span>এই যুক্তির পাশাপ…(232)</span><h2><b>জ্ঞান কেবল বৈজ্ঞ…(40)</b></h2><span>নাস্তিকদের দাবি …(243)</span><span>এটিই হলো যুক্তির…(260)</span><span>কোনো কিছু বৈজ্ঞা…(246)</span><span>বাস্তবে জ্ঞান অর…(188)</span><span>নাস্তিক নিউরো সা…(49)</span><blockquote><span>বিজ্ঞানের চোখে ধ…(174)</span></blockquote><h2><b>\"গড অফ দ্য গ্যাপ…(52)</b></h2><span>\"গড অফ দ্য গ্যাপ…(336)<a href=\"https://www.insightzonebd.com/?p=83\">কামাল কমমোলজিক্য…(29)</a>,<a href=\"https://www.insightzonebd.com/argument-f\">কন্টিনজেন্সি আর্…(22)</a>ইত্যাদি। নাস্তিক…(146)</span><h2><b>ঐতিহাসিক দাবিটি …(39)</b></h2><span>কিছু প্রাচীন সংস…(352)</span><h3><b>বিজ্ঞান \"কীভাবে\"…(53)</b></h3><span>বিজ্ঞান ব্যাখ্যা…(318)</span><span>অর্থাৎ, বিজ্ঞান …(129)</span><span>বজ্রপাতের বৈজ্ঞা…(82)</span><span>কারণ এখানে দুটি …(33)</span><ul><li><span>বজ্রপাত</span><i><span>কিভাবে</span></i><span>হয়? → বিজ্ঞান উত…(23)</span></li><li><span>মহাবিশ্ব</span><i><span>কেন</span></i><span>আছে? → এটি একটি …(31)</span></li></ul><span>বিজ্ঞান “কিভাবে”…(119)</span><b>Cosmological Arg…(21)</b><span>, যা বলে—মহাবিশ্…(72)</span><h2><b>Science of the g…(19)</b></h2><span>নাস্তিকদের যুক্ত…(431)</span><h2><b>প্রাকৃতিক প্রক্র…(55)</b></h2><span>ধরুন বিজ্ঞান প্র…(331)</span><h2><b>যা প্রমাণ হয়, য…(24)</b></h2><span>বজ্রপাতের মতো প্…(432)</span><span>কিন্তু ঈশ্বরের ধ…(761)</span><span></span></div><div class=\"share-box\"><span><i class=\"fas fa-share-alt\"></i>শেয়ার করুন:</span><button class=\"share-btn copy\"><i class=\"fas fa-link\"></i><span class=\"share-btn-text\">লিংক কপি</span></button><a class=\"share-btn wa\" href=\"https://api.whatsapp.com/send?text=\"><i class=\"fab fa-whatsapp\"></i><span class=\"share-btn-text\">WhatsApp</span></a><a class=\"share-btn fb\" href=\"https://www.facebook.com/sharer/sharer.p\"><i class=\"fab fa-facebook-f\"></i><span class=\"share-btn-text\">Facebook</span></a><a class=\"share-btn tg\" href=\"https://t.me/share/url?url=https://www.i\"><i class=\"fab fa-telegram-plane\"></i><span class=\"share-btn-text\">Telegram</span></a><a class=\"share-btn li\" href=\"https://www.linkedin.com/sharing/share-o\"><i class=\"fab fa-linkedin-in\"></i><span class=\"share-btn-text\">LinkedIn</span></a></div><div><h3>Leave a Comment</h3><form><div><input></input><input></input></div><textarea></textarea><button class=\"btn-subscribe\">Post Comment</button></form></div></main>",
+   "htmlLen": 3800
+  },
+  {
+   "u": "https://web.archive.org/web/20261116080051id_/https://www.insightzonebd.com/%E0%A6%87%E0%A6%B8%E0%A6%B2%E0%A6%BE%E0%A6%AE%E0%A7%87-%E0%A6%9C%E0%A6%BF%E0%A6%B9%E0%A6%BE%E0%A6%A6%E0%A7%87%E0%A6%B0-%E0%A6%AC%E0%A6%BF%E0%A6%A7%E0%A6%BE%E0%A6%A8",
+   "status": 200,
+   "final": "https://web.archive.org/web/20261116080051id_/https://www.insightzonebd.com/%E0%A6%87%E0%A6%B8%E0%A6%B2%E0%A6%BE%E0%A6%AE%E0%A7%87-%E0%A6%9C%E0%A6%BF%E0%A6%B9%E0%A6%BE%E0%A6%A6%E0%A7%87%E0%A6%B0-%E0%A6%AC%E0%A6%BF%E0%A6%A7%E0%A6%BE%E0%A6%A8",
+   "len": 220262,
+   "title": "ইসলামে জিহাদের বিধান; জিহাদ ফি সাবিলিল্লাহ",
+   "h1": [
+    {
+     "t": "ইসলামে জিহাদের বিধান; জিহাদ ফি সাবিলিল্লাহ",
+     "path": [
+      "main.post-main",
+      "div.post-container",
+      "div.container.container-post",
+      "body",
+      "html"
+     ]
+    },
+    {
+     "t": "ইসলামে জিহাদের বিধান; জিহাদ ফি সাবিলিল্লাহ",
+     "path": [
+      "div.post-body",
+      "main.post-main",
+      "div.post-container",
+      "div.container.container-post",
+      "body",
+      "html"
+     ]
+    }
+   ],
+   "best": "main.post-main",
+   "tree": [
+    {
+     "s": "div.post-featured-img-wrapper",
+     "n": 0,
+     "t": ""
+    },
+    {
+     "s": "h1.post-content-title",
+     "n": 42,
+     "t": "ইসলামে জিহাদের বিধান; জিহাদ ফি সাবিলিল্ল"
+    },
+    {
+     "s": "div.post-meta",
+     "n": 70,
+     "t": "আতিকুর রহমান, সাজ্জাতুল মাওলা শান্ত 09 M"
+    },
+    {
+     "s": "div.post-body",
+     "n": 13918,
+     "t": "ইসলামে জিহাদের বিধান; জিহাদ ফি সাবিলিল্ল",
+     "c": [
+      {
+       "s": "h1",
+       "n": 42,
+       "t": "ইসলামে জিহাদের বিধান; জিহাদ ফি সাবিলিল্ল"
+      },
+      {
+       "s": "p",
+       "n": 483,
+       "t": "বর্তমান সময়ে অমুসলিম মহলে জিহাদ সম্পর্কে",
+       "c": [
+        {
+         "s": "span",
+         "n": 483,
+         "t": "বর্তমান সময়ে অমুসলিম মহলে জিহাদ সম্পর্কে"
+        }
+       ]
+      },
+      {
+       "s": "h2",
+       "n": 21,
+       "t": "জিহাদ শব্দের অর্থ কি?"
+      },
+      {
+       "s": "p",
+       "n": 479,
+       "t": "‘الجهاد’ আরবী শব্দ, এটা جَاهَدَ، يُجَاهِ",
+       "c": [
+        {
+         "s": "span",
+         "n": 1,
+         "t": "‘"
+        },
+        {
+         "s": "strong",
+         "n": 6,
+         "t": "الجهاد"
+        },
+        {
+         "s": "span",
+         "n": 16,
+         "t": "’ আরবী শব্দ, এটা"
+        },
+        {
+         "s": "strong",
+         "n": 42,
+         "t": "جَاهَدَ، يُجَاهِدُ، مُجَاهِدٌ، مُجَاهَدَ"
+        },
+        {
+         "s": "span",
+         "n": 185,
+         "t": "থেকে গঠিত হয়েছে, যার অর্থ : কঠোর পরিশ্রম"
+        },
+        {
+         "s": "strong",
+         "n": 6,
+         "t": "الجهاد"
+        },
+        {
+         "s": "span",
+         "n": 1,
+         "t": "।"
+        },
+        {
+         "s": "span",
+         "n": 28,
+         "t": "প্রখ্যাত আরবী ভাষার বিশ্বকোষ"
+        },
+        {
+         "s": "strong",
+         "n": 10,
+         "t": "لسان العرب"
+        },
+        {
+         "s": "span",
+         "n": 14,
+         "t": "প্রণেতা বলেন :"
+        },
+        {
+         "s": "strong",
+         "n": 15,
+         "t": "الجهدُ والجُهدُ"
+        },
+        {
+         "s": "span",
+         "n": 39,
+         "t": "অর্থ শক্তি-সামর্থ্য ক্ষমতা। এমনি বলা হয়"
+        },
+        {
+         "s": "strong",
+         "n": 6,
+         "t": "الجهدُ"
+        },
+        {
+         "s": "span",
+         "n": 16,
+         "t": "কঠোর পরিশ্রম এবং"
+        },
+        {
+         "s": "strong",
+         "n": 6,
+         "t": "الجهدُ"
+        },
+        {
+         "s": "span",
+         "n": 76,
+         "t": "চরম কষ্ট । (( ইসলামে জিহাদের বিধান; ড. ম"
+        }
+       ]
+      },
+      {
+       "s": "h3",
+       "n": 22,
+       "t": "জিহাদের পারিভাষিক অর্থ"
+      },
+      {
+       "s": "p",
+       "n": 750,
+       "t": "الْجِهَادُ -কে যখন আল্লাহর পথের সাথে সম্",
+       "c": [
+        {
+         "s": "span",
+         "n": 3,
+         "t": "الْ"
+        },
+        {
+         "s": "span",
+         "n": 478,
+         "t": "جِهَادُ -কে যখন আল্লাহর পথের সাথে সম্পৃক"
+        },
+        {
+         "s": "span",
+         "n": 234,
+         "t": "এর থেকে জানতে পারলাম যে, শরীয়তের পরিভাষা"
+        },
+        {
+         "s": "span",
+         "n": 33,
+         "t": "সাইয়েদ আবুল আলা মওদূদি (রহ) বলেন,"
+        }
+       ]
+      },
+      {
+       "s": "blockquote",
+       "n": 793,
+       "t": "আভিধানিক দিক দিয়ে জিহাদ শব্দের অর্থ হলো",
+       "c": [
+        {
+         "s": "span",
+         "n": 793,
+         "t": "আভিধানিক দিক দিয়ে জিহাদ শব্দের অর্থ হলো",
+         "c": [
+          {
+           "s": "strong",
+           "n": 67,
+           "t": "“কোন কাজ সম্পাদনের বা কোন উদ্দেশ্য সাধনে"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "s": "p",
+       "n": 219,
+       "t": "কাজেই, ইসলামে জিহাদ বলতে ব্যক্তিগত স্বার",
+       "c": [
+        {
+         "s": "span",
+         "n": 219,
+         "t": "কাজেই, ইসলামে জিহাদ বলতে ব্যক্তিগত স্বার"
+        }
+       ]
+      },
+      {
+       "s": "blockquote",
+       "n": 242,
+       "t": "যারা ঈমান এনেছে তারা লড়াই করে আল্লাহর রা",
+       "c": [
+        {
+         "s": "span",
+         "n": 239,
+         "t": "যারা ঈমান এনেছে তারা লড়াই করে আল্লাহর রা",
+         "c": [
+          {
+           "s": "a",
+           "n": 63,
+           "t": "সূরা আন-নিসা (An-Nisa) আয়াত ৭৬ - বাংলা "
+          }
+         ]
+        },
+        {
+         "s": "span",
+         "n": 2,
+         "t": "))"
+        }
+       ]
+      },
+      {
+       "s": "h2",
+       "n": 18,
+       "t": "জিহাদ কখন ফরজ হয়?"
+      },
+      {
+       "s": "p",
+       "n": 33,
+       "t": "পবিত্র কুরআনে আল্লাহ তা’আলা বলেন,"
+      },
+      {
+       "s": "blockquote",
+       "n": 232,
+       "t": "আর তাদের বিরুদ্ধে লড়াই কর যে পর্যন্ত না ",
+       "c": [
+        {
+         "s": "span",
+         "n": 230,
+         "t": "আর তাদের বিরুদ্ধে লড়াই কর যে পর্যন্ত না ",
+         "c": [
+          {
+           "s": "a",
+           "n": 68,
+           "t": "সূরা আল-বাকারা (Al-Baqara) আয়াত ১৯৩ - ব"
+          }
+         ]
+        },
+        {
+         "s": "span",
+         "n": 2,
+         "t": "))"
+        }
+       ]
+      },
+      {
+       "s": "p",
+       "n": 45,
+       "t": "এই আয়াতের ব্যাখ্যায় মাওলানা মওদূদি (রহ) "
+      },
+      {
+       "s": "blockquote",
+       "n": 4288,
+       "t": "এখানে حَتّٰى (যতক্ষণ) শব্দটি একটি সীমারে",
+       "c": [
+        {
+         "s": "span",
+         "n": 225,
+         "t": "এখানে حَتّٰى (যতক্ষণ) শব্দটি একটি সীমারে"
+        },
+        {
+         "s": "span",
+         "n": 31,
+         "t": "আয়াতের পরবর্তী অংশে বলা হয়েছে :"
+        },
+        {
+         "s": "span",
+         "n": 184,
+         "t": "فَلَمَّا انْتَهَوْا فَانْتَهُوا إِنَّ ال"
+        },
+        {
+         "s": "span",
+         "n": 89,
+         "t": "সূরা মায়েদায় আরো সুস্পষ্টভাবে মানুষের প্"
+        },
+        {
+         "s": "span",
+         "n": 100,
+         "t": "مَنْ قَتَلَ نَفْسًا بِغَيْرِ نَفْسٍ أَوْ"
+        },
+        {
+         "s": "span",
+         "n": 135,
+         "t": "“কাউকে হত্যা করেনি এবং অরাজকতা ও গোলযোগ "
+        },
+        {
+         "s": "strong",
+         "n": 59,
+         "t": "এ থেকে বুঝা গেল যে, মানুষকে শুধু দুই অবস"
+        },
+        {
+         "s": "ul",
+         "n": 116,
+         "t": "প্রথমতঃ সে যদি অন্য কোন মানুষকে অন্যায়ভা"
+        },
+        {
+         "s": "span",
+         "n": 135,
+         "t": "এই দুই অবস্থায় ব্যতীত তৃতীয় কোন অবস্থায় "
+        },
+        {
+         "s": "span",
+         "n": 78,
+         "t": "সূরা তাওবায় জিজিয়া আদায় করাকে যুদ্ধের প্"
+        },
+        {
+         "s": "span",
+         "n": 79,
+         "t": "فَإِنْ تَابُوا وَأَقَامُوا الصَّلَاةَ وَ"
+        },
+        {
+         "s": "span",
+         "n": 98,
+         "t": "“তারা যতক্ষণ না স্বহস্তে জিজিয়া দিয়ে বশ্"
+        },
+        {
+         "s": "span",
+         "n": 161,
+         "t": "এ থেকে বুঝা গেল যে, কাফেররা যখন জিজিয়া আ"
+        },
+        {
+         "s": "span",
+         "n": 179,
+         "t": "সূরা শূরায় একটা মৌলিক বিধি বর্ণনা করা হয়"
+        },
+        {
+         "s": "span",
+         "n": 210,
+         "t": "مَنْ انْتَصَرَ بَعْدَ ظُلْمِهِ فَأُولَٰئ"
+        },
+        {
+         "s": "span",
+         "n": 203,
+         "t": "“যে ব্যক্তি জুলুমে পিষ্ট হয়ার পর তার বদল"
+        },
+        {
+         "s": "span",
+         "n": 24,
+         "t": "( সূরা আশ-শূরা ৪২:৪১-৪২)"
+        },
+        {
+         "s": "span",
+         "n": 222,
+         "t": "সূরা মুমতাহিনায় বলা হয়েছে যে, কাফেরদের ম",
+         "c": [
+          {
+           "s": "strong",
+           "n": 192,
+           "t": "কাফেরদের মধ্যে যারা সত্য দ্বীন ও তার অনু"
+          }
+         ]
+        },
+        {
+         "s": "span",
+         "n": 426,
+         "t": "لَا يَنْهَاكُمُ اللَّهُ عَنِ الَّذِينَ ل"
+        },
+        {
+         "s": "span",
+         "n": 490,
+         "t": "“যারা দ্বীনের প্রশ্নে তোমাদের সাথে যুদ্ধ",
+         "c": [
+          {
+           "s": "strong",
+           "n": 158,
+           "t": "“যারা দ্বীনের প্রশ্নে তোমাদের সাথে যুদ্ধ"
+          },
+          {
+           "s": "strong",
+           "n": 205,
+           "t": "যারা তোমাদের সাথে দ্বীনের প্রশ্নে যুদ্ধ "
+          }
+         ]
+        },
+        {
+         "s": "span",
+         "n": 295,
+         "t": "এই সব নির্দেশের মর্ম এত স্পষ্ট যে এর জন্"
+        },
+        {
+         "s": "span",
+         "n": 728,
+         "t": "যারা ইসলাম ও মুসলমানদের নির্মূল করার চেষ"
+        }
+       ]
+      },
+      {
+       "s": "p",
+       "n": 1087,
+       "t": "উপরিউক্ত আলোচনা ও কুরআনের বিভিন্ন আয়াতের",
+       "c": [
+        {
+         "s": "span",
+         "n": 1087,
+         "t": "উপরিউক্ত আলোচনা ও কুরআনের বিভিন্ন আয়াতের"
+        }
+       ]
+      },
+      {
+       "s": "h2",
+       "n": 21,
+       "t": "ইসলামে জিহাদের স্বরুপ"
+      },
+      {
+       "s": "p",
+       "n": 60,
+       "t": "মাওলানা মওদূদি (রহঃ) আল জিহাদ ফিল ইসলাম "
+      },
+      {
+       "s": "blockquote",
+       "n": 1376,
+       "t": "এই আদর্শ (ইসলাম) অনুসারে যুদ্ধের উদ্দেশ্",
+       "c": [
+        {
+         "s": "span",
+         "n": 280,
+         "t": "এই আদর্শ (ইসলাম) অনুসারে যুদ্ধের উদ্দেশ্"
+        },
+        {
+         "s": "span",
+         "n": 301,
+         "t": "আর সেই সীমিত শক্তির প্রয়োগও হওয়া চাই শ"
+        },
+        {
+         "s": "span",
+         "n": 793,
+         "t": "আভিধানিক দিক দিয়ে জিহাদ শব্দের অর্থ হলো"
+        }
+       ]
+      },
+      {
+       "s": "h3",
+       "n": 25,
+       "t": "বেসামরিক লোকদের নিরাপত্তা"
+      },
+      {
+       "s": "p",
+       "n": 60,
+       "t": "মাওলানা মওদূদি (রহঃ) আল জিহাদ ফিল ইসলাম "
+      },
+      {
+       "s": "blockquote",
+       "n": 2712,
+       "t": "এ প্রসঙ্গে প্রথম কথা হলো, যুদ্ধরতদের দুই",
+       "c": [
+        {
+         "s": "span",
+         "n": 64,
+         "t": "এ প্রসঙ্গে প্রথম কথা হলো, যুদ্ধরতদের দুই"
+        },
+        {
+         "s": "ul",
+         "n": 40,
+         "t": "এক সামরিক লোকজন, দ্বিতীয় বেসামরিক লোকজন।"
+        },
+        {
+         "s": "span",
+         "n": 529,
+         "t": "সামরিক লোক হলো যারা সক্রিয়ভাবে যুদ্ধে অং"
+        },
+        {
+         "s": "strong",
+         "n": 45,
+         "t": "مَا كَانَتْ هٰذِهِ تُقَاتِلُ فِيْنَ يَقَ"
+        },
+        {
+         "s": "span",
+         "n": 46,
+         "t": "“এই মহিলা তো যুদ্ধকারীদের অন্তর্ভুক্ত ছি"
+        },
+        {
+         "s": "span",
+         "n": 46,
+         "t": "অতঃপর সেনাপতি হযরত খালেদ (রাঃ) কে বলে পা"
+        },
+        {
+         "s": "strong",
+         "n": 39,
+         "t": "لَا تَقْتُلُوا امْرَأَةً وَلَا صَبِيًّا"
+        },
+        {
+         "s": "span",
+         "n": 142,
+         "t": "“কোন মহিলা কিংবা মজুরকে হত্যা করো না।” অ"
+        },
+        {
+         "s": "span",
+         "n": 65,
+         "t": "এক হাদিসে হযরত রসূলুল্লাহ সাল্লাল্লাহু আ"
+        },
+        {
+         "s": "strong",
+         "n": 164,
+         "t": "لَا تَقْتُلُوا شَيْخًا فَانِيًا وَلَا طِ"
+        },
+        {
+         "s": "span",
+         "n": 162,
+         "t": "“কোন বৃদ্ধ, শিশু ও নারীকে হত্যা করো না। "
+        },
+        {
+         "s": "span",
+         "n": 223,
+         "t": "মক্কা বিজয়ের সময় তিনি স্পষ্ট ভাষায় বলে দ"
+        },
+        {
+         "s": "span",
+         "n": 148,
+         "t": "হযরত ইবনে আব্বাস (রাঃ) বর্ণনা করেন যে, হ"
+        },
+        {
+         "s": "span",
+         "n": 986,
+         "t": "এই সব ঘটনার বর্ণনা থেকে মুসলিম ফেকাহ শাস"
+        }
+       ]
+      },
+      {
+       "s": "p",
+       "n": 889,
+       "t": "সুতরাং, ইসলামী যুদ্ধনীতিতে মানুষকে সাধার",
+       "c": [
+        {
+         "s": "span",
+         "n": 476,
+         "t": "সুতরাং, ইসলামী যুদ্ধনীতিতে মানুষকে সাধার"
+        },
+        {
+         "s": "span",
+         "n": 412,
+         "t": "সার্বিক আলোচনার ভিত্তিতে স্পষ্ট হয় যে, ই"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "s": "div.share-box",
+     "n": 56,
+     "t": "শেয়ার করুন: লিংক কপি WhatsApp Facebook T"
+    },
+    {
+     "s": "div",
+     "n": 28,
+     "t": "Leave a Comment Post Comment"
+    }
+   ],
+   "time": [],
+   "meta": [
+    "og:title=ইসলামে জিহাদের বিধান; জিহাদ ফি সাবিলিল্লাহ",
+    "article:published_time=",
+    "author=আতিকুর রহমান, সাজ্জাতুল মাওলা শান্ত",
+    "og:site_name=ইনসাইট জোন"
+   ],
+   "vids": {
+    "ids": [],
+    "at": [
+     "a. {\"href\":\"https://www.youtube.com/@InsightZoneBD\"} < div.topbar-social-links < div.top-menu-right < div.top-menu-flex < div.container.container-header < div.top-menu-bar",
+     "a. {\"href\":\"https://www.youtube.com/@InsightZoneBD\"} < div.mobile-social-menu < div.mobile-social-dropdown < div.top-menu-right < div.top-menu-flex < div.container.container-header",
+     "a. {\"href\":\"https://www.youtube.com/@InsightZoneBD\"} < div.top-social < div < div.container < footer < body"
+    ]
+   },
+   "sel": [
+    [
+     "main",
+     1,
+     "main.post-main > div.post-featured-img-wrapper , h1.post-content-title , div.post-meta , div.post-body , div.share-box , div :: ইসলামে জিহাদের বিধান; জিহাদ ফি সাবিলিল্লাহ আতিকুর রহমান, সাজ্জাতুল মাওলা শান্ত 09 May, 2026 1,541 বার পঠিত শেয়"
+    ],
+    [
+     "article",
+     0
+    ],
+    [
+     "h1",
+     2,
+     "h1.post-content-title >  :: ইসলামে জিহাদের বিধান; জিহাদ ফি সাবিলিল্লাহ",
+     "h1 > strong :: ইসলামে জিহাদের বিধান; জিহাদ ফি সাবিলিল্লাহ"
+    ],
+    [
      "time",
      0
+    ],
+    [
+     "[class*='author']",
+     0
+    ],
+    [
+     "[class*='content']",
+     1,
+     "h1.post-content-title >  :: ইসলামে জিহাদের বিধান; জিহাদ ফি সাবিলিল্লাহ"
+    ],
+    [
+     "[class*='toc']",
+     0
+    ],
+    [
+     "[class*='prose']",
+     0
+    ],
+    [
+     "[class*='footnote']",
+     0
+    ],
+    [
+     "sup",
+     0
+    ],
+    [
+     "[class*='related']",
+     50,
+     "a.related-post > div , div :: ? কোরআনের আয়াতে ভুল নাকি হাদিসের বক্তব্য ভুল? (১) মুসলিম শরিফ এবং বোখা... 14 Nov, 2026 ইসলাম",
+     "a.related-post > div , div :: ? শ্রদ্ধেয় রাসুল ইসা (আঃ) সম্পর্কে মুসলিম আলেমদের মনগড়া বক্তব্য আর মিথ্যা... 14 Nov, 2026 ইসলাম"
+    ],
+    [
+     "[class*='comment']",
+     3,
+     "i.far.fa-comment >  :: ",
+     "i.far.fa-comment >  :: "
     ]
-   ]
+   ],
+   "html": "<main class=\"post-main\"><div class=\"post-featured-img-wrapper\"><img></img></div><h1 class=\"post-content-title\">ইসলামে জিহাদের ব…(42)</h1><div class=\"post-meta\"><div class=\"post-meta-left\"><span><i class=\"fas fa-user\"></i>আতিকুর রহমান, সা…(35)</span><span><i class=\"fas fa-calendar-alt\"></i>09 May, 2026</span><span><i class=\"fas fa-eye\"></i>1,541 বার পঠিত</span></div><div class=\"post-meta-share\"><span><i class=\"fas fa-share-alt\"></i>শেয়ার:</span><button class=\"share-btn copy\"><i class=\"fas fa-link\"></i></button><a class=\"share-btn wa\" href=\"https://api.whatsapp.com/send?text=ইসলাম\"><i class=\"fab fa-whatsapp\"></i></a><a class=\"share-btn fb\" href=\"https://www.facebook.com/sharer/sharer.p\"><i class=\"fab fa-facebook-f\"></i></a><a class=\"share-btn tg\" href=\"https://t.me/share/url?url=https://www.i\"><i class=\"fab fa-telegram-plane\"></i></a><a class=\"share-btn li\" href=\"https://www.linkedin.com/sharing/share-o\"><i class=\"fab fa-linkedin-in\"></i></a><button class=\"share-btn print\"><i class=\"fas fa-print\"></i></button></div></div><div class=\"post-body\"><h1><strong>ইসলামে জিহাদের ব…(42)</strong></h1><p><span>বর্তমান সময়ে অমু…(483)</span></p><h2><strong>জিহাদ শব্দের অর্…(21)</strong></h2><p><span>‘</span><strong>الجهاد</strong><span>’ আরবী শব্দ, এটা</span><strong>جَاهَدَ، يُجَاهِ…(42)</strong><span>থেকে গঠিত হয়েছে,…(185)</span><strong>الجهاد</strong><span>।</span><span>প্রখ্যাত আরবী ভা…(28)</span><strong>لسان العرب</strong><span>প্রণেতা বলেন :</span><strong>الجهدُ والجُهدُ</strong><span>অর্থ শক্তি-সামর্…(39)</span><strong>الجهدُ</strong><span>কঠোর পরিশ্রম এবং</span><strong>الجهدُ</strong><span>চরম কষ্ট । (( ইস…(76)</span></p><h3><strong>জিহাদের পারিভাষি…(22)</strong></h3><p><span>الْ</span><span>جِهَادُ -কে যখন …(478)</span><span>এর থেকে জানতে পা…(234)</span><span>সাইয়েদ আবুল আলা …(33)</span></p><blockquote><span>আভিধানিক দিক দিয…(40)<strong>“কোন কাজ সম্পাদন…(67)</strong>”... “চেষ্টা” ভা…(685)</span></blockquote><p><span>কাজেই, ইসলামে জি…(219)</span></p><blockquote><span>যারা ঈমান এনেছে …(175)<a href=\"https://www.hadithbd.com/quran/link/?id=\">সূরা আন-নিসা (An…(63)</a></span><span>))</span></blockquote><h2><strong>জিহাদ কখন ফরজ হয…(18)</strong></h2><p><span>পবিত্র কুরআনে আল…(33)</span></p><blockquote><span>আর তাদের বিরুদ্ধ…(161)<a href=\"https://www.hadithbd.com/quran/link/?id=\">সূরা আল-বাকারা (…(68)</a></span><span>))</span></blockquote><p><span>এই আয়াতের ব্যাখ্…(45)</span></p><blockquote><span>এখানে حَتّٰى (যত…(225)</span><span>আয়াতের পরবর্তী অ…(31)</span><span>فَلَمَّا انْتَهَ…(184)</span><span>সূরা মায়েদায় আরো…(89)</span><span>مَنْ قَتَلَ نَفْ…(100)</span><span>“কাউকে হত্যা করে…(135)</span><strong>এ থেকে বুঝা গেল …(59)</strong><ul><li><strong>প্রথমতঃ সে যদি অ…(53)</strong></li><li><strong>দ্বিতীয়তঃ সে যদি…(62)</strong></li></ul><span>এই দুই অবস্থায় ব…(135)</span><span>সূরা তাওবায় জিজি…(78)</span><span>فَإِنْ تَابُوا و…(79)</span><span>“তারা যতক্ষণ না …(98)</span><span>এ থেকে বুঝা গেল …(161)</span><span>সূরা শূরায় একটা …(179)</span><span>مَنْ انْتَصَرَ ب…(210)</span><span>“যে ব্যক্তি জুলু…(203)</span><span>( সূরা আশ-শূরা ৪…(24)</span><span>সূরা মুমতাহিনায় …(29)<strong>কাফেরদের মধ্যে য…(192)</strong></span><span>لَا يَنْهَاكُمُ …(426)</span><span><strong>“যারা দ্বীনের প্…(158)</strong>কেননা আল্লাহ ইনস…(108)<strong>যারা তোমাদের সাথ…(205)</strong>(সূরা মুমতাহিনা)</span><span>এই সব নির্দেশের …(295)</span><span>যারা ইসলাম ও মুস…(728)</span></blockquote><p><span>উপরিউক্ত আলোচনা …(1087)</span></p><h2><strong>ইসলামে জিহাদের স…(21)</strong></h2><p><span>মাওলানা মওদূদি (…(60)</span></p><blockquote><span>এই আদর্শ (ইসলাম)…(280)</span><span>আর সেই সীমিত শক্…(301)</span><span>আভিধানিক দিক দিয…(793)</span></blockquote><h3><strong>বেসামরিক লোকদের …(25)</strong></h3><p><span>মাওলানা মওদূদি (…(60)</span></p><blockquote><span>এ প্রসঙ্গে প্রথম…(64)</span><ul><li><span>এক সামরিক লোকজন,</span></li><li><span>দ্বিতীয় বেসামরিক…(23)</span></li></ul><span>সামরিক লোক হলো য…(529)</span><strong>مَا كَانَتْ هٰذِ…(45)</strong><span>“এই মহিলা তো যুদ…(46)</span><span>অতঃপর সেনাপতি হয…(46)</span><strong>لَا تَقْتُلُوا ا…(39)</strong><span>“কোন মহিলা কিংবা…(142)</span><span>এক হাদিসে হযরত র…(65)</span><strong>لَا تَقْتُلُوا ش…(164)</strong><span>“কোন বৃদ্ধ, শিশু…(162)</span><span>মক্কা বিজয়ের সময়…(223)</span><span>হযরত ইবনে আব্বাস…(148)</span><span>এই সব ঘটনার বর্ণ…(986)</span></blockquote><p><span>সুতরাং, ইসলামী য…(476)</span><span>সার্বিক আলোচনার …(412)</span></p></div><div class=\"share-box\"><span><i class=\"fas fa-share-alt\"></i>শেয়ার করুন:</span><button class=\"share-btn copy\"><i class=\"fas fa-link\"></i><span class=\"share-btn-text\">লিংক কপি</span></button><a class=\"share-btn wa\" href=\"https://api.whatsapp.com/send?text=ইসলাম\"><i class=\"fab fa-whatsapp\"></i><span class=\"share-btn-text\">WhatsApp</span></a><a class=\"share-btn fb\" href=\"https://www.facebook.com/sharer/sharer.p\"><i class=\"fab fa-facebook-f\"></i><span class=\"share-btn-text\">Facebook</span></a><a class=\"share-btn tg\" href=\"https://t.me/share/url?url=https://www.i\"><i class=\"fab fa-telegram-plane\"></i><span class=\"share-btn-text\">Telegram</span></a><a class=\"share-btn li\" href=\"https://www.linkedin.com/sharing/share-o\"><i class=\"fab fa-linkedin-in\"></i><span class=\"share-btn-text\">LinkedIn</span></a></div><div><h3>Leave a Comment</h3><form><div><input></input><input></input></div><textarea></textarea><button class=\"btn-subscribe\">Post Comment</button></form></div></main>",
+   "htmlLen": 5385
   }
  ],
- "total": 19964
+ "wayback": {
+  "fm": {
+   "cached": 486
+  }
+ },
+ "api": {
+  "fm": {
+   "pages": 8,
+   "posts": 363,
+   "done": 10,
+   "errs": [],
+   "stored": 347,
+   "authors": 53,
+   "check": {
+    "n": 80,
+    "median": 1,
+    "near": 79,
+    "min": 0.981,
+    "max": 3.205
+   },
+   "ok": true
+  }
+ },
+ "total": 19974
 }
