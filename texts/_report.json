@@ -9,7 +9,7 @@
   "minutes": 150,
   "run": 23
  },
- "done": 1,
+ "done": 15,
  "skipped": 480,
  "failed": [
   [
@@ -36,12 +36,12 @@
  "bySource": {
   "fm": {
    "queued": 113,
-   "done": 1,
+   "done": 15,
    "failed": 5,
-   "passes": 1,
-   "saves": 24,
+   "passes": 2,
+   "saves": 35,
    "lastSave": "0 TypeError: fetch failed ConnectTimeoutEr",
-   "busy": 73,
+   "busy": 116,
    "lastErr": "TypeError: fetch failed ConnectTimeoutError: Connect Timeout Error (attempted address: web.archive.o",
    "unarchived": 5
   }
@@ -51,6 +51,6 @@
    "cached": 486
   }
  },
- "total": 19872,
- "partial": "2026-11-16T08:59:04.954Z"
+ "total": 19886,
+ "partial": "2026-11-16T09:29:09.371Z"
 }
