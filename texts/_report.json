@@ -27,7 +27,7 @@
    "meta[name='author']"
   ]
  },
- "done": 131,
+ "done": 194,
  "skipped": 96,
  "failed": [
   [
@@ -501,16 +501,20 @@
   [
    "https://www.frommuslims.com/%e0%a6%87%e0%a6%ae%e0%a6%be%e0%a6%ae-%e0%a6%95%e0%a6%be%e0%a6%b9%e0%a6%a4%e0%a6%be%e0%a6%a8%e0%a7%80-%e0%a6%86%e0%a6%b2-%e0%a6%86%e0%a6%a8%e0%a7%8d%e0%a6%a6%e0%a6%be%e0%a6%b2%e0%a7%81%e0%a6%b8/",
    "not archived"
+  ],
+  [
+   "https://www.frommuslims.com/%e0%a6%b2%e0%a7%87%e0%a6%9f%e0%a6%be%e0%a6%b0-%e0%a6%9f%e0%a7%81-%e0%a6%86%e0%a6%ae%e0%a7%87%e0%a6%b0%e0%a6%bf%e0%a6%95%e0%a6%be/",
+   "not archived"
   ]
  ],
  "bySource": {
   "fm": {
    "queued": 504,
-   "done": 126,
-   "failed": 109,
+   "done": 189,
+   "failed": 110,
    "passes": 1,
-   "unarchived": 106,
-   "busy": 75,
+   "unarchived": 107,
+   "busy": 112,
    "lastErr": "TypeError: fetch failed ConnectTimeoutError: Connect Timeout Error (attempted address: web.archive.o"
   },
   "iz": {
@@ -643,6 +647,6 @@
    "cached": 486
   }
  },
- "total": 19606,
- "partial": "2026-11-16T04:06:56.859Z"
+ "total": 19669,
+ "partial": "2026-11-16T04:37:08.064Z"
 }
