@@ -258,6 +258,8 @@ async function get(u,ms=30000){let last;for(let a=0;a<3;a++){try{const ac=new Ab
   w.info.catalog=all.length;w.info.matched=hit.length;w.info.newest=hit.map(u=>w.map.get(wbNorm(u)).ts.slice(0,4)).reduce((o,y)=>(o[y]=(o[y]||0)+1,o),{});
   w.info.qna=[all.filter(u=>/\/qna\/./.test(u)).length,hit.filter(u=>/\/qna\/./.test(u)).length];w.info.unmatched=all.filter(u=>!hit.includes(u)).slice(0,8).map(u=>{try{return decodeURI(u)}catch(e){return u}});(report.wayback=report.wayback||{})[s]=w.info;
   if(!w.info.err&&hit.length)fs.writeFileSync(cf,JSON.stringify(Object.fromEntries(hit.map(u=>{const k=wbNorm(u),v=w.map.get(k);return[k,[v.ts,v.orig]]}))))}
+ /* ts: {"<পাতার ঠিকানা>":"<১৪ অঙ্কের সময়>"} — CDX সূচিতে এখনো ওঠেনি এমন নতুন কপি সরাসরি ধরিয়ে দেওয়া যায় */
+ if(REQ.ts)for(const u of Object.keys(REQ.ts)){const s=sourceOf(u);if(s&&WB[s]&&/^\d{14}$/.test(REQ.ts[u]))WB[s].set(wbNorm(u),{ts:REQ.ts[u],orig:u,pin:true})}
  const deadline=Date.now()+(REQ.minutes||300)*60000,limit=REQ.limit||Infinity;let lastFlush=Date.now();
  /* প্রতি ২ মিনিটে ফাইলে লেখা; প্রতি REQ.push (ডিফল্ট ৩০) মিনিটে শাখায় জমা, যাতে লম্বা রানের মাঝপথের ফল হারিয়ে না যায় */
  let lastPush=Date.now();
@@ -274,7 +276,7 @@ async function get(u,ms=30000){let last;for(let a=0;a<3;a++){try{const ac=new Ab
    for(let n=0;n<list.length;n++){const it=list[n];if(Date.now()>deadline||streak>=25){again.push(...list.slice(n));stop=true;break}
     tick();
     let r,fail='';
-    if(src.wayback){const w=!/\?/.test(it.u)&&!(src.fuzzy&&REQ.save)&&WB[s].get(wbNorm(it.u));const busyWait=x=>sleep(Math.max(src.delay,1000*Math.min(x.ra||0,180)));
+    if(src.wayback){const w=!/\?/.test(it.u)&&WB[s].get(wbNorm(it.u));const busyWait=x=>sleep(Math.max(src.delay,1000*Math.min(x.ra||0,180)));
      /* save: যে পাতার কপি নেই (বা কপিটি অকেজো), তার সর্বশেষ কপি চাওয়া হয়; না থাকলে Internet Archive-কে পাতাটি সংরক্ষণ করতে বলা হয় ("Save Page Now") এবং পরের পাকে সেই নতুন কপি পড়া হয় */
      if(REQ.save&&!/\?/.test(it.u)&&(!w||it.fresh)){
       const L=await getOnce('https://web.archive.org/web/20301231235959id_/'+it.u,90000),m=/\/web\/(\d{14})id_\//.exec(L.final||'');
@@ -288,12 +290,12 @@ async function get(u,ms=30000){let last;for(let a=0;a<3;a++){try{const ac=new Ab
      if(REQ.save&&w&&!it.fresh&&r.status===404){it.fresh=w.ts;again.push(it);await sleep(src.delay);continue} /* সংরক্ষিত কপিটি নিজেই "পাওয়া যায়নি" পাতা: নতুন কপি চাওয়া হবে */
      if(r.busy){st.busy=(st.busy||0)+1;if(r.ra)st.retryAfter=Math.max(st.retryAfter||0,r.ra);if(r.err)st.lastErr=r.err;again.push(it);await sleep(Math.max(src.delay,1000*Math.min(r.ra||0,180)));continue}
      if(r.status===200&&/<title>\s*(Just a moment|Attention Required)/i.test(r.html.slice(0,3000)))r={status:0,html:'',err:'challenge page in archive'};
-     else if(r.status===200){r.final=it.u;r.w=r.w||w.ts}}
+     else if(r.status===200){r.final=it.u;r.w=r.w||w.ts;r.pin=!!(w&&w.pin)}}
     else r=await get(it.u);
     if(r.status!==200)fail=r.err||('HTTP '+r.status);
     else{try{const $=cheerio.load(r.html);const x=src.extract($,r.final||it.u);let html=x.html!==undefined?x.html:(x.body&&x.body.length?clean($,x.body,r.final||it.u):'');if(src.tidy)html=src.tidy(html,(x.title||'').replace(/\s+/g,' ').trim());const title=(x.title||'').replace(/\s+/g,' ').trim();
       if(!title||textLen(html)<40)fail='no content';
-      else if(src.fuzzy&&!sameTitle(title,it.t))fail='title mismatch: '+title.slice(0,70);
+      else if(src.fuzzy&&!r.pin&&!sameTitle(title,it.t))fail='title mismatch: '+title.slice(0,70);
       else if(src.fuzzy&&notArticle(title,html))fail='not the article (download page): '+title.slice(0,70);
       else{const b=loadBucket(bucketOf(it.k));b.data[it.k]={u:it.u,s,c:it.c,t:title,l:it.t,d:(x.date||'').trim(),a:(x.author||'').replace(/\s+/g,' ').trim(),h:html};if(r.w)b.data[it.k].w=r.w;if(src.ver)b.data[it.k].v=src.ver;b.dirty=true;st.done++;report.done++;streak=0}}catch(e){fail='parse: '+String(e).slice(0,80)}}
     if(fail){st.failed++;if(!src.wayback)streak++;if(report.failed.length<400)report.failed.push([it.u,fail])}
