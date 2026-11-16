@@ -555,7 +555,7 @@ a,button,input,select,textarea,.chip,.qcard{touch-action:manipulation;-webkit-ta
 .article-short{margin:24px 0 6px;padding:18px 20px;border:1px solid rgba(246,196,83,.32);border-radius:14px;background:linear-gradient(145deg,rgba(246,196,83,.1),rgba(255,255,255,.02))}
 .article-short b{display:block;margin-bottom:4px;color:var(--gold2);font-size:13px;letter-spacing:.4px}
 .article-short p{margin:0;color:#fff;font-size:17px;line-height:1.85}
-.article-body{color:#dfe6f0;font-size:17px;line-height:1.95}
+.article-body{color:#dfe6f0;font-size:17px;line-height:1.95;overflow-wrap:anywhere}
 .article-body h2{margin:34px 0 10px;color:#fff;font-size:clamp(20px,3vw,25px);line-height:1.45}
 .article-body p{margin:0 0 16px}
 .article-body ul{margin:0 0 18px;padding-left:22px}
