@@ -1,31 +1,21 @@
 {
- "at": "2026-11-16T10:12:03.563Z",
+ "at": "2026-11-16T10:25:10.610Z",
  "request": {
   "set": "all",
   "hosts": [
-   "fm",
-   "iz"
+   "fm"
   ],
-  "minutes": 45,
-  "run": 22
+  "minutes": 10,
+  "run": 29,
+  "ts": {
+   "https://www.frommuslims.com/qna/%e0%a6%86%e0%a6%b2%e0%a6%bf%e0%a6%b0%e0%a6%be-%e0%a6%95%e0%a6%bf-%e0%a6%b0%e0%a6%be%e0%a6%b8%e0%a7%81%e0%a6%b2%e0%a6%b8-%e0%a6%8f%e0%a6%b0-%e0%a6%b8%e0%a7%8d%e0%a6%a5%e0%a6%b2%e0%a6%be%e0%a6%ad/": "20261116101959"
+  }
  },
- "done": 0,
- "skipped": 601,
+ "done": 1,
+ "skipped": 583,
  "failed": [
   [
    "https://www.frommuslims.com/%e0%a6%86%e0%a6%b2%e0%a7%8d%e0%a6%b2%e0%a6%be%e0%a6%b9%e0%a6%b0-%e0%a6%b8%e0%a6%bf%e0%a6%ab%e0%a6%be%e0%a6%a4-%e0%a6%86%e0%a6%95%e0%a6%b2-%e0%a6%a8%e0%a6%be-%e0%a6%93%e0%a6%b9%e0%a7%80/",
-   "not archived"
-  ],
-  [
-   "https://www.insightzonebd.com/question/154",
-   "not archived"
-  ],
-  [
-   "https://www.insightzonebd.com/question/142",
-   "not archived"
-  ],
-  [
-   "https://www.insightzonebd.com/question/133",
    "not archived"
   ],
   [
@@ -57,10 +47,6 @@
    "not archived"
   ],
   [
-   "https://www.frommuslims.com/qna/%e0%a6%86%e0%a6%b2%e0%a6%bf%e0%a6%b0%e0%a6%be-%e0%a6%95%e0%a6%bf-%e0%a6%b0%e0%a6%be%e0%a6%b8%e0%a7%81%e0%a6%b2%e0%a6%b8-%e0%a6%8f%e0%a6%b0-%e0%a6%b8%e0%a7%8d%e0%a6%a5%e0%a6%b2%e0%a6%be%e0%a6%ad/",
-   "no content"
-  ],
-  [
    "https://www.frommuslims.com/qna/%e0%a6%95%e0%a7%88%e0%a6%b2%e0%a6%be%e0%a6%b8-%e0%a6%aa%e0%a6%b0%e0%a7%8d%e0%a6%ac%e0%a6%a4%e0%a7%87-%e0%a6%85%e0%a6%b2%e0%a7%8c%e0%a6%95%e0%a6%bf%e0%a6%95%e0%a6%a4%e0%a6%be-%e0%a6%b0%e0%a6%af/",
    "not archived"
   ]
@@ -68,28 +54,17 @@
  "bySource": {
   "fm": {
    "queued": 10,
-   "done": 0,
-   "failed": 10,
+   "done": 1,
+   "failed": 9,
    "passes": 1,
    "unarchived": 8,
-   "left": 0
-  },
-  "iz": {
-   "queued": 3,
-   "done": 0,
-   "failed": 3,
-   "passes": 1,
-   "unarchived": 3,
    "left": 0
   }
  },
  "wayback": {
-  "iz": {
-   "cached": 7
-  },
   "fm": {
    "cached": 486
   }
  },
- "total": 19981
+ "total": 19982
 }
