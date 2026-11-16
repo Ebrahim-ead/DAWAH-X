@@ -27,7 +27,7 @@ const SOURCES={
  /* insightzonebd.com: রানার থেকে সরাসরি আনা যায় না (Cloudflare)। প্রশ্নোত্তর tools/add-texts.cjs দিয়ে tools/manual/ থেকে যোগ হয়;
     প্রবন্ধ আসে Internet Archive-এ থাকা পুরোনো (WordPress) সংস্করণের কপি থেকে। পুরোনো ঠিকানা একটু আলাদা হতে পারে (fuzzy), তাই শিরোনাম মিলিয়ে নেওয়া হয়। */
  /* izTidy: শিরোনামের পুনরাবৃত্তি, জোড়া <sup>, "URL Copied" বোতামের লেখা বাদ; খোলা লেখা (যেমন "রেফারেন্স") অনুচ্ছেদে */
- iz:{tidy(html,title){const flat=t=>t.replace(/<[^>]+>/g,'').replace(/&amp;/g,'&').replace(/[\s?!।:;,.\-–—'"‘’“”]+/g,'').normalize('NFC');
+ iz:{tidy(html,title){const flat=t=>t.replace(/<[^>]+>/g,'').replace(/&amp;/g,'&').replace(/[\s?!।:;,.\-–—'"‘’“”]+/g,'').normalize('NFC').replace(/ী/g,'ি');
    return html.replace(/^\s*<(h[234])>(.*?)<\/\1>\s*/,(m,g,t)=>flat(t)===flat(title)?'':m).replace(/<sup>\s*<sup>([^<]*)<\/sup>\s*<\/sup>/g,'<sup>$1</sup>')
     .replace(/\s*<p>\s*URL Copied\s*<\/p>/g,'').replace(/(<\/(?:p|ol|ul|blockquote|h[234]|table)>)\s*([^<\s][^<]{0,80}?)\s*(<(?:ol|ul)>)/g,'$1<p>$2</p>$3').trim()},
    host:'www.insightzonebd.com',delay:13000,wayback:'insightzonebd.com',fuzzy:true,extract($,base){
