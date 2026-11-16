@@ -1,17 +1,399 @@
 {
- "at": "2026-11-16T10:44:18.123Z",
+ "at": "2026-11-16T11:07:31.109Z",
  "request": {
-  "set": "all",
-  "hosts": [
-   "fm",
-   "iz"
-  ],
-  "minutes": 45,
-  "run": 22
+  "set": "none",
+  "hosts": [],
+  "imgCheck": true,
+  "run": 33
  },
  "done": 0,
- "skipped": 602,
+ "skipped": 0,
  "failed": [],
  "bySource": {},
+ "imgCheck": {
+  "unique": 1790,
+  "byHost": {
+   "at-tahreek.com": {
+    "n": 334,
+    "ok": 334,
+    "bad": 0,
+    "codes": {
+     "200": 334
+    }
+   },
+   "response-to-anti-islam.com": {
+    "n": 206,
+    "ok": 206,
+    "bad": 0,
+    "codes": {
+     "200": 206
+    }
+   },
+   "www.frommuslims.com": {
+    "n": 1181,
+    "ok": 1164,
+    "bad": 17,
+    "codes": {
+     "200": 1164,
+     "403": 1,
+     "404": 16
+    }
+   },
+   "upload.wikimedia.org": {
+    "n": 2,
+    "ok": 2,
+    "bad": 0,
+    "codes": {
+     "200": 2
+    }
+   },
+   "www.azquotes.com": {
+    "n": 1,
+    "ok": 1,
+    "bad": 0,
+    "codes": {
+     "200": 1
+    }
+   },
+   "rafanofficial.files.wordpress.com": {
+    "n": 4,
+    "ok": 4,
+    "bad": 0,
+    "codes": {
+     "200": 4
+    }
+   },
+   "islamicauthors.com": {
+    "n": 9,
+    "ok": 7,
+    "bad": 2,
+    "codes": {
+     "200": 7,
+     "404": 2
+    }
+   },
+   "i2.wp.com": {
+    "n": 2,
+    "ok": 1,
+    "bad": 1,
+    "codes": {
+     "200": 1,
+     "400": 1
+    }
+   },
+   "i0.wp.com": {
+    "n": 10,
+    "ok": 6,
+    "bad": 4,
+    "codes": {
+     "200": 6,
+     "400": 4
+    }
+   },
+   "lh3.googleusercontent.com": {
+    "n": 3,
+    "ok": 3,
+    "bad": 0,
+    "codes": {
+     "200": 3
+    }
+   },
+   "static.xx.fbcdn.net": {
+    "n": 1,
+    "ok": 1,
+    "bad": 0,
+    "codes": {
+     "200": 1
+    }
+   },
+   "www.insightzonebd.com": {
+    "n": 17,
+    "ok": 17,
+    "bad": 0,
+    "codes": {
+     "200": 17
+    }
+   },
+   "org46368132.files.wordpress.com": {
+    "n": 7,
+    "ok": 7,
+    "bad": 0,
+    "codes": {
+     "200": 7
+    }
+   },
+   "scontent.fcgp17-1.fna.fbcdn.net": {
+    "n": 2,
+    "ok": 0,
+    "bad": 2,
+    "codes": {
+     "403": 2
+    }
+   },
+   "cdn.britannica.com": {
+    "n": 1,
+    "ok": 1,
+    "bad": 0,
+    "codes": {
+     "200": 1
+    }
+   },
+   "blogger.googleusercontent.com": {
+    "n": 1,
+    "ok": 1,
+    "bad": 0,
+    "codes": {
+     "200": 1
+    }
+   },
+   "www.response-to-anti-islam.com": {
+    "n": 1,
+    "ok": 0,
+    "bad": 1,
+    "codes": {
+     "404": 1
+    }
+   },
+   "boitoi.s3-us-west-2.amazonaws.com": {
+    "n": 1,
+    "ok": 1,
+    "bad": 0,
+    "codes": {
+     "200": 1
+    }
+   },
+   "i.pinimg.com": {
+    "n": 1,
+    "ok": 1,
+    "bad": 0,
+    "codes": {
+     "200": 1
+    }
+   },
+   "encrypted-tbn0.gstatic.com": {
+    "n": 2,
+    "ok": 1,
+    "bad": 1,
+    "codes": {
+     "200": 1,
+     "404": 1
+    }
+   },
+   "qph.fs.quoracdn.net": {
+    "n": 3,
+    "ok": 3,
+    "bad": 0,
+    "codes": {
+     "200": 3
+    }
+   },
+   "ars.els-cdn.com": {
+    "n": 1,
+    "ok": 1,
+    "bad": 0,
+    "codes": {
+     "200": 1
+    }
+   }
+  },
+  "bad": [
+   [
+    "fm",
+    "160a54164ff3a5",
+    "https://i0.wp.com/images.speakingtree.iimg.in/files/rsz/webp/crop_fc_450x250/11-2014/180363/8f14e45fceea167a5a36dedd4bea2543_1415194226.webp",
+    400,
+    "text/html"
+   ],
+   [
+    "ra",
+    "0e9ec9b5289956",
+    "https://www.response-to-anti-islam.com/bn/posts/78/chobi/Abhar.JPG",
+    404,
+    "text/html"
+   ],
+   [
+    "ra",
+    "0daf45a263b554",
+    "https://scontent.fcgp17-1.fna.fbcdn.net/v/t1.0-9/121739412_10223379470219469_7535757879664637475_n.jpg?_nc_cat=111&ccb=2&_nc_sid=32a93c&_nc_ohc=dtUXKN0lJB0AX83UJ2q&_nc_ht=scontent.fcgp17-1.fna&oh=99d12e60448cc93d752f1a15cbc2f5e1&oe=5FB435A4",
+    403,
+    "text/plain"
+   ],
+   [
+    "fm",
+    "160a54164ff3a5",
+    "https://i0.wp.com/images.speakingtree.iimg.in/files/rsz/webp/crop_fc_450x250/11-2014/180363/c81e728d9d4c2f636f067f89cc14862c_1415767423.webp",
+    400,
+    "text/html"
+   ],
+   [
+    "fm",
+    "160a54164ff3a5",
+    "https://i2.wp.com/images.speakingtree.iimg.in/files/rsz/webp/crop_fc_450x250/11-2014/180363/c9f0f895fb98ab9159f51fd0297e236d_1415194214.webp",
+    400,
+    "text/html"
+   ],
+   [
+    "fm",
+    "1f6fc3fe2a4c18",
+    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSFvMG2NHpYKaK8Nsbe3KfWJebXNjQ3lv8zrA&usqp=CAU",
+    404,
+    "image/gif"
+   ],
+   [
+    "fm",
+    "160a54164ff3a5",
+    "https://i0.wp.com/images.speakingtree.iimg.in/files/rsz/webp/crop_fc_450x250/11-2014/180363/a87ff679a2f3e71d9181a67b7542122c_1415194144.webp",
+    400,
+    "text/html"
+   ],
+   [
+    "ra",
+    "0daf45a263b554",
+    "https://scontent.fcgp17-1.fna.fbcdn.net/v/t1.0-9/122141769_10223379568221919_997267759030454227_o.jpg?_nc_cat=105&ccb=2&_nc_sid=32a93c&_nc_ohc=RflXz5ZioYgAX8nDqTz&_nc_ht=scontent.fcgp17-1.fna&oh=03c8c7e066dc3ed1ff8de728d0104555&oe=5FB6203E",
+    403,
+    "text/plain"
+   ],
+   [
+    "fm",
+    "160a54164ff3a5",
+    "https://i0.wp.com/images.speakingtree.iimg.in/files/rsz/webp/crop_fc_450x250/11-2014/180363/c4ca4238a0b923820dcc509a6f75849b_1415194067.webp",
+    400,
+    "text/html"
+   ],
+   [
+    "ia",
+    "0a9b81336bacc6",
+    "https://islamicauthors.com/media/2/20210408_020122-1617826815498.jpg",
+    404,
+    "text/html"
+   ],
+   [
+    "ia",
+    "03d6d9b7155e26",
+    "https://islamicauthors.com/media/48/1626325877235-1626513818072.jpeg",
+    404,
+    "text/html"
+   ],
+   [
+    "fm",
+    "0abcc9376f51b0",
+    "https://www.frommuslims.com/wp-content/uploads/2026/03/screenshot_2026-03-04-22-28-23-955_com.brave_.browser-679x1024.png",
+    404,
+    "text/html"
+   ],
+   [
+    "fm",
+    "15b2c55ff3824b",
+    "https://www.frommuslims.com/wp-content/uploads/2025/09/war-history-document.png",
+    404,
+    "text/html"
+   ],
+   [
+    "fm",
+    "15b2c55ff3824b",
+    "https://www.frommuslims.com/wp-content/uploads/2025/09/india-refugee-crisis-document.png",
+    404,
+    "text/html"
+   ],
+   [
+    "fm",
+    "15b2c55ff3824b",
+    "https://www.frommuslims.com/wp-content/uploads/2025/09/bangladesh-liberation-war-hindu-muslim.png",
+    404,
+    "text/html"
+   ],
+   [
+    "fm",
+    "089a3101da94d0",
+    "https://www.frommuslims.com/wp-content/uploads/2026/03/image-13-e1772724109903.png",
+    404,
+    "text/html"
+   ],
+   [
+    "fm",
+    "089a3101da94d0",
+    "https://www.frommuslims.com/wp-content/uploads/2026/03/image-10-e1772718814623-1024x586.png",
+    404,
+    "text/html"
+   ],
+   [
+    "fm",
+    "089a3101da94d0",
+    "https://www.frommuslims.com/wp-content/uploads/2026/03/cleanshot-2026-03-05-at-20.43.11@2x.png",
+    404,
+    "text/html"
+   ],
+   [
+    "fm",
+    "089a3101da94d0",
+    "https://www.frommuslims.com/wp-content/uploads/2026/03/cleanshot-2026-03-05-at-20.32.48@2x-786x1024.png",
+    404,
+    "text/html"
+   ],
+   [
+    "fm",
+    "1902e9c38ea859",
+    "https://www.frommuslims.com/wp-content/uploads/2026/03/image-15.png",
+    404,
+    "text/html"
+   ],
+   [
+    "fm",
+    "1731b919c8b936",
+    "https://www.frommuslims.com/wp-content/uploads/2025/09/image_2025-04-18_15-00-21.png",
+    404,
+    "text/html"
+   ],
+   [
+    "fm",
+    "1b152983619ac3",
+    "https://www.frommuslims.com/wp-content/uploads/2025/08/%E0%A6%9C%E0%A6%BE%E0%A6%A4%E0%A6%BF%E0%A6%B8%E0%A6%82%E0%A6%98-%E0%A6%95%E0%A6%BF-%E0%A6%A4%E0%A6%B2%E0%A6%BE%E0%A6%B9%E0%A7%80%E0%A6%A8-%E0%A6%9D%E0%A7%81%E0%A6%A1%E0%A6%BC%E0%A6%BF.jpg",
+    404,
+    "text/html"
+   ],
+   [
+    "fm",
+    "1b152983619ac3",
+    "https://www.frommuslims.com/wp-content/uploads/2025/08/%E0%A6%9C%E0%A6%BE%E0%A6%A4%E0%A6%BF%E0%A6%B8%E0%A6%82%E0%A6%98-%E0%A6%95%E0%A6%BF-%E0%A6%A4%E0%A6%B2%E0%A6%BE%E0%A6%B9%E0%A7%80%E0%A6%A8-%E0%A6%9D%E0%A7%81%E0%A6%A1%E0%A6%BC%E0%A6%BF.webp",
+    404,
+    "text/html"
+   ],
+   [
+    "fm",
+    "0f220a2c511c81",
+    "https://www.frommuslims.com/wp-content/uploads/2022/09/df879aaa-1ec4-11e7-b589-12072ec58d1a-1024x683.jpg",
+    404,
+    "text/html"
+   ],
+   [
+    "fm",
+    "1c782b6947fc8a",
+    "https://www.frommuslims.com/wp-content/uploads/2026/03/scanned-document-kuinika-614x1024.png",
+    404,
+    "text/html"
+   ],
+   [
+    "fm",
+    "02e1f38cc22d77",
+    "https://www.frommuslims.com/%e0%a6%b9%e0%a6%be%e0%a6%ae%e0%a6%be%e0%a6%b8-%e0%a6%95%e0%a6%bf-%e0%a6%87%e0%a6%b8%e0%a6%b0%e0%a6%be%e0%a6%af%e0%a6%bc%e0%a7%87%e0%a6%b2%e0%a7%87%e0%a6%b0-%e0%a6%a4%e0%a7%88%e0%a6%b0%e0%a6%bf/",
+    403,
+    "text/html"
+   ],
+   [
+    "fm",
+    "18e6dc954abfa4",
+    "https://www.frommuslims.com/wp-content/uploads/2022/08/%E0%A6%B9%E0%A6%BF%E0%A6%A8%E0%A7%8D%E0%A6%A6%E0%A7%81%E0%A6%A7%E0%A6%B0%E0%A7%8D%E0%A6%AE%E0%A7%87-%E0%A6%A4%E0%A6%BE%E0%A6%95%E0%A6%BF%E0%A6%AF%E0%A6%BC%E0%A6%BE%E0%A6%B9-%E0%A6%A7%E0%A6%B0%E0%A7%8D%E0%A6%AE%E0%A7%87%E0%A6%B0-%E0%A6%B8%E0%A7%8D%E0%A6%AC%E0%A6%BE%E0%A6%B0%E0%A7%8D%E0%A6%A5%E0%A7%87-%E0%A6%AC%E0%A7%88%E0%A6%A7-%E0%A6%AE%E0%A6%BF%E0%A6%A5%E0%A7%8D%E0%A6%AF%E0%A6%BE%E0%A6%9A%E0%A6%BE%E0%A6%B0-%E0%A6%8F%E0%A6%AC%E0%A6%82-%E0%A6%85%E0%A6%A8%E0%A7%8D%E0%A6%AF%E0%A6%BE%E0%A6%A8%E0%A7%8D%E0%A6%AF-791x1024.png",
+    404,
+    "text/html"
+   ],
+   [
+    "fm",
+    "18e6dc954abfa4",
+    "https://www.frommuslims.com/wp-content/uploads/2022/08/%E0%A6%B9%E0%A6%BF%E0%A6%A8%E0%A7%8D%E0%A6%A6%E0%A7%81%E0%A6%A7%E0%A6%B0%E0%A7%8D%E0%A6%AE%E0%A7%87-%E0%A6%A4%E0%A6%BE%E0%A6%95%E0%A6%BF%E0%A6%AF%E0%A6%BC%E0%A6%BE%E0%A6%B9-%E0%A6%A7%E0%A6%B0%E0%A7%8D%E0%A6%AE%E0%A7%87%E0%A6%B0-%E0%A6%B8%E0%A7%8D%E0%A6%AC%E0%A6%BE%E0%A6%B0%E0%A7%8D%E0%A6%A5%E0%A7%87-%E0%A6%AC%E0%A7%88%E0%A6%A7-%E0%A6%AE%E0%A6%BF%E0%A6%A5%E0%A7%8D%E0%A6%AF%E0%A6%BE%E0%A6%9A%E0%A6%BE%E0%A6%B0-%E0%A6%8F%E0%A6%AC%E0%A6%82-%E0%A6%85%E0%A6%A8%E0%A7%8D%E0%A6%AF%E0%A6%BE%E0%A6%A8%E0%A7%8D%E0%A6%AF-1-1024x417.jpg",
+    404,
+    "text/html"
+   ]
+  ]
+ },
  "total": 20005
 }
