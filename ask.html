@@ -48,10 +48,15 @@
 <div><label for="an">আপনার নাম <small>(ঐচ্ছিক)</small></label><input autocomplete="name" id="an" maxlength="80" placeholder="নাম বা ছদ্মনাম"/></div>
 <div><label for="ac">ইমেইল / ফোন <small>(ঐচ্ছিক, উত্তর পেতে)</small></label><input id="ac" maxlength="120" placeholder="যোগাযোগের মাধ্যম"/></div>
 </div>
-<label for="at">বিষয়</label>
-<select id="at"><option>স্রষ্টার অস্তিত্ব / নাস্তিকতা</option><option>কুরআন</option><option>হাদিস</option><option>বিজ্ঞান ও ধর্ম</option><option>নারী / নৈতিকতা</option><option>অন্যান্য</option></select>
+<div class="two">
+<div><label for="at">বিষয়</label>
+<select id="at"><option>স্রষ্টার অস্তিত্ব / নাস্তিকতা</option><option>কুরআন</option><option>হাদিস</option><option>বিজ্ঞান ও ধর্ম</option><option>নারী / নৈতিকতা</option><option>অন্যান্য</option></select></div>
+<div><label for="ar">ধর্মীয় পরিচয় <small>(আবশ্যক)</small></label>
+<select aria-required="true" id="ar" required=""><option value="">— বেছে নিন —</option><option>মুসলিম</option><option>হিন্দু</option><option>খ্রিস্টান</option><option>বৌদ্ধ</option><option>নাস্তিক / সংশয়বাদী</option><option>অন্যান্য</option><option>বলতে চাই না</option></select></div>
+</div>
 <label for="aq">আপনার প্রশ্ন</label>
 <textarea aria-required="true" id="aq" maxlength="4000" placeholder="আপনার প্রশ্ন বা সংশয় এখানে লিখুন..."></textarea>
+<div class="ask-sug" hidden="" id="asksug"></div>
 <div class="ask-send"><button class="askbtn ask-wa" id="askwa" type="button"><svg class="ic"><use href="#wa"></use></svg>WhatsApp-এ পাঠান</button><button class="askbtn" id="askbtn" type="button">প্রশ্ন পাঠান</button></div>
 <div aria-live="polite" id="askm" role="status"></div>
 <p class="qnote" style="text-align:left;margin-top:6px"><span id="askhow">আপনার প্রশ্ন DAWAH X টিমের কাছে পাঠানো হয়।</span> উত্তর পেতে চাইলে ইমেইল বা ফোন নম্বর দিন।<span style="position:absolute;left:-9999px" aria-hidden="true"><label>ফাঁকা রাখুন <input id="abot" tabindex="-1" autocomplete="off"/></label></span></p>

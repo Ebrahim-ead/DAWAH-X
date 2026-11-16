@@ -140,7 +140,7 @@ const searchPrefix=t=>{const a=[...t];return a.slice(0,a[1]==="\u09cd"?5:3).join
 const searchShard=(t,n)=>{let h=0x811c9dc5;const p=searchPrefix(t);for(let i=0;i<p.length;i++){h^=p.charCodeAt(i);h=Math.imul(h,0x01000193)}return (h>>>0)%n};
 const normalizeSearchText=v=>foldBn(v).trim().replace(/\s+/g," ");
 /* একই অর্থের ভিন্ন শব্দ/বানান (foldBn-এর পরের রূপে): একটি লিখলে অন্যগুলোও খোঁজা হয়; শব্দের শেষের বিভক্তি ("নামাজের") বজায় থাকে */
-const SEARCH_SYNONYMS=[["নামাজ","সালাত"],["রোজা","সি\u09dfাম","সাওম"],["কোরআন","কুরআন","কোরান","কুরান"],["অজু","ওজু","উজু"],["দো\u09dfা","দোআ","দুআ"],["জুমা","জুমআ","জুমুআ"],["কুরবানি","কোরবানি"],["ওহি","অহি"],["জ\u09dfিফ","জইফ"],["বিদআত","বেদাত"],["ফেরেসতা","ফিরিসতা"],["রাসুল","রসুল"],["মুহাম্মদ","মুহাম্মাদ","মোহাম্মদ"]];
+const SEARCH_SYNONYMS=[["নামাজ","সালাত"],["রোজা","সি\u09dfাম","সাওম"],["কোরআন","কুরআন","কোরান","কুরান"],["অজু","ওজু","উজু"],["দো\u09dfা","দোআ","দুআ"],["জুমা","জুমআ","জুমুআ"],["কুরবানি","কোরবানি"],["ওহি","অহি"],["জ\u09dfিফ","জইফ"],["বিদআত","বেদাত"],["ফেরেসতা","ফিরিসতা"],["রাসুল","রসুল"],["মুহাম্মদ","মুহাম্মাদ","মোহাম্মদ"],["রাকাত","রাকআত"],["হজ্জ","হজ"],["ওমরা","উমরা"],["মসজিদ","মাসজিদ"],["বিতর","বিতির","বেতের"],["সেহরি","সাহরি","সাহারি"],["বি\u09dfে","বিবাহ"],["স্রস্টা","সৃস্টিকর্তা"]];
 const searchAlts=t=>{for(const g of SEARCH_SYNONYMS)for(const m of g)if(t.startsWith(m)){const rest=t.slice(m.length);return g.map(x=>x+rest)}return [t]};
 /* ---- লেখার ভেতরে সার্চ: search/meta.json, search/keys.txt, search/<নম্বর>.json (শব্দ → কোন কোন লেখায় আছে) ----
    শব্দের শুরু মিললেই ধরা হয় ("নামাজ" লিখলে "নামাজের"-ও আসে); একাধিক শব্দ দিলে সবগুলো যে লেখায় আছে সেটিই আসে */
@@ -158,6 +158,76 @@ const DEEP={meta:null,stop:null,keys:"",shards:new Map(),ready:null,
      for(const tok in sh)if(tok.startsWith(a))for(const id of this.ids(sh[tok]))set.add(id)}
     acc=acc?new Set([...acc].filter(x=>set.has(x))):set;if(!acc.size)break}
    const out=new Set();for(const id of acc)out.add(this.keys.substr(id*14,14));return out}catch(e){return null}}};
+/* ===== প্রশ্ন লেখার সময় মিলে-যাওয়া লেখা ও ভিডিও (ask.html) =====
+   পাঠক প্রশ্ন লিখতে থাকলে সাইটে আগে থেকে থাকা মিলে-যাওয়া লেখা (প্রশ্নোত্তর + ফতোয়া) ও ভিডিও খুঁজে দেয়।
+   তথ্য: search/titles.json + search/tNN.json (শিরোনামের শব্দ), search/NNN.json (লেখার ভেতরের শব্দ), rel/NN.json (শিরোনাম), youtube-videos.json (ভিডিও)।
+   সাধারণ সার্চের সাথে পার্থক্য: এখানে পুরো বাক্য আসে, তাই সব শব্দ থাকা লাগে না — কম-ব্যবহৃত (বিষয়-নির্দেশক) শব্দের ওজন বেশি,
+   শিরোনামে মিল লেখার ভেতরের মিলের চেয়ে বেশি দামি, আর ছোট শিরোনামে মিল লম্বা শিরোনামের চেয়ে বেশি দামি। */
+/* বিভক্তি/ক্রিয়ার শেষাংশ (foldBn-এর পরের রূপে): "তাহাজ্জুদের" → "তাহাজ্জুদ", "জানলে" → "জানল" */
+const ASK_SUFFIXES=["গুলোকে","গুলোর","গুলোতে","গুলো","গুলি","দেরকে","দের","টির","টিকে","টি","টা","কে","তে","েরা","ের","রা","\u09dfের","সিলেন","সিল","লেন","লাম","লে","বেন","বে","সেন","সে","তেন","েন","\u09df","ে","র","ই","ও"];
+/* প্রশ্নে প্রায়ই থাকে কিন্তু বিষয় বোঝায় না এমন শব্দ (foldBn-এর পরের রূপে) */
+const ASK_SKIP=new Set("কি কেন কিভাবে কোন কোথা\u09df কখন কত ক\u09df কিনা নাকি জদি তাহলে আমি আমার আমাদের আমরা আপনি আপনার আপনারা জানতে জানাবেন চাই বলুন বলবেন দ\u09dfা প্রস্ন উত্তর সম্পর্কে বিস\u09dfে ব্জাপারে একটি একটা একজন এটা এটি সেটা হবে হ\u09df করা করে করলে করতে জাবে জা\u09df আসে নি\u09dfে থেকে জন্জ এবং অথবা বা ও না ভাই আসসালামু আলাইকুম সালাম ধন্জবাদ প্লিজ অনুগ্রহ কিসু খুব অনেক তো এর এত এতো এতগুলো কেমন হচ্সে হচ্সেন হ\u09dfেসিল করেসিলেন করেসিল করেসেন সিলেন আসেন থাকবে পারি পারব পারবে পারবো জাবেন দিতে নিতে হলো গেলে গেসে দিলে নিলে the an is are was do does did can how what why when who which you your my me we of to in on for and or it this that hello hi please".split(" "));
+const ASK_LEN="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"; /* tools/build-site-data.cjs-এর LEN_CHARS */
+const askCp=t=>[...t].length,askMinPrefix=t=>[...t][1]==="\u09cd"?5:3;
+/* একটি শব্দ → খোঁজার রূপগুলো [[রূপ, শুরু মিললেই চলবে?]]; শব্দটি (বা তার মূল রূপ) খুব সাধারণ হলে null।
+   ছোট মূল রূপ (৩ অক্ষর) হুবহু মিলতে হয় — নইলে "বানর" থেকে "বান" হয়ে "বান্দা"-ও ধরা পড়ত */
+function askForms(tok,stop){const out=new Map();
+ for(const a of searchAlts(tok)){if(stop.has(a)||ASK_SKIP.has(a))return null;
+  out.set(a,askCp(a)>=askMinPrefix(a));
+  for(const s of ASK_SUFFIXES){if(!a.endsWith(s))continue;const r=a.slice(0,-s.length),n=askCp(r);if(n<3)continue;
+   if(stop.has(r)||ASK_SKIP.has(r))return null;
+   const pre=n>=4&&n>=askMinPrefix(r);if(pre||!out.has(r))out.set(r,pre)}}
+ return [...out]}
+const SUGGEST={tm:null,side:null,ready:null,tsh:new Map(),relc:new Map(),vid:null,
+ init(){return this.ready||(this.ready=Promise.all([DEEP.init(),fetch("search/titles.json").then(r=>{if(!r.ok)throw 0;return r.json()})])
+  .then(([ok,t])=>{if(!ok||!t||!t.len||!t.side)throw 0;const s=atob(t.side);this.tm=t;this.side=i=>(s.charCodeAt(i>>3)>>(i&7))&1?"f":"q";return true}).catch(()=>{this.ready=null;return false}))},
+ tshard(i){let p=this.tsh.get(i);if(!p){p=fetch("search/t"+String(i).padStart(2,"0")+".json").then(r=>{if(!r.ok)throw 0;return r.json()});this.tsh.set(i,p);p.catch(()=>this.tsh.delete(i))}return p},
+ rel(k){const f=k.slice(-2);let p=this.relc.get(f);if(!p){p=fetch("rel/"+f+".json").then(r=>r.ok?r.json():{}).catch(()=>({}));this.relc.set(f,p)}return p.then(o=>o[k]||null)},
+ /* ভিডিওর তালিকা একবারই আনা হয়; শিরোনামের শব্দ → ভিডিও। ৮%-এর বেশি শিরোনামে থাকা শব্দ (বক্তার নাম ইত্যাদি) বাদ */
+ videos(){return this.vid||(this.vid=fetch("youtube-videos.json").then(r=>{if(!r.ok)throw 0;return r.json()}).then(all=>{
+   const list=all.filter(v=>v&&/^[\w-]{11}$/.test(v.id||"")&&typeof v.title==="string"),map=new Map();
+   const toks=list.map(v=>[...new Set(searchTokens(v.title).filter(t=>!/^\d+$/.test(t)))]);
+   toks.forEach((ts,i)=>ts.forEach(t=>{let l=map.get(t);if(!l)map.set(t,l=[]);l.push(i)}));
+   const cap=list.length*.08,len=toks.map(ts=>Math.max(1,ts.filter(t=>map.get(t).length<=cap).length));
+   for(const [t,l] of [...map])if(l.length>cap)map.delete(t);
+   return {list,map,len,vocab:[...map.keys()]}}).catch(()=>{this.vid=null;return null}))},
+ /* T = প্রতিটি শব্দ কোন কোন শিরোনামে আছে, B = কোন কোন লেখার ভেতরে আছে (ভিডিওর জন্য null), w = শব্দের ওজন, raw = শব্দটি কতটা বিরল।
+    দেখানোর শর্ত: শিরোনামে অন্তত ২টি শব্দের মিল (অথবা ১টি খুব নির্দিষ্ট শব্দ) এবং প্রশ্নের ওজনের বড় অংশ শিরোনামে আছে;
+    অথবা ৩+ শব্দের সবগুলো লেখার ভেতরে আছে এবং শিরোনামেও কিছু মিল আছে */
+ score(N,T,B,w,raw,lenOf){const n=T.length,W=w.reduce((x,y)=>x+y,0),tw=new Float32Array(N),tc=new Uint8Array(N),tx=new Float32Array(N),bw=B?new Float32Array(N):null,out=[];
+  T.forEach((s,i)=>{for(const id of s){tw[id]+=w[i];tc[id]++;if(raw[i]>tx[id])tx[id]=raw[i]}});
+  if(B)B.forEach((s,i)=>{for(const id of s)bw[id]+=w[i]});
+  for(let id=0;id<N;id++){if(!tc[id])continue;const M=tw[id],t=M/(M+.5*(W-M)),b=bw?bw[id]/(bw[id]+.5*(W-bw[id])):t;
+   if(!((t>=.6&&(tc[id]>=2||tx[id]>=(n===1?3:5)))||(bw&&n>=3&&b>=.999&&t>=.35)))continue;
+   const sc=.7*t*(.25+.75*Math.sqrt(Math.min(1,tc[id]/lenOf(id))))+.3*b;if(sc>=.4)out.push([id,sc])}
+  return out.sort((x,y)=>y[1]-x[1]||x[0]-y[0])},
+ /* ফল: {texts:[{k,side,title,cat}], videos:Promise<[{id,title,channel}]>}; সূচি না পাওয়া গেলে null।
+    ভিডিওর তালিকা বড় (প্রথমবার আনতে সময় লাগে), তাই লেখার ফল আগে ফেরে আর ভিডিও আলাদা Promise-এ আসে */
+ async find(q){try{
+   if(!(await this.init()))return null;
+   const vp=this.videos(),stop=DEEP.stop,seen=new Set(),same=new Set(),G=[];
+   for(const t of searchTokens(q)){if(/^\d+$/.test(t)||seen.has(t))continue;seen.add(t);const f=askForms(t,stop);if(!f)continue;
+    const id=f.map(x=>x[0]).sort().join("|");if(same.has(id))continue;same.add(id);G.push(f);if(G.length>=12)break}
+   if(!G.length)return {texts:[],videos:Promise.resolve([])};
+   const N=DEEP.meta.n,nb=DEEP.meta.shards,nt=this.tm.shards,B=[],T=[];
+   await Promise.all(G.map(async(forms,g)=>{const b=new Set(),t=new Set();
+    await Promise.all(forms.map(async([p,pre])=>{const i=searchShard(p,nb),[bs,ts]=await Promise.all([DEEP.shard(i),this.tshard(i%nt)]);
+     const take=(sh,set)=>{if(pre){for(const tok in sh)if(tok.startsWith(p))for(const x of DEEP.ids(sh[tok]))set.add(x)}else if(Object.prototype.hasOwnProperty.call(sh,p))for(const x of DEEP.ids(sh[p]))set.add(x)};
+     take(bs,b);take(ts,t)}));
+    B[g]=b;T[g]=t}));
+   /* raw = শব্দটি কত কম লেখায় আছে (বেশি = বেশি নির্দিষ্ট); কোনো লেখায় না থাকা শব্দ (বানান ভুল, নাম) কম ওজন পায় */
+   const raw=B.map(s=>s.size?Math.log(N/(1+s.size)):0),w=raw.map(v=>v?Math.min(5,Math.max(1,v)):1.2),L=this.tm.len;
+   const ranked=this.score(N,T,B,w,raw,id=>Math.max(1,ASK_LEN.indexOf(L[id])));
+   const pick={q:[],f:[]};for(const [id] of ranked){const s=this.side(id);if(pick[s].length<6)pick[s].push(id)}
+   const bare=v=>v.replace(/^\s*প্রশ্ন\s*[:ঃ]?\s*\([^)]{0,14}\)\s*[:ঃ]?\s*/,"").trim(),texts=[],seenT=new Set();
+   for(const s of ["q","f"]){const rows=await Promise.all(pick[s].map(id=>{const k=DEEP.keys.substr(id*14,14);return this.rel(k).then(r=>r&&r[0]?{k,side:s,title:bare(r[0])||r[0],cat:r[1]||""}:null)}));
+    let n=0;for(const r of rows){if(!r)continue;const ft=foldBn(r.title);if(seenT.has(ft))continue;seenT.add(ft);texts.push(r);if(++n>=3)break}}
+   const videos=vp.then(V=>{const videos=[];
+   if(V){const TV=G.map(forms=>{const s=new Set();for(const [p,pre] of forms){if(pre){for(const tok of V.vocab)if(tok.startsWith(p))for(const i of V.map.get(tok))s.add(i)}else{const l=V.map.get(p);if(l)for(const i of l)s.add(i)}}return s});
+    const seenV=new Set();for(const [i] of this.score(V.list.length,TV,null,w,raw,i=>V.len[i])){const v=V.list[i],ft=foldBn(v.title);if(seenV.has(ft))continue;seenV.add(ft);videos.push({id:v.id,title:v.title,channel:v.channelTitle||""});if(videos.length>=2)break}}
+    return videos}).catch(()=>[]);
+   return {texts,videos}}catch(e){return null}}};
+/* ===== /মিলে-যাওয়া লেখা ও ভিডিও ===== */
 const hostOf=u=>{try{return new URL(u).hostname.replace(/^www\./,"")}catch(e){return""}};
 const formatCount=n=>new Intl.NumberFormat("en-US").format(n);
 /* ---- সাইটেই পড়ার লেখা (texts/…json; tools/import-texts.cjs দিয়ে আনা) ---- */
@@ -923,15 +993,41 @@ setupLibrary({id:"f",deep:PAGE==="fatwa",rows:FT,manifest:PAGE==="fatwa"?FATWA_P
   /* ফর্ম যাচাই করে বার্তা তৈরি করে; সমস্যা থাকলে null */
   const compose=()=>{
    const q=aq.value.trim();
+   /* ধর্মীয় পরিচয় (#ar) আবশ্যক: না বাছলে প্রশ্ন পাঠানো যায় না (পুরনো HTML-এ ঘরটি না থাকলে শর্তটি খাটে না) */
+   const rel=$("ar");
+   if(rel&&!rel.value){msg.textContent="অনুগ্রহ করে আপনার ধর্মীয় পরিচয় বেছে নিন।";rel.focus();return null}
    if(q.length<5){msg.textContent="অনুগ্রহ করে আপনার প্রশ্ন লিখুন।";aq.focus();return null}
    if(field("abot")){msg.textContent="ধন্যবাদ!";return null} /* honeypot: বট হলে কিছু পাঠানো হয় না */
-   const data={name:field("an"),contact:field("ac"),topic:field("at"),question:q};
+   const data={name:field("an"),contact:field("ac"),topic:field("at"),religion:field("ar"),question:q};
    const lines=["আসসালামু আলাইকুম। DAWAH X ওয়েবসাইট থেকে একটি প্রশ্ন:","বিষয়: "+data.topic];
+   if(data.religion)lines.push("ধর্মীয় পরিচয়: "+data.religion);
    if(data.name)lines.push("নাম: "+data.name);
    if(data.contact)lines.push("যোগাযোগ: "+data.contact);
    lines.push("","প্রশ্ন: "+q);
    return {data,text:lines.join("\n")};
   };
+
+  /* খসড়া: পাঠক মিলে-যাওয়া লেখা পড়তে গিয়ে ফিরে এলে ফর্মে লেখা যেন না হারায় (শুধু এই ট্যাবে, sessionStorage) */
+  const DRAFT="dawahx-ask-draft",draftIds=["an","ac","at","ar","aq"];
+  const saveDraft=()=>{try{const d={};for(const id of draftIds){const el=$(id);if(el)d[id]=el.value}sessionStorage.setItem(DRAFT,JSON.stringify(d))}catch(e){}};
+  try{const d=JSON.parse(sessionStorage.getItem(DRAFT)||"null");if(d)for(const id of draftIds){const el=$(id);if(el&&typeof d[id]==="string"){el.value=d[id];if(el.value!==d[id]&&el.options)el.selectedIndex=0}}}catch(e){}
+  for(const id of draftIds)$(id)?.addEventListener("input",saveDraft);
+  $("ar")?.addEventListener("change",()=>{if(msg.textContent.includes("ধর্মীয় পরিচয়"))msg.textContent=""});
+
+  /* প্রশ্ন লেখার সময়ই সাইটে থাকা মিলে-যাওয়া লেখা ও ভিডিও দেখানো (SUGGEST) — লেখা নতুন ট্যাবে খোলে, ভিডিও এই পাতাতেই চলে */
+  const sug=$("asksug");let sugSeq=0,sugTimer=0,sugFor=null;
+  const showSuggestions=async()=>{if(!sug)return;const q=aq.value.trim();if(q===sugFor)return;sugFor=q;const my=++sugSeq;
+   const clear=()=>{sug.hidden=true;sug.replaceChildren()};
+   if(q.length<6){clear();return}
+   const r=await SUGGEST.find(q);if(my!==sugSeq)return;
+   if(!r){clear();return}
+   const draw=videos=>{if(!r.texts.length&&!videos.length){clear();return}
+   const vids=videos.map(v=>`<button type="button" class="ask-vid" data-video-id="${escAttr(v.id)}" data-video-title="${escAttr(v.title)}" aria-label="${escAttr(v.title)} — ভিডিওটি এই পেজে চালান"><span class="ask-vid-thumb"><img alt="" loading="lazy" decoding="async" src="https://i.ytimg.com/vi/${escAttr(v.id)}/mqdefault.jpg"><i aria-hidden="true"></i></span><span class="ask-vid-info"><small>ভিডিও${v.channel?" · "+escHTML(v.channel):""}</small><b>${escHTML(v.title)}</b><em>এখানেই দেখুন ›</em></span></button>`).join("");
+   const texts=r.texts.map(x=>`<a class="qcard qcard-own" href="read.html?k=${x.k}&from=${x.side}" target="_blank" rel="noopener"><small>${escHTML(!x.cat?(x.side==="f"?"ফতোয়া":"প্রশ্নোত্তর"):x.side==="f"&&!x.cat.includes("প্রবন্ধ")?"ফতোয়া · "+x.cat:x.cat)}</small><b>${escHTML(x.title)}</b><span>এখানেই পড়ুন ›</span></a>`).join("");
+   sug.innerHTML=`<p class="ask-sug-head"><b>আপনার প্রশ্নের সাথে মিল আছে — এগুলো সাইটেই আছে</b><span>পাঠানোর আগে একবার দেখে নিন; উত্তর পেয়ে গেলে অপেক্ষা করতে হবে না। না পেলে নিচের বোতামে প্রশ্নটি পাঠিয়ে দিন।</span></p>${vids?`<div class="ask-sug-videos">${vids}</div>`:""}${texts?`<div class="ask-sug-list">${texts}</div>`:""}`;
+   sug.hidden=false};
+   draw([]);const videos=await r.videos;if(my===sugSeq&&videos.length)draw(videos)};
+  if(sug){aq.addEventListener("input",()=>{clearTimeout(sugTimer);sugTimer=setTimeout(showSuggestions,600)});if(aq.value.trim().length>=6)showSuggestions()}
 
   if(wa)wa.addEventListener("click",()=>{const m=compose();if(m)viaChat("whatsapp",m.text)});
 
@@ -947,7 +1043,7 @@ setupLibrary({id:"f",deep:PAGE==="fatwa",rows:FT,manifest:PAGE==="fatwa"?FATWA_P
      const r=await fetch("__forms.html",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:body.toString()});
      ok=r.ok&&/netlify/i.test(r.headers.get("server")||"")} /* Netlify ছাড়া অন্য হোস্টে ফর্ম জমা হয় না */
     if(!ok)throw new Error("not delivered");
-    msg.textContent="ধন্যবাদ! আপনার প্রশ্ন আমাদের কাছে পৌঁছেছে। ইন শা আল্লাহ শীঘ্রই উত্তর দেওয়া হবে।";aq.value="";
+    msg.textContent="ধন্যবাদ! আপনার প্রশ্ন আমাদের কাছে পৌঁছেছে। ইন শা আল্লাহ শীঘ্রই উত্তর দেওয়া হবে।";aq.value="";saveDraft();showSuggestions();
    }catch(e){
     if(how)how.textContent=HOW_CHAT;
     viaChat("messenger",text,{open:false,lead:"সরাসরি জমা দেওয়া যায়নি, তাই Messenger বা WhatsApp-এ পাঠান। "});
