@@ -26,7 +26,11 @@ const SOURCES={
 ,
  /* insightzonebd.com: রানার থেকে সরাসরি আনা যায় না (Cloudflare)। প্রশ্নোত্তর tools/add-texts.cjs দিয়ে tools/manual/ থেকে যোগ হয়;
     প্রবন্ধ আসে Internet Archive-এ থাকা পুরোনো (WordPress) সংস্করণের কপি থেকে। পুরোনো ঠিকানা একটু আলাদা হতে পারে (fuzzy), তাই শিরোনাম মিলিয়ে নেওয়া হয়। */
- iz:{host:'www.insightzonebd.com',delay:13000,wayback:'insightzonebd.com',fuzzy:true,extract($,base){
+ /* izTidy: শিরোনামের পুনরাবৃত্তি, জোড়া <sup>, "URL Copied" বোতামের লেখা বাদ; খোলা লেখা (যেমন "রেফারেন্স") অনুচ্ছেদে */
+ iz:{tidy(html,title){const flat=t=>t.replace(/<[^>]+>/g,'').replace(/&amp;/g,'&').replace(/[\s?!।:;,.\-–—'"‘’“”]+/g,'').normalize('NFC');
+   return html.replace(/^\s*<(h[234])>(.*?)<\/\1>\s*/,(m,g,t)=>flat(t)===flat(title)?'':m).replace(/<sup>\s*<sup>([^<]*)<\/sup>\s*<\/sup>/g,'<sup>$1</sup>')
+    .replace(/\s*<p>\s*URL Copied\s*<\/p>/g,'').replace(/(<\/(?:p|ol|ul|blockquote|h[234]|table)>)\s*([^<\s][^<]{0,80}?)\s*(<(?:ol|ul)>)/g,'$1<p>$2</p>$3').trim()},
+   host:'www.insightzonebd.com',delay:13000,wayback:'insightzonebd.com',fuzzy:true,extract($,base){
    const title=($('meta[property="og:title"]').attr('content')||$('title').first().text()).replace(/\s+/g,' ').replace(/\s*[-–|]\s*Insight Zone\s*$/i,'').trim();
    let body=$('.elementor-widget-theme-post-content').first();if(!body.length)body=$('.entry-content').first();if(!body.length)body=$('article').first();
    if(!body.length)return{title,html:''};
@@ -35,9 +39,7 @@ const SOURCES={
    body.find('a.footnote-back-link,a[href^="#identifier_"]').remove();
    body.find('a.footnote-identifier-link,a[href^="#footnote_"]').each((k,e)=>{$(e).replaceWith('<sup>'+esc($(e).text().replace(/\s+/g,''))+'</sup>')});
    let html=clean($,body,base).replace(/\s*\[\s*\]\s*(?=<\/li>)/g,'');
-   /* লেখার শুরুতে শিরোনামের পুনরাবৃত্তি বাদ (পাতার শিরোনামে আগেই আছে) */
-   const flat=t=>t.replace(/<[^>]+>/g,'').replace(/[\s?!।:;,.\-–—'"‘’“”]+/g,'').normalize('NFC');
-   html=html.replace(/^<h2>(.*?)<\/h2>\s*/,(m,t)=>flat(t)===flat(esc(title))?'':m);
+   html=SOURCES.iz.tidy(html,title);
    const junk=html.replace(/<[^>]+>/g,' ').match(/wpDiscuz|Post Views|Article Rating|Notify of|Inline Feedbacks|Leave a (Reply|Comment)|Skip to content/);
    if(junk)throw new Error('junk in content: '+junk[0]);
    return{title,html,date:($('meta[property="article:published_time"]').attr('content')||'').slice(0,10),author:($('meta[name="author"]').attr('content')||'').trim()}}},
@@ -161,8 +163,10 @@ async function getOnce(u,ms=60000){try{const ac=new AbortController(),tm=setTime
   if(res.status===429||res.status>=500)return{status:res.status,html:'',busy:true,ra:parseInt(res.headers.get('retry-after')||'',10)||0,err:'HTTP '+res.status};
   return{status:res.status,html,final:res.url}}catch(e){return{status:0,html:'',busy:true,err:(String(e)+' '+String(e&&e.cause||'')).slice(0,100)}}}
 /* আগের রানে রাখা From Muslims প্রশ্নোত্তরের ছোট সংশোধন (বারবার চালালেও ফল একই) */
-function migrate(){for(const f of fs.readdirSync(OUT)){if(!/^[0-9a-f]{3}\.json$/.test(f))continue;if(!fs.readFileSync(path.join(OUT,f),'utf8').includes('"s":"fm"'))continue;
-  const b=loadBucket(f.slice(0,3));for(const k in b.data){const x=b.data[k];if(x.s!=='fm')continue;
+function migrate(){for(const f of fs.readdirSync(OUT)){if(!/^[0-9a-f]{3}\.json$/.test(f))continue;if(!/"s":"(fm|iz)"/.test(fs.readFileSync(path.join(OUT,f),'utf8')))continue;
+  const b=loadBucket(f.slice(0,3));for(const k in b.data){const x=b.data[k];
+   if(x.s==='iz'&&x.w){const h=SOURCES.iz.tidy(x.h,x.t);if(h!==x.h){x.h=h;b.dirty=true}continue}
+   if(x.s!=='fm')continue;
    if(/^<p>Filter:<a /.test(x.h)){delete b.data[k];b.dirty=true;continue} /* প্রশ্নের তালিকা-পাতা */
    if(!/\/qna\//.test(x.u)){const h=x.h.replace(/<p>Citation is loading\.\.\.<\/p>/g,'').replace(/<p>Citation style:<\/p>/g,'').replace(/<table>[^<]+<tbody>/g,'<table><tbody>').replace(/\s+$/,''),
      a=x.a.replace(/\s*\d+\s+(seconds?|minutes?|hours?|days?|weeks?|months?|years?)\s+ago.*$/,'').replace(/\s*Last Updated.*$/,'');
