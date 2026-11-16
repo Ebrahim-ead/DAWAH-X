@@ -215,6 +215,9 @@ function setupLibrary(cfg){
  }
 
  chips.addEventListener("click",e=>{const b=e.target.closest("[data-c]");if(!b)return;cur=b.dataset.c;show=LIBRARY_PAGE_SIZE;draw();load(cur);chips.querySelector(".chip.on")?.focus({preventScroll:true})});
+ /* উৎসের বড় কার্ড (data-cat): মূল সাইটে না নিয়ে নিচের তালিকায় সেই বিভাগের লেখাগুলো দেখায় */
+ document.querySelectorAll('a.library-link[data-cat][href="#'+cfg.id+'chips"]').forEach(a=>a.addEventListener("click",e=>{if(!cats.includes(a.dataset.cat))return;
+  e.preventDefault();search.value="";cur=a.dataset.cat;show=LIBRARY_PAGE_SIZE;draw();load(cur);(stat||chips).scrollIntoView({block:"start"});chips.querySelector(".chip.on")?.focus({preventScroll:true})}));
  let drawTimer;
  const onSearch=now=>{clearTimeout(drawTimer);drawTimer=setTimeout(()=>{show=LIBRARY_PAGE_SIZE;draw();if(query().length>=2)load(cur)},now?0:160)};
  search.addEventListener("input",()=>onSearch(false));
