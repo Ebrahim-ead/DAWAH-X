@@ -22,12 +22,15 @@ jobs:
           node-version: 20
       - run: npm install --no-save --prefix /tmp/imp cheerio@1.0.0
       - run: NODE_PATH=/tmp/imp/node_modules node tools/import-texts.cjs
+      # সার্চ-সূচি (search/), "আরও পড়ুন" তালিকা (rel/) ও শেয়ার-পাতা (s/) — লেখা বদলালে এগুলোও নতুন করে তৈরি হয়
+      - name: Build search index, related lists and share pages
+        run: node --max-old-space-size=4096 tools/build-site-data.cjs
       - name: Commit results
         if: always()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add texts
+          git add texts search rel s
           git diff --cached --quiet || git commit -q -m "Import library texts (automated)"
           git pull -q --rebase -X theirs origin "${GITHUB_REF_NAME}" || { git rebase --abort; git pull -q --rebase -X theirs origin "${GITHUB_REF_NAME}"; }
           git push -q origin "HEAD:${GITHUB_REF_NAME}"
