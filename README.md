@@ -38,7 +38,6 @@
 - `LINKS` — Facebook, YouTube, WhatsApp লিংক
 - `MESSENGER` — যে Messenger ইনবক্সে প্রশ্ন যাবে
 - `ASK_ACTION` — (ঐচ্ছিক) Formspree URL দিলে প্রশ্ন সরাসরি ইমেইলে আসবে
-- `SUBSCRIBE_ACTION` — (ঐচ্ছিক) ইমেইল সাবস্ক্রিপশন সেবার URL
 
 ## “প্রশ্ন করুন” ফর্ম কীভাবে কাজ করে
 - **`ASK_ACTION` ফাঁকা থাকলে (GitHub Pages বা নিজস্ব ডোমেইন):** “Messenger-এ পাঠান” চাপলে প্রশ্নটি কপি হয় এবং DAWAH X-এর Messenger চ্যাট খুলে যায়; ভিজিটর Send চাপলে প্রশ্ন পৌঁছায়। GitHub Pages-এ সার্ভার নেই, তাই সরাসরি জমা নেওয়া সম্ভব নয়।

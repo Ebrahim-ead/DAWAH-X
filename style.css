@@ -642,3 +642,8 @@ a,button,input,select,textarea,.chip,.qcard{touch-action:manipulation;-webkit-ta
 /* খুব সরু পর্দা (৩২০px): ফুটার ও চ্যানেল-বার যেন পর্দার বাইরে না যায় */
 @media(max-width:560px){.fg{grid-template-columns:minmax(0,1fr)}.fg>*{min-width:0}}
 @media(max-width:380px){.channel-bar{flex-wrap:wrap}}
+/* ফুটার: ফলো করার বোতাম (আগের ইমেইল-বক্সের জায়গায়) */
+.follow{display:flex;flex-wrap:wrap;gap:10px}
+.follow-btn{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:8px 14px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.04);color:var(--text);font-size:14px;font-weight:600;text-decoration:none;transition:border-color .2s,background .2s}
+.follow-btn:hover,.follow-btn:focus-visible{border-color:var(--gold);background:rgba(246,196,83,.08)}
+.follow-btn .ic{width:20px;height:20px;flex:none}

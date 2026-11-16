@@ -9,7 +9,6 @@ const LINKS={
 };
 const MESSENGER="https://m.me/61595349861689"; /* প্রশ্ন এই Messenger ইনবক্সে যায় */
 const ASK_ACTION=""; /* ঐচ্ছিক: Formspree URL দিলে প্রশ্ন সরাসরি ইমেইলে আসবে, যেমন https://formspree.io/f/xxxxxx */
-const SUBSCRIBE_ACTION=""; /* ঐচ্ছিক: Formspree/Mailchimp ইত্যাদির URL দিলে ইমেইল সংগ্রহ হবে */
 /* ================================== */
 
 const $=id=>document.getElementById(id);
@@ -121,20 +120,6 @@ if(readTitle){
   showRelated(key);
   if(location.hash){const t=document.getElementById(location.hash.slice(1));if(t)t.scrollIntoView()}
  }).catch(()=>fail("লেখাটি লোড করা যায়নি। ইন্টারনেট সংযোগ দেখে আবার চেষ্টা করুন।"))}
-
-/* ---- ইমেইল সাবস্ক্রিপশন ---- */
-{const sb=$("sb"),em=$("em"),subm=$("subm");
- if(sb&&em&&subm){
-  const subscribe=async()=>{const v=em.value.trim();
-   if(!/^\S+@\S+\.\S+$/.test(v)){subm.textContent="সঠিক ইমেইল দিন।";em.focus();return}
-   if(!SUBSCRIBE_ACTION){subm.replaceChildren("ইমেইল সাবস্ক্রিপশন শীঘ্রই চালু হবে। আপাতত আমাদের ",Object.assign(document.createElement("a"),{href:LINKS.facebook,target:"_blank",rel:"noopener noreferrer",textContent:"Facebook Page"})," ফলো করুন।");return}
-   sb.disabled=true;
-   try{const r=await fetch(SUBSCRIBE_ACTION,{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json"},body:JSON.stringify({email:v})});if(!r.ok)throw new Error("subscribe failed");subm.textContent="ধন্যবাদ! আপনি যুক্ত হয়েছেন।";em.value=""}
-   catch(e){subm.textContent="দুঃখিত, পরে আবার চেষ্টা করুন।"}
-   sb.disabled=false};
-  sb.addEventListener("click",subscribe);
-  em.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();subscribe()}});
- }}
 
 /* ===== লাইব্রেরি (প্রশ্নোত্তর ও ফতোয়া) — সাধারণ কোড ===== */
 const ALL="সব",LIBRARY_PAGE_SIZE=20;

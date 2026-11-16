@@ -13,7 +13,7 @@ Each page is its own `.html` file containing the shared chrome (head, SVG sprite
 
 ## Key files
 - `style.css` — the single stylesheet. The "Smoothness pass" block near the end holds performance overrides; keep heavy effects (full-page animated backgrounds, large blurs, mix-blend overlays, blanket `will-change`, backdrop-filter on mobile) out.
-- `app.js` — one script for all pages; every block checks that its elements exist. Contains the owner-editable config (`LINKS`, `MESSENGER`, `ASK_ACTION`, `SUBSCRIBE_ACTION`), the curated question/fatwa lists, `setupLibrary()` (search, category chips, paging, lazy catalogue loading) and the ask form.
+- `app.js` — one script for all pages; every block checks that its elements exist. Contains the owner-editable config (`LINKS`, `MESSENGER`, `ASK_ACTION`), the curated question/fatwa lists, `setupLibrary()` (search, category chips, paging, lazy catalogue loading) and the ask form.
 - `effects.js` — menu state, Dhaka clock, scroll progress, back-to-top, video lightbox, reveal/tilt effects.
 - `youtube-gallery.js` — paginated video gallery fed by `youtube-videos.json`.
 - `*-catalog-part-*.js` — catalogue chunks; each assigns `window.DAWAH_QUESTIONS_PARTS[category]` / `window.DAWAH_FATWAS_PARTS[category]`. The manifests (file, category, count) are `QUESTION_PARTS` / `FATWA_PARTS` in `app.js`; chunks load only on their own page, on demand.
@@ -58,3 +58,4 @@ Each page is its own `.html` file containing the shared chrome (head, SVG sprite
 - Site URL lives in `tools/site.json`; `tools/set-domain.cjs` rewrites it everywhere (see `domain-setup.md`).
 - Importer option `imgCheck:true` reports the HTTP status of every image inside stored texts (`texts/_report.json` → `imgCheck`). Run 33: 1,790 unique images, 1,762 OK, 28 dead.
 - TikTok was removed on the owner's instruction; do not add it back.
+- The footer e-mail subscribe box was removed on the owner's instruction (2026-11); two follow buttons (`.follow`) replace it. `SUBSCRIBE_ACTION` no longer exists.
