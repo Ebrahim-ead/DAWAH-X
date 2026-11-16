@@ -1,39 +1,17 @@
 {
- "at": "2026-11-16T10:41:02.736Z",
+ "at": "2026-11-16T10:44:18.123Z",
  "request": {
   "set": "all",
   "hosts": [
-   "at",
-   "ai"
+   "fm",
+   "iz"
   ],
-  "minutes": 20,
-  "run": 32
+  "minutes": 45,
+  "run": 22
  },
- "done": 3,
- "skipped": 19022,
- "failed": [
-  [
-   "https://al-itisam.com/article_details/2257",
-   "no content"
-  ],
-  [
-   "https://at-tahreek.com/article_details/10060",
-   "no content"
-  ]
- ],
- "bySource": {
-  "at": {
-   "queued": 4,
-   "done": 3,
-   "failed": 1,
-   "passes": 1
-  },
-  "ai": {
-   "queued": 1,
-   "done": 0,
-   "failed": 1,
-   "passes": 1
-  }
- },
+ "done": 0,
+ "skipped": 602,
+ "failed": [],
+ "bySource": {},
  "total": 20005
 }
