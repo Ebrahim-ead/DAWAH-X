@@ -276,9 +276,9 @@ async function get(u,ms=30000){let last;for(let a=0;a<3;a++){try{const ac=new Ab
    for(let n=0;n<list.length;n++){const it=list[n];if(Date.now()>deadline||streak>=25){again.push(...list.slice(n));stop=true;break}
     tick();
     let r,fail='';
-    if(src.wayback){const w=!/\?/.test(it.u)&&WB[s].get(wbNorm(it.u));const busyWait=x=>sleep(Math.max(src.delay,1000*Math.min(x.ra||0,180)));
+    if(src.wayback){const w=!/\?/.test(it.u)&&WB[s].get(wbNorm(it.u));const busyWait=x=>sleep(Math.max(src.delay,1000*Math.min(x.ra||0,180)));const SAVE=REQ.save===true||(Array.isArray(REQ.save)&&REQ.save.includes(s));
      /* save: যে পাতার কপি নেই (বা কপিটি অকেজো), তার সর্বশেষ কপি চাওয়া হয়; না থাকলে Internet Archive-কে পাতাটি সংরক্ষণ করতে বলা হয় ("Save Page Now") এবং পরের পাকে সেই নতুন কপি পড়া হয় */
-     if(REQ.save&&!/\?/.test(it.u)&&(!w||it.fresh)){
+     if(SAVE&&!/\?/.test(it.u)&&(!w||it.fresh)){
       const L=await getOnce('https://web.archive.org/web/20301231235959id_/'+it.u,90000),m=/\/web\/(\d{14})id_\//.exec(L.final||'');
       if(L.busy){st.busy=(st.busy||0)+1;if(L.err)st.lastErr=L.err;again.push(it);await busyWait(L);continue}
       if(L.status===200&&m&&!(it.fresh&&m[1]<=it.fresh)){r=L;r.final=it.u;r.w=m[1]}
@@ -287,7 +287,7 @@ async function get(u,ms=30000){let last;for(let a=0;a<3;a++){try{const ac=new Ab
        if(S.status===429)it.saves--;again.push(it);await busyWait(S);continue}}
      else if(!w){st.failed++;st.unarchived=(st.unarchived||0)+1;if(report.failed.length<400)report.failed.push([it.u,'not archived']);continue}
      else r=await getOnce('https://web.archive.org/web/'+w.ts+'id_/'+w.orig);
-     if(REQ.save&&w&&!it.fresh&&r.status===404){it.fresh=w.ts;again.push(it);await sleep(src.delay);continue} /* সংরক্ষিত কপিটি নিজেই "পাওয়া যায়নি" পাতা: নতুন কপি চাওয়া হবে */
+     if(SAVE&&w&&!it.fresh&&r.status===404){it.fresh=w.ts;again.push(it);await sleep(src.delay);continue} /* সংরক্ষিত কপিটি নিজেই "পাওয়া যায়নি" পাতা: নতুন কপি চাওয়া হবে */
      if(r.busy){st.busy=(st.busy||0)+1;if(r.ra)st.retryAfter=Math.max(st.retryAfter||0,r.ra);if(r.err)st.lastErr=r.err;again.push(it);await sleep(Math.max(src.delay,1000*Math.min(r.ra||0,180)));continue}
      if(r.status===200&&/<title>\s*(Just a moment|Attention Required)/i.test(r.html.slice(0,3000)))r={status:0,html:'',err:'challenge page in archive'};
      else if(r.status===200){r.final=it.u;r.w=r.w||w.ts;r.pin=!!(w&&w.pin)}}
