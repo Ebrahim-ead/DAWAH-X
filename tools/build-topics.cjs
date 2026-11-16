@@ -34,7 +34,7 @@ h=h.replace(/<title>[^<]*<\/title>/,`<title>${title}</title>`).replace(/(<meta c
  .replace(/(<meta content=")[^"]*(" property="og:title"\/>)/,`$1${title}$2`).replace(/(<meta content=")[^"]*(" property="og:description"\/>)/,`$1${desc}$2`)
  .replace(/(<meta content=")[^"]*(" name="twitter:title"\/>)/,`$1${title}$2`).replace(/(<meta content=")[^"]*(" name="twitter:description"\/>)/,`$1${desc}$2`)
  .split(SITE+'questions.html').join(SITE+'topics.html').replace('<body data-page="qa">','<body data-page="topics">')
- .replace('aria-current="page" class="on" href="questions.html"','class="on" href="questions.html"').replace(/<p class="qnote topic-hint">[\s\S]*?<\/p>/,'')
+ .replace('<a aria-current="page" class="on" href="questions.html">','<a href="questions.html">').replace('<a href="topics.html">বিষয়ভিত্তিক</a><a','<a aria-current="page" class="on" href="topics.html">বিষয়ভিত্তিক</a><a').replace(/<p class="qnote topic-hint">[\s\S]*?<\/p>/,'')
  .replace(/<script type="application\/ld\+json">[\s\S]*?<\/script>/g,'').replace(/<script[^>]*src="questions-catalog[^"]*"[^>]*><\/script>/g,'');
 fs.writeFileSync(path.join(ROOT,'topics.html'),h);
 /* হোম পেজের "বিষয় ধরে পড়ুন" অংশ (<!--topics--> … <!--/topics--> এর মাঝখান) */

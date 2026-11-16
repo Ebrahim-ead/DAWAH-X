@@ -690,3 +690,11 @@ a,button,input,select,textarea,.chip,.qcard{touch-action:manipulation;-webkit-ta
 .about-owner{margin:18px auto 4px;max-width:720px;padding:14px 16px;border:1px solid rgba(246,196,83,.22);border-radius:12px;background:rgba(246,196,83,.04);text-align:center;color:rgba(237,243,250,.9);font-size:14.5px;line-height:1.8}
 .about-owner b{color:var(--text)}
 .about-owner-link{display:inline-block;padding:4px 2px;color:var(--gold2);font-weight:600;text-decoration:underline;text-underline-offset:3px;overflow-wrap:anywhere}
+
+/* মেনুতে ৯টি লিংক: মাঝারি চওড়া পর্দায় (৯০১–১১৭৯px) এক সারিতে ধরাতে ফাঁক, প্যাডিং ও লেখা একটু ছোট; লিংকের লেখা দুই লাইনে ভাঙে না।
+   হিসাব: পর্দা − ৪০ (দুই পাশ) − ১৮০ (লোগো) − ৩২ (ফাঁক) − ডানের বোতাম ≥ মেনুর প্রস্থ। নতুন লিংক যোগ করলে ৯০১, ১০৬০ ও ১১৮০px-এ আবার মেপে দেখুন। */
+.menu a{white-space:nowrap}
+@media(min-width:1060px) and (max-width:1179px){#menu{gap:8px}#menu a{padding:7px 6px;font-size:15px}}
+@media(min-width:901px) and (max-width:1059px){#menu{gap:5px}#menu a{padding:7px 5px;font-size:14px}.fbp span{display:none}}
+@media(min-width:1180px){#menu{gap:12px}#menu a{padding:7px}}
+.fbp span{white-space:nowrap}

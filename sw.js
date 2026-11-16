@@ -1,0 +1,78 @@
+/* DAWAH X — service worker.
+   উদ্দেশ্য: ইন্টারনেট না থাকলেও আগে খোলা পাতা ও আগে পড়া লেখা দেখানো।
+   নিয়ম: সব সময় আগে ইন্টারনেট থেকে আনা হয় (তাই সাইটের নতুন সংস্করণ সাথে সাথে দেখা যায়);
+         আনা না গেলে তবেই জমানো কপি দেওয়া হয়। শুধু নিজের সাইটের ফাইল ও Google Fonts জমানো হয়।
+   কোনো ফাইলের তালিকা বদলালে VERSION বাড়ান — পুরোনো জমা মুছে যায়। */
+'use strict';
+const VERSION='v1';
+const SHELL='dawahx-shell-'+VERSION;   /* পাতার কাঠামো: HTML, CSS, JS, লোগো (ইনস্টলের সময় আনা হয়) */
+const PAGES='dawahx-pages-'+VERSION;   /* ব্যবহারের সময় আনা অন্য ফাইল */
+const TEXTS='dawahx-texts-'+VERSION;   /* পড়া লেখা (texts/, rel/) */
+const FONTS='dawahx-fonts-'+VERSION;
+const LIMIT={[PAGES]:120,[TEXTS]:300,[FONTS]:30};
+const PRECACHE=['./','index.html','about.html','services.html','questions.html','topics.html','fatwa.html','videos.html','ask.html','contact.html','read.html',
+ 'style.css','app.js','effects.js','youtube-gallery.js','logo.webp','logo-icon.webp','favicon.svg','hero.jpg','manifest.webmanifest','texts/index.json'];
+const FONT_HOSTS=['fonts.googleapis.com','fonts.gstatic.com'];
+const OFFLINE='<!doctype html><html lang="bn"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ইন্টারনেট সংযোগ নেই — DAWAH X</title>'
+ +'<body style="margin:0;min-height:100vh;display:grid;place-items:center;background:#08151a;color:#edf3fa;font-family:system-ui,sans-serif;text-align:center;padding:24px;box-sizing:border-box">'
+ +'<div style="max-width:420px"><h1 style="font-size:22px;color:#f6c453;margin:0 0 12px">ইন্টারনেট সংযোগ নেই</h1>'
+ +'<p style="line-height:1.8;margin:0 0 18px">এই পাতাটি আগে খোলা হয়নি, তাই ইন্টারনেট ছাড়া দেখানো যাচ্ছে না। সংযোগ ফিরলে আবার চেষ্টা করুন।</p>'
+ +'<p style="margin:0"><a href="'+self.registration.scope+'index.html" style="color:#ffe09a">হোম পেজে যান</a></p></div></body></html>';
+
+self.addEventListener('install',event=>{
+ /* একটি ফাইল আনা না গেলেও ইনস্টল থামে না */
+ event.waitUntil(caches.open(SHELL).then(cache=>Promise.all(PRECACHE.map(url=>
+  fetch(new Request(url,{cache:'reload'})).then(res=>{if(res.ok)return cache.put(url,res)}).catch(()=>{})))).then(()=>self.skipWaiting()));
+});
+
+self.addEventListener('activate',event=>{
+ const keep=new Set([SHELL,PAGES,TEXTS,FONTS]);
+ event.waitUntil(caches.keys().then(names=>Promise.all(names.filter(n=>n.startsWith('dawahx-')&&!keep.has(n)).map(n=>caches.delete(n)))).then(()=>self.clients.claim()));
+});
+
+/* জমা নির্দিষ্ট সংখ্যার বেশি হলে সবচেয়ে পুরোনোগুলো বাদ */
+const trim=name=>caches.open(name).then(cache=>cache.keys().then(keys=>{const extra=keys.length-(LIMIT[name]||100);
+ return extra>0?Promise.all(keys.slice(0,extra).map(k=>cache.delete(k))):null})).catch(()=>{});
+const store=(name,request,response)=>caches.open(name).then(cache=>cache.put(request,response)).then(()=>trim(name)).catch(()=>{});
+
+const fromCache=async(request,isPage)=>{
+ let hit=await caches.match(request);
+ /* read.html?k=… এর মতো ঠিকানা: প্রশ্নচিহ্নের পরের অংশ বাদ দিয়ে পাতার কাঠামোটি দেওয়া হয় */
+ if(!hit&&isPage)hit=await caches.match(request,{ignoreSearch:true});
+ if(!hit&&isPage&&new URL(request.url).pathname.endsWith('/'))hit=await caches.match('index.html');
+ return hit;
+};
+
+self.addEventListener('fetch',event=>{
+ const request=event.request;
+ if(request.method!=='GET')return;
+ let url;try{url=new URL(request.url)}catch(_){return}
+ if(url.protocol!=='https:'&&url.protocol!=='http:')return;
+
+ /* Google Fonts: জমানো থাকলে সেটিই, সাথে পেছনে নতুনটি আনা */
+ if(FONT_HOSTS.includes(url.hostname)){
+  event.respondWith(caches.match(request).then(hit=>{
+   const fresh=fetch(request).then(res=>{if(res&&(res.ok||res.type==='opaque'))event.waitUntil(store(FONTS,request,res.clone()));return res});
+   if(hit){event.waitUntil(fresh.catch(()=>{}));return hit}
+   return fresh;
+  }));
+  return;
+ }
+ if(url.origin!==self.location.origin)return;          /* YouTube ইত্যাদি: হাত দেওয়া হয় না */
+ if(request.headers.has('range'))return;
+
+ const isPage=request.mode==='navigate';
+ const path=url.pathname;
+ const name=/\/(texts|rel)\/[^/]+\.json$/.test(path)?TEXTS:PAGES;
+ event.respondWith(
+  fetch(request).then(res=>{
+   if(res&&res.ok&&res.type==='basic')event.waitUntil(store(name,request,res.clone()));
+   return res;
+  }).catch(async()=>{
+   const hit=await fromCache(request,isPage);
+   if(hit)return hit;
+   if(isPage)return new Response(OFFLINE,{status:503,headers:{'Content-Type':'text/html; charset=utf-8'}});
+   return Response.error();
+  })
+ );
+});
