@@ -9,7 +9,7 @@ const LINKS={
   personal:"https://ebrahim-ead.github.io/ead/" /* পরিচালকের ব্যক্তিগত সাইট — ফুটার ও “আমাদের সম্পর্কে” পাতার লিংক */
 };
 const MESSENGER="https://m.me/61595349861689"; /* প্রশ্ন এই Messenger ইনবক্সে যায় */
-const ASK_ACTION=""; /* ঐচ্ছিক: Formspree URL দিলে প্রশ্ন সরাসরি ইমেইলে আসবে, যেমন https://formspree.io/f/xxxxxx */
+const ASK_ACTION="https://formspree.io/f/xgakagde"; /* Formspree ফর্ম: "প্রশ্ন পাঠান" চাপলে প্রশ্ন সরাসরি এই ফর্মের ইমেইলে আসে। ফাঁকা ("") রাখলে আগের মতো Messenger খোলে */
 /* ================================== */
 
 const $=id=>document.getElementById(id);
@@ -1040,7 +1040,14 @@ setupLibrary({id:"f",deep:PAGE==="fatwa",rows:FT,manifest:PAGE==="fatwa"?FATWA_P
    btn.disabled=true;msg.textContent="পাঠানো হচ্ছে...";
    try{
     let ok=false;
-    if(ASK_ACTION){const r=await fetch(ASK_ACTION,{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json"},body:JSON.stringify(data)});ok=r.ok}
+    if(ASK_ACTION){
+     /* Formspree: ফাঁকা ঘর বাদ; _subject = ইমেইলের শিরোনাম; যোগাযোগের ঘরে ইমেইল থাকলে email হিসেবেও যায় (তখন ইমেইলে Reply চাপলেই উত্তর দেওয়া যায়) */
+     const out={};for(const k in data)if(data[k])out[k]=data[k];
+     out._subject="DAWAH X — নতুন প্রশ্ন ("+data.topic+")";
+     if(/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(data.contact))out.email=data.contact;
+     const ctl=typeof AbortController==="function"?new AbortController():null,timer=ctl?setTimeout(()=>ctl.abort(),20000):0;
+     try{const r=await fetch(ASK_ACTION,{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json"},body:JSON.stringify(out),signal:ctl?ctl.signal:undefined});ok=r.ok}
+     finally{clearTimeout(timer)}}
     else{const body=new URLSearchParams({"form-name":"question",...data,"bot-field":""});
      const r=await fetch("__forms.html",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:body.toString()});
      ok=r.ok&&/netlify/i.test(r.headers.get("server")||"")} /* Netlify ছাড়া অন্য হোস্টে ফর্ম জমা হয় না */
