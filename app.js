@@ -45,9 +45,14 @@ function safeArticle(html){
    if(/^x_?(ftn|ftnref|edn|ednref)\d+$/.test(id))el.id=id;
    if(/^#x_?(ftn|ftnref|edn|ednref)\d+$/.test(h))el.setAttribute("href",h);
    else if(/^https?:\/\//i.test(h)){el.setAttribute("href",h);el.target="_blank";el.rel="noopener nofollow"}}
-  if(n.tagName==="IMG"){const src=n.getAttribute("src")||"";if(!/^https:\/\//i.test(src))return;el.src=src;el.alt=n.getAttribute("alt")||"";el.loading="lazy";el.decoding="async";el.referrerPolicy="no-referrer"}
+  if(n.tagName==="IMG"){const src=n.getAttribute("src")||"";if(!/^https:\/\//i.test(src))return;el.src=src;el.alt=n.getAttribute("alt")||"";el.loading="lazy";el.decoding="async";el.referrerPolicy="no-referrer";
+   /* ছবি মূল সাইট থেকে আসে; না এলে ভাঙা ছবির বদলে একটি ছোট টীকা */
+   el.addEventListener("error",()=>{const s=document.createElement("span");s.className="imgmiss";s.textContent="[ছবি"+(el.alt?": "+el.alt:"")+" — মূল পেজে দেখুন]";el.replaceWith(s)},{once:true})}
   copy(n,el);dst.appendChild(el)})};
  copy(doc.body.firstChild,out);
+ /* শিরোনামের স্তর সাজানো: পাতার h1-এর পরে h2 থেকে শুরু, মাঝে কোনো স্তর বাদ না পড়ে (স্ক্রিন-রিডারের জন্য); লেখা বদলায় না */
+ const hs=[...out.querySelectorAll("h2,h3,h4")],used=[...new Set(hs.map(h=>+h.tagName[1]))].sort();let prev=1;
+ hs.forEach(h=>{const lv=Math.min(used.indexOf(+h.tagName[1])+2,prev+1);prev=lv;if(lv!==+h.tagName[1]){const n=document.createElement("h"+lv);while(h.firstChild)n.appendChild(h.firstChild);h.replaceWith(n)}});
  /* আরবি অনুচ্ছেদ ডান থেকে বামে */
  out.querySelectorAll("p,li,blockquote,td").forEach(b=>{const t=b.textContent,ar=(t.match(/[\u0600-\u06ff]/g)||[]).length,bn=(t.match(/[\u0980-\u09ff]/g)||[]).length;if(ar>12&&ar>bn*3){b.lang="ar";b.dir="rtl";b.classList.add("ar")}});
  return out}
@@ -67,7 +72,7 @@ if(readTitle){
   const cat=$("read-cat");if(cat&&x.c){cat.textContent=x.c;cat.hidden=false}
   $("read-meta").innerHTML=[srcName,x.a,x.d].filter(Boolean).map(v=>`<span>${escHTML(v)}</span>`).join('<span aria-hidden="true">·</span>');
   body.textContent="";body.appendChild(safeArticle(x.h));
-  $("read-credit").innerHTML=`এই লেখাটি <b>${escHTML(srcName)}</b>-এর (${escHTML(hostOf(x.u))})। প্রকাশকের অনুমতিক্রমে এখানে হুবহু তুলে ধরা হয়েছে; লেখার স্বত্ব মূল প্রকাশকের।`;
+  $("read-credit").innerHTML=`এই লেখাটি <b>${escHTML(srcName)}</b>-এর (${escHTML(hostOf(x.u))})। প্রকাশকের অনুমতিক্রমে এখানে হুবহু তুলে ধরা হয়েছে; লেখার স্বত্ব মূল প্রকাশকের।`+(/^\d{8}/.test(x.w||"")?` এই কপিটি Internet Archive-এ সংরক্ষিত ${x.w.slice(0,4)}-${x.w.slice(4,6)}-${x.w.slice(6,8)} তারিখের সংস্করণ থেকে নেওয়া; মূল পেজে এরপর পরিবর্তন হয়ে থাকতে পারে।`:"");
   $("read-original").href=x.u;$("read-source").hidden=false;
   const url=location.href.split("#")[0],share=encodeURIComponent(x.t+"\n"+url);
   $("read-wa").href="https://wa.me/?text="+share;$("read-fb").href="https://www.facebook.com/sharer/sharer.php?u="+encodeURIComponent(url);$("read-share").hidden=false;

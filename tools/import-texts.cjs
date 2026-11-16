@@ -3,7 +3,8 @@
    নিয়ন্ত্রণ: tools/import-request.json  {"set":"builtin"|"all","hosts":["ai","ra","at","ia"],"limits":{"at":100},"minutes":300}  (আগে আনা লেখা আবার আনা হয় না) */
 const fs=require('fs'),path=require('path'),cheerio=require('cheerio');
 const ROOT=path.join(__dirname,'..'),OUT=path.join(ROOT,'texts');
-const REQ=JSON.parse(fs.readFileSync(path.join(__dirname,'import-request.json'),'utf8'));
+/* IMPORT_REQUEST দিয়ে স্থানীয়ভাবে চালানো যায়, যেমন শুধু সংশোধনের জন্য: IMPORT_REQUEST='{"set":"none","hosts":[]}' */
+const REQ=JSON.parse(process.env.IMPORT_REQUEST||fs.readFileSync(path.join(__dirname,'import-request.json'),'utf8'));
 const UA='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36';
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 /* app.js-এর textKey()-এর সাথে হুবহু এক হতে হবে */
@@ -22,6 +23,79 @@ const SOURCES={
    return{title:art.find('.article-header h1').first().text(),body:art.find('.article-content').first(),date:'',
     /* লেখক-কার্ডের লেখা: "<ছবির আদ্যক্ষর> <নাম> <সংখ্যা> আর্টিকেল …" */
     author:(t=>{const m=t.match(/^\S{1,2}\s+(.{2,140}?)\s+[0-9০-৯]+\s*আর্টিকেল/);return m?m[1]:''})(art.find('.author-card').first().text().replace(/\s+/g,' ').trim())}}}
+,
+ /* insightzonebd.com: রানার থেকে সরাসরি আনা যায় না (Cloudflare)। প্রশ্নোত্তর tools/add-texts.cjs দিয়ে tools/manual/ থেকে যোগ হয়;
+    প্রবন্ধ আসে Internet Archive-এ থাকা পুরোনো (WordPress) সংস্করণের কপি থেকে। পুরোনো ঠিকানা একটু আলাদা হতে পারে (fuzzy), তাই শিরোনাম মিলিয়ে নেওয়া হয়। */
+ /* izTidy: শিরোনামের পুনরাবৃত্তি, জোড়া <sup>, "URL Copied" বোতামের লেখা বাদ; খোলা লেখা (যেমন "রেফারেন্স") অনুচ্ছেদে */
+ iz:{tidy(html,title){const flat=t=>t.replace(/<[^>]+>/g,'').replace(/&amp;/g,'&').replace(/[\s?!।:;,.\-–—'"‘’“”]+/g,'').normalize('NFC');
+   return html.replace(/^\s*<(h[234])>(.*?)<\/\1>\s*/,(m,g,t)=>flat(t)===flat(title)?'':m).replace(/<sup>\s*<sup>([^<]*)<\/sup>\s*<\/sup>/g,'<sup>$1</sup>')
+    .replace(/\s*<p>\s*URL Copied\s*<\/p>/g,'').replace(/(<\/(?:p|ol|ul|blockquote|h[234]|table)>)\s*([^<\s][^<]{0,80}?)\s*(<(?:ol|ul)>)/g,'$1<p>$2</p>$3').trim()},
+   host:'www.insightzonebd.com',delay:13000,wayback:'insightzonebd.com',fuzzy:true,extract($,base){
+   const title=($('meta[property="og:title"]').attr('content')||$('title').first().text()).replace(/\s+/g,' ').replace(/\s*[-–|]\s*Insight Zone\s*$/i,'').trim();
+   let body=$('.elementor-widget-theme-post-content').first();if(!body.length)body=$('.entry-content').first();if(!body.length)body=$('article').first();
+   if(!body.length)return{title,html:''};
+   body.find('.post-views,#wpd-post-rating,.wpd-rating,#comments,.comments-area,#wpdcom,[id^="wpd"],[class*="wpdiscuz"],[class*="wpd-"],.sharedaddy,.addtoany_share_save_container,#ez-toc-container,.ez-toc-container,.lwptoc,#toc_container,nav,.post-navigation,.elementor-post-navigation,.elementor-widget-share-buttons,.elementor-widget-post-navigation,.elementor-widget-post-comments,.elementor-widget-posts,.elementor-widget-post-info,.jp-relatedposts,.yarpp-related').remove();
+   /* টীকা: লেখার ভেতরের নম্বর <sup>; তালিকার "[↩]" ফেরত-লিংক বাদ */
+   body.find('a.footnote-back-link,a[href^="#identifier_"]').remove();
+   body.find('a.footnote-identifier-link,a[href^="#footnote_"]').each((k,e)=>{$(e).replaceWith('<sup>'+esc($(e).text().replace(/\s+/g,''))+'</sup>')});
+   let html=clean($,body,base).replace(/\s*\[\s*\]\s*(?=<\/li>)/g,'');
+   html=SOURCES.iz.tidy(html,title);
+   const junk=html.replace(/<[^>]+>/g,' ').match(/wpDiscuz|Post Views|Article Rating|Notify of|Inline Feedbacks|Leave a (Reply|Comment)|Skip to content/);
+   if(junk)throw new Error('junk in content: '+junk[0]);
+   return{title,html,date:($('meta[property="article:published_time"]').attr('content')||'').slice(0,10),author:($('meta[name="author"]').attr('content')||'').trim()}}},
+ /* wayback: সাইটটি রানারকে ঢুকতে দেয় না, তাই Internet Archive-এ সংরক্ষিত সর্বশেষ কপি থেকে পড়া হয় */
+ fm:{/* লেখা নয় এমন অংশ বাদ: "আরো পড়ুন / Read More" বাক্স, ধারাবাহিকের আগে-পরের লিংক, উদ্ধৃতি-বোতামের লেখা, ফাঁকা তালিকা */
+   tidy(html){return html.replace(/<a [^>]*>\s*<p>\s*(?:Read More|আর[োও] প)[\s\S]*?<\/a>/g,'').replace(/<p>\s*Citation (?:style:|is loading\.\.\.)\s*<\/p>/g,'')
+    .replace(/Series Navigation\s*(?:<a [^>]*>[^<]*<\/a>\s*)+/g,'').replace(/<table>[^<]+<tbody>/g,'<table><tbody>')
+    /* সূচি-বাক্স ("Contents / Hide" ও মূল পাতার ভেতরের লিংকগুলো) */
+    .replace(/<p>\s*<b>Contents<\/b>\s*<a [^>]*>(?:Hide|Show)<\/a>\s*<\/p>\s*(?:(?:<p>\s*)?<a href="[^"]*#[^"]*"[^>]*>[^<]*<\/a>(?:\s*<\/p>)?\s*)*/g,'')
+    /* ধারাবাহিকের বাক্স: "This entry is part … in the series …" ও পর্বগুলোর ছবি-শিরোনাম-তারিখের তালিকা */
+    .replace(/(<p>\s*This entry is part [^<]*<a [^>]*>[^<]*<\/a>\s*<\/p>\s*)<h3>[^<]*<\/h3>\s*(?:(?:<p>\s*<a [^>]*>\s*<img [^>]*>\s*<\/a>\s*<\/p>\s*)?<h4>\s*<a [^>]*>[^<]*<\/a>\s*<\/h4>\s*<p>[^<]{3,30}[0-9০-৯]{4}\s*<\/p>\s*)+/g,'$1')
+    .replace(/<p>\s*This entry is part [^<]*<a [^>]*>[^<]*<\/a>\s*<\/p>/g,'')
+    /* ভিডিও-প্লেয়ারের বোতামের লেখা বাদ; ভিডিওর ছবির জায়গায় ভিডিওর ঠিকানা */
+    .replace(/<img src="https:\/\/i\.ytimg\.com\/vi\/([\w-]{6,20})\/[^"]*" alt="video"[^>]*>/g,'<p><a href="https://www.youtube.com/watch?v=$1" rel="noopener nofollow" target="_blank">https://www.youtube.com/watch?v=$1</a></p>')
+    .replace(/<p>\s*<a [^>]*>\s*<b>Embed<\/b>\s*<\/a>\s*<\/p>/g,'').replace(/<p>\s*Copy and paste this HTML code into your webpage to embed\.\s*<\/p>/g,'')
+    .replace(/<a href="https?:\/\/www\.intellywp\.com[^"]*"[^>]*>[\s\S]*?<\/a>/g,'')
+    /* ধারাবাহিকের অন্য দুই রকম বাক্স: "This is post … in the series …" + পর্বের তালিকা; লেখার একদম শুরুতে ধারাবাহিকের নাম + পর্বের তালিকা */
+    .replace(/<p>\s*This is post [^<]*<i>[^<]*<\/i>\s*<\/p>\s*<ol>(?:\s*<li>(?:[^<]*|\s*<a [^>]*>[^<]*<\/a>\s*)<\/li>)+\s*<\/ol>/g,'')
+    .replace(/^\s*<p>\s*<br>\s*<a [^>]*>[^<]*<\/a>\s*<\/p>\s*<ul>(?:\s*<li>(?:[^<]*|\s*<a [^>]*>[^<]*<\/a>\s*)<\/li>)+\s*<\/ul>/,'')
+    .replace(/<li>\s*<\/li>/g,'').replace(/<(ul|ol)>\s*<\/\1>/g,'').replace(/<p>\s*<\/p>/g,'').trim()},
+   /* লেখকের নামের সাথে জুড়ে যাওয়া তারিখ ("… এপ্রিল 3, 2025", "… 1 সপ্তাহ ago", "… Last Updated:") বাদ */
+   who(a){return a.replace(/\s*(?:January|February|March|April|May|June|July|August|September|October|November|December|জানু(?:\u09df|\u09af\u09bc)ারি|ফেব্রু(?:\u09df|\u09af\u09bc)ারি|মার্চ|এপ্রিল|মে|জুন|জুলাই|আগস্ট|সেপ্টেম্বর|অক্টোবর|নভেম্বর|ডিসেম্বর)\s+[0-9০-৯]{1,2},\s+[0-9০-৯]{4}.*$/,'')
+    .replace(/\s*[0-9০-৯]+\s+\S+\s+ago.*$/,'').replace(/\s*Last Updated.*$/,'').replace(/\s+/g,' ').trim()},
+   ver:3, /* নিষ্কাশন-নিয়মের সংস্করণ; নতুন রেকর্ডে v হিসেবে থাকে */
+   host:'www.frommuslims.com',delay:13000,wayback:'frommuslims.com',extract($,base){
+   /* বসানো ইউটিউব ভিডিওর (iframe) জায়গায় ভিডিওর ঠিকানা, নইলে ভিডিও-নির্ভর লেখা ফাঁকা থেকে যায় */
+   $('iframe').each((k,e)=>{const m=/(?:youtube(?:-nocookie)?\.com\/embed\/|youtu\.be\/)([\w-]{6,20})/.exec($(e).attr('data-src')||$(e).attr('data-lazy-src')||$(e).attr('src')||'');if(!m)return;
+    const u='https://www.youtube.com/watch?v='+m[1],a='<a class="yt-embed" href="'+u+'">'+u+'</a>';$(e).replaceWith($(e).closest('p').length?a:'<div>'+a+'</div>')});
+   const title=$('h1.post-title,h1.entry-title').first().text(),name=(e,word)=>$(e).children('span').first().text().replace(/<img\b[^>]*>/g,' ').replace(/\s+/g,' ').trim().split(' '+word+' ')[0].replace(/\s+Staff$/,'').trim();
+   /* প্রশ্নোত্তর পেজ (DW Question & Answer): প্রশ্ন + সব উত্তর; মন্তব্য, ভোট, শেয়ার বাদ */
+   if($('.dwqa-questions-archive,.dwqa-questions-list').length&&!$('.dwqa-single-question').length)return{title,html:''}; /* প্রশ্নের তালিকা-পাতা, লেখা নয় */
+   if($('.dwqa-single-question').length){const q=$('.dwqa-question-item').first(),ans=$('.dwqa-answer-item').toArray();if(!ans.length)return{title,html:''};
+    const by=n=>n&&!/@|\[email/.test(n)?'<p>— '+esc(n)+'</p>':'',names=[]; /* নামের জায়গায় ই-মেইল থাকলে দেখানো হয় না */
+    const qh=clean($,q.find('.dwqa-question-content').first(),base);
+    let html='<h2>প্রশ্ন</h2>'+(textLen(qh)?qh:'<p>'+esc(title.replace(/\s+/g,' ').trim())+'</p>')+by(name(q.find('.dwqa-question-meta').first(),'asked'));
+    for(const a of ans){const n=name($(a).find('.dwqa-answer-meta').first(),'answered');if(n&&!names.includes(n))names.push(n);html+='<h2>উত্তর</h2>'+clean($,$(a).find('.dwqa-answer-content').first(),base)+by(n)}
+    return{title,html,date:'',author:names.join(', ')}}
+   /* সাধারণ লেখা (Jannah থিম) */
+   const body=$('#the-post .entry-content,.entry-content').first();
+   body.find('.wp-block-wptelegram-widget-join-channel,.post-bottom-meta,.stream-item,#jp-relatedposts,.sharedaddy,#ez-toc-container,.ez-toc-container,.code-block,.addtoany_share_save_container,.yarpp-related,.share-buttons,.post-shortlink,.footnote_referrer_base,.footnote_reference_container_collapse_button').remove();
+   body.find('table caption').remove();
+   /* ভিডিও-পোস্ট: ভিডিওটি লেখার ওপরে (featured area) বসানো থাকে, লেখার ভেতরে নয়; তার ঠিকানা লেখার শুরুতে রাখা হয় */
+   {const out=$('#the-post a.yt-embed').filter((k,e)=>!$(e).closest('.entry-content').length).first();let u=out.attr('href')||'';
+    if(!u){const head=$('#the-post').clone();head.find('.entry-content,#related-posts,.related-posts,#comments,.post-components').remove();const m=/youtube(?:-nocookie)?\.com\/embed\/([\w-]{6,20})/.exec($.html(head)||'');if(m)u='https://www.youtube.com/watch?v='+m[1]}
+    if(u&&!($.html(body)||'').includes(u.slice(-11)))body.prepend('<p><a href="'+u+'">'+u+'</a></p>')}
+   body.find('p,div').filter((k,e)=>/^(Citation is loading\.\.\.|Citation style:)$/.test($(e).text().replace(/\s+/g,' ').trim())).remove();
+   body.children('div').filter((k,e)=>{const t=$(e).text().replace(/\s+/g,' ').trim();return t.length<260&&/^(আর[োও] প|Read More\.\.\.)/.test(t)}).remove();
+   /* টীকা: পূর্ণ তালিকা থাকলে ভাসমান কপি বাদ; না থাকলে ভাসমান লেখা দিয়ে নিচে তালিকা */
+   const refs=$('.footnote_plugin_text');
+   if(refs.length){body.find('.footnote_tooltip').remove();const box=$('.footnotes_reference_container').first();if(box.length&&!body.find('.footnote_plugin_text').length)body.append(box)}
+   else{const tips=body.find('.footnote_tooltip').toArray();if(tips.length){$(tips).find('.footnote_tooltip_continue').remove();body.append('<ol>'+tips.map(e=>'<li>'+$(e).html()+'</li>').join('')+'</ol>');$(tips).remove()}}
+   body.find('.footnote_referrer').each((k,e)=>{$(e).replaceWith('<sup>'+esc($(e).text().replace(/\s+/g,''))+'</sup>')});
+   body.find('.footnote_backlink').each((k,e)=>{$(e).replaceWith(esc($(e).text().replace(/[^0-9০-৯]/g,'')))});
+   const info=$('#post-extra-info').first().text().replace(/\s+/g,' ').trim();
+   return{title,body,date:($('meta[property="article:published_time"]').attr('content')||'').slice(0,10),
+    author:SOURCES.fm.who($('#the-post .meta-author a,#the-post a.author-name').first().text()||info)}}}
 };
 const sourceOf=u=>{try{const h=new URL(u).host;return Object.keys(SOURCES).find(k=>SOURCES[k].host===h)||null}catch(e){return null}};
 
@@ -81,42 +155,143 @@ const flush=()=>{for(const[b,o]of buckets)if(o.dirty){fs.writeFileSync(bucketFil
   if(w.size&&h.size&&miss.length<=w.size*0.05){idx.full[s]=SOURCES[s].host;idx.missing.push(...miss)}else idx.keys.push(...h)}
  idx.missing.sort();idx.keys.sort();fs.writeFileSync(path.join(OUT,'index.json'),JSON.stringify(idx));return n};
 
-async function get(u){let last;for(let a=0;a<3;a++){try{const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),30000);
+/* ---- Internet Archive (Wayback Machine) ---- */
+const wbNorm=u=>{try{let p=new URL(u).pathname;try{p=decodeURIComponent(p)}catch(e){}return p.replace(/\/+$/,'').normalize('NFC')}catch(e){return''}};
+/* শিরোনাম/ঠিকানার শব্দ মিলিয়ে দেখা */
+const words=t=>[...new Set(String(t).normalize('NFC').split(/[^\u0980-\u09ffA-Za-z0-9]+/).filter(w=>w.length>1))];
+/* ঠিকানা মিলিয়ে পাওয়া পাতাটি আসলে প্রবন্ধ নয় (যেমন বইয়ের PDF নামানোর পাতা) */
+const notArticle=(title,html)=>/\bpdf\s*$/i.test(title)||html.replace(/<[^>]+>/g,'').replace(/\s+/g,' ').trim().length<800;
+const sameTitle=(a,b)=>{const A=words(a),B=words(b),n=A.filter(w=>B.includes(w)).length;return n>=Math.min(3,A.length,B.length)&&n>=0.75*Math.min(A.length,B.length)};
+/* পুরোনো ঠিকানার সাথে আংশিক মিল: শব্দ এক, বা একটি অন্যটির শুরু (কাটা পড়া স্লাগ) */
+const slugLike=(a,b)=>{const A=words(a),B=words(b),hit=A.filter(w=>B.some(v=>v===w||(Math.min(v.length,w.length)>=4&&(v.startsWith(w)||w.startsWith(v))))).length;return hit>=2&&hit>=0.6*Math.min(A.length,B.length)?hit/Math.max(A.length,B.length):0};
+/* প্রতিটি পেজের সর্বশেষ সফল (200) কপি: path → {ts,orig} */
+async function waybackMap(domain){const map=new Map(),info={rows:0,pages:0};let resume='';
+ for(let i=0;i<60;i++){const r=await getSlow('https://web.archive.org/cdx/search/cdx?url='+domain+'&matchType=domain&output=json&fl=timestamp,original&filter=statuscode:200&filter=mimetype:text/html&limit=15000&showResumeKey=true'+(resume?'&resumeKey='+encodeURIComponent(resume):''),180000);
+  if(r.status!==200){info.err=r.err||('HTTP '+r.status);break}
+  let j;try{j=JSON.parse(r.html)}catch(e){info.err='bad CDX json: '+r.html.slice(0,80);break}
+  info.pages++;resume='';
+  for(let k=0;k<j.length;k++){const row=j[k];if(!row.length){resume=(j[k+1]||[])[0]||'';break}
+   if(row[0]==='timestamp')continue;info.rows++;
+   let U;try{U=new URL(row[1])}catch(e){continue}
+   if(/\/(amp|feed)\/?$/.test(U.pathname))continue;
+   const key=wbNorm(row[1]),q=U.search?1:0,old=map.get(key);
+   if(!old||q<old.q||(q===old.q&&row[0]>old.ts))map.set(key,{ts:row[0],orig:row[1],q})}
+  if(!resume)break;await sleep(1500)}
+ info.urls=map.size;return{map,info}}
+
+/* Internet Archive ধীর এবং বেশি অনুরোধে 429 দেয় বা সংযোগ বন্ধ রাখে: তখন লম্বা বিরতি (Retry-After মেনে) */
+async function getSlow(u,ms=90000){let last;for(let a=0;a<3;a++){try{const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),ms);
+   const res=await fetch(u,{headers:{'user-agent':UA},redirect:'follow',signal:ac.signal});const html=await res.text();clearTimeout(tm);
+   if(res.status>=500||res.status===429){last='HTTP '+res.status;const ra=parseInt(res.headers.get('retry-after')||'',10);if(a<2)await sleep(1000*Math.min(600,Math.max(ra||0,120*(a+1))));continue}
+   return{status:res.status,html,final:res.url}}catch(e){last=(String(e)+' '+String(e&&e.cause||'')).slice(0,120);if(a<2)await sleep(120000*(a+1))}}
+ return{status:0,html:'',err:last}}
+/* এক চেষ্টা; 429/5xx/সংযোগ-ব্যর্থতা = busy (পরে আবার চেষ্টা) */
+const UA_BOT='DAWAH-X text importer (+https://github.com/Ebrahim-ead/DAWAH-X)';
+async function getOnce(u,ms=60000){try{const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),ms);
+  const res=await fetch(u,{headers:{'user-agent':UA_BOT},redirect:'follow',signal:ac.signal});const html=await res.text();clearTimeout(tm);
+  if(res.status===429||res.status>=500)return{status:res.status,html:'',busy:true,ra:parseInt(res.headers.get('retry-after')||'',10)||0,err:'HTTP '+res.status};
+  return{status:res.status,html,final:res.url}}catch(e){return{status:0,html:'',busy:true,err:(String(e)+' '+String(e&&e.cause||'')).slice(0,100)}}}
+/* আগের রানে রাখা From Muslims প্রশ্নোত্তরের ছোট সংশোধন (বারবার চালালেও ফল একই) */
+function migrate(){for(const f of fs.readdirSync(OUT)){if(!/^[0-9a-f]{3}\.json$/.test(f))continue;if(!/"s":"(fm|iz)"/.test(fs.readFileSync(path.join(OUT,f),'utf8')))continue;
+  const b=loadBucket(f.slice(0,3));for(const k in b.data){const x=b.data[k];
+   if(x.s==='iz'&&x.w){if(notArticle(x.t,x.h)){delete b.data[k];b.dirty=true;continue}const h=SOURCES.iz.tidy(x.h,x.t);if(h!==x.h){x.h=h;b.dirty=true}continue}
+   if(x.s!=='fm')continue;
+   if(/^<p>Filter:<a /.test(x.h)){delete b.data[k];b.dirty=true;continue} /* প্রশ্নের তালিকা-পাতা */
+   if(!/\/qna\//.test(x.u)){const h=SOURCES.fm.tidy(x.h),a=SOURCES.fm.who(x.a);
+    /* পুরোনো নিয়মে আনা ভিডিও-নির্ভর বা প্রায় ফাঁকা লেখা মুছে আবার আনা হয় (ভিডিওর ঠিকানা তখন বাদ পড়ত) */
+    if((x.v||1)<3&&(textLen(h)<600||(/ভিডিও|video/i.test(h)&&!/youtu/.test(h)))){delete b.data[k];b.dirty=true;continue}if(h!==x.h||a!==x.a){x.h=h;x.a=a;b.dirty=true}continue}
+   const h=x.h.replace(/^<h3>প্রশ্ন<\/h3>/,'<h2>প্রশ্ন</h2>').replace(/<h3>উত্তর<\/h3>/g,'<h2>উত্তর</h2>').replace(/&lt;img\b[^<]*?&gt;/g,'').replace(/<p>— [^<]*(@|\[email)[^<]*<\/p>/g,'').replace(/^<h2>প্রশ্ন<\/h2><p><\/p>/,'<h2>প্রশ্ন</h2><p>'+esc(x.t)+'</p>');
+   const a=[...new Set(x.a.replace(/<img\b[^>]*>/g,' ').split(',').map(v=>v.replace(/\s+/g,' ').trim()).filter(Boolean))].join(', ');
+   if(h!==x.h||a!==x.a){x.h=h;x.a=a;b.dirty=true}}}}
+async function get(u,ms=30000){let last;for(let a=0;a<3;a++){try{const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),ms);
    const res=await fetch(u,{headers:{'user-agent':UA,'accept-language':'bn,en;q=0.8'},redirect:'follow',signal:ac.signal});const html=await res.text();clearTimeout(tm);
-   if(res.status>=500||res.status===429){last='HTTP '+res.status;await sleep(4000*(a+1));continue}return{status:res.status,html,final:res.url}}catch(e){last=String(e).slice(0,80);await sleep(3000*(a+1))}}
+   if(res.status>=500||res.status===429){last='HTTP '+res.status;await sleep(4000*(a+1));continue}return{status:res.status,html,final:res.url}}catch(e){last=(String(e)+' '+String(e&&e.cause||'')).slice(0,120);await sleep(3000*(a+1))}}
  return{status:0,html:'',err:last}}
 
 (async()=>{
  fs.mkdirSync(OUT,{recursive:true});
+ /* স্থানীয় পরীক্ষা: IMPORT_TEST="<উৎস>,<html ফাইল>,<ঠিকানা>" দিলে শুধু সেই ফাইল থেকে লেখা বের করে দেখায় */
+ if(process.env.IMPORT_TEST){const[ts,tf,tu]=process.env.IMPORT_TEST.split(',');const $=cheerio.load(fs.readFileSync(tf,'utf8'));const x=SOURCES[ts].extract($,tu);
+  console.log(JSON.stringify({title:x.title,date:x.date,author:x.author,html:x.html!==undefined?x.html:clean($,x.body,tu)},null,1));return}
  const report={at:new Date().toISOString(),request:REQ,done:0,skipped:0,failed:[],bySource:{}};
+ /* ping: কোনো ঠিকানা (ফিড/API/সাইটম্যাপ) এই সার্ভার থেকে খোলে কি না দেখার জন্য */
+ if(REQ.ping)report.ping=[];
+ for(const u of REQ.ping||[]){const r=await get(u);const o={u,status:r.status,len:r.html.length,err:r.err};
+  try{const j=JSON.parse(r.html);o.json=Array.isArray(j)?{array:j.length,keys:j[0]&&typeof j[0]==='object'?Object.keys(j[0]).slice(0,30):[]}:{keys:Object.keys(j).slice(0,60)}}
+  catch(e){o.head=r.html.replace(/\s+/g,' ').slice(0,160);o.locs=(r.html.match(/<loc>[^<]{0,120}/g)||[]).slice(0,6)}
+  report.ping.push(o);await sleep(400)}
  if(REQ.probe)report.probe=[];
  /* probe: অচেনা সাইটের পেজের গঠন দেখার জন্য (texts/_report.json-এ যায়) */
- for(const u of REQ.probe||[]){const r=await get(u);const $=cheerio.load(r.html);$('script,style,noscript,svg,iframe').remove();
+ let WBP=null;
+ for(let u of REQ.probe||[]){ /* "wb:<ঠিকানা>" = Internet Archive-এর সর্বশেষ সফল কপি */
+  if(u.startsWith('wb:')){const dom=new URL(u.slice(3)).host.replace(/^www\./,'');WBP=WBP||{};WBP[dom]=WBP[dom]||(await waybackMap(dom)).map;const w=WBP[dom].get(wbNorm(u.slice(3)));if(!w){report.probe.push({u,status:'not archived'});continue}u='https://web.archive.org/web/'+w.ts+'id_/'+w.orig}
+  const r=await get(u,60000);const $=cheerio.load(r.html);
+  /* ভিডিওর খোঁজ (iframe মুছে ফেলার আগে): কোন উপাদানে, কোন বৈশিষ্ট্যে ভিডিওর ঠিকানা আছে */
+  const vids={ids:[...new Set(r.html.match(/(?:youtube(?:-nocookie)?\.com\/(?:embed\/|watch\?v=)|youtu\.be\/)[\w-]{6,20}/g)||[])].slice(0,8),
+   at:$('iframe,[data-video],[data-video-id],[data-src*="youtu"],[data-lazy-src*="youtu"],a[href*="youtu"],meta[property^="og:video"]').toArray().slice(0,8).map(e=>e.tagName+'.'+(e.attribs.class||'')+' '+JSON.stringify(Object.fromEntries(Object.entries(e.attribs).filter(([k])=>/^(src|href|content|data-)/.test(k)).map(([k,v])=>[k,v.slice(0,100)])))+' < '+$(e).parents().toArray().slice(0,5).map(p=>p.tagName+(p.attribs.id?'#'+p.attribs.id:'')+(p.attribs.class?'.'+p.attribs.class.trim().split(/\s+/).slice(0,3).join('.'):'')).join(' < '))};
+  $('script,style,noscript,svg,iframe').remove();
   const sig=e=>e.tagName+(e.attribs.id?'#'+e.attribs.id:'')+(e.attribs.class?'.'+e.attribs.class.trim().split(/\s+/).slice(0,4).join('.'):'');
-  const walk=(e,d)=>$(e).children().toArray().slice(0,22).map(c=>{const t=$(c).text().replace(/\s+/g,' ').trim();const o={s:sig(c),n:t.length,t:t.slice(0,40)};if(d<4&&t.length>200&&$(c).children().length)o.c=walk(c,d+1);return o});
-  const o={u,status:r.status,final:r.final,len:r.html.length,title:$('title').text().trim().slice(0,80),h1:$('h1').toArray().slice(0,3).map(h=>({t:$(h).text().trim().slice(0,50),path:$(h).parents().toArray().slice(0,6).map(sig)}))};
+  const walk=(e,d)=>$(e).children().toArray().slice(0,REQ.probeKids||22).map(c=>{const t=$(c).text().replace(/\s+/g,' ').trim();const o={s:sig(c),n:t.length,t:t.slice(0,40)};if(d<4&&t.length>200&&$(c).children().length)o.c=walk(c,d+1);return o});
+  const o={u,status:r.status,err:r.err,final:r.final,len:r.html.length,title:$('title').text().trim().slice(0,80),h1:$('h1').toArray().slice(0,3).map(h=>({t:$(h).text().trim().slice(0,50),path:$(h).parents().toArray().slice(0,6).map(sig)}))};
   let best=null;$('h1').first().parents().each((i,p)=>{if(!best&&$(p).text().replace(/\s+/g,' ').length>800)best=p});
   if(!best)best=$('main,article,body').first().get(0);if(best){o.best=sig(best);o.tree=walk(best,0)}
   o.time=$('time').toArray().slice(0,3).map(t=>sig(t)+' '+$(t).text().trim().slice(0,30)+' '+(t.attribs.datetime||''));
   o.meta=['og:title','article:published_time','author','og:site_name'].map(n=>n+'='+($('meta[property="'+n+'"],meta[name="'+n+'"]').attr('content')||'').slice(0,50));
+  o.vids=vids;
+  if(REQ.sel)o.sel=REQ.sel.map(q=>[q,$(q).length,...$(q).toArray().slice(0,2).map(e=>sig(e)+' > '+$(e).children().toArray().slice(0,6).map(sig).join(' , ')+' :: '+$(e).text().replace(/\s+/g,' ').trim().slice(0,110))]);
   report.probe.push(o)}
+ migrate(); /* তালিকা তৈরির আগে, যাতে মুছে দেওয়া রেকর্ড এই রানেই আবার আনা হয় */
  const want=new Set(REQ.hosts||Object.keys(SOURCES)),seen=new Set(),queue={};
  const rows=REQ.set==='all'?[...builtinRows(),...catalogRows()]:REQ.set==='builtin'?builtinRows():[];
  for(const r of[...builtinRows(),...catalogRows()]){const s=sourceOf(r[2]);if(s)(WANT[s]=WANT[s]||new Set()).add(keyOfUrl(r[2]))}
- for(const r of rows){const s=sourceOf(r[2]);if(!s||!want.has(s))continue;const k=keyOfUrl(r[2]);if(seen.has(k))continue;seen.add(k);
+ for(const r of rows){const s=sourceOf(r[2]);if(!s||!want.has(s)||SOURCES[s].manual)continue;const k=keyOfUrl(r[2]);if(seen.has(k))continue;seen.add(k);
   if(loadBucket(bucketOf(k)).data[k]){report.skipped++;continue}(queue[s]=queue[s]||[]).push({k,s,c:r[0],t:r[1],u:r[2]})}
+ const WB={};
+ for(const s of Object.keys(SOURCES))if(SOURCES[s].wayback&&(queue[s]||REQ.wayback)){const cf=path.join(OUT,'_wayback-'+s+'.json');
+  if(fs.existsSync(cf)&&!REQ.wayback){WB[s]=new Map(Object.entries(JSON.parse(fs.readFileSync(cf,'utf8'))).map(([k,v])=>[k.normalize('NFC'),{ts:v[0],orig:v[1]}]));(report.wayback=report.wayback||{})[s]={cached:WB[s].size};continue}
+  const w=await waybackMap(SOURCES[s].wayback);WB[s]=w.map;
+  const all=[...new Set([...builtinRows(),...catalogRows()].map(r=>r[2]).filter(u=>sourceOf(u)===s))];
+  if(SOURCES[s].fuzzy){const paths=[...w.map.keys()];w.info.fuzzy=[];for(const u of all){const k=wbNorm(u);if(/\?/.test(u)||w.map.has(k)||/^\/question\//.test(k))continue;
+    let best='',sc=0;for(const p2 of paths){if((p2.match(/\//g)||[]).length!==1)continue;const v=slugLike(k,p2);if(v>sc){sc=v;best=p2}}
+    if(best){w.map.set(k,w.map.get(best));w.info.fuzzy.push([k,best])}}}
+  const hit=all.filter(u=>!/\?/.test(u)&&w.map.has(wbNorm(u)));
+  w.info.catalog=all.length;w.info.matched=hit.length;w.info.newest=hit.map(u=>w.map.get(wbNorm(u)).ts.slice(0,4)).reduce((o,y)=>(o[y]=(o[y]||0)+1,o),{});
+  w.info.qna=[all.filter(u=>/\/qna\/./.test(u)).length,hit.filter(u=>/\/qna\/./.test(u)).length];w.info.unmatched=all.filter(u=>!hit.includes(u)).slice(0,8).map(u=>{try{return decodeURI(u)}catch(e){return u}});(report.wayback=report.wayback||{})[s]=w.info;
+  if(!w.info.err&&hit.length)fs.writeFileSync(cf,JSON.stringify(Object.fromEntries(hit.map(u=>{const k=wbNorm(u),v=w.map.get(k);return[k,[v.ts,v.orig]]}))))}
  const deadline=Date.now()+(REQ.minutes||300)*60000,limit=REQ.limit||Infinity;let lastFlush=Date.now();
+ /* প্রতি ২ মিনিটে ফাইলে লেখা; প্রতি REQ.push (ডিফল্ট ৩০) মিনিটে শাখায় জমা, যাতে লম্বা রানের মাঝপথের ফল হারিয়ে না যায় */
+ let lastPush=Date.now();
+ const tick=()=>{if(Date.now()-lastFlush>120000){lastFlush=Date.now();flush()}
+  if(Date.now()-lastPush>(REQ.push||30)*60000){lastPush=Date.now();if(!process.env.GITHUB_ACTIONS||!process.env.GITHUB_REF_NAME)return;
+   try{report.total=flush();report.partial=new Date().toISOString();fs.writeFileSync(path.join(OUT,'_report.json'),JSON.stringify(report,null,1));
+    /* rebase-এর জন্যও পরিচয় লাগে, তাই আগে config; rebase আটকে গেলে বাতিল করে পরের বার আবার চেষ্টা */
+    require('child_process').execSync('git config user.name "github-actions[bot]" && git config user.email "41898282+github-actions[bot]@users.noreply.github.com" && git add texts && (git diff --cached --quiet || git commit -q -m "Import library texts (automated, partial)") && (git pull -q --rebase origin "$GITHUB_REF_NAME" || (git rebase --abort; exit 1)) && git push -q origin "HEAD:$GITHUB_REF_NAME"',{cwd:ROOT,stdio:'ignore',timeout:300000})}
+   catch(e){report.checkpointErr=String(e).slice(0,160)}}};
  await Promise.all(Object.keys(queue).map(async s=>{const src=SOURCES[s],st=report.bySource[s]={queued:queue[s].length,done:0,failed:0};let streak=0;
-  for(const it of queue[s].slice(0,(REQ.limits&&REQ.limits[s])||limit)){if(Date.now()>deadline||streak>=25)break;
-   const r=await get(it.u);let fail='';
-   if(r.status!==200)fail=r.err||('HTTP '+r.status);
-   else{try{const $=cheerio.load(r.html);const x=src.extract($);const html=x.body&&x.body.length?clean($,x.body,r.final||it.u):'';const title=(x.title||'').replace(/\s+/g,' ').trim();
-     if(!title||textLen(html)<40)fail='no content';
-     else{const b=loadBucket(bucketOf(it.k));b.data[it.k]={u:it.u,s,c:it.c,t:title,l:it.t,d:(x.date||'').trim(),a:(x.author||'').replace(/\s+/g,' ').trim(),h:html};b.dirty=true;st.done++;report.done++;streak=0}}catch(e){fail='parse: '+String(e).slice(0,80)}}
-   if(fail){st.failed++;streak++;if(report.failed.length<400)report.failed.push([it.u,fail])}
-   if(Date.now()-lastFlush>120000){lastFlush=Date.now();flush()}
-   await sleep(src.delay)}
+  let list=queue[s].slice(0,(REQ.limits&&REQ.limits[s])||limit);
+  /* wayback উৎসে আর্কাইভ ব্যস্ত (429/সংযোগ নেই) থাকলে লেখাটি পরের পাকে আবার চেষ্টা হয়; গতি সবসময় ধীর (delay) */
+  for(let pass=0;list.length&&pass<500;pass++){const again=[];let stop=false;st.passes=pass+1;
+   for(let n=0;n<list.length;n++){const it=list[n];if(Date.now()>deadline||streak>=25){again.push(...list.slice(n));stop=true;break}
+    tick();
+    let r,fail='';
+    if(src.wayback){const w=!/\?/.test(it.u)&&WB[s].get(wbNorm(it.u));
+     if(!w){st.failed++;st.unarchived=(st.unarchived||0)+1;if(report.failed.length<400)report.failed.push([it.u,'not archived']);continue}
+     r=await getOnce('https://web.archive.org/web/'+w.ts+'id_/'+w.orig);
+     if(r.busy){st.busy=(st.busy||0)+1;if(r.ra)st.retryAfter=Math.max(st.retryAfter||0,r.ra);if(r.err)st.lastErr=r.err;again.push(it);await sleep(Math.max(src.delay,1000*Math.min(r.ra||0,180)));continue}
+     if(r.status===200&&/<title>\s*(Just a moment|Attention Required)/i.test(r.html.slice(0,3000)))r={status:0,html:'',err:'challenge page in archive'};
+     else if(r.status===200){r.final=it.u;r.w=w.ts}}
+    else r=await get(it.u);
+    if(r.status!==200)fail=r.err||('HTTP '+r.status);
+    else{try{const $=cheerio.load(r.html);const x=src.extract($,r.final||it.u);let html=x.html!==undefined?x.html:(x.body&&x.body.length?clean($,x.body,r.final||it.u):'');if(src.tidy)html=src.tidy(html,(x.title||'').replace(/\s+/g,' ').trim());const title=(x.title||'').replace(/\s+/g,' ').trim();
+      if(!title||textLen(html)<40)fail='no content';
+      else if(src.fuzzy&&!sameTitle(title,it.t))fail='title mismatch: '+title.slice(0,70);
+      else if(src.fuzzy&&notArticle(title,html))fail='not the article (download page): '+title.slice(0,70);
+      else{const b=loadBucket(bucketOf(it.k));b.data[it.k]={u:it.u,s,c:it.c,t:title,l:it.t,d:(x.date||'').trim(),a:(x.author||'').replace(/\s+/g,' ').trim(),h:html};if(r.w)b.data[it.k].w=r.w;if(src.ver)b.data[it.k].v=src.ver;b.dirty=true;st.done++;report.done++;streak=0}}catch(e){fail='parse: '+String(e).slice(0,80)}}
+    if(fail){st.failed++;if(!src.wayback)streak++;if(report.failed.length<400)report.failed.push([it.u,fail])}
+    await sleep(src.delay)}
+   list=again;if(stop||!src.wayback)break}
+  if(src.wayback)st.left=list.length;
   if(streak>=25)st.stopped='25 failures in a row'}));
- report.total=flush();fs.writeFileSync(path.join(OUT,'_report.json'),JSON.stringify(report,null,1));
+ delete report.partial;report.total=flush();fs.writeFileSync(path.join(OUT,'_report.json'),JSON.stringify(report,null,1));
  if(fs.existsSync(path.join(OUT,'_probe.json')))fs.unlinkSync(path.join(OUT,'_probe.json'));
  console.log(JSON.stringify({done:report.done,failed:report.failed.length,total:report.total,bySource:report.bySource}))})();
