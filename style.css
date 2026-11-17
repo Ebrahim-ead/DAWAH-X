@@ -1216,6 +1216,14 @@ html[data-theme="light"] .video-lightbox-close{color:var(--text)}
  .acts{gap:8px}
  .theme-toggle{width:32px;height:32px;border-radius:10px}
 }
+/* খুব ছোট ফোন (≤৩৬০px): দিন/রাত + ফেসবুক + সার্চ + মেনু চারটি বোতাম আর ৩৮px লোগো একসাথে
+   ৩২০px-এ আঁটে না, ফলে পুরো পাতা পাশে সরে যেত (৩৬px)। ফেসবুকের আইকনটি ফুটারে ও
+   মেনুতে দুবার আছে, তাই এখানে শুধু সেটিই সরানো হয় — বাকি বোতামগুলোর আকার অটুট থাকে। */
+@media(max-width:360px){
+ .bar{gap:8px;padding-left:16px;padding-right:16px}
+ .bar .word{height:34px}
+ .fbp{display:none}
+}
 
 /* ছোট পর্দায় হালকা হিরো ছবি (LCP দ্রুত): ৬২০px চওড়া, ৩২ KB */
 @media(max-width:700px){

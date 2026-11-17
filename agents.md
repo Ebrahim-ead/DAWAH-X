@@ -333,3 +333,19 @@ First-load bytes on `index.html` are now ≈ **237 KB** (was 258 KB after the fo
 **Verification** — Chromium 131, all 12 pages at 412 px: two columns, 11 items (9 on `saved.html`, which has a shorter footer list), **no horizontal overflow, no console errors**. Footer screenshots at 320/360/412/560/561/700/900/1366: two columns at ≤560, single column from 561 up (desktop layout unchanged — the list still lives in its own `1.1fr` cell). No label wraps at any width ≥320 px.
 
 **Pre-existing, not fixed here:** at **320 px** the *page* scrolls horizontally by 36 px (`documentElement.scrollWidth` 356). The culprit is the header's `.acts`/`.burger` row, not the footer. Next candidate if 320 px matters.
+
+### 320 px header overflow (same PR)
+
+`documentElement.scrollWidth` was **356 px on a 320 px screen**: the header row (logo 149 px + `.acts` 177 px + `10px` gap) needs ~336 px inside a 280 px content box, so the whole page could be dragged sideways.
+
+Fix — a new `@media(max-width:360px)` block right after the ≤430 px one:
+```css
+@media(max-width:360px){
+ .bar{gap:8px;padding-left:16px;padding-right:16px}
+ .bar .word{height:34px}
+ .fbp{display:none}
+}
+```
+- Shrinking every control until it fits was measured to leave ~5 px of slack and would have pushed the theme toggle and the search button below their current 32/38 px; the **Facebook pill is the one item with a duplicate** (footer «সামাজিক যোগাযোগ» and the menu), so it is the one that goes at ≤360 px. Everything else keeps its size and its tap target.
+- After the fix: `scrollWidth == innerWidth` on **all 13 pages** at 320 px, and the header height stays 64 px. Checked at 280/300/320/340/360/361/412 — no overflow, and ≥361 px is unchanged.
+- If the Facebook pill must stay on tiny phones too, the alternative is `.theme-toggle`/`.dxp-trigger` down to 30/34 px **and** a 32 px logo — tighter and worse for tapping.
