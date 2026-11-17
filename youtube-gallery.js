@@ -205,7 +205,7 @@
     if(!matches.length){
       status.textContent=(topic||channel)?(query?'এই বাছাইয়ে এই নামে কোনো ভিডিও পাওয়া যায়নি':'এই বাছাইয়ে কোনো ভিডিও নেই')+picked+' — অন্য বিষয় বা «সব» বেছে দেখুন।':'এই নামে কোনো ভিডিও পাওয়া যায়নি।';
     }else{
-      status.textContent=`মোট ${numberFormat.format(matches.length)}টি ভিডিও · পৃষ্ঠা ${numberFormat.format(page)} / ${numberFormat.format(pages)} · এক পৃষ্ঠায় ${pageSize}টি`+picked+(query?' · খোঁজার ফলাফল':(topic||channel)?'':' · নতুন ভিডিও স্বয়ংক্রিয়ভাবে যোগ হয় না');
+      status.textContent=`মোট ${numberFormat.format(matches.length)}টি ভিডিও · পৃষ্ঠা ${numberFormat.format(page)} / ${numberFormat.format(pages)} · এক পৃষ্ঠায় ${pageSize}টি`+picked+(query?' · খোঁজার ফলাফল':(topic||channel)?'':' · নতুন ভিডিও স্বয়ংক্রিয়ভাবে যোগ হয়');
     }
     if(pageLabel)pageLabel.textContent=`পৃষ্ঠা ${numberFormat.format(page)} / ${numberFormat.format(pages)}`;
     if(pageInput){pageInput.max=String(pages);pageInput.value=String(page);pageInput.disabled=pages<=1;}

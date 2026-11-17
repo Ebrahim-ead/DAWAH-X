@@ -29,7 +29,7 @@ GitHub Pages-এ “প্রশ্ন পাঠান” চাপলে প্
 
 
 ## Static YouTube video catalogue
-`videos.html` includes a combined, fixed catalogue of 5,000 public channel-list entries: 1 DAWAH X video, 2,798 from Professor Dr. Abubakar Muhammad Zakaria, 201 from Salafi Manhaj 2, and 2,000 from Peace TV Bangla (@PeaceTVprogram). It displays 20 per page, supports title/channel search and page navigation, and opens selected videos in an on-page YouTube player. No API key is required; new uploads are not added automatically. Individual videos may be restricted by YouTube or by their channel owner. See `youtube-setup.md`.
+`videos.html` includes a combined catalogue of public channel-list entries (5,000+; started with 1 DAWAH X video, 2,798 from Professor Dr. Abubakar Muhammad Zakaria, 201 from Salafi Manhaj 2, and 2,000 from Peace TV Bangla (@PeaceTVprogram)). It displays 20 per page, supports title/channel search, topic/channel filter chips and page navigation, and opens selected videos in an on-page YouTube player. No API key is required: `.github/workflows/update-videos.yml` runs `tools/update-videos.cjs` about every 30 minutes, which reads each channel's public upload feed (latest 15 uploads) and commits any new video to `youtube-videos.json` (channels listed in `tools/video-channels.json`). Individual videos may be restricted by YouTube or by their channel owner. See `youtube-setup.md`.
 
 
 ## Live date and time
