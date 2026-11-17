@@ -165,3 +165,34 @@ Audited 12 pages × 9 viewports (320/360/390/412/768/1024/1280/1440/1920) plus i
 - ≤1099: burger menu (`.burger`, `#menu` dropdown, `matchMedia('(max-width:1099px)')` in `effects.js`), `.fbp span` hidden, search trigger `#dxp-open` in `.acts`.
 - ≥1100: desktop nav; `@media(min-width:1100px) and (max-width:1179px){#menu a{font-size:14px;padding:7px 4px}}` and `@media(min-width:1180px) and (max-width:1279px){#menu a{padding:7px 4px}}`, `.fbp span` hidden ≤1279, search trigger `#dxp-open-bar` in the clock bar.
 - Measured with the real webfont: **0 px horizontal overflow at 768 / 901 / 960 / 1000 / 1024 / 1099 / 1100 / 1179 / 1180 / 1280 / 1366 / 1440 / 1600 / 1920 and no clipped nav label**. If a nav item is ever added, re-run that sweep before merging.
+
+## Speed (self-hosted fonts, WebP hero, lazy images) + «উৎস ও সংশোধন নীতি» page (2026-11-17, PR #23)
+
+**Fonts are self-hosted — never re-add Google Fonts.**
+- Files live in `fonts/` as six woff2 subsets: Hind Siliguri **bengali 400/600/700**, Hind Siliguri **latin 400/700**, Noto Naskh Arabic **arabic 400**. The `@font-face` blocks (with `unicode-range`, `font-display:swap`) are the **last block of `style.css`** — there is no `fonts.css` any more, and no `<link rel="preload" as="font">` in any page.
+- Reason for inlining: a separate 4 KB `fonts.css` cost a full round trip (~400 ms on 3G) before a single glyph could start downloading; the earlier 69 KB `as="font"` preload of bengali-400 also delayed `style.css` and pushed FCP back ~0.4 s. Both were removed after measuring.
+- **Weight policy:** only weights that are actually painted get a face. `font-weight:500` declarations still exist in `style.css` (menu, clock date, `.btn small`, label) — they intentionally resolve to 400. `750`/`800` intentionally resolve to 700. If you add an 800 heading, do **not** add a font file for it; measure first.
+- Arabic (`Noto Naskh Arabic 400`) is used by the verse/`.aram` blocks; `600` was dropped (was 55 KB) and falls back to 400.
+
+**Service worker is v4** (`dawahx-*-v4` caches). Shell list no longer contains `fonts.css`; it contains `hero.webp` **and** `hero.jpg`. Same-origin `/fonts/*.woff2` are cache-first with a background refresh (`FONTS` cache) — the legacy `FONT_HOSTS` branch stays only so old installs flush their Google-Fonts entries.
+
+**Hero image** — `.hero` background is now `background-image:image-set(url(hero.webp) type("image/webp"),url(hero.jpg) type("image/jpeg"))` (webp 49.7 KB, jpg 75.9 KB fallback). `index.html` preloads `hero.webp` with `fetchpriority="high"`. Keep both files; drop the `url("hero.jpg")` shorthand only if you keep the `image-set` fallback layer.
+
+**Images** — the first `<img>` on every page is the header wordmark and stays eager; every later `<img>` carries `loading="lazy" decoding="async"`. Do not lazy-load the header wordmark (it is above the fold and part of LCP).
+
+**Measured on 3G (Chromium 131, 412×900 DPR2, 400 ms RTT, 400 kbps, cold cache, 5 pages; Google CDN mocked with the same woff2):**
+
+| page | load before → after | FCP before → after | font bytes before → after | CLS before → after |
+|---|---|---|---|---|
+| index | 12.5 s → 9.8 s | 2.91 s → 2.73 s | 396 KB → 295 KB | 0.462 → 0.459 |
+| fatwa | 9.9 s → 7.7 s | 2.37 s → 2.23 s | 344 KB → 243 KB | 0.452 → 0.481 |
+| read | 9.9 s → 7.7 s | 2.39 s → 2.24 s | 344 KB → 243 KB | 0.614 → 0.544 |
+| questions | 11.0 s → 8.9 s | 2.38 s → 2.26 s | 344 KB → 243 KB | 0.606 → 0.491 |
+| videos | 13.1 s → 10.7 s | 2.60 s → 2.42 s | 344 KB → 243 KB | 0.843 → 0.606 |
+
+**«উৎস ও সংশোধন নীতি» — `policy.html`**
+- Seven `.pol` sections (উৎস · রেফারেন্স · সম্পাদকীয় নীতি · সংশোধন নীতি · স্বত্ব · দায়মুক্তি · যোগাযোগ) with a `.policy-jump` chip row of in-page anchors (`#sources … #contact`).
+- Footer link `উৎস ও সংশোধন নীতি` is appended after `সংরক্ষিত লেখা` in the `দ্রুত লিংক` list of **all twelve pages**; `sitemap.xml` now has **10 URLs**. `body[data-page="policy"]` exists but there is no nav item, so no `.menu a.on` is set.
+- **Do not put `data-reveal` on `.pol` or `.policy-jump`:** `effects.js`'s `revealSelector` does not include them, so they would never receive `.is-visible` and would stay at `opacity:0` (this actually happened during development).
+- Source numbers on the page come from the corpus itself (`texts/*.json` `c`/`u` fields): আত-তাহরীক ≈11,600, আল-ইতিছাম ≈7,400, From Muslims ≈600, Response to Anti-Islam ≈370, plus ~30 from Islamic Authors/Insight Zone; the 12,780 fatwas come from the first two. Every entry keeps its original URL — the read page prints it in `#read-credit` + `#read-original`.
+- The page deliberately publishes **no e-mail address**; contact is phone/WhatsApp `01783543026`, the ask form, and the Facebook page.

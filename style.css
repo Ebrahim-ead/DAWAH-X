@@ -22,7 +22,7 @@ header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;backgroun
 .dot{width:12px;height:12px;border-radius:50%;background:#ff2d2d;box-shadow:0 0 0 3px rgba(255,45,45,.3)}
 .burger{display:none;background:none;border:0;color:var(--text);font-size:28px;cursor:pointer}
 /* hero */
-.hero{position:relative;overflow:hidden;border-bottom:1px solid var(--line);background:var(--bg) url("hero.jpg") right center/auto 100% no-repeat}
+.hero{position:relative;overflow:hidden;border-bottom:1px solid var(--line);background:var(--bg) url("hero.jpg") right center/auto 100% no-repeat;background-image:image-set(url("hero.webp") type("image/webp"),url("hero.jpg") type("image/jpeg"))}
 .hero::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,var(--bg) 8%,rgba(7,12,20,.55) 50%,transparent 80%)}
 .hero .wrap{position:relative;padding-top:40px;padding-bottom:44px}
 .brandline{letter-spacing:5px;font-weight:600;font-size:14px;line-height:1.5}
@@ -978,3 +978,35 @@ html[data-paper="1"] #read .resume-close{background:#fff;border-color:#e0d5c0;co
 
 /* ট্যাবলেট (≤১০৯৯): ডেস্কটপ নেভ জায়গায় না ধরায় বurger মেনু, ফেসবুক বোতাম আইকন-কেবল */
 @media(max-width:1099px){.burger{display:block}.fbp span{display:none}}
+
+
+/* ===== নিজের ফন্ট (self-hosted, কোনো Google/CDN নয়) ===== */
+@font-face{font-family:'Hind Siliguri';font-style:normal;font-weight:400;font-display:swap;src:url(fonts/hind-siliguri-bengali-400-normal.woff2) format('woff2');unicode-range:U+0951-0952,U+0964-0965,U+0980-09FE,U+1CD0,U+1CD2,U+1CD5-1CD6,U+1CD8,U+1CE1,U+1CEA,U+1CED,U+1CF2,U+1CF5-1CF7,U+200C-200D,U+20B9,U+25CC,U+A8F1}
+@font-face{font-family:'Hind Siliguri';font-style:normal;font-weight:400;font-display:swap;src:url(fonts/hind-siliguri-latin-400-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:'Hind Siliguri';font-style:normal;font-weight:600;font-display:swap;src:url(fonts/hind-siliguri-bengali-600-normal.woff2) format('woff2');unicode-range:U+0951-0952,U+0964-0965,U+0980-09FE,U+1CD0,U+1CD2,U+1CD5-1CD6,U+1CD8,U+1CE1,U+1CEA,U+1CED,U+1CF2,U+1CF5-1CF7,U+200C-200D,U+20B9,U+25CC,U+A8F1}
+@font-face{font-family:'Hind Siliguri';font-style:normal;font-weight:700;font-display:swap;src:url(fonts/hind-siliguri-bengali-700-normal.woff2) format('woff2');unicode-range:U+0951-0952,U+0964-0965,U+0980-09FE,U+1CD0,U+1CD2,U+1CD5-1CD6,U+1CD8,U+1CE1,U+1CEA,U+1CED,U+1CF2,U+1CF5-1CF7,U+200C-200D,U+20B9,U+25CC,U+A8F1}
+@font-face{font-family:'Hind Siliguri';font-style:normal;font-weight:700;font-display:swap;src:url(fonts/hind-siliguri-latin-700-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:'Noto Naskh Arabic';font-style:normal;font-weight:400;font-display:swap;src:url(fonts/noto-naskh-arabic-arabic-400-normal.woff2) format('woff2');unicode-range:U+0600-06FF,U+0750-077F,U+0870-088E,U+0890-0891,U+0897-08E1,U+08E3-08FF,U+200C-200E,U+2010-2011,U+204F,U+2E41,U+FB50-FDFF,U+FE70-FE74,U+FE76-FEFC,U+102E0-102FB,U+10E60-10E7E,U+10EC2-10EC4,U+10EFC-10EFF,U+1EE00-1EE03,U+1EE05-1EE1F,U+1EE21-1EE22,U+1EE24,U+1EE27,U+1EE29-1EE32,U+1EE34-1EE37,U+1EE39,U+1EE3B,U+1EE42,U+1EE47,U+1EE49,U+1EE4B,U+1EE4D-1EE4F,U+1EE51-1EE52,U+1EE54,U+1EE57,U+1EE59,U+1EE5B,U+1EE5D,U+1EE5F,U+1EE61-1EE62,U+1EE64,U+1EE67-1EE6A,U+1EE6C-1EE72,U+1EE74-1EE77,U+1EE79-1EE7C,U+1EE7E,U+1EE80-1EE89,U+1EE8B-1EE9B,U+1EEA1-1EEA3,U+1EEA5-1EEA9,U+1EEAB-1EEBB,U+1EEF0-1EEF1}
+
+/* ===== উৎস ও সংশোধন নীতি (policy.html) ===== */
+.policy-jump{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:0 auto 24px;max-width:900px}
+.policy-jump a{border:1px solid var(--line);border-radius:999px;padding:7px 14px;font-size:14px;color:var(--text);background:var(--card);transition:border-color .2s,color .2s,background .2s}
+.policy-jump a:hover,.policy-jump a:focus-visible{border-color:var(--gold);color:var(--gold);background:rgba(245,184,28,.08)}
+.policy{max-width:860px;margin:0 auto;display:grid;gap:18px}
+.pol{border:1px solid var(--line);border-radius:16px;padding:24px 26px;background:var(--card);scroll-margin-top:96px}
+.pol h2{font-size:clamp(19px,2.6vw,22px);color:var(--gold);margin:0 0 12px;font-weight:600;line-height:1.55}
+.pol h3{font-size:16px;margin:18px 0 6px;font-weight:600;color:var(--text)}
+.pol p,.pol li{color:var(--text);opacity:.9;line-height:1.95;font-size:15.5px}
+.pol p+p{margin-top:10px}
+.pol ul{margin:10px 0 0;padding-inline-start:20px;display:grid;gap:7px}
+.pol b{font-weight:600;color:var(--text);opacity:1}
+.pol a{color:var(--gold2);border-bottom:1px solid rgba(245,184,28,.35)}
+.pol a:hover{color:var(--gold)}
+.pol-src{list-style:none;padding-inline-start:0!important;display:grid;gap:10px}
+.pol-src li{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline;border:1px solid rgba(173,193,215,.14);border-radius:12px;padding:12px 14px;opacity:1}
+.pol-src b{font-size:16px;font-weight:600}
+.pol-src span{color:var(--muted);font-size:13.5px;opacity:1}
+.pol-note{margin-top:14px;border-inline-start:3px solid var(--gold);background:rgba(245,184,28,.07);border-radius:10px;padding:12px 14px;font-size:14.5px!important;color:var(--gold2)!important;opacity:1!important}
+.pol-meta{margin:20px auto 0;text-align:center;color:var(--muted)!important;font-size:13.5px!important;opacity:1!important}
+@media(max-width:560px){.pol{padding:20px 16px;border-radius:14px}.policy-jump a{font-size:13px;padding:6px 11px}.pol p,.pol li{font-size:15px}}
+@media print{.policy-jump{display:none}.pol{break-inside:avoid;border-color:#999}}
