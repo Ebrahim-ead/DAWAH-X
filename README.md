@@ -21,7 +21,7 @@
 | `style.css` | সব পেজের ডিজাইন |
 | `app.js` | লিংক/যোগাযোগের তথ্য, প্রশ্নোত্তর ও ফতোয়া লাইব্রেরি, প্রশ্ন পাঠানোর ফর্ম |
 | `effects.js` | মেনু, ঘড়ি, ভিডিও প্লেয়ার, অ্যানিমেশন |
-| `youtube-gallery.js`, `youtube-videos.json`, `video-thumb-*.jpg` | ভিডিও গ্যালারি ও তার তালিকা |
+| `youtube-gallery.js`, `youtube-videos.json`, `video-thumb-*.jpg` | ভিডিও গ্যালারি ও তার তালিকা; বিষয় ও চ্যানেলের বোতামও এখানেই তৈরি হয় (`VIDEO_TOPICS` তালিকায় বিষয়ের নাম ও শিরোনামে খোঁজার শব্দ বদলানো যায়) |
 | `questions-catalog-part-*.js`, `fatwa-catalog-part-*.js` | পূর্ণ লাইব্রেরি সূচি (প্রয়োজন হলে লোড হয়) |
 | `logo.webp`, `logo-icon.webp`, `favicon.svg`, `apple-touch-icon.png`, `hero.jpg`, `youtube-channel-logo.webp` | লোগো, আইকন ও হোম পেজের ছবি |
 | `og-image.jpg` | Facebook/WhatsApp-এ লিংক শেয়ার করলে যে ছবি দেখায় |
