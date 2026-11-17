@@ -954,11 +954,10 @@ setupLibrary({id:"q",deep:PAGE==="qa",eager:true,rows:QS,manifest:PAGE==="qa"?QU
 setupLibrary({id:"f",deep:PAGE==="fatwa",rows:FT,manifest:PAGE==="fatwa"?FATWA_PARTS:[],partsKey:"DAWAH_FATWAS_PARTS",label:"পূর্ণ ফতোয়া ও প্রবন্ধ সূচি",loadingText:"ফতোয়া ও প্রবন্ধ সূচি লোড হচ্ছে…"});
 
 /* ===== প্রশ্ন পাঠানো =====
-   "WhatsApp-এ পাঠান": প্রশ্নটি লেখা অবস্থায় DAWAH X-এর WhatsApp চ্যাট খোলে (সব হোস্টে কাজ করে)।
-   দ্বিতীয় বোতাম:
+   ফর্মে একটিই বোতাম: "প্রশ্ন পাঠান"। নাম, যোগাযোগ (ইমেইল অথবা ফোন — যেকোনো একটি), ধর্মীয় পরিচয় ও প্রশ্ন আবশ্যক।
    ১) ASK_ACTION দিলে প্রশ্ন সেই ঠিকানায় (এখন FormSubmit) সরাসরি জমা হয়।
    ২) সাইট Netlify-তে থাকলে Netlify Forms-এ (`question` ফর্ম) জমা হয়।
-   ৩) অন্যথায় (যেমন GitHub Pages) প্রশ্ন কপি হয়ে DAWAH X-এর Messenger খোলে।
+   ৩) সরাসরি জমা না হলে (বা জমার কোনো পথ না থাকলে) তখনই WhatsApp ও Messenger-এর বোতাম দেখা দেয়; প্রশ্নটি লেখা অবস্থায় চ্যাট খোলে।
    WhatsApp/Messenger-এ ভিজিটর Send চাপলে তবেই প্রশ্ন পৌঁছায়। */
 {const btn=$("askbtn"),wa=$("askwa"),aq=$("aq"),msg=$("askm"),how=$("askhow");
  if(btn&&aq&&msg){
@@ -966,8 +965,7 @@ setupLibrary({id:"f",deep:PAGE==="fatwa",rows:FT,manifest:PAGE==="fatwa"?FATWA_P
   /* Netlify Forms শুধু Netlify-তে চলে; GitHub Pages বা নিজস্ব ডোমেইনে সরাসরি জমার জন্য ASK_ACTION লাগে */
   const netlifyHost=/(^|\.)netlify\.app$/i.test(location.hostname);
   const directPossible=Boolean(ASK_ACTION)||netlifyHost;
-  const HOW_CHAT="বোতাম চাপলে আপনার প্রশ্ন লেখা অবস্থায় WhatsApp বা Messenger খুলবে; সেখানে Send চাপলেই প্রশ্নটি আমাদের কাছে পৌঁছাবে।";
-  if(!directPossible){btn.textContent="Messenger-এ পাঠান";if(how)how.textContent=HOW_CHAT}
+  if(!directPossible&&how)how.textContent="«প্রশ্ন পাঠান» চাপলে WhatsApp ও Messenger-এর বোতাম আসবে; যেকোনো একটিতে আপনার প্রশ্ন লেখা অবস্থায় চ্যাট খুলবে, সেখানে Send চাপলেই প্রশ্নটি আমাদের কাছে পৌঁছাবে।";
 
   const copyText=text=>{let ok=false;
    try{const ta=document.createElement("textarea");ta.value=text;ta.setAttribute("readonly","");ta.style.cssText="position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;pointer-events:none";document.body.appendChild(ta);ta.select();ta.setSelectionRange(0,text.length);ok=document.execCommand("copy");ta.remove()}catch(e){}
@@ -980,27 +978,39 @@ setupLibrary({id:"f",deep:PAGE==="fatwa",rows:FT,manifest:PAGE==="fatwa"?FATWA_P
    messenger:{name:"Messenger",cls:"ask-messenger",url:text=>MESSENGER+"?text="+encodeURIComponent(clip(text))}
   };
 
-  const viaChat=(kind,text,{open=true,lead=""}={})=>{
-   const app=CHAT[kind],copied=copyText(text),url=app.url(text);
-   const link=Object.assign(document.createElement("a"),{href:url,target:"_blank",rel:"noopener noreferrer",className:app.cls,textContent:app.name+" খুলুন ↗"});
+  /* সরাসরি জমা না হলে দেখানো হয়: WhatsApp ও Messenger — দুটি বোতাম (প্রশ্ন লেখা অবস্থায় চ্যাট খোলে) এবং "আবার কপি" */
+  const chatOptions=(text,lead)=>{
+   const copied=copyText(text),p=document.createElement("span");
+   p.textContent=lead+"নিচের WhatsApp বা Messenger বোতামে চাপুন — আপনার প্রশ্ন লেখা অবস্থায় চ্যাট খুলবে, সেখানে Send চাপলেই প্রশ্নটি আমাদের কাছে পৌঁছাবে।"+(copied?" প্রশ্নটি কপিও করা আছে; বার্তা ফাঁকা বা অসম্পূর্ণ দেখালে Paste করুন।":"");
+   const actions=Object.assign(document.createElement("span"),{className:"ask-actions"});
+   for(const kind of ["whatsapp","messenger"]){const app=CHAT[kind];
+    actions.append(Object.assign(document.createElement("a"),{href:app.url(text),target:"_blank",rel:"noopener noreferrer",className:app.cls,textContent:app.name+"-এ পাঠান ↗"}))}
    const again=Object.assign(document.createElement("button"),{type:"button",className:"ask-copy",textContent:"প্রশ্ন আবার কপি করুন"});
    again.addEventListener("click",()=>{copyText(text);again.textContent="কপি হয়েছে ✓"});
-   const p=document.createElement("span");
-   p.textContent=lead+(copied?"আপনার প্রশ্ন কপি করা হয়েছে। ":"")+app.name+"-এ বার্তাটি আগে থেকে লেখা না থাকলে বা অসম্পূর্ণ থাকলে Paste করুন, তারপর Send চাপুন।";
-   const actions=Object.assign(document.createElement("span"),{className:"ask-actions"});actions.append(link,again);
+   actions.append(again);
    msg.replaceChildren(p,actions);
-   if(open){try{window.open(url,"_blank","noopener")}catch(e){}}
   };
 
   /* ফর্ম যাচাই করে বার্তা তৈরি করে; সমস্যা থাকলে null */
+  /* কোনো ঘরে সমস্যা থাকলে বার্তা দেখিয়ে সেই ঘরে নিয়ে যায়; ঘরটি ঠিক করা শুরু করলে বার্তা মুছে যায় */
+  const warn=(el,text)=>{msg.textContent=text;if(el){msg.dataset.for=el.id;el.setAttribute("aria-invalid","true");el.focus()}return null};
+  for(const id of ["an","ac","ar","aq"]){const el=$(id);if(el)for(const ev of ["input","change"])el.addEventListener(ev,()=>{el.removeAttribute("aria-invalid");if(msg.dataset.for===id){msg.textContent="";delete msg.dataset.for}})}
+  const EMAIL_RE=/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+  /* ফোন নম্বর: বাংলা বা ইংরেজি অঙ্ক, শুরুতে + চলতে পারে, মাঝের ফাঁকা/হাইফেন/বন্ধনী বাদ দিয়ে ৮–১৫ অঙ্ক; ঠিক থাকলে ইংরেজি অঙ্কে ফেরত দেয় */
+  const phoneOf=v=>{const d=v.replace(/[০-৯]/g,ch=>String(ch.charCodeAt(0)-0x09e6)).replace(/[\s().-]/g,"");return /^\+?\d{8,15}$/.test(d)?d:""};
   const compose=()=>{
-   const q=aq.value.trim();
-   /* ধর্মীয় পরিচয় (#ar) আবশ্যক: না বাছলে প্রশ্ন পাঠানো যায় না (পুরনো HTML-এ ঘরটি না থাকলে শর্তটি খাটে না) */
-   const rel=$("ar");
-   if(rel&&!rel.value){msg.textContent="অনুগ্রহ করে আপনার ধর্মীয় পরিচয় বেছে নিন।";rel.focus();return null}
-   if(q.length<5){msg.textContent="অনুগ্রহ করে আপনার প্রশ্ন লিখুন।";aq.focus();return null}
+   const q=aq.value.trim(),nameEl=$("an"),conEl=$("ac"),rel=$("ar");
+   delete msg.dataset.for;
+   /* আবশ্যক ঘর (ফর্মের ক্রমে): নাম → ইমেইল অথবা ফোন → ধর্মীয় পরিচয় → প্রশ্ন (পুরনো HTML-এ কোনো ঘর না থাকলে সেই শর্ত খাটে না) */
+   if(nameEl&&field("an").length<2)return warn(nameEl,"অনুগ্রহ করে আপনার নাম লিখুন।");
+   let contact=field("ac");
+   if(conEl){
+    if(!contact)return warn(conEl,"অনুগ্রহ করে আপনার ইমেইল অথবা ফোন নম্বর দিন (যেকোনো একটি)।");
+    if(!EMAIL_RE.test(contact)){const ph=phoneOf(contact);if(!ph)return warn(conEl,"ইমেইল ঠিকানা বা ফোন নম্বরটি ঠিক নেই — আবার দেখে লিখুন।");contact=ph}}
+   if(rel&&!rel.value)return warn(rel,"অনুগ্রহ করে আপনার ধর্মীয় পরিচয় বেছে নিন।");
+   if(q.length<5)return warn(aq,"অনুগ্রহ করে আপনার প্রশ্ন লিখুন।");
    if(field("abot")){msg.textContent="ধন্যবাদ!";return null} /* honeypot: বট হলে কিছু পাঠানো হয় না */
-   const data={name:field("an"),contact:field("ac"),topic:field("at"),religion:field("ar"),question:q};
+   const data={name:field("an"),contact,topic:field("at"),religion:field("ar"),question:q};
    const lines=["আসসালামু আলাইকুম। DAWAH X ওয়েবসাইট থেকে একটি প্রশ্ন:","বিষয়: "+data.topic];
    if(data.religion)lines.push("ধর্মীয় পরিচয়: "+data.religion);
    if(data.name)lines.push("নাম: "+data.name);
@@ -1014,7 +1024,6 @@ setupLibrary({id:"f",deep:PAGE==="fatwa",rows:FT,manifest:PAGE==="fatwa"?FATWA_P
   const saveDraft=()=>{try{const d={};for(const id of draftIds){const el=$(id);if(el)d[id]=el.value}sessionStorage.setItem(DRAFT,JSON.stringify(d))}catch(e){}};
   try{const d=JSON.parse(sessionStorage.getItem(DRAFT)||"null");if(d)for(const id of draftIds){const el=$(id);if(el&&typeof d[id]==="string"){el.value=d[id];if(el.value!==d[id]&&el.options)el.selectedIndex=0}}}catch(e){}
   for(const id of draftIds)$(id)?.addEventListener("input",saveDraft);
-  $("ar")?.addEventListener("change",()=>{if(msg.textContent.includes("ধর্মীয় পরিচয়"))msg.textContent=""});
 
   /* প্রশ্ন লেখার সময়ই সাইটে থাকা মিলে-যাওয়া লেখা ও ভিডিও দেখানো (SUGGEST) — লেখা নতুন ট্যাবে খোলে, ভিডিও এই পাতাতেই চলে */
   const sug=$("asksug");let sugSeq=0,sugTimer=0,sugFor=null;
@@ -1031,12 +1040,13 @@ setupLibrary({id:"f",deep:PAGE==="fatwa",rows:FT,manifest:PAGE==="fatwa"?FATWA_P
    draw([]);const videos=await r.videos;if(my===sugSeq&&videos.length)draw(videos)};
   if(sug){aq.addEventListener("input",()=>{clearTimeout(sugTimer);sugTimer=setTimeout(showSuggestions,600)});if(aq.value.trim().length>=6)showSuggestions()}
 
-  if(wa)wa.addEventListener("click",()=>{const m=compose();if(m)viaChat("whatsapp",m.text)});
+  /* পুরনো (ক্যাশে থাকা) ask.html-এ WhatsApp বোতাম থাকলে সেটিও কাজ করে; নতুন পাতায় বোতামটি নেই */
+  if(wa)wa.addEventListener("click",()=>{const m=compose();if(m){chatOptions(m.text,"");try{window.open(CHAT.whatsapp.url(m.text),"_blank","noopener")}catch(e){}}});
 
   btn.addEventListener("click",async()=>{
    const m=compose();if(!m)return;
    const {data,text}=m;
-   if(!directPossible){viaChat("messenger",text);return}
+   if(!directPossible){chatOptions(text,"");return}
    btn.disabled=true;msg.textContent="পাঠানো হচ্ছে...";
    try{
     let ok=false;
@@ -1046,7 +1056,7 @@ setupLibrary({id:"f",deep:PAGE==="fatwa",rows:FT,manifest:PAGE==="fatwa"?FATWA_P
         উত্তরে success "true" না এলে (যেমন ফর্ম এখনো সক্রিয় করা হয়নি) জমা হয়নি ধরে Messenger/WhatsApp-এর পথ দেখানো হয় */
      const out={};for(const k in data)if(data[k])out[k]=data[k];
      out._subject="DAWAH X — নতুন প্রশ্ন ("+data.topic+")";out._captcha="false";out._template="table";
-     if(/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(data.contact)){out.email=data.contact;out._replyto=data.contact}
+     if(EMAIL_RE.test(data.contact)){out.email=data.contact;out._replyto=data.contact}
      const ctl=typeof AbortController==="function"?new AbortController():null,timer=ctl?setTimeout(()=>ctl.abort(),20000):0;
      try{const r=await fetch(ASK_ACTION,{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json"},body:JSON.stringify(out),signal:ctl?ctl.signal:undefined});
       let j=null;try{j=await r.json()}catch(e){}
@@ -1059,8 +1069,7 @@ setupLibrary({id:"f",deep:PAGE==="fatwa",rows:FT,manifest:PAGE==="fatwa"?FATWA_P
     if(!ok)throw new Error("not delivered");
     msg.textContent="ধন্যবাদ! আপনার প্রশ্ন আমাদের কাছে পৌঁছেছে। ইন শা আল্লাহ শীঘ্রই উত্তর দেওয়া হবে।";aq.value="";saveDraft();showSuggestions();
    }catch(e){
-    if(how)how.textContent=HOW_CHAT;
-    viaChat("messenger",text,{open:false,lead:"সরাসরি জমা দেওয়া যায়নি, তাই Messenger বা WhatsApp-এ পাঠান। "});
+    chatOptions(text,"সরাসরি জমা দেওয়া যায়নি। ");
    }
    btn.disabled=false;
   });

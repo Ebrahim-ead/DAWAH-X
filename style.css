@@ -516,12 +516,10 @@ a,button,input,select,textarea,.chip,.qcard{touch-action:manipulation;-webkit-ta
 /* ===== WhatsApp ===== */
 .ask-send{display:flex;flex-wrap:wrap;gap:12px;margin-top:18px}
 .ask-send .askbtn{margin-top:0;display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:48px}
-.askbtn.ask-wa{background:linear-gradient(#2fe077,#1fbe5c);color:#04200f}
-.askbtn.ask-wa .ic{width:22px;height:22px}
-.askbtn.ask-wa:hover{box-shadow:0 9px 24px rgba(37,211,102,.22)}
 .ask-whatsapp{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:9px 18px;border-radius:10px;font:inherit;font-weight:700;line-height:1.3;text-decoration:none;background:#25d366;color:#04200f;border:0}
 .ask-whatsapp:hover{background:#39e07a}
-@media(max-width:560px){.ask-send .askbtn{flex:1 1 100%}}
+@media(max-width:560px){.ask-send .askbtn,.ask-actions>*{flex:1 1 100%}}
+#an[aria-invalid="true"],#ac[aria-invalid="true"],#ar[aria-invalid="true"],#aq[aria-invalid="true"]{border-color:#ff8a6b}
 
 /* ===== DAWAH X-এর নিজস্ব উত্তর: তালিকা ===== */
 .qcard-own{border-color:rgba(246,196,83,.38);background:linear-gradient(145deg,rgba(246,196,83,.09),rgba(255,255,255,.025))}
