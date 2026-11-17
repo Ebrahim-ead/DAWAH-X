@@ -166,12 +166,6 @@
     if(image.complete&&image.naturalWidth)image.classList.add('is-loaded');
     button.append(image);
 
-    const play=document.createElement('span');
-    play.className='play-button';
-    play.setAttribute('aria-hidden','true');
-    play.innerHTML='<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>';
-    button.append(play);
-
     const info=document.createElement('div');
     info.className='video-info';
     const channel=document.createElement('span');
