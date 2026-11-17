@@ -18,7 +18,7 @@
  const progress=document.getElementById('scroll-progress');
  const backToTop=document.createElement('button');backToTop.type='button';backToTop.id='back-to-top';backToTop.className='back-to-top';backToTop.setAttribute('aria-label','পাতার শুরুতে যান');backToTop.setAttribute('title','উপরে যান');backToTop.innerHTML='<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 19V5M6.5 10.5 12 5l5.5 5.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';document.body.appendChild(backToTop);
  backToTop.addEventListener('click',()=>{const behavior=window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth';try{window.scrollTo({top:0,behavior})}catch(_){window.scrollTo(0,0)}});
- const updateProgress=()=>{const max=document.documentElement.scrollHeight-window.innerHeight;if(progress)progress.style.transform='scaleX('+ (max>0?window.scrollY/max:0) +')';backToTop.classList.toggle('is-visible',window.scrollY>480)};
+ const updateProgress=()=>{const max=document.documentElement.scrollHeight-window.innerHeight;const ratio=max>0?window.scrollY/max:0;if(progress)progress.style.transform='scaleX('+ ratio +')';backToTop.style.setProperty('--pct',String(Math.round(ratio*100)));backToTop.classList.toggle('is-visible',window.scrollY>480)};
  window.addEventListener('scroll',updateProgress,{passive:true});window.addEventListener('resize',updateProgress);updateProgress();
  const visible=root.querySelector('section#'+root.dataset.page);
  const videoDialog=document.createElement('dialog');videoDialog.className='video-lightbox';videoDialog.setAttribute('aria-label','ভিডিও প্লেয়ার');
@@ -32,6 +32,22 @@
  document.addEventListener('click',event=>{const button=event.target.closest?.('.video-preview[data-video-id],.ask-vid[data-video-id]');if(!button)return;const id=button.dataset.videoId;if(!id)return;const player=document.createElement('iframe');player.src='https://www.youtube.com/embed/'+encodeURIComponent(id)+'?autoplay=1&rel=0&playsinline=1';player.title=button.dataset.videoTitle||'DAWAH X video';player.allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';player.allowFullscreen=true;player.referrerPolicy='strict-origin-when-cross-origin';player.loading='eager';returnToVideo=button;videoSlot.replaceChildren(player);document.body.classList.add('video-modal-open');if(typeof videoDialog.showModal==='function')videoDialog.showModal();else videoDialog.setAttribute('open','')});
  if(root.dataset.page==='about'){const mobileAbout=window.matchMedia('(max-width:560px)');const syncAbout=()=>document.querySelectorAll('#about details.about-section').forEach(d=>{if(mobileAbout.matches)d.removeAttribute('open');else d.setAttribute('open','')});syncAbout();mobileAbout.addEventListener?.('change',syncAbout)}
  const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+ /* ---- স্মার্ট হেডার: নিচে পড়ার সময় হেডার সরে যায়, উপরে টানলে বা কিবোর্ড ফোকাসে ফিরে আসে ---- */
+ const topBar=document.querySelector('header.top');
+ if(topBar){
+  let lastY=window.scrollY,away=0,queued=false;
+  const settle=()=>{
+   queued=false;
+   const y=window.scrollY,dy=y-lastY;
+   if(y<140||document.body.classList.contains('menu-open')||topBar.contains(document.activeElement)){topBar.classList.remove('is-away');away=0}
+   else if(dy>0){away+=dy;if(away>70)topBar.classList.add('is-away')}
+   else if(dy<0){away=0;topBar.classList.remove('is-away')}
+   lastY=y;
+  };
+  window.addEventListener('scroll',()=>{if(!queued){queued=true;requestAnimationFrame(settle)}},{passive:true});
+  topBar.addEventListener('focusin',()=>{topBar.classList.remove('is-away');away=0});
+ }
+
  const revealSelector='.title,.card,.qcard,.askbox,.ccard,.about,.library-panel,.lrow,.fbrow,.quote,.badge,.joinbtn,.qtools,.livebox,.field,.field-row,.field-group,.social,.contact-card,.channel-bar,.video-card';
  let io=null;
  if(!reduceMotion&&'IntersectionObserver' in window){io=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting){const el=e.target;el.classList.add('is-visible');io.unobserve(el);window.setTimeout(()=>{el.style.transitionDelay=''},1000)}}),{threshold:.08})}
