@@ -143,3 +143,25 @@ Audited 12 pages × 9 viewports (320/360/390/412/768/1024/1280/1440/1920) plus i
 **404 page** — still self-contained (own `<style>` + script, no site CSS/JS). It now has `form[data-search]` (`name="s"`) whose `action` the inline script points at `<root>questions.html`, so a visitor who mistyped a URL can search instead of leaving. Keep it dependency-free.
 
 **Header width (measured)** — logo + `#menu` + `.acts` is wider than `.wrap` between about 1180 and 1560 px, which pushed the Facebook pill partly off-screen (83 px overflow at 1280). `.fbp span` is now hidden in that band (as it already was ≤1179) and 1180–1279 also gets `#menu a{padding:7px 4px}`. After that: 0 px horizontal overflow at 1180 / 1280 / 1366 / 1440 / 1600 / 1920. **Do not add anything else to the header without re-measuring those widths** — that is why the search trigger lives in the clock bar on desktop.
+
+## Reading comfort, native share, tablet nav (2026-11-17, PR #22)
+
+**«কাগজে পড়ুন» — paper reading mode (`read.html` only)**
+- Toggle `#read-paper` sits in `.read-tools` (left of A−/A+ neighbours, after the size group). It sets `document.documentElement.dataset.paper="1"` and stores `dawahx-read-paper`; an inline script immediately after `<meta charset>` in `read.html` applies it **before first paint**, so the choice never flashes. The attribute name and the storage key must stay in sync.
+- Every paper rule is scoped to `html[data-paper="1"] #read …`: the article band becomes `#f7f3ea`, `--text/--muted/--line/--gold2/--card` are re-declared on `#read`, and the hardcoded light colours (`#fff`, `#dfe6f0`, `rgba(255,255,255,.04)`) are overridden for headings, quotes, source boxes, share row, related cards and the tools bar.
+- Header, clock bar and footer stay dark on purpose: the wordmark (`logo.webp`) is white on transparent, so a light chrome would erase the brand.
+- Nothing outside `#read` may react to `data-paper`, and `@media print` still wins (it forces black-on-white).
+
+**Reading time** — `#read-meta` gains a `.read-time` span («≈ N মিনিট») once `#read-body` holds ≥200 characters (one `MutationObserver` on the body plus two timers as a fallback). Rate: 140 words/minute (Bengali reads slower than English; ~6,100 words → «≈ 44 মিনিট»).
+
+**Resume where you left off** — scroll fraction per text key is stored in `dawahx-pos` (`{key:{p,t}}`, max 60 entries, written at most once per animation frame and on `pagehide`). On returning to the same text, `.resume-bar` («আগেরবার যেখানে ছিলেন (N%) — সেখানে যান ↓») is inserted after `.crumbs`. It never scrolls on its own, has a dismiss `×`, and expires after 60 days.
+
+**Native share** — when `navigator.share` exists, `shareLinks()` appends `#read-native` («শেয়ার…») to `.article-share`; it shares the title plus the same `s/<key>.html` URL the copy button uses. Browsers without it simply never get the button.
+
+**Recent searches** — the palette keeps the last 5 successful queries in `dawahx-recent` and renders them as `.dxp-chip-recent` above the popular topics in the empty state (only when there are any).
+
+**Tablet nav breakpoint is now 1099/1100 px** (it was 900/901).
+- Reason: at 901–1024 the nine nav links need ~774 px while the header leaves them ~600 px, so the page scrolled sideways on tablets (28 px at 1024, 92 px at 960).
+- ≤1099: burger menu (`.burger`, `#menu` dropdown, `matchMedia('(max-width:1099px)')` in `effects.js`), `.fbp span` hidden, search trigger `#dxp-open` in `.acts`.
+- ≥1100: desktop nav; `@media(min-width:1100px) and (max-width:1179px){#menu a{font-size:14px;padding:7px 4px}}` and `@media(min-width:1180px) and (max-width:1279px){#menu a{padding:7px 4px}}`, `.fbp span` hidden ≤1279, search trigger `#dxp-open-bar` in the clock bar.
+- Measured with the real webfont: **0 px horizontal overflow at 768 / 901 / 960 / 1000 / 1024 / 1099 / 1100 / 1179 / 1180 / 1280 / 1366 / 1440 / 1600 / 1920 and no clipped nav label**. If a nav item is ever added, re-run that sweep before merging.
