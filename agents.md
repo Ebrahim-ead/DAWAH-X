@@ -311,3 +311,41 @@ Accessibility/Best-Practices/SEO stay 100/100/100. First-load font bytes are now
 First-load bytes on `index.html` are now ≈ **237 KB** (was 258 KB after the font round, 410 KB before any perf work).
 
 **The remaining lever is fonts** (119 KB of the 237 KB): three Bengali weights. Dropping the 600 weight (37 KB) and letting headings use 700 would buy ~0.2 s of LCP under Slow-4G, at the cost of visibly heavier headings — an owner decision, not a technical one.
+
+## Footer quick links: two columns on phones (2026-11-17, PR #28)
+
+**Why:** the footer's «দ্রুত লিংক» block is eleven links. On phones the `.fg` grid collapses to one column (`@media(max-width:560px)`), so the block ran taller than the rest of the footer put together.
+
+**What changed**
+- Markup: the list is now `<h2>দ্রুত লিংক</h2><ul class="qlinks">` on all **12** pages (`404.html` and `__forms.html` have no footer grid). The class is what keeps the rule off the other footer lists.
+- `style.css` (right after the `.fg li a` tap-target rules):
+  ```css
+  @media(max-width:560px){.fg ul.qlinks{display:grid;grid-template-columns:1fr 1fr;column-gap:14px;row-gap:0}
+   .fg ul.qlinks li{min-width:0}
+   .fg ul.qlinks li a{font-size:15px}}
+  @media(max-width:360px){.fg ul.qlinks li a{font-size:14px}}
+  ```
+- The grid is **row-major**, so short and long labels pair up (হোম | আমাদের সম্পর্কে …) instead of one column of long names and one of short ones.
+- `sw.js` → **v9**.
+
+**The trap: do not give `.fg li a` `display:block` here.** `li::before` renders the `›` bullet as *inline* content; a block-level child forces the bullet into its own line box, so every item became **56 px** tall and the two-column block only saved 30 px overall. With the existing `inline-block` a row is **33 px** and the block is 209 px at 412 px wide (was 364 px). Same reason not to reach for `columns:2` — multi-column keeps whole items but reorders them into a magazine-style column flow that reads worse for a nav list.
+
+**Verification** — Chromium 131, all 12 pages at 412 px: two columns, 11 items (9 on `saved.html`, which has a shorter footer list), **no horizontal overflow, no console errors**. Footer screenshots at 320/360/412/560/561/700/900/1366: two columns at ≤560, single column from 561 up (desktop layout unchanged — the list still lives in its own `1.1fr` cell). No label wraps at any width ≥320 px.
+
+**Pre-existing, not fixed here:** at **320 px** the *page* scrolls horizontally by 36 px (`documentElement.scrollWidth` 356). The culprit is the header's `.acts`/`.burger` row, not the footer. Next candidate if 320 px matters.
+
+### 320 px header overflow (same PR)
+
+`documentElement.scrollWidth` was **356 px on a 320 px screen**: the header row (logo 149 px + `.acts` 177 px + `10px` gap) needs ~336 px inside a 280 px content box, so the whole page could be dragged sideways.
+
+Fix — a new `@media(max-width:360px)` block right after the ≤430 px one:
+```css
+@media(max-width:360px){
+ .bar{gap:8px;padding-left:16px;padding-right:16px}
+ .bar .word{height:34px}
+ .fbp{display:none}
+}
+```
+- Shrinking every control until it fits was measured to leave ~5 px of slack and would have pushed the theme toggle and the search button below their current 32/38 px; the **Facebook pill is the one item with a duplicate** (footer «সামাজিক যোগাযোগ» and the menu), so it is the one that goes at ≤360 px. Everything else keeps its size and its tap target.
+- After the fix: `scrollWidth == innerWidth` on **all 13 pages** at 320 px, and the header height stays 64 px. Checked at 280/300/320/340/360/361/412 — no overflow, and ≥361 px is unchanged.
+- If the Facebook pill must stay on tiny phones too, the alternative is `.theme-toggle`/`.dxp-trigger` down to 30/34 px **and** a 32 px logo — tighter and worse for tapping.
