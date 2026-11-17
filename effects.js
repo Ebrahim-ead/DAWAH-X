@@ -14,7 +14,19 @@
    const h=Number(p.hour)%24,text=dateFormat.format(now);
    if(dateNode.textContent!==text){dateNode.textContent=text;dateNode.dateTime=iso}
    timeNode.textContent=dayPart(h)+' '+(h%12||12)+':'+p.minute+':'+p.second;timeNode.dateTime=iso};
-  updateClock();window.setInterval(updateClock,1000)}
+  updateClock();window.setInterval(updateClock,1000)
+  /* হিজরি তারিখ (উম্মুল কুরা হিসাব): চাঁদ দেখার সাথে এক দিন কম-বেশি হতে পারে, তাই ইঙ্গিতে স্পষ্ট রাখা */
+  const clockBar=dateNode.closest('.site-clock-inner');
+  if(clockBar){
+   const hj=document.createElement('span');hj.className='site-clock-hijri';hj.id='site-hijri';
+   hj.title='হিজরি তারিখ হিসাব করে দেখানো হয় (উম্মুল কুরা) — স্থানীয় চাঁদ দেখার সাথে এক দিন কম-বেশি হতে পারে';
+   clockBar.appendChild(hj);
+   const paintHijri=()=>{try{
+    const parts={};for(const x of new Intl.DateTimeFormat('bn-BD-u-nu-latn',{day:'numeric',month:'long',year:'numeric',timeZone:'Asia/Dhaka',calendar:'islamic-umalqura'}).formatToParts(new Date()))parts[x.type]=x.value;
+    const text=parts.day+' '+parts.month+' '+parts.year+' হিজরি';
+    if(hj.textContent!==text)hj.textContent=text}catch(_){hj.remove()}};
+   paintHijri();window.setInterval(paintHijri,60000)
+  }}
  const progress=document.getElementById('scroll-progress');
  const backToTop=document.createElement('button');backToTop.type='button';backToTop.id='back-to-top';backToTop.className='back-to-top';backToTop.setAttribute('aria-label','পাতার শুরুতে যান');backToTop.setAttribute('title','উপরে যান');backToTop.innerHTML='<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 19V5M6.5 10.5 12 5l5.5 5.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';document.body.appendChild(backToTop);
  backToTop.addEventListener('click',()=>{const behavior=window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth';try{window.scrollTo({top:0,behavior})}catch(_){window.scrollTo(0,0)}});

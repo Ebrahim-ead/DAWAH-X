@@ -1126,6 +1126,193 @@ if(readTools){
  paintCount();paintSave();
 }
 
+/* ===== সাইট জুড়ে সার্চ (⌘K / Ctrl+K, হেডারের খোঁজা বোতাম, অথবা "/") =====
+   শিরোনামের সূচি (search/titles.json + search/tNN.json) দিয়ে সঙ্গে সঙ্গে ফল দেখানো হয়;
+   পূর্ণ লেখার ভেতরে খুঁজতে "সব ফলাফল দেখুন" — সেটি প্রশ্নোত্তর পাতার নিজের সার্চে নিয়ে যায় (?s=শব্দ)। */
+const DXP_SIDE={q:"প্রশ্নোত্তর",f:"ফতোয়া"};
+const DXP_HINTS=["নামাজ","রোজা","তাকদীর","যাকাত","হিজাব","জুমা","কুরআন","তাওহীদ","কুরবানি","দো‘আ"];
+const DXP={
+ dlg:null,input:null,body:null,count:null,all:null,items:[],active:-1,timer:0,seq:0,
+ /* প্রশ্নের শব্দগুলো → প্রতি শব্দের খোঁজার রূপগুলো (ভাঁজ করা রূপ; বাদ পড়া সাধারণ শব্দ ও শুধু সংখ্যা বাদ) */
+ terms(q){const out=[],seen=new Set();
+  for(const t of searchTokens(q)){if(/^\d+$/.test(t)||seen.has(t))continue;seen.add(t);
+   const forms=[];for(const alt of searchAlts(t)){if(DEEP.stop.has(alt)||ASK_SKIP.has(alt))continue;if(forms.indexOf(alt)<0)forms.push(alt)}
+   if(forms.length)out.push(forms);if(out.length>=5)break}
+  return out},
+ /* প্রতিটি শব্দ কোন কোন শিরোনামে আছে → শব্দের বিরলতা দিয়ে ওজন; প্রায় সব শব্দ থাকা শিরোনামই ধরা হয় */
+ async find(q){
+  if(!(await SUGGEST.init()))return {kind:"error"}; /* DEEP.stop/meta এখানেই তৈরি হয়, তাই আগে ডাকা হয় */
+  const groups=this.terms(q);
+  if(!groups.length)return {kind:"none"};
+  const N=SUGGEST.tm.n||DEEP.meta.n,nt=SUGGEST.tm.shards,sets=[];
+  await Promise.all(groups.map(async forms=>{const set=new Set();
+   for(const a of forms){const sh=await SUGGEST.tshard(searchShard(a,nt));
+    for(const tok in sh)if(tok.startsWith(a))for(const id of DEEP.ids(sh[tok]))set.add(id)}
+   sets.push(set)}));
+  if(sets.some(s=>!s.size))return {kind:"none"};
+  const weights=sets.map(s=>Math.min(4,Math.max(.7,Math.log(N/(1+s.size))))),W=weights.reduce((a,b)=>a+b,0),score=new Map();
+  sets.forEach((s,i)=>{for(const id of s)score.set(id,(score.get(id)||0)+weights[i])});
+  const pass=[...score].filter(x=>x[1]>=W*.62).sort((a,b)=>b[1]-a[1]||a[0]-b[0]);
+  const top=pass.slice(0,10),rows=[];
+  await Promise.all(top.map(([id],i)=>{
+   /* ছোট শিরোনাম আগে: একই মিল থাকলে সংক্ষিপ্ত, বিষয়-নির্দেশক শিরোনাম বেশি কাজে লাগে */
+   const k=DEEP.keys.substr(id*14,14);
+   return SUGGEST.rel(k).then(r=>{if(r&&r[0])rows.push({k,side:SUGGEST.side(id),title:toLatinDigits(r[0]).replace(/^\s*প্রশ্ন\s*[:ঃ]?\s*(\([^)]{0,14}\))?\s*[:ঃ]?\s*/,""),cat:r[1]||"",len:[...r[0]].length,rank:i})}).catch(()=>{})}));
+  rows.sort((a,b)=>a.rank-b.rank||a.len-b.len);
+  const out=[],seenT=new Set();
+  for(const r of rows){const f=foldBn(r.title);if(!r.title||seenT.has(f))continue;seenT.add(f);out.push(r);if(out.length>=7)break}
+  return {kind:out.length?"ok":"none",rows:out,total:pass.length};
+ },
+ /* ---- ছোট উপস্থিতি: হেডারে বোতাম + সার্চের জানালা ---- */
+ /* লেখার সংখ্যা stats.json থেকে (না পেলে পুরোনো হিসাবটি) */
+ total(){return this.n||20005},
+ build(){
+  if(this.dlg)return;
+  fetch("stats.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null).then(s=>{if(s&&s.texts>0)this.n=s.texts}).catch(()=>{});
+  const dlg=document.createElement("dialog");
+  dlg.className="dxp";dlg.id="dxp";dlg.setAttribute("aria-label","সাইটে খুঁজুন");
+  dlg.innerHTML='<div class="dxp-box"><div class="dxp-head">'
+   +'<svg aria-hidden="true" class="ic" viewBox="0 0 24 24"><circle cx="11" cy="11" fill="none" r="7" stroke="currentColor" stroke-width="2"></circle><path d="m20.2 20.2-3.7-3.7" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"></path></svg>'
+   +'<input aria-label="সাইটে খুঁজুন" autocomplete="off" enterkeyhint="search" id="dxp-q" placeholder="লেখা খুঁজুন — নামাজ, তাকদীর, হিজাব…" type="search"/>'
+   +'<button aria-label="সার্চ বন্ধ করুন" class="dxp-close" type="button">×</button></div>'
+   +'<div class="dxp-body" id="dxp-body"></div>'
+   +'<div class="dxp-foot"><span aria-live="polite" class="dxp-count" id="dxp-count"></span><a class="dxp-all" href="questions.html" id="dxp-all">সব ফলাফল দেখুন ›</a></div></div>';
+  document.body.appendChild(dlg);
+  this.dlg=dlg;this.input=dlg.querySelector("#dxp-q");this.body=dlg.querySelector("#dxp-body");
+  this.count=dlg.querySelector("#dxp-count");this.all=dlg.querySelector("#dxp-all");
+  dlg.querySelector(".dxp-close").addEventListener("click",()=>this.close());
+  dlg.addEventListener("click",e=>{if(e.target===dlg)this.close()});
+  dlg.addEventListener("close",()=>{this.input.value="";this.render("",null);this.active=-1});
+  this.input.addEventListener("input",()=>{clearTimeout(this.timer);const q=this.input.value;this.timer=setTimeout(()=>this.run(q),200)});
+  this.input.addEventListener("keydown",e=>{
+   const list=this.items;
+   if(e.key==="ArrowDown"||e.key==="ArrowUp"){if(!list.length)return;e.preventDefault();
+    this.active=e.key==="ArrowDown"?Math.min(list.length-1,this.active+1):Math.max(0,this.active-1);this.paintActive();return}
+   if(e.key==="Enter"){e.preventDefault();const go=list[this.active]||list[0];if(go)location.href=go.href;return}
+   if(e.key==="Escape"){e.preventDefault();this.close()}
+  });
+ },
+ mount(){
+  /* দুই জায়গায় বোতাম: ছোট পর্দায় হেডারের ডানে (মেনু তখন লুকানো, তাই জায়গা আছে),
+     বড় পর্দায় হেডার ভরে থাকে বলে উপরের ঘড়ির-বারের ডান প্রান্তে — কোনোটিই লেআউট টানে না */
+  const make=(id,cls)=>{
+   const btn=document.createElement("button");
+   btn.type="button";btn.id=id;btn.className="dxp-trigger "+cls;
+   btn.setAttribute("aria-label","সাইটে খুঁজুন");btn.setAttribute("aria-keyshortcuts","Control+K Meta+K");btn.title="সাইটে খুঁজুন (Ctrl+K)";
+   btn.innerHTML='<svg aria-hidden="true" class="ic" viewBox="0 0 24 24"><circle cx="11" cy="11" fill="none" r="7" stroke="currentColor" stroke-width="2"></circle><path d="m20.2 20.2-3.7-3.7" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"></path></svg>';
+   btn.addEventListener("click",()=>this.open());
+   return btn;
+  };
+  const acts=document.querySelector("header.top .acts");
+  if(acts&&!document.getElementById("dxp-open"))acts.insertBefore(make("dxp-open","dxp-trigger-in"),acts.querySelector("#burger"));
+  const bar=document.querySelector(".site-clockbar");
+  if(bar&&!document.getElementById("dxp-open-bar"))bar.appendChild(make("dxp-open-bar","dxp-trigger-bar"));
+  document.addEventListener("keydown",e=>{
+   const tag=(e.target&&e.target.tagName||"").toLowerCase(),typing=tag==="input"||tag==="textarea"||tag==="select"||e.target.isContentEditable;
+   if((e.key==="k"||e.key==="K")&&(e.metaKey||e.ctrlKey)&&!e.altKey){e.preventDefault();this.dlg&&this.dlg.open?this.close():this.open();return}
+   if(e.key==="/"&&!typing&&!e.ctrlKey&&!e.metaKey&&!e.altKey){const d=this.dlg;if(d&&d.open)return;e.preventDefault();this.open()}
+  });
+ },
+ open(){
+  this.build();
+  if(this.dlg.open)return;
+  this.active=-1;
+  if(typeof this.dlg.showModal==="function")this.dlg.showModal();else this.dlg.setAttribute("open","");
+  document.body.classList.add("dxp-open");
+  this.render("",null);
+  const self=this;setTimeout(()=>{self.input&&self.input.focus()},30);
+ },
+ close(){
+  const d=this.dlg;if(!d)return;
+  if(typeof d.close==="function"&&d.open)d.close();else{d.removeAttribute("open");this.input.value="";this.render("",null)}
+  document.body.classList.remove("dxp-open");
+ },
+ run(q){
+  const term=q.trim(),mine=++this.seq;
+  if(term.length<2){this.render(term,null);return}
+  this.render(term,{kind:"loading"});
+  this.find(term).then(res=>{
+   if(mine!==this.seq)return;
+   if(res.kind==="none")this.render(term,{kind:"none"});
+   else if(res.kind==="error")this.render(term,{kind:"error"});
+   else this.render(term,res);
+  }).catch(()=>{if(mine===this.seq)this.render(term,{kind:"error"})});
+ },
+ /* ফল দেখানো: চিপ (শুরুতে), বার্তা, অথবা মিলে যাওয়া শিরোনামের তালিকা */
+ render(q,res){
+  if(!this.body)return;
+  this.items=[];this.active=-1;
+  const term=q.trim(),go=this.all;
+  if(go)go.href="questions.html"+(term?"?s="+encodeURIComponent(term):"");
+  if(go)go.hidden=!res||res.kind!=="ok";
+  if(!res||(res.kind!=="loading"&&term.length<2)){
+   this.count.textContent="";
+   this.body.innerHTML='<p class="dxp-note">যে বিষয়ে জানতে চান লিখুন — সাইটের '+formatCount(this.total())+'টি লেখার শিরোনাম থেকে খোঁজা হবে।</p><div class="dxp-hints">'+DXP_HINTS.map(h=>'<button class="dxp-chip" type="button" data-hint="'+escAttr(h)+'">'+escHTML(h)+'</button>').join("")+'</div>';
+   this.body.querySelectorAll("[data-hint]").forEach(b=>b.addEventListener("click",()=>{this.input.value=b.dataset.hint;this.input.focus();this.run(b.dataset.hint)}));
+   return;
+  }
+  if(res.kind==="loading"){this.count.textContent="খোঁজা হচ্ছে…";this.body.innerHTML='<p class="dxp-note dxp-loading">“'+escHTML(term)+'” খোঁজা হচ্ছে…</p>';return}
+  if(res.kind==="error"){this.count.textContent="";this.body.innerHTML='<p class="dxp-note">সার্চের তথ্য আনা যায়নি। ইন্টারনেট সংযোগ দেখে আবার চেষ্টা করুন।</p>';return}
+  if(res.kind!=="ok"){this.count.textContent="";this.body.innerHTML='<p class="dxp-note">শিরোনামে “'+escHTML(term)+'” পাওয়া যায়নি। <a class="dxp-all" href="questions.html?s='+encodeURIComponent(term)+'">লেখার ভেতরে খুঁজুন ›</a></p>';return}
+  this.count.textContent="“"+toLatinDigits(term)+'” — '+formatCount(res.total)+"টি শিরোনামে মিলেছে";
+  this.body.innerHTML=res.rows.map(r=>{
+   const href="read.html?k="+escAttr(r.k)+"&from="+r.side+"&q="+encodeURIComponent(term);
+   return '<a class="dxp-r" href="'+href+'"><span class="dxp-tag dxp-tag-'+r.side+'">'+(DXP_SIDE[r.side]||"লেখা")+'</span><b>'+escHTML(r.title)+'</b>'+(r.cat?'<small>'+escHTML(r.cat)+'</small>':'')+'</a>';
+  }).join("");
+  this.items=[...this.body.querySelectorAll("a.dxp-r")];
+  this.items.forEach((a,i)=>{a.addEventListener("mouseenter",()=>{this.active=i;this.paintActive()})});
+  this.paintActive();
+ },
+ paintActive(){
+  this.items.forEach((a,i)=>a.classList.toggle("is-active",i===this.active));
+  const cur=this.items[this.active];if(cur&&cur.scrollIntoView)cur.scrollIntoView({block:"nearest"});
+ }
+};
+DXP.mount();
+
+/* ---- "পড়ে শুনুন": ব্রাউজারের নিজের বাংলা ভয়েস দিয়ে লেখা শোনা (কোনো সার্ভার বা ডাউনলোড লাগে না) ---- */
+const listenBtn=$("read-listen");
+if(listenBtn){
+ const synth=window.speechSynthesis,listenBody=$("read-body"),listenLabel=$("read-listen-label"),listenIcon=$("read-listen-icon");
+ if(!synth||typeof SpeechSynthesisUtterance!=="function")listenBtn.remove();
+ else{
+  let voice=null,chunks=[],idx=0,on=false;
+  const warn=msg=>{let p=document.getElementById("read-listen-note");if(!p){p=document.createElement("p");p.id="read-listen-note";p.className="read-listen-note";listenBtn.insertAdjacentElement("afterend",p)}p.textContent=msg};
+  const clearWarn=()=>{const p=document.getElementById("read-listen-note");if(p)p.remove()};
+  const pick=()=>{let all=[];try{all=synth.getVoices()||[]}catch(e){}
+   voice=all.find(v=>/^bn/i.test(v.lang||""))||all.find(v=>/bengali/i.test(v.name||""))||null;return voice};
+  pick();
+  if(typeof synth.addEventListener==="function")synth.addEventListener("voiceschanged",pick);
+  /* লেখাকে ছোট ছোট টুকরোয় ভাগ করা হয় (দীর্ঘ বাক্য কিছু ব্রাউজারে কাটা পড়ে) */
+  const split=text=>{const parts=String(text||"").replace(/\s+/g," ").trim().match(/[^।!?\n]+[।!?]?/g)||[];const out=[];let cur="";
+   for(const p of parts){if((cur+p).length>170&&cur){out.push(cur.trim());cur=p}else cur+=p}
+   if(cur.trim())out.push(cur.trim());return out};
+  const stop=()=>{on=false;idx=0;try{synth.cancel()}catch(e){}
+   listenBtn.setAttribute("aria-pressed","false");listenBtn.classList.remove("is-playing");
+   if(listenLabel)listenLabel.textContent="পড়ে শুনুন";if(listenIcon)listenIcon.textContent="▶"};
+  const speakNext=()=>{
+   if(!on)return;
+   if(idx>=chunks.length){stop();return}
+   const u=new SpeechSynthesisUtterance(chunks[idx++]);
+   u.lang=(voice&&voice.lang)||"bn-BD";if(voice)u.voice=voice;u.rate=1;u.pitch=1;u.volume=1;
+   u.onend=()=>{if(on)setTimeout(speakNext,70)};
+   u.onerror=()=>{if(on)stop()};
+   try{synth.speak(u)}catch(e){stop()}};
+  const start=()=>{
+   const title=($("read-title")&&$("read-title").textContent)||"";
+   const text=(title?title+"। ":"")+((listenBody&&listenBody.innerText)||"");
+   if([...text.replace(/\s+/g,"")].length<30){warn("শোনার মতো লেখা এখনো আসেনি — লেখাটি লোড হওয়ার পর আবার চাপুন।");return}
+   clearWarn();
+   if(!pick()){warn("এই ব্রাউজারে বাংলা ভয়েস নেই। ফোন বা কম্পিউটারের সেটিংসে বাংলা (Text-to-Speech) ভয়েস যোগ করলে এই বোতামটি কাজ করবে।");return}
+   chunks=split(text).slice(0,500);idx=0;on=true;
+   listenBtn.setAttribute("aria-pressed","true");listenBtn.classList.add("is-playing");
+   if(listenLabel)listenLabel.textContent="শোনা থামান";if(listenIcon)listenIcon.textContent="❚❚";
+   speakNext()};
+  listenBtn.addEventListener("click",()=>{on?stop():start()});
+  window.addEventListener("pagehide",()=>{try{synth.cancel()}catch(e){}});
+ }
+}
+
 /* ---- হোমপেজের পরিসংখ্যান: stats.json (tools/build-stats.cjs) থেকে সংখ্যা ----
    সংখ্যা হাতে লেখা থাকে না, তাই নতুন লেখা বা ভিডিও যোগ হলে নিজে থেকেই ঠিক দেখায় */
 const statStrip=document.querySelector("[data-stats]");

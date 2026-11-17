@@ -121,3 +121,25 @@ Audited 12 pages × 9 viewports (320/360/390/412/768/1024/1280/1440/1920) plus i
 **Do not** re-add `left:-9999px` hiding, put the library summary back on one line, or animate `box-shadow`/`filter` for the badge ring — the ring is a scaled pseudo-element for exactly that reason.
 
 - **No play-button overlay on video cards** (owner's instruction, 2026-11-17): the red circular `.play-button` was removed from `youtube-gallery.js`, from the 20 static cards in `videos.html`, and its CSS rules were deleted. The whole `.video-preview` thumbnail is the play target and its `aria-label` already says the video plays on the page; clicking still opens the lightbox. Do not re-add the circle.
+
+## Site-wide search, listen button, Hijri date, 404 search (2026-11-17)
+
+**Site-wide search palette** (`app.js`, `const DXP`)
+- Two triggers, because the desktop header has no free width: `#dxp-open` sits in `header.top .acts` and is shown at ≤900 px (the desktop menu is hidden there, so there is room); `#dxp-open-bar` is absolutely positioned in `.site-clockbar` and shown at ≥901 px. Neither adds width to the header. Both open `dialog#dxp` with `showModal()`.
+- Keyboard: `Ctrl/⌘+K` toggles, `/` opens when no field is focused, `Esc` closes, `↑`/`↓` move the active result, `Enter` opens it.
+- Data: **title index only** — `search/titles.json` + `search/tNN.json` (`SUGGEST.tshard`), ids decoded with `DEEP.ids`, titles resolved through `rel/NN.json` (`SUGGEST.rel`). Ranking is the rarity-weighted share of matched terms over the matched/all-terms weights (`log(N/(1+set))`), terms built from `searchTokens` + `searchAlts` minus `DEEP.stop` / `ASK_SKIP`. No full-text scan happens here; that is the questions page's job.
+- `DEEP.stop` is only filled by `DEEP.init()` (called from `SUGGEST.init()`), so **`await SUGGEST.init()` must come before `terms()`** — otherwise the palette shows “সার্চের তথ্য আনা যায়নি”.
+- `#dxp-all` → `questions.html?s=<query>` (the library search restores `?s=`), shown only when there are title results. The “no result” state says there was no match *in the titles* and links to the full-text search — keep that wording honest.
+- The empty state prints the text count from `stats.json` via `DXP.total()` (fallback 20,005).
+
+**«পড়ে শুনুন»** (`read.html` + the block after the reader section in `app.js`)
+- Uses the browser's own `speechSynthesis` with a `bn*` voice — no server, no audio files. The text is `#read-title` + `#read-body` innerText, split at sentence boundaries into ≤170-character chunks and spoken in order (`onend` → next, 70 ms gap).
+- `#read-listen` (`aria-pressed`) toggles speak/stop, `#read-listen-label` flips between «পড়ে শুনুন» and «শোনা থামান». No speech synthesis at all → the button removes itself; speech synthesis but no Bengali voice → `#read-listen-note` explains how to add one.
+
+**Hijri date** (`effects.js`, clock block)
+- `.site-clock-hijri` (`#site-hijri`) is injected into `.site-clock-inner` on every page from `Intl.DateTimeFormat('bn-BD-u-nu-latn',{calendar:'islamic-umalqura',timeZone:'Asia/Dhaka'})`, era dropped, «… হিজরি». Its `title` says the date is calculated, because local moon sighting can differ by a day — never present it as an official announcement.
+- The `•` in front is CSS (`::before`), so the JS never handles the separator.
+
+**404 page** — still self-contained (own `<style>` + script, no site CSS/JS). It now has `form[data-search]` (`name="s"`) whose `action` the inline script points at `<root>questions.html`, so a visitor who mistyped a URL can search instead of leaving. Keep it dependency-free.
+
+**Header width (measured)** — logo + `#menu` + `.acts` is wider than `.wrap` between about 1180 and 1560 px, which pushed the Facebook pill partly off-screen (83 px overflow at 1280). `.fbp span` is now hidden in that band (as it already was ≤1179) and 1180–1279 also gets `#menu a{padding:7px 4px}`. After that: 0 px horizontal overflow at 1180 / 1280 / 1366 / 1440 / 1600 / 1920. **Do not add anything else to the header without re-measuring those widths** — that is why the search trigger lives in the clock bar on desktop.

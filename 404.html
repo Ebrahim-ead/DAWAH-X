@@ -17,6 +17,14 @@ main{max-width:520px}
 h1{font-size:clamp(22px,5vw,30px);margin:0 0 10px}
 p{margin:0 0 26px;color:#aab6c6}
 nav{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.find{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 24px;text-align:left}
+.find label{flex-basis:100%;margin:0 0 2px;color:#aab6c6;font-size:12.5px}
+.find input{flex:1;min-width:0;min-height:46px;padding:10px 14px;border:1px solid rgba(173,193,215,.24);border-radius:10px;background:rgba(255,255,255,.05);color:#eef2f8;font:inherit;font-size:15px}
+.find input::placeholder{color:#7d8b9c}
+.find input:focus-visible{border-color:#f6c453;outline:none}
+.find button{min-height:46px;padding:10px 20px;border:0;border-radius:10px;background:linear-gradient(#ffc933,#f0a800);color:#1a1300;font:inherit;font-weight:700;cursor:pointer}
+.find button:hover{filter:brightness(1.06)}
+
 a{display:inline-flex;align-items:center;min-height:46px;padding:10px 20px;border-radius:10px;border:1px solid rgba(173,193,215,.24);color:#eef2f8;text-decoration:none;font-weight:600}
 a.primary{background:linear-gradient(#ffc933,#f0a800);border-color:transparent;color:#1a1300}
 a:hover,a:focus-visible{border-color:#f6c453;outline:none}
@@ -28,6 +36,11 @@ a:hover,a:focus-visible{border-color:#f6c453;outline:none}
 <div aria-hidden="true" class="code">404</div>
 <h1>দুঃখিত, এই পাতাটি পাওয়া যায়নি</h1>
 <p>লিংকটি ভুল হতে পারে অথবা পাতাটি সরিয়ে নেওয়া হয়েছে। নিচের লিংক থেকে আপনার প্রয়োজনীয় পাতায় যান।</p>
+<form action="questions.html" class="find" data-search="" method="get" role="search">
+<label for="find404">সাইটে খুঁজুন</label>
+<input autocomplete="off" id="find404" name="s" placeholder="যেমন: নামাজ, তাকদীর, হিজাব, যাকাত" type="search"/>
+<button type="submit">খুঁজুন</button>
+</form>
 <nav aria-label="প্রধান পাতা">
 <a class="primary" data-page="index.html" href="index.html">হোমে ফিরে যান</a>
 <a data-page="questions.html" href="questions.html">প্রশ্নোত্তর</a>
@@ -39,7 +52,8 @@ a:hover,a:focus-visible{border-color:#f6c453;outline:none}
 </main>
 <script>
 /* Point the links at the site root, wherever the site is hosted (GitHub Pages project folder or a domain root). */
-(function(){var m=location.pathname.match(/^\/DAWAH-X\//i);var root=m?m[0]:"/";document.querySelectorAll("a[data-page]").forEach(function(a){a.href=root+a.getAttribute("data-page")})})();
+(function(){var m=location.pathname.match(/^\/DAWAH-X\//i);var root=m?m[0]:"/";document.querySelectorAll("a[data-page]").forEach(function(a){a.href=root+a.getAttribute("data-page")});
+var f=document.querySelector("form[data-search]");if(f)f.action=root+"questions.html"})();
 </script>
 </body>
 </html>
