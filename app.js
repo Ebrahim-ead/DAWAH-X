@@ -1132,7 +1132,18 @@ const statStrip=document.querySelector("[data-stats]");
 if(statStrip){
  fetch("stats.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null).then(s=>{
   if(!s)return;
-  statStrip.querySelectorAll("[data-stat]").forEach(el=>{const v=s[el.dataset.stat];if(typeof v==="number"&&v>0)el.textContent=formatCount(v)});
+  /* সংখ্যা শূন্য থেকে গুনে ওঠে (চলাচল কম চাইলে সরাসরি বসে যায়) */
+  const calm=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  statStrip.querySelectorAll("[data-stat]").forEach(el=>{
+   const v=s[el.dataset.stat];
+   if(typeof v!=="number"||v<=0)return;
+   if(calm||v<20){el.textContent=formatCount(v);return}
+   const dur=1000,t0=performance.now();
+   const step=now=>{const t=Math.min(1,(now-t0)/dur),eased=1-Math.pow(1-t,3);
+    el.textContent=formatCount(Math.round(v*eased));
+    if(t<1)requestAnimationFrame(step);else el.textContent=formatCount(v)};
+   requestAnimationFrame(step);
+  });
  }).catch(()=>{});
 }
 

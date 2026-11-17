@@ -99,3 +99,23 @@ Each page is its own `.html` file containing the shared chrome (head, SVG sprite
 - **Service worker**: `VERSION` is `v2`; `PRECACHE` also holds `saved.html` and `stats.json`. `netlify.toml` sends `Cache-Control: public, max-age=0, must-revalidate` for `/sw.js`.
 - **Library summary list**: `.library-summary` under the heading of `#questions` / `#fatwa` is a **vertical list** (owner's request, 2026-11-17) — `flex-direction:column`, each `.library-stat` a full-width row with the number right-aligned in a 58 px column (`strong{min-width:58px;text-align:right}`). Do not put these chips back on one line; they overflowed and were hard to read on phones.
 - **Stale file removed**: `catalog-counts.json` was outdated (its `fatwas_unique` was 12,796 against 19,025 references) and nothing reads it; deleted. The page numbers on `fatwa.html` / `questions.html` are the “unique references” metric (12,780 + 5,853 = 18,633; 911 Q&A rows) and are kept as they were — do not “fix” them from a raw catalogue row count (18,631 / 911 rows), the two metrics differ.
+
+## Full-site audit + live motion pass (2026-11-17)
+
+Audited 12 pages × 9 viewports (320/360/390/412/768/1024/1280/1440/1920) plus interactions (menu, lightbox, library search/chips/pager, ask form, reveal, back-to-top) and 4× CPU-throttled performance. Result: no console errors, no horizontal overflow, CLS 0, DCL < 1 s. Two real defects were found and fixed, and a set of compositor-friendly animations was added.
+
+**Fixed**
+- Ask-form honeypot `#abot` sat at `left:-9999px`. It is now a clipped `span` (`clip-path:inset(50%)`) with a 1×1, `opacity:0`, `pointer-events:none` input — same anti-bot effect, no off-screen geometry.
+- Inline links inside `.qnote`, `.home-topics-all`, `.saved-empty` and the breadcrumbs were 21–25 px tall on phones. Under 560 px they are now ≥ 32 px (WCAG 2.5.8 wants 24 px).
+
+**New motion (all transform/opacity, all disabled under `prefers-reduced-motion: reduce`)**
+- **Smart header** (`effects.js`): while scrolling down the header slides away (`header.top.is-away`), and any upward movement brings it back. It never hides when `body.menu-open`, when `scrollY < 140`, or when focus is inside the header (`focusin`). Deltas are accumulated, so slow trackpad scrolling works too.
+- **Scroll ring** on `.back-to-top`: `--pct` (0–100) is written by the existing `updateProgress()`; CSS paints a masked `conic-gradient` ring.
+- **Stat count-up** (`app.js`): home strip numbers animate from 0 to the `stats.json` value over ~1 s with an ease-out; values < 20 and reduced-motion users are set directly.
+- **Thumbnail shimmer + fade** (`youtube-gallery.js`): `render()` sets `#video-grid[data-fade="1"]`; the CSS then shows a shimmer and fades each `<img>` in when it gains `.is-loaded`. Static (no-JS) cards in `videos.html` are unaffected because the attribute is only set by JS.
+- **Live ring on the «নতুন» badge** (`.video-new::after`, `@keyframes newRing`).
+- **Live sheen** on the hero primary button (`.hero .btn.fill::after`, `@keyframes liveSheen`, every 7.5 s).
+- **Touch press feedback** under `@media (hover:none)`.
+- **Scroll-driven card rise** using `animation-timeline: view()` behind `@supports`, for `.discover-card`, `.library-link`, `.saved-row`; range `entry 4% → entry 62%` so a card is fully opaque as soon as it is in view (and stays opaque while being read).
+
+**Do not** re-add `left:-9999px` hiding, put the library summary back on one line, or animate `box-shadow`/`filter` for the badge ring — the ring is a scaled pseudo-element for exactly that reason.

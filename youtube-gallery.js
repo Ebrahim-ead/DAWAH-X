@@ -160,7 +160,10 @@
       image.dataset.fallback='1';
       image.src=remoteThumb(video.id,'mqdefault');
     });
+    image.addEventListener('load',()=>image.classList.add('is-loaded'));
+    image.addEventListener('error',()=>image.classList.add('is-loaded'));
     image.src=thumbUrl(video);
+    if(image.complete&&image.naturalWidth)image.classList.add('is-loaded');
     button.append(image);
 
     const play=document.createElement('span');
@@ -211,6 +214,8 @@
     const pageVideos=matches.slice(start,start+pageSize);
     grid.replaceChildren(...pageVideos.map(makeCard));
     grid.dataset.count=String(pageVideos.length);
+    /* ছবি লোড হওয়ার সময় শিমার, তারপর ফেড-ইন (CSS-এ এই চিহ্ন দেখে নিয়ম চালু হয়) */
+    grid.dataset.fade='1';
 
     const picked=(topic?' · বিষয়: '+topic:'')+(channel?' · চ্যানেল: '+channelName(channel):'');
     if(!matches.length){
