@@ -305,9 +305,9 @@ section{animation:sectionIn .55s cubic-bezier(.2,.75,.25,1) both}
 .library-new{display:inline-flex;flex:none;align-items:center;gap:4px;padding:5px 8px;border:1px solid rgba(124,225,209,.23);border-radius:999px;color:#9ce8dc;background:rgba(44,196,174,.075);font-size:10px;font-weight:800;white-space:nowrap}
 .library-link .go{flex:none;color:var(--gold);font-size:19px;transition:transform .25s cubic-bezier(.2,.75,.25,1)}
 .library-link:hover .go{transform:translate(3px,-2px)}
-.library-summary{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;padding-top:13px;border-top:1px solid rgba(173,193,215,.12)}
-.library-stat{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid rgba(173,193,215,.12);border-radius:999px;color:var(--muted);background:rgba(0,0,0,.12);font-size:11px;line-height:1.35}
-.library-stat strong{color:#f1f4f5;font-size:12px;font-variant-numeric:tabular-nums}
+.library-summary{display:flex;flex-direction:column;align-items:stretch;gap:7px;margin-top:14px;padding-top:13px;border-top:1px solid rgba(173,193,215,.12)}
+.library-stat{display:flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid rgba(173,193,215,.12);border-radius:12px;color:var(--muted);background:rgba(0,0,0,.12);font-size:11.5px;line-height:1.4}
+.library-stat strong{flex:0 0 auto;min-width:58px;color:#f1f4f5;font-size:12.5px;font-variant-numeric:tabular-nums;text-align:right}
 .library-note{margin:10px 1px 0!important;color:var(--muted);font-size:11px;line-height:1.55;text-align:left}
 input:focus,textarea:focus,select:focus{outline:2px solid rgba(246,196,83,.55);outline-offset:2px}
 .askbtn,.qmore,.sub button{transition:transform .2s ease,box-shadow .2s ease,background .2s ease}
