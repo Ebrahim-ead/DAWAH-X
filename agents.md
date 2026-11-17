@@ -212,3 +212,20 @@ Audited 12 pages × 9 viewports (320/360/390/412/768/1024/1280/1440/1920) plus i
 - Small-screen header: the extra 32–34 px toggle made the bar overflow at 360 px (47 px), so `@media(max-width:430px)` shrinks `.bar .word` to 38 px, `.acts` gap to 8 px and the toggle to 32 px. Do not re-add width there without re-running the 360 px check.
 
 **Tests** — `theme.js` (local harness): 12 pages × 5 widths (360/412/768/1100/1366) × 2 themes = **789 checks, all pass** (correct attribute, background `rgb(246,245,239)` in light, logo `logo-dark.webp` in light / `logo.webp` in dark, `aria-pressed`, zero horizontal overflow, zero console errors) plus toggle → localStorage → reload (pre-paint survives) → other page keeps the theme, plus the print check. `verify.js` (dark, 12 pages × 2 widths) still **127/127**. Service worker is now **v5** and its shell includes `logo-dark.webp`.
+
+## Lighthouse round: mobile LCP / Speed Index (2026-11-17, PR #25)
+
+**What Lighthouse said (owner's screenshots, mobile Slow-4G):** Performance 90, FCP 1.3 s, **LCP 3.2 s**, TBT 60 ms, CLS 0, **Speed Index 4.8 s**; desktop 100 (a11y 96).
+
+**What the local harness measured (Chromium 131, 412×823 DPR2, 150 ms RTT / 1.6 Mbps, 4× CPU, cold cache):** LCP element is the **`.hero` section**; on first load Chrome requested **six** font files (293 KB) and `style.css` alone takes ~640 ms to arrive+parse under that CPU throttle. Per-resource isolation runs showed the hero image ≈ +600 ms, fonts ≈ +440 ms, `app.js` ≈ +600 ms of LCP.
+
+**Changes shipped in this round**
+- `hero-sm.webp` (620 px wide, 31.6 KB) is served on `@media(max-width:700px)` through `image-set()`; `hero.webp` (49.7 KB) still covers larger screens. `index.html` now has **two media-scoped preloads** (`max-width:700px` → `hero-sm.webp`, `min-width:701px` → `hero.webp`). Keep the CSS breakpoint and the two `media` attributes in sync.
+- **Arabic font is no longer on the critical path:** the `Noto Naskh Arabic` `@font-face` moved out of `style.css` into `fonts-arabic.css`, which `effects.js` injects **after `load`** (idle callback, 120 ms later). It is only used by `.guidance-arabic`; pages without that block download just the 866-byte CSS.
+- **Hero entrance no longer hides LCP:** `fadeRise` is now `.40–.44 s` with `.02–.14 s` delays, starts at `opacity:.62` (was `0`) and no longer animates `filter:blur()`. Content is painted from the first frame, the rise is still there. Do not put `filter` or `opacity:0` on above-the-fold entrance animations.
+- `app.js` gets `fetchpriority="low"` so the stylesheet, fonts and hero image win the first bandwidth slots; the script still runs before any user interaction.
+- `sw.js` **v6** shell adds `hero-sm.webp` and `fonts-arabic.css`.
+
+**Measured before → after** (median of 3 cold-cache runs, same throttling): index LCP 1613 → 1585 ms, load 2566 → 2370 ms, hero bytes 50 → 32 KB, first-load font bytes 293 → 242 KB, total 442 → 424 KB; `read` unchanged (no hero), `questions` unchanged. The sandbox is noisy (±40–200 ms between identical runs) — treat the live Lighthouse run as the authority.
+
+**Not done yet (next candidates):** splitting `style.css` (128 KB raw / 27 KB gz) into critical + deferred, splitting `app.js` (51 KB gz), and a glyph subset of the three Bengali weights based on the corpus.

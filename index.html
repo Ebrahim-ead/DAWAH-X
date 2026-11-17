@@ -9,7 +9,7 @@
 <link href="logo-icon.webp" rel="icon" sizes="96x96" type="image/webp"/><link href="apple-touch-icon.png" rel="apple-touch-icon"/>
 <link href="manifest.webmanifest" rel="manifest"/>
 <link href="https://ebrahim-ead.github.io/DAWAH-X/" rel="canonical"/>
-<link as="image" fetchpriority="high" href="hero.webp" rel="preload"/>
+<link as="image" fetchpriority="high" href="hero-sm.webp" media="(max-width:700px)" rel="preload"/><link as="image" fetchpriority="high" href="hero.webp" media="(min-width:701px)" rel="preload"/>
 <script>try{if(localStorage.getItem("dawahx-theme")==="light"){document.documentElement.setAttribute("data-theme","light");var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute("content","#f6f5ef")}}catch(e){}</script>
 <link rel="stylesheet" href="style.css"/>
 <noscript><style>[data-reveal]{opacity:1!important;transform:none!important}</style></noscript>
@@ -73,6 +73,6 @@
 </div>
 <div class="copy"><span class="copy-by">পরিচালনায়: <a data-link="personal" href="https://ebrahim-ead.github.io/ead/" rel="noopener" target="_blank">Ebrahim Ead</a></span><span>© <span id="yr"></span> DAWAH X | Calling to the Truth. All rights reserved.</span></div>
 </div></footer>
-<script src="app.js"></script>
+<script fetchpriority="low" src="app.js"></script>
 <script src="effects.js"></script></body>
 </html>

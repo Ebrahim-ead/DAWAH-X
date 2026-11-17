@@ -102,3 +102,14 @@
  /* অন্য ট্যাবে থিম বদলালে এখানেও বদলাক */
  addEventListener('storage',e=>{if(e.key===KEY)paint(e.newValue==='light')});
 })();
+
+/* ===== আরবি ফন্ট দেরিতে: বাংলা ফন্টের সাথে ব্যান্ডউইথের লড়াই বন্ধ ===== */
+(()=>{
+ const load=()=>{
+  if(document.getElementById('fonts-arabic'))return;
+  const l=document.createElement('link');l.id='fonts-arabic';l.rel='stylesheet';l.href='fonts-arabic.css';
+  document.head.appendChild(l);
+ };
+ const queue=()=>{if('requestIdleCallback' in window)requestIdleCallback(load,{timeout:2000});else setTimeout(load,120)};
+ addEventListener('load',()=>setTimeout(queue,120));
+})();
