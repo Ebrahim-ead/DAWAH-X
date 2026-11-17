@@ -97,7 +97,7 @@ Each page is its own `.html` file containing the shared chrome (head, SVG sprite
   - `প্রিন্ট / PDF` calls `window.print()`; `@media print` in `style.css` hides the chrome and turns the article to black-on-white (12 pt), hiding the video frame.
 - **New video badge**: `youtube-gallery.js` adds `.video-new` («নতুন») when `publishedAt` is inside `NEW_DAYS` (14). Videos without `publishedAt` never get the badge.
 - **Service worker**: `VERSION` is `v2`; `PRECACHE` also holds `saved.html` and `stats.json`. `netlify.toml` sends `Cache-Control: public, max-age=0, must-revalidate` for `/sw.js`.
-- **Library summary list**: `.library-summary` under the heading of `#questions` / `#fatwa` is a **vertical list** (owner's request, 2026-11-17) — `flex-direction:column`, each `.library-stat` a full-width row with the number right-aligned in a 58 px column (`strong{min-width:58px;text-align:right}`). Do not put these chips back on one line; they overflowed and were hard to read on phones.
+- **Library summary list**: `.library-summary` under the heading of `#questions` / `#fatwa` is **one wrapping row of round pills** (`display:flex;flex-wrap:wrap;gap:8px`, `.library-stat{border-radius:999px}`). It was briefly turned into a vertical list on 2026-11-17 and the owner asked for the original layout back the same day — keep the pills, do not stack them.
 - **Stale file removed**: `catalog-counts.json` was outdated (its `fatwas_unique` was 12,796 against 19,025 references) and nothing reads it; deleted. The page numbers on `fatwa.html` / `questions.html` are the “unique references” metric (12,780 + 5,853 = 18,633; 911 Q&A rows) and are kept as they were — do not “fix” them from a raw catalogue row count (18,631 / 911 rows), the two metrics differ.
 
 ## Full-site audit + live motion pass (2026-11-17)
@@ -119,3 +119,5 @@ Audited 12 pages × 9 viewports (320/360/390/412/768/1024/1280/1440/1920) plus i
 - **Scroll-driven card rise** using `animation-timeline: view()` behind `@supports`, for `.discover-card`, `.library-link`, `.saved-row`; range `entry 4% → entry 62%` so a card is fully opaque as soon as it is in view (and stays opaque while being read).
 
 **Do not** re-add `left:-9999px` hiding, put the library summary back on one line, or animate `box-shadow`/`filter` for the badge ring — the ring is a scaled pseudo-element for exactly that reason.
+
+- **No play-button overlay on video cards** (owner's instruction, 2026-11-17): the red circular `.play-button` was removed from `youtube-gallery.js`, from the 20 static cards in `videos.html`, and its CSS rules were deleted. The whole `.video-preview` thumbnail is the play target and its `aria-label` already says the video plays on the page; clicking still opens the lightbox. Do not re-add the circle.
