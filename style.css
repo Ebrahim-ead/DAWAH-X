@@ -325,7 +325,7 @@ footer{background:rgba(0,0,0,.13)}
 .menu a:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
 @keyframes menuPanelIn{from{opacity:0;transform:translateX(-50%) translateY(-9px) scale(.985);filter:blur(4px)}to{opacity:1;transform:translateX(-50%) translateY(0) scale(1);filter:blur(0)}}
 @keyframes menuItemIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
-@media(max-width:900px){
+@media(max-width:1099px){
  body.menu-open{overflow:hidden}
  body.menu-open::after{content:"";position:fixed;inset:0;z-index:29;background:rgba(1,6,10,.56);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);animation:menuScrimIn .24s ease-out both}
  #menu{position:absolute;top:calc(100% + 9px);left:50%;right:auto;width:min(500px,calc(100vw - 24px));max-height:calc(100dvh - 92px);overflow-y:auto;overscroll-behavior:contain;display:none;flex-direction:column;gap:5px;padding:10px;border:1px solid rgba(246,196,83,.2);border-radius:18px;background:linear-gradient(150deg,rgba(14,27,34,.98),rgba(4,11,16,.98));box-shadow:0 20px 60px rgba(0,0,0,.5),0 0 28px rgba(246,196,83,.07);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);transform:translateX(-50%);transform-origin:top center}
@@ -342,7 +342,7 @@ footer{background:rgba(0,0,0,.13)}
 }
 @keyframes menuScrimIn{from{opacity:0}to{opacity:1}}
 @media(prefers-reduced-motion:reduce){#menu.open,#menu.open a,#burger,body.menu-open::after{animation:none!important;transition:none!important;filter:none!important}}
-@media(min-width:901px){
+@media(min-width:1100px){
  #menu{gap:clamp(8px,1.25vw,19px)}
  #menu a{position:relative;padding:7px 8px;border-radius:11px;border-bottom-color:transparent;animation:desktopNavIn .52s cubic-bezier(.2,.75,.25,1) both;transition:color .22s ease,transform .24s cubic-bezier(.2,.75,.25,1),background-color .22s ease,box-shadow .22s ease,text-shadow .22s ease}
  #menu a:nth-child(1){animation-delay:.025s}#menu a:nth-child(2){animation-delay:.065s}#menu a:nth-child(3){animation-delay:.105s}#menu a:nth-child(4){animation-delay:.145s}#menu a:nth-child(5){animation-delay:.185s}#menu a:nth-child(6){animation-delay:.225s}#menu a:nth-child(7){animation-delay:.265s}#menu a:nth-child(8){animation-delay:.305s}
@@ -700,10 +700,10 @@ a,button,input,select,textarea,.chip,.qcard{touch-action:manipulation;-webkit-ta
    • ৯০১–১১৭৯px-এ লেখা ও প্যাডিং একটু ছোট এবং "Facebook Page" লেখাটি লুকানো (শুধু আইকন)।
    হিসাব: পর্দা − ৪০ (দুই পাশ) − ১৮০ (লোগো) − ৩২ (ফাঁক) − ডানের বোতাম = মেনুর জায়গা। নতুন লিংক যোগ করলে ৯০১, ১০৬০ ও ১১৮০px-এ মেপে দেখুন। */
 .menu a,.fbp span{white-space:nowrap}
-@media(min-width:901px){#menu{flex:0 1 730px;justify-content:space-between;gap:4px}#menu a{padding:7px}}
-@media(min-width:901px) and (max-width:1179px){.fbp span{display:none}}
-@media(min-width:1060px) and (max-width:1179px){#menu{flex-basis:660px}#menu a{padding:7px 6px;font-size:15px}}
-@media(min-width:901px) and (max-width:1059px){#menu{flex-basis:575px}#menu a{padding:7px 5px;font-size:14px}}
+@media(min-width:1100px){#menu{flex:0 1 730px;justify-content:space-between;gap:4px}#menu a{padding:7px}}
+@media(min-width:1100px) and (max-width:1279px){.fbp span{display:none}}
+
+
 
 /* হোমপেজের পরিসংখ্যান-পট্টি: সংখ্যাগুলো stats.json থেকে আসে (app.js), হাতে লেখা সংখ্যা নয় */
 .home-stats{position:relative;z-index:2;padding:4px 0 26px}
@@ -842,7 +842,7 @@ header.top.is-away{box-shadow:none}
 /* ছোট পর্দায় হেডারে, বড় পর্দায় ঘড়ির-বারের ডান প্রান্তে — দুটোই লেআউট টানে না */
 .dxp-trigger-bar{position:absolute;right:max(14px,calc((100% - 1140px)/2));top:50%;transform:translateY(-50%);width:34px;height:34px;border-radius:9px}
 .dxp-trigger-in{display:none}
-@media(max-width:900px){.dxp-trigger-in{display:inline-flex}.dxp-trigger-bar{display:none}}
+@media(max-width:1099px){.dxp-trigger-in{display:inline-flex}.dxp-trigger-bar{display:none}}
 .dxp-trigger .ic{width:16px;height:16px}
 .dxp-trigger kbd{font:inherit;font-size:10px;letter-spacing:.3px;padding:1px 5px;border:1px solid rgba(173,193,215,.26);border-radius:5px;color:var(--muted)}
 .dxp-trigger:hover,.dxp-trigger:focus-visible{border-color:rgba(246,196,83,.5);color:var(--gold2);background:rgba(246,196,83,.1);outline:none}
@@ -901,3 +901,80 @@ body.dxp-open{overflow:hidden}
    ছোট পর্দার মতোই ফেসবুক বোতামের লেখা লুকিয়ে ঠিক রাখা হয় (হিজরি তারিখ ও সার্চ বোতামও তখন অটুট থাকে) */
 @media(min-width:1180px) and (max-width:1560px){.fbp span{display:none}}
 @media(min-width:1180px) and (max-width:1279px){#menu a{padding:7px 4px}}
+@media(min-width:1100px) and (max-width:1179px){#menu a{font-size:14px;padding:7px 4px}}
+
+/* ===== কাগজে পড়া: read.html-এ উষ্ণ কাগজের পৃষ্ঠা (বাকি সাইট আগের মতোই) =====
+   চোখের আরামের জন্য লেখার অংশ হালকা হয়; হেডার-ফুটার অন্ধকারই থাকে, তাই ব্র্যান্ড অটুট */
+html[data-paper="1"]{color-scheme:light}
+html[data-paper="1"] #read{--text:#1f242b;--muted:#5e6773;--line:#e3d8c3;--gold2:#8a5a00;--card:rgba(0,0,0,.03);
+ background:#f7f3ea;color:#2b323a;border-top:1px solid #e3d8c3;border-bottom:1px solid #e3d8c3}
+html[data-paper="1"] #read .article-head h1,
+html[data-paper="1"] #read .article-body h2,
+html[data-paper="1"] #read .article-body h3,
+html[data-paper="1"] #read .article-body h4,
+html[data-paper="1"] #read .article-body .ar,
+html[data-paper="1"] #read .article-body b,
+html[data-paper="1"] #read .article-short p,
+html[data-paper="1"] #read .article-cta b,
+html[data-paper="1"] #read .article-more h2,
+html[data-paper="1"] #read .article-source>b{color:#161b21}
+html[data-paper="1"] #read .article-body,
+html[data-paper="1"] #read .article-source p,
+html[data-paper="1"] #read .article-short p{color:#2b323a}
+html[data-paper="1"] #read .article-body a{color:#8a5a00}
+html[data-paper="1"] #read .article-body a:hover,
+html[data-paper="1"] #read .crumbs a:hover,
+html[data-paper="1"] #read .article-note a:hover{color:#5c3c00}
+html[data-paper="1"] #read .crumbs a,
+html[data-paper="1"] #read .article-cat,
+html[data-paper="1"] #read .article-note a{color:#8a5a00}
+html[data-paper="1"] #read .article-cat{border-color:rgba(217,169,60,.55)}
+html[data-paper="1"] #read .article-body mark.hit{background:#ffe08a;color:#3b2f00}
+html[data-paper="1"] #read .quote-ayah,
+html[data-paper="1"] #read .article-body blockquote,
+html[data-paper="1"] #read .article-short,
+html[data-paper="1"] #read .article-source{background:rgba(0,0,0,.035);border-color:rgba(217,169,60,.42)}
+html[data-paper="1"] #read .quote-ayah p,
+html[data-paper="1"] #read .article-body blockquote p{color:#22282e}
+html[data-paper="1"] #read .read-tools,
+html[data-paper="1"] #read .article-cta,
+html[data-paper="1"] #read .hitbar,
+html[data-paper="1"] #read .article-share{background:#fffdf7;border-color:#e3d8c3}
+html[data-paper="1"] #read .read-tools-label{color:#6a7381}
+html[data-paper="1"] #read .tool-btn,
+html[data-paper="1"] #read .share-btn,
+html[data-paper="1"] #read .hitbar button{background:#fff;border-color:#e0d5c0;color:#1f242b}
+html[data-paper="1"] #read .tool-btn:hover,
+html[data-paper="1"] #read .share-btn:hover,
+html[data-paper="1"] #read .hitbar button:hover{background:#fdf4dd;border-color:rgba(217,169,60,.7);color:#7d5200}
+html[data-paper="1"] #read .tool-btn[aria-pressed="true"],
+html[data-paper="1"] #read .tool-listen[aria-pressed="true"]{background:#fdf1d3;border-color:rgba(217,169,60,.75);color:#7d5200}
+html[data-paper="1"] #read .read-listen-note{color:#8a5a00}
+html[data-paper="1"] #read .qcard{background:#fffdf7;border-color:#e3d8c3}
+html[data-paper="1"] #read .qcard b{color:#161b21}
+html[data-paper="1"] #read .qcard small,
+html[data-paper="1"] #read .qcard span{color:#5e6773}
+html[data-paper="1"] #read .qcard:hover{border-color:rgba(217,169,60,.8);background:#fdf6e6}
+html[data-paper="1"] #read .qcard-own{background:linear-gradient(145deg,rgba(246,196,83,.16),rgba(255,255,255,.5))}
+html[data-paper="1"] #read .article-body td,
+html[data-paper="1"] #read .article-body th{border-color:#e3d8c3}
+html[data-paper="1"] #read .article-video{border-color:#e3d8c3;box-shadow:0 10px 28px rgba(0,0,0,.14)}
+html[data-paper="1"] #read .video-frame{background:#12181f}
+
+/* পড়ার সময় (মিনিট) ও «আগেরবার যেখানে ছিলেন» বার্তা */
+.read-time{font-variant-numeric:tabular-nums}
+.resume-bar{display:flex;align-items:center;gap:8px;margin:0 0 18px;padding:8px 10px 8px 12px;border:1px solid rgba(246,196,83,.3);border-radius:12px;background:rgba(246,196,83,.08)}
+.resume-go{flex:1;min-height:40px;padding:0;border:0;background:none;color:var(--gold2);font:inherit;font-size:13.5px;font-weight:600;text-align:left;cursor:pointer}
+.resume-go:hover{text-decoration:underline}
+.resume-close{flex:none;width:34px;height:34px;border:1px solid var(--line);border-radius:9px;background:rgba(255,255,255,.05);color:var(--muted);font:inherit;font-size:17px;line-height:1;cursor:pointer}
+html[data-paper="1"] #read .resume-bar{background:rgba(217,169,60,.16);border-color:rgba(217,169,60,.5)}
+html[data-paper="1"] #read .resume-go{color:#7d5200}
+html[data-paper="1"] #read .resume-close{background:#fff;border-color:#e0d5c0;color:#5e6773}
+@media print{.resume-bar{display:none!important}}
+
+/* সার্চের খালি অবস্থা: সাম্প্রতিক খোঁজা ও জনপ্রিয় বিষয় */
+.dxp-note-sub{margin:12px 6px 6px;color:var(--gold2);font-size:11.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase}
+.dxp-chip-recent{border-color:rgba(246,196,83,.32);color:var(--gold2);background:rgba(246,196,83,.07)}
+
+/* ট্যাবলেট (≤১০৯৯): ডেস্কটপ নেভ জায়গায় না ধরায় বurger মেনু, ফেসবুক বোতাম আইকন-কেবল */
+@media(max-width:1099px){.burger{display:block}.fbp span{display:none}}

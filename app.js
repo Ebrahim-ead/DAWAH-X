@@ -71,6 +71,14 @@ if(readTitle){
  /* লেখার শেয়ার-লিংক s/<চাবি>.html — সেখানে লেখার নিজের শিরোনাম থাকে (Facebook/WhatsApp-এর প্রিভিউয়ের জন্য), খুললে এই পাতাতেই আসে */
  const shareLinks=(t,k)=>{const url=k?new URL("s/"+k+".html",location.href).href:location.href.split("#")[0],share=encodeURIComponent(t+"\n"+url);
   const cp=document.querySelector("#read-share [data-copy-link]");if(cp)cp.dataset.copyLink=url;
+  /* ফোনে সিস্টেমের নিজের শেয়ার-শিট (WhatsApp/Telegram/যা আছে) — সেখানেই লেখা ও লিংক যায় */
+  const shareBox=$("read-share");
+  if(shareBox&&typeof navigator.share==="function"){
+   let nat=document.getElementById("read-native");
+   if(!nat){nat=document.createElement("button");nat.type="button";nat.id="read-native";nat.className="share-btn";
+    nat.innerHTML='<svg class="ic" aria-hidden="true"><use href="#link"></use></svg><span>শেয়ার…</span>';shareBox.appendChild(nat)}
+   nat.onclick=()=>{try{navigator.share({title:toLatinDigits(t),url}).catch(()=>{})}catch(e){}};
+  }
   $("read-wa").href="https://wa.me/?text="+share;$("read-fb").href="https://www.facebook.com/sharer/sharer.php?u="+encodeURIComponent(url);$("read-share").hidden=false};
  /* সার্চ থেকে এলে (…&q=শব্দ) লেখার ভেতরে শব্দগুলো দাগিয়ে দেখানো হয়; বানানভেদও ধরা হয় */
  const markHits=(root,q)=>{const terms=[...new Set(searchTokens(q).slice(0,6).flatMap(searchAlts))];if(!terms.length)return;
@@ -1166,6 +1174,10 @@ const DXP={
  /* ---- ছোট উপস্থিতি: হেডারে বোতাম + সার্চের জানালা ---- */
  /* লেখার সংখ্যা stats.json থেকে (না পেলে পুরোনো হিসাবটি) */
  total(){return this.n||20005},
+ /* সাম্প্রতিক খোঁজাগুলো (সর্বোচ্চ ৫টি) ব্রাউজারে জমা থাকে */
+ recent(){try{const a=JSON.parse(localStorage.getItem("dawahx-recent")||"[]");return Array.isArray(a)?a.slice(0,5).filter(x=>typeof x==="string"&&x.trim()):[]}catch(e){return[]}},
+ keepRecent(q){const t=String(q||"").trim();if(t.length<2)return;
+  try{const a=this.recent().filter(x=>x!==t);a.unshift(t);localStorage.setItem("dawahx-recent",JSON.stringify(a.slice(0,5)))}catch(e){}},
  build(){
   if(this.dlg)return;
   fetch("stats.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null).then(s=>{if(s&&s.texts>0)this.n=s.texts}).catch(()=>{});
@@ -1233,6 +1245,7 @@ const DXP={
   this.render(term,{kind:"loading"});
   this.find(term).then(res=>{
    if(mine!==this.seq)return;
+   if(res.kind==="ok")this.keepRecent(term);
    if(res.kind==="none")this.render(term,{kind:"none"});
    else if(res.kind==="error")this.render(term,{kind:"error"});
    else this.render(term,res);
@@ -1247,8 +1260,14 @@ const DXP={
   if(go)go.hidden=!res||res.kind!=="ok";
   if(!res||(res.kind!=="loading"&&term.length<2)){
    this.count.textContent="";
-   this.body.innerHTML='<p class="dxp-note">যে বিষয়ে জানতে চান লিখুন — সাইটের '+formatCount(this.total())+'টি লেখার শিরোনাম থেকে খোঁজা হবে।</p><div class="dxp-hints">'+DXP_HINTS.map(h=>'<button class="dxp-chip" type="button" data-hint="'+escAttr(h)+'">'+escHTML(h)+'</button>').join("")+'</div>';
-   this.body.querySelectorAll("[data-hint]").forEach(b=>b.addEventListener("click",()=>{this.input.value=b.dataset.hint;this.input.focus();this.run(b.dataset.hint)}));
+   const rec=this.recent();
+   const chip=(t,attr)=>'<button class="dxp-chip'+(attr==="data-recent"?" dxp-chip-recent":"")+'" type="button" '+attr+'="'+escAttr(t)+'">'+escHTML(t)+'</button>';
+   this.body.innerHTML='<p class="dxp-note">যে বিষয়ে জানতে চান লিখুন — সাইটের '+formatCount(this.total())+'টি লেখার শিরোনাম থেকে খোঁজা হবে।</p>'
+    +(rec.length?'<p class="dxp-note dxp-note-sub">সাম্প্রতিক খোঁজা</p><div class="dxp-hints">'+rec.map(t=>chip(t,"data-recent")).join("")+'</div>':'')
+    +'<p class="dxp-note'+(rec.length?' dxp-note-sub':'')+'">জনপ্রিয় বিষয়</p><div class="dxp-hints">'+DXP_HINTS.map(h=>chip(h,"data-hint")).join("")+'</div>';
+   const pick=t=>{this.input.value=t;this.input.focus();this.run(t)};
+   this.body.querySelectorAll("[data-hint]").forEach(b=>b.addEventListener("click",()=>pick(b.dataset.hint)));
+   this.body.querySelectorAll("[data-recent]").forEach(b=>b.addEventListener("click",()=>pick(b.dataset.recent)));
    return;
   }
   if(res.kind==="loading"){this.count.textContent="খোঁজা হচ্ছে…";this.body.innerHTML='<p class="dxp-note dxp-loading">“'+escHTML(term)+'” খোঁজা হচ্ছে…</p>';return}
@@ -1269,6 +1288,83 @@ const DXP={
  }
 };
 DXP.mount();
+
+/* ---- কাগজে পড়া: রাতের মোড ↔ কাগজের মোড (পছন্দ ব্রাউজারে মনে থাকে) ---- */
+const paperBtn=$("read-paper");
+if(paperBtn){
+ const paperOn=()=>document.documentElement.dataset.paper==="1";
+ const paintPaper=on=>{paperBtn.setAttribute("aria-pressed",on?"true":"false");
+  const l=$("read-paper-label"),ic=$("read-paper-icon");
+  if(l)l.textContent=on?"রাতের মোডে ফিরুন":"কাগজে পড়ুন";
+  if(ic)ic.textContent=on?"◑":"▤"};
+ paintPaper(paperOn());
+ paperBtn.addEventListener("click",()=>{
+  const on=!paperOn();
+  if(on)document.documentElement.dataset.paper="1";else delete document.documentElement.dataset.paper;
+  try{if(on)localStorage.setItem("dawahx-read-paper","1");else localStorage.removeItem("dawahx-read-paper")}catch(e){}
+  paintPaper(on);
+ });
+}
+
+/* ---- পড়ার সময় + শেষবারের জায়গা (লেখা লোড হওয়ার পর হিসাব হয়) ---- */
+const readBody=$("read-body"),readMeta=$("read-meta"),readArticle=$("read");
+if(readBody&&readArticle){
+ const POS_KEY="dawahx-pos";
+ const posMap=()=>{try{const v=JSON.parse(localStorage.getItem(POS_KEY)||"{}");return v&&typeof v==="object"?v:{}}catch(e){return{}}};
+ const storePos=o=>{try{localStorage.setItem(POS_KEY,JSON.stringify(o))}catch(e){}};
+ const readKey=()=>{try{return new URLSearchParams(location.search).get("k")||""}catch(e){return""}};
+ const RK=readKey();
+ /* লেখার ভেতরে কতটা পড়া হয়েছে (০–১) */
+ const frac=()=>{const r=readArticle.getBoundingClientRect();const total=Math.max(1,r.height-window.innerHeight);
+  return Math.max(0,Math.min(1,(-r.top)/total))};
+ let saved=0,restored=false;
+ const paintTime=()=>{
+  if(!readMeta||readMeta.querySelector(".read-time"))return;
+  const text=(readBody.innerText||"").trim();
+  if(text.length<200)return;
+  const mins=Math.max(1,Math.round(text.split(/\s+/).length/140));
+  const dot=document.createElement("span");dot.setAttribute("aria-hidden","true");dot.textContent="·";
+  const sp=document.createElement("span");sp.className="read-time";sp.textContent="≈ "+formatCount(mins)+" মিনিট";
+  readMeta.append(dot,sp);
+ };
+ const offerResume=()=>{
+  if(restored||!RK)return;
+  const m=posMap(),e=m[RK];
+  if(!e||typeof e.p!=="number"||e.p<8||Date.now()-(e.t||0)>1000*60*60*24*60)return;
+  if(document.querySelector(".resume-bar"))return;
+  restored=true;saved=e.p;
+  const bar=document.createElement("p");bar.className="resume-bar";
+  const go=document.createElement("button");go.type="button";go.className="resume-go";
+  go.textContent="আগেরবার যেখানে ছিলেন ("+formatCount(Math.round(e.p))+"%) — সেখানে যান ↓";
+  go.addEventListener("click",()=>{
+   const r=readArticle.getBoundingClientRect(),abs=r.top+window.scrollY,total=Math.max(1,r.height-window.innerHeight);
+   const calm=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+   try{window.scrollTo({top:Math.max(0,abs+total*(e.p/100)-12),behavior:calm?"auto":"smooth"})}catch(_){window.scrollTo(0,Math.max(0,abs+total*(e.p/100)-12))}
+   bar.remove();
+  });
+  const close=document.createElement("button");close.type="button";close.className="resume-close";
+  close.setAttribute("aria-label","এই বার্তা সরান");close.textContent="×";
+  close.addEventListener("click",()=>bar.remove());
+  bar.append(go,close);
+  const crumbs=readArticle.querySelector(".crumbs");
+  if(crumbs)crumbs.insertAdjacentElement("afterend",bar);else readArticle.querySelector(".article-wrap")?.prepend(bar);
+ };
+ const afterPaint=()=>{paintTime();offerResume()};
+ if(typeof MutationObserver==="function")new MutationObserver(afterPaint).observe(readBody,{childList:true,subtree:false});
+ setTimeout(afterPaint,260);setTimeout(afterPaint,1200);
+ const saveNow=()=>{
+  if(!RK||readBody.innerText.trim().length<200)return;
+  const p=Math.round(frac()*100);
+  if(p<4||p>98)return;
+  const m=posMap();m[RK]={p,t:Date.now()};
+  const ks=Object.keys(m);
+  if(ks.length>60)ks.sort((a,b)=>(m[a].t||0)-(m[b].t||0)).slice(0,ks.length-60).forEach(k=>delete m[k]);
+  storePos(m);
+ };
+ let queued=0;
+ window.addEventListener("scroll",()=>{if(queued)return;queued=requestAnimationFrame(()=>{queued=0;saveNow()})},{passive:true});
+ window.addEventListener("pagehide",saveNow);
+}
 
 /* ---- "পড়ে শুনুন": ব্রাউজারের নিজের বাংলা ভয়েস দিয়ে লেখা শোনা (কোনো সার্ভার বা ডাউনলোড লাগে না) ---- */
 const listenBtn=$("read-listen");
