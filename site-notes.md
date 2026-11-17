@@ -9,6 +9,7 @@
 - `videos.html` — YouTube ভিডিও গ্যালারি
 - `ask.html` — প্রশ্ন পাঠান
 - `contact.html` — যোগাযোগ
+- `saved.html` — পাঠকের সংরক্ষিত লেখার তালিকা (ব্রাউজারেই জমা থাকে)
 
 সব ফাইল একই ফোল্ডারে রাখুন এবং `index.html`-কে হোস্টিংয়ের ডকুমেন্ট রুটে দিন। লাইব্রেরির জন্য `questions-catalog-part-*.js` ও `fatwa-catalog-part-*.js` chunk ফাইলগুলো একই ফোল্ডারে রাখুন; বিভাগ বাছাই বা সার্চের সময় প্রয়োজনীয় অংশই লোড হয়।
 
@@ -43,3 +44,10 @@ Upload every file to the repository root (no sub-folders) with lowercase filenam
 
 ## YouTube video player
 The YouTube player uses an iframe and may be blocked by strict network or browser privacy settings. Every menu item opens its own HTML page. GitHub Pages serves the extracted files as a static website.
+
+## স্মার্ট ও প্রফেশনাল হালনাগাদ (২০২৬-১১-১৭)
+- হোম পেজে লাইভ পরিসংখ্যান-পট্টি: মোট লেখা, ফতোয়া, প্রশ্নোত্তর, ভিডিও ও বিষয়ের সংখ্যা `stats.json` থেকে আসে; সংখ্যা হাতে বদলাতে হয় না (`node tools/build-stats.cjs`)।
+- লেখা পড়ার পেজে লেখার আকার ছোট/বড় (A−/A+), «সংরক্ষণ করুন» ও «প্রিন্ট / PDF» বোতাম; সংরক্ষিত লেখা `saved.html`-এ জমা থাকে।
+- ভিডিও পেজে ১৪ দিনের ভেতরের আপলোডে «নতুন» ব্যাজ।
+- সার্চ ইঞ্জিনের জন্য `robots.txt`, হালনাগাদ `sitemap.xml` এবং প্রতিটি পাতায় structured data (JSON-LD)।
+- `sw.js`-এর সংস্করণ `v2`; নতুন ফাইল (`saved.html`, `stats.json`) অফলাইনেও প্রস্তুত থাকে।

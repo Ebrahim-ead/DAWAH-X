@@ -11,6 +11,12 @@
   [headers.values]
     Cache-Control = "public, max-age=0, must-revalidate"
 
+# Service worker: never cache, so a new version is picked up right away
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
 # Shared CSS/JS and the library/video data: cache for a day, refresh in the background
 [[headers]]
   for = "/*.css"

@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://ebrahim-ead.github.io/DAWAH-X/sitemap.xml

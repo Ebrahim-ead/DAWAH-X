@@ -1075,6 +1075,67 @@ setupLibrary({id:"f",deep:PAGE==="fatwa",rows:FT,manifest:PAGE==="fatwa"?FATWA_P
   });
  }}
 
+/* ---- পড়ার সরঞ্জাম (read.html): লেখার আকার, সংরক্ষিত লেখা, প্রিন্ট ----
+   সংরক্ষিত লেখার তালিকা ব্রাউজারেই (localStorage) থাকে — কোনো সার্ভারে যায় না */
+const readTools=$("read-tools");
+if(readTools){
+ const article=$("read"),SAVED_KEY="dawahx-saved",SCALE_KEY="dawahx-read-scale";
+ const question=()=>new URLSearchParams(location.search);
+ const savedList=()=>{try{const a=JSON.parse(localStorage.getItem(SAVED_KEY)||"[]");return Array.isArray(a)?a:[]}catch(e){return[]}};
+ const storeList=a=>{try{localStorage.setItem(SAVED_KEY,JSON.stringify(a.slice(0,200)))}catch(e){}};
+ const curKey=()=>question().get("k")||"";
+ const countEl=$("read-saved-count");
+ const paintCount=()=>{if(countEl)countEl.textContent=formatCount(savedList().length)};
+ /* লেখার আকার: A− / A+ (ব্রাউজারে মনে থাকে) */
+ const applyScale=v=>{
+  const s=Math.min(1.4,Math.max(.85,Math.round(v*100)/100));
+  if(article)article.style.setProperty("--read-scale",String(s));
+  try{localStorage.setItem(SCALE_KEY,String(s))}catch(e){}
+  const dn=$("read-font-down"),up=$("read-font-up");
+  if(dn)dn.disabled=s<=.86;if(up)up.disabled=s>=1.39;
+  return s;
+ };
+ const scaleOf=()=>parseFloat((article&&article.style.getPropertyValue("--read-scale"))||"1")||1;
+ let saved_scale=1;try{saved_scale=parseFloat(localStorage.getItem(SCALE_KEY)||"1")||1}catch(e){}
+ applyScale(saved_scale);
+ const dnBtn=$("read-font-down"),upBtn=$("read-font-up");
+ if(dnBtn)dnBtn.addEventListener("click",()=>applyScale(scaleOf()-.1));
+ if(upBtn)upBtn.addEventListener("click",()=>applyScale(scaleOf()+.1));
+ /* সংরক্ষণ: বোতাম চাপলে লেখাটি পড়ার তালিকায় যোগ হয় বা বাদ যায় */
+ const saveBtn=$("read-save"),saveLabel=$("read-save-label");
+ const canSave=/^[0-9a-f]{14}$/.test(curKey());
+ if(saveBtn&&!canSave)saveBtn.disabled=true;
+ const paintSave=()=>{
+  const on=canSave&&savedList().some(x=>x.k===curKey());
+  if(saveBtn)saveBtn.setAttribute("aria-pressed",on?"true":"false");
+  if(saveLabel)saveLabel.textContent=on?"তালিকায় আছে":"সংরক্ষণ করুন";
+ };
+ if(saveBtn)saveBtn.addEventListener("click",()=>{
+  if(!canSave)return;
+  const k=curKey();let list=savedList();
+  if(list.some(x=>x.k===k))list=list.filter(x=>x.k!==k);
+  else{
+   const title=(($("read-title")&&$("read-title").textContent)||"").trim(),cat=(($("read-cat")&&$("read-cat").textContent)||"").trim();
+   if(!title||title.indexOf("লোড হচ্ছে")>=0)return;
+   list.unshift({k,t:title,c:cat,d:new Date().toISOString().slice(0,10),f:question().get("from")==="f"?"f":"q"});
+  }
+  storeList(list);paintSave();paintCount();
+ });
+ const printBtn=$("read-print");
+ if(printBtn)printBtn.addEventListener("click",()=>window.print());
+ paintCount();paintSave();
+}
+
+/* ---- হোমপেজের পরিসংখ্যান: stats.json (tools/build-stats.cjs) থেকে সংখ্যা ----
+   সংখ্যা হাতে লেখা থাকে না, তাই নতুন লেখা বা ভিডিও যোগ হলে নিজে থেকেই ঠিক দেখায় */
+const statStrip=document.querySelector("[data-stats]");
+if(statStrip){
+ fetch("stats.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null).then(s=>{
+  if(!s)return;
+  statStrip.querySelectorAll("[data-stat]").forEach(el=>{const v=s[el.dataset.stat];if(typeof v==="number"&&v>0)el.textContent=formatCount(v)});
+ }).catch(()=>{});
+}
+
 /* ---- অফলাইন: আগে খোলা পাতা ও পড়া লেখা ইন্টারনেট ছাড়াও খোলে (sw.js) ---- */
 if(navigator.serviceWorker&&(location.protocol==="https:"||location.hostname==="localhost"||location.hostname==="127.0.0.1")){
  window.addEventListener("load",()=>{navigator.serviceWorker.register("sw.js").catch(()=>{})});

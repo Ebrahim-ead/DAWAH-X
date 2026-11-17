@@ -19,6 +19,7 @@ const fs=require('fs'),path=require('path');
 const ROOT=path.join(__dirname,'..');
 const LIST=path.join(ROOT,'youtube-videos.json');
 const CONFIG=path.join(__dirname,'video-channels.json');
+const STATS=path.join(ROOT,'stats.json'); // হোমপেজের পরিসংখ্যান (ভিডিওর সংখ্যাটুকু এই স্ক্রিপ্টই হালনাগাদ করে)
 const DRY=process.argv.includes('--dry');
 const FIXTURES=process.env.VIDEO_FIXTURES||'';
 const MAX_NEW=80; // এক রানে এর বেশি নতুন ভিডিও এলে কিছু একটা ভুল — কিছুই যোগ হয় না
@@ -157,6 +158,9 @@ async function fetchFeed(channelId){
     }
     fs.writeFileSync(LIST,JSON.stringify(videos));
   }
+  /* হোমপেজের পরিসংখ্যান: ভিডিওর সংখ্যা বদলালে stats.json-এ লেখা হয় (বাকি সংখ্যা tools/build-stats.cjs-এর) */
+  let stats=null;try{stats=JSON.parse(fs.readFileSync(STATS,'utf8'))}catch(e){}
+  if(!stats||stats.videos!==videos.length){stats=Object.assign({},stats,{videos:videos.length});fs.writeFileSync(STATS,JSON.stringify(stats)+'\n');}
   if(configChanged)fs.writeFileSync(CONFIG,JSON.stringify(config,null,2)+'\n');
   if(process.env.GITHUB_OUTPUT)fs.appendFileSync(process.env.GITHUB_OUTPUT,'added='+fresh.length+'\n');
 })().catch(e=>{console.error(e);process.exit(1);});
