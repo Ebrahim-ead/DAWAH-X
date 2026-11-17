@@ -277,3 +277,37 @@ The script builds the character set from the served text (`*.html`, root `*.js`/
 Accessibility/Best-Practices/SEO stay 100/100/100. First-load font bytes are now 119 KB instead of 242 KB; the biggest remaining item is render-blocking `style.css` (27 KB gz, 21 KB unused on `index.html`).
 
 **Tried and rejected:** splitting `style.css` into per-page files with a selector-list splitter. It works (verified: 1,411/1,411 selector→declaration pairs preserved), but it only moves 5.6 KB raw / 1.4 KB gz out of `index`, which does not pay for a second request on the four affected pages. A worthwhile CSS split has to be component/page-set based, not per-file.
+
+## Image re-encode + CSS split investigated (2026-11-17, PR #27)
+
+**Images (the only bytes worth cutting under the mobile budget)**
+
+| file | before | after | how |
+|---|---|---|---|
+| `hero-sm.webp` (620×381, ≤700 px) | 32.3 KB | **25.0 KB** | re-encoded from the 891 px master, WebP `method=6` `-quality 74` |
+| `hero.webp` (891×547, ≥701 px) | 50.9 KB | **42.2 KB** | same master, `method=6` `-quality 76` |
+| `logo.webp` (was 700×179) | 16.2 KB | **11.0 KB** | 520×133 — the logo is never shown wider than 300 CSS px |
+
+- **`hero-sm.webp` must always be re-encoded from `hero.webp` (or a bigger master), never from the previous `hero-sm.webp`** — re-compressing a compressed file stacks artefacts. The PSNR of the new hero-sm against the old file is 34.6 dB, but it is *sharper* than the old one because it comes straight from the master.
+- **`logo-dark.webp` is deliberately untouched**: every re-encode at 480–620 px came out **larger** (15.8–20.4 KB) than the existing 10.7 KB file. It is flat art with an alpha mask — the original encoder already won. Same for `logo-icon.webp`.
+- `<img>` `width`/`height` attributes were **not** changed (they carry the 700×179 ratio, which is what prevents layout shift); only the files shrank. Aspect ratios are identical, so nothing re-flows.
+- `sw.js` → **v8** (the shell cache holds these images).
+
+**Investigated and rejected — do not redo these**
+
+- **Per-page `style.css` split.** Built a correct splitter (selector lists split per bucket, `@media print`/`@keyframes`/`@font-face` pinned to core) and verified 1,411/1,411 selector→declaration pairs survive. It only moves **5.6 KB raw / 1.4 KB gz** out of `index.html`, for an extra request on four pages. Dropped. Any profitable CSS split has to be page-set/component based, and the structural ceiling is low: `index.html`'s own markup still needs **97.3 KB of the 116.8 KB** of rules (83 %), because the home page carries the search overlay, the dialogs and the card/stat components.
+- **Dead CSS.** Only **3.2 KB** of rules cannot match any page's markup *and* are absent from the JS — and most of those (`.saved-link`, `.saved-del`, `.qmore-count`, …) are built at runtime by `app.js` string templates, so deleting them would break the saved/read UIs. Nothing to prune.
+- **`defer` on `app.js` + `effects.js`.** Tested on `index.html`: mobile stayed at 93 (LCP 2.7 s, TBT 50 → 20 ms, inside noise). Reverted — the scripts already sit at the end of `<body>`, so there is no parser blocking to remove, and deferring changes the execution order relative to any future inline script.
+- Lighthouse's "render-blocking `style.css`" (≈307 ms) and "unused CSS 21 KB" are real but not addressable by splitting: the rules that never match at snapshot time are hover/focus/dialog/print/other-page states, all of which must be present when they are needed.
+
+**Local Lighthouse 12.8, `index.html`, cold cache**
+
+| | FCP | LCP | SI | TBT | CLS | perf |
+|---|---|---|---|---|---|---|
+| mobile (start of this round) | 2.0 s | 2.8 s | 2.0 s | 50 ms | 0.082 | 93 |
+| mobile (now) | 2.0 s | **2.7 s** | 2.0 s | 30 ms | 0.082 | **93** |
+| desktop | 0.5 s | 0.5 s | 0.5 s | 0 ms | 0.024 | 100 |
+
+First-load bytes on `index.html` are now ≈ **237 KB** (was 258 KB after the font round, 410 KB before any perf work).
+
+**The remaining lever is fonts** (119 KB of the 237 KB): three Bengali weights. Dropping the 600 weight (37 KB) and letting headings use 700 would buy ~0.2 s of LCP under Slow-4G, at the cost of visibly heavier headings — an owner decision, not a technical one.
