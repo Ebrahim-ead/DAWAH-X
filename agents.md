@@ -196,3 +196,36 @@ Audited 12 pages × 9 viewports (320/360/390/412/768/1024/1280/1440/1920) plus i
 - **Do not put `data-reveal` on `.pol` or `.policy-jump`:** `effects.js`'s `revealSelector` does not include them, so they would never receive `.is-visible` and would stay at `opacity:0` (this actually happened during development).
 - Source numbers on the page come from the corpus itself (`texts/*.json` `c`/`u` fields): আত-তাহরীক ≈11,600, আল-ইতিছাম ≈7,400, From Muslims ≈600, Response to Anti-Islam ≈370, plus ~30 from Islamic Authors/Insight Zone; the 12,780 fatwas come from the first two. Every entry keeps its original URL — the read page prints it in `#read-credit` + `#read-original`.
 - The page deliberately publishes **no e-mail address**; contact is phone/WhatsApp `01783543026`, the ask form, and the Facebook page.
+
+## Site-wide light theme with a day/night toggle (2026-11-17, PR #24)
+
+**How it is wired**
+- `html[data-theme="light"]` is the only switch. Dark stays the default: every light rule is scoped to that attribute, so a missing attribute, a broken script, or no JS leaves the site exactly as before.
+- **Pre-paint:** an inline script sits directly before `<link rel="stylesheet" href="style.css"/>` on all **12** pages: `if(localStorage.getItem("dawahx-theme")==="light"){root.dataset.theme="light"; meta[theme-color].content="#f6f5ef"}`. It must stay before the stylesheet, otherwise the first frame flashes dark.
+- **Toggle:** `#theme-toggle` (sun/moon inline SVGs, `.tt-sun`/`.tt-moon`) is the first child of `.acts` on every page. Logic is the last IIFE of `effects.js` (`dawahx-theme`, `aria-pressed`, `meta[theme-color]`, `<html>` attribute, `storage` event for other tabs). It never guesses from `prefers-color-scheme` — the user chose an explicit toggle.
+- **Logo:** `logo.webp` is a white+gold wordmark on an opaque `#060C10` plate, so it disappears on light chrome. `logo-dark.webp` (10.7 KB, transparent, ink `#12232c`, gold `#a9700a`) is applied by `html[data-theme="light"] img.word{content:url("logo-dark.webp")}` **and** the JS `swapLogos()` (`img.dataset.themeSrc` keeps the original). Keep both paths: CSS covers first paint in Chromium/Safari, JS covers browsers where `content` on `<img>` is ignored. `logo.webp` itself must never be edited.
+- **Tokens:** `html[data-theme="light"]` re-declares `--bg:#f6f5ef`, `--text:#17242c`, `--muted:#5b6b77`, `--line:#d6dad3`, `--card:#fffdf8`, `--gold:#a2700a`, `--gold2:#8a5a00` (a `#f5b81c` gold fails contrast on cream). Because `html[data-theme="light"]` has higher specificity than the two `:root` blocks, no `!important` is needed for tokens.
+- **`header.top` needs `!important`:** `@media (max-width:900px),(hover:none)` sets `background:rgba(6,12,18,.96)!important`, which also matches headless/touch devices at desktop widths. The light override repeats `!important` with higher specificity.
+- **Never style `dialog#dxp` itself:** the element is a full-viewport transparent box (1366×900); the visible panel is `.dxp-box`. Giving the dialog a background painted over the whole page (this happened during development). Light rules target `.dxp-box`, `.dxp-head`, `.dxp-chip`, `.dxp-close`, `.dxp-trigger`.
+- The hero stays a dark photo panel in both themes (`.hero` keeps `background-color:#0a171f`, headings forced to `#fff`), because the banner image is a night scene and white-on-photo reads better than ink-on-photo.
+- Print still wins: `@media print` forces white/black, and the light theme does not touch it (`emulateMediaType('print')` verifies header `display:none`, body white).
+- Small-screen header: the extra 32–34 px toggle made the bar overflow at 360 px (47 px), so `@media(max-width:430px)` shrinks `.bar .word` to 38 px, `.acts` gap to 8 px and the toggle to 32 px. Do not re-add width there without re-running the 360 px check.
+
+**Tests** — `theme.js` (local harness): 12 pages × 5 widths (360/412/768/1100/1366) × 2 themes = **789 checks, all pass** (correct attribute, background `rgb(246,245,239)` in light, logo `logo-dark.webp` in light / `logo.webp` in dark, `aria-pressed`, zero horizontal overflow, zero console errors) plus toggle → localStorage → reload (pre-paint survives) → other page keeps the theme, plus the print check. `verify.js` (dark, 12 pages × 2 widths) still **127/127**. Service worker is now **v5** and its shell includes `logo-dark.webp`.
+
+## Lighthouse round: mobile LCP / Speed Index (2026-11-17, PR #25)
+
+**What Lighthouse said (owner's screenshots, mobile Slow-4G):** Performance 90, FCP 1.3 s, **LCP 3.2 s**, TBT 60 ms, CLS 0, **Speed Index 4.8 s**; desktop 100 (a11y 96).
+
+**What the local harness measured (Chromium 131, 412×823 DPR2, 150 ms RTT / 1.6 Mbps, 4× CPU, cold cache):** LCP element is the **`.hero` section**; on first load Chrome requested **six** font files (293 KB) and `style.css` alone takes ~640 ms to arrive+parse under that CPU throttle. Per-resource isolation runs showed the hero image ≈ +600 ms, fonts ≈ +440 ms, `app.js` ≈ +600 ms of LCP.
+
+**Changes shipped in this round**
+- `hero-sm.webp` (620 px wide, 31.6 KB) is served on `@media(max-width:700px)` through `image-set()`; `hero.webp` (49.7 KB) still covers larger screens. `index.html` now has **two media-scoped preloads** (`max-width:700px` → `hero-sm.webp`, `min-width:701px` → `hero.webp`). Keep the CSS breakpoint and the two `media` attributes in sync.
+- **Arabic font is no longer on the critical path:** the `Noto Naskh Arabic` `@font-face` moved out of `style.css` into `fonts-arabic.css`, which `effects.js` injects **after `load`** (idle callback, 120 ms later). It is only used by `.guidance-arabic`; pages without that block download just the 866-byte CSS.
+- **Hero entrance no longer hides LCP:** `fadeRise` is now `.40–.44 s` with `.02–.14 s` delays, starts at `opacity:.62` (was `0`) and no longer animates `filter:blur()`. Content is painted from the first frame, the rise is still there. Do not put `filter` or `opacity:0` on above-the-fold entrance animations.
+- `app.js` gets `fetchpriority="low"` so the stylesheet, fonts and hero image win the first bandwidth slots; the script still runs before any user interaction.
+- `sw.js` **v6** shell adds `hero-sm.webp` and `fonts-arabic.css`.
+
+**Measured before → after** (median of 3 cold-cache runs, same throttling): index LCP 1613 → 1585 ms, load 2566 → 2370 ms, hero bytes 50 → 32 KB, first-load font bytes 293 → 242 KB, total 442 → 424 KB; `read` unchanged (no hero), `questions` unchanged. The sandbox is noisy (±40–200 ms between identical runs) — treat the live Lighthouse run as the authority.
+
+**Not done yet (next candidates):** splitting `style.css` (128 KB raw / 27 KB gz) into critical + deferred, splitting `app.js` (51 KB gz), and a glyph subset of the three Bengali weights based on the corpus.

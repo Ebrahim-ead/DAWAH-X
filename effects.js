@@ -73,3 +73,43 @@
  if(visible){revealTree(visible);tiltTree(visible);const watcher=new MutationObserver(changes=>changes.forEach(change=>change.addedNodes.forEach(node=>{if(node.nodeType===1){revealTree(node);tiltTree(node)}})));watcher.observe(visible,{childList:true,subtree:true})}
  document.querySelectorAll('#menu a').forEach(a=>a.addEventListener('click',()=>document.querySelector('#menu')?.classList.remove('open')));
 })();
+
+/* ===== দিন/রাত মোড (theme toggle) — সব পাতায় ===== */
+(()=>{
+ const KEY='dawahx-theme', root=document.documentElement, btn=document.getElementById('theme-toggle');
+ const meta=document.querySelector('meta[name="theme-color"]');
+ const DARK_BG='#08151a', LIGHT_BG='#f6f5ef';
+ const isLight=()=>root.getAttribute('data-theme')==='light';
+ const swapLogos=light=>{
+  document.querySelectorAll('img.word').forEach(img=>{
+   if(!img.dataset.themeSrc){img.dataset.themeSrc=img.getAttribute('src')||'logo.webp'}
+   const want=light?'logo-dark.webp':img.dataset.themeSrc;
+   if(img.getAttribute('src')!==want)img.setAttribute('src',want);
+  });
+ };
+ const paint=light=>{
+  root.setAttribute('data-theme',light?'light':'dark');
+  if(meta)meta.setAttribute('content',light?LIGHT_BG:DARK_BG);
+  if(btn){btn.setAttribute('aria-pressed',light?'true':'false');btn.setAttribute('aria-label',light?'রাতের মোডে ফিরে যান':'দিনের আলোয় দেখুন')}
+  swapLogos(light);
+ };
+ paint(isLight());                       /* pre-paint স্ক্রিপ্ট যা সেট করেছে, সেটাই বহাল */
+ btn?.addEventListener('click',()=>{
+  const next=!isLight();
+  paint(next);
+  try{localStorage.setItem(KEY,next?'light':'dark')}catch(e){}
+ });
+ /* অন্য ট্যাবে থিম বদলালে এখানেও বদলাক */
+ addEventListener('storage',e=>{if(e.key===KEY)paint(e.newValue==='light')});
+})();
+
+/* ===== আরবি ফন্ট দেরিতে: বাংলা ফন্টের সাথে ব্যান্ডউইথের লড়াই বন্ধ ===== */
+(()=>{
+ const load=()=>{
+  if(document.getElementById('fonts-arabic'))return;
+  const l=document.createElement('link');l.id='fonts-arabic';l.rel='stylesheet';l.href='fonts-arabic.css';
+  document.head.appendChild(l);
+ };
+ const queue=()=>{if('requestIdleCallback' in window)requestIdleCallback(load,{timeout:2000});else setTimeout(load,120)};
+ addEventListener('load',()=>setTimeout(queue,120));
+})();

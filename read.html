@@ -9,9 +9,10 @@
 <meta content="noindex, follow" name="robots"/>
 <link href="logo-icon.webp" rel="icon" sizes="96x96" type="image/webp"/><link href="apple-touch-icon.png" rel="apple-touch-icon"/>
 <link href="manifest.webmanifest" rel="manifest"/>
+<script>try{if(localStorage.getItem("dawahx-theme")==="light"){document.documentElement.setAttribute("data-theme","light");var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute("content","#f6f5ef")}}catch(e){}</script>
 <link rel="stylesheet" href="style.css"/>
 <noscript><style>[data-reveal]{opacity:1!important;transform:none!important}</style></noscript>
-<meta content="#08151a" name="theme-color"/><meta content="dark" name="color-scheme"/><link href="favicon.svg" rel="icon" type="image/svg+xml"/>
+<meta content="#08151a" name="theme-color"/><meta content="dark light" name="color-scheme"/><link href="favicon.svg" rel="icon" type="image/svg+xml"/>
 <meta content="https://ebrahim-ead.github.io/DAWAH-X/og-image.jpg" property="og:image"/><meta content="1200" property="og:image:width"/><meta content="630" property="og:image:height"/><meta content="summary_large_image" name="twitter:card"/>
 </head>
 <body data-page="read"><div aria-hidden="true" class="ambient-motion"><i></i><i></i><i></i></div><div aria-hidden="true" class="cursor-light"></div>
@@ -38,6 +39,7 @@
 <a href="index.html">হোম</a><a href="about.html">আমাদের সম্পর্কে</a><a href="services.html">সেবা সমূহ</a><a class="on" data-read-nav="" href="questions.html">প্রশ্নোত্তর</a><a href="topics.html">বিষয়ভিত্তিক</a><a href="fatwa.html">ফতোয়া</a><a href="videos.html">ভিডিও</a><a href="ask.html">প্রশ্ন করুন</a><a href="contact.html">যোগাযোগ</a>
 </nav>
 <div class="acts">
+<button aria-label="দিন ও রাতের মোড বদলান" aria-pressed="false" class="theme-toggle" id="theme-toggle" title="দিন/রাত মোড" type="button"><svg aria-hidden="true" class="ic tt-moon" viewBox="0 0 24 24"><path d="M20 13.4A8.2 8.2 0 1 1 10.6 4a6.6 6.6 0 0 0 9.4 9.4Z"></path></svg><svg aria-hidden="true" class="ic tt-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.4"></circle><path d="M12 2.6v2.4M12 19v2.4M2.6 12h2.4M19 12h2.4M5.4 5.4l1.7 1.7M16.9 16.9l1.7 1.7M18.6 5.4l-1.7 1.7M7.1 16.9l-1.7 1.7"></path></svg></button>
 <a aria-label="Facebook Page" class="fbp" data-link="facebook" href="https://www.facebook.com/profile.php?id=61595349861689" rel="noopener" target="_self"><svg class="ic"><use href="#fb"></use></svg><span>Facebook Page</span></a>
 <button aria-controls="menu" aria-expanded="false" aria-label="মেনু খুলুন" class="burger" id="burger" type="button">☰</button>
 </div>
@@ -70,6 +72,6 @@
 </div>
 <div class="copy"><span class="copy-by">পরিচালনায়: <a data-link="personal" href="https://ebrahim-ead.github.io/ead/" rel="noopener" target="_blank">Ebrahim Ead</a></span><span>© <span id="yr"></span> DAWAH X | Calling to the Truth. All rights reserved.</span></div>
 </div></footer>
-<script src="app.js"></script>
+<script fetchpriority="low" src="app.js"></script>
 <script src="effects.js"></script></body>
 </html>
