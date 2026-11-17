@@ -834,3 +834,70 @@ header.top.is-away{box-shadow:none}
  }
 }
 @keyframes cardRise{from{opacity:.25;transform:translateY(24px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+
+/* ===== সাইট জুড়ে সার্চ (⌘K / Ctrl+K) =====
+   হেডারের বোতাম আর / চাপলে খোলে; শিরোনামের সূচি থেকে সঙ্গে সঙ্গে ফল দেখায় */
+.dxp-trigger{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;padding:0;border:1px solid rgba(173,193,215,.22);border-radius:10px;background:rgba(255,255,255,.045);color:var(--text);font:inherit;cursor:pointer;flex:none}
+.dxp-trigger .ic{width:17px;height:17px}
+/* ছোট পর্দায় হেডারে, বড় পর্দায় ঘড়ির-বারের ডান প্রান্তে — দুটোই লেআউট টানে না */
+.dxp-trigger-bar{position:absolute;right:max(14px,calc((100% - 1140px)/2));top:50%;transform:translateY(-50%);width:34px;height:34px;border-radius:9px}
+.dxp-trigger-in{display:none}
+@media(max-width:900px){.dxp-trigger-in{display:inline-flex}.dxp-trigger-bar{display:none}}
+.dxp-trigger .ic{width:16px;height:16px}
+.dxp-trigger kbd{font:inherit;font-size:10px;letter-spacing:.3px;padding:1px 5px;border:1px solid rgba(173,193,215,.26);border-radius:5px;color:var(--muted)}
+.dxp-trigger:hover,.dxp-trigger:focus-visible{border-color:rgba(246,196,83,.5);color:var(--gold2);background:rgba(246,196,83,.1);outline:none}
+
+dialog.dxp{position:fixed;inset:0;width:100%;max-width:100%;height:100%;max-height:100%;margin:0;padding:clamp(10px,7vh,88px) 14px 18px;border:0;background:transparent;color:var(--text);display:none;z-index:90;overflow:auto}
+dialog.dxp[open]{display:flex;justify-content:center;align-items:flex-start}
+dialog.dxp::backdrop{background:rgba(2,7,11,.74);backdrop-filter:blur(7px) saturate(1.1);-webkit-backdrop-filter:blur(7px) saturate(1.1)}
+.dxp-box{width:min(660px,100%);max-height:100%;display:flex;flex-direction:column;overflow:hidden;border:1px solid rgba(246,196,83,.22);border-radius:16px;background:linear-gradient(180deg,#0b1a24,#081219);box-shadow:0 28px 70px rgba(0,0,0,.62),inset 0 0 0 1px rgba(255,255,255,.03);animation:dxpIn .18s ease-out}
+@keyframes dxpIn{from{opacity:0;transform:translateY(-8px) scale(.99)}to{opacity:1;transform:none}}
+.dxp-head{display:flex;align-items:center;gap:10px;padding:11px 13px;border-bottom:1px solid rgba(173,193,215,.14);color:var(--gold2)}
+.dxp-head .ic{width:18px;height:18px;flex:none}
+#dxp-q{flex:1;min-width:0;padding:4px 0;border:0;background:none;outline:none;color:var(--text);font:inherit;font-size:15.5px;animation:none!important}
+/* ফোকাসের চিহ্ন পুরো সারিতে, আলাদা বাক্সে নয় */
+#dxp-q:focus-visible{outline:none!important}
+.dxp-head:focus-within{border-bottom-color:rgba(246,196,83,.45);background:rgba(246,196,83,.045)}
+#dxp-q::placeholder{color:#8f9db0}
+#dxp-q::-webkit-search-cancel-button{filter:invert(1);opacity:.45}
+.dxp-close{flex:none;width:34px;height:34px;border:1px solid rgba(173,193,215,.2);border-radius:10px;background:rgba(255,255,255,.04);color:var(--muted);font-size:18px;line-height:1;cursor:pointer}
+.dxp-close:hover,.dxp-close:focus-visible{color:var(--gold);border-color:rgba(246,196,83,.45);outline:none}
+.dxp-body{flex:1;min-height:130px;padding:8px;overflow:auto;overscroll-behavior:contain}
+.dxp-note{margin:6px 6px 10px;color:var(--muted);font-size:12.5px;line-height:1.7}
+.dxp-hints{display:flex;flex-wrap:wrap;gap:7px;padding:0 6px 4px}
+.dxp-chip{min-height:32px;padding:4px 11px;border:1px solid rgba(173,193,215,.2);border-radius:999px;background:rgba(255,255,255,.04);color:var(--text);font:inherit;font-size:12.5px;cursor:pointer}
+.dxp-chip:hover,.dxp-chip:focus-visible{border-color:rgba(246,196,83,.5);color:var(--gold2);background:rgba(246,196,83,.1);outline:none}
+.dxp-r{display:block;padding:9px 11px;border:1px solid transparent;border-radius:11px}
+.dxp-r b{display:block;color:var(--text);font-size:14px;font-weight:600;line-height:1.55}
+.dxp-r small{display:block;margin-top:2px;color:var(--muted);font-size:11.5px}
+.dxp-r.is-active,.dxp-r:hover{background:rgba(246,196,83,.1);border-color:rgba(246,196,83,.28)}
+.dxp-r:focus-visible{outline:2px solid var(--gold);outline-offset:-2px}
+.dxp-tag{display:inline-block;margin-bottom:3px;padding:2px 8px;border-radius:999px;font-size:10.5px;font-weight:700;letter-spacing:.3px}
+.dxp-tag-q{color:#9fe3d1;background:rgba(40,203,177,.14);border:1px solid rgba(40,203,177,.3)}
+.dxp-tag-f{color:#ffd98a;background:rgba(246,196,83,.14);border:1px solid rgba(246,196,83,.32)}
+.dxp-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:42px;padding:9px 14px;border-top:1px solid rgba(173,193,215,.14);color:var(--muted);font-size:11.5px}
+.dxp-count{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dxp-all{color:var(--gold2);font-weight:600;white-space:nowrap}
+.dxp-all:hover{text-decoration:underline}
+.dxp-all[hidden]{display:none}
+body.dxp-open{overflow:hidden}
+@media(max-width:560px){dialog.dxp{padding:0}.dxp-box{width:100%;height:100%;max-height:100%;border:0;border-radius:0}.dxp-body{min-height:0}}
+
+/* ===== "পড়ে শুনুন" (ব্রাউজারের নিজের বাংলা ভয়েস) ===== */
+.tool-listen[aria-pressed="true"]{border-color:rgba(246,196,83,.5);background:rgba(246,196,83,.14);color:var(--gold2)}
+.tool-listen span[aria-hidden="true"]{font-size:11px;letter-spacing:.5px}
+.read-listen-note{flex-basis:100%;width:100%;margin:2px 0 0;color:var(--gold2);font-size:12px;line-height:1.65}
+
+/* ===== হেডারের ঘড়িতে হিজরি তারিখ ===== */
+.site-clock-hijri{color:rgba(238,242,248,.82);font-size:12.5px;white-space:nowrap}
+.site-clock-hijri::before{content:"•";margin-right:7px;color:rgba(246,196,83,.65);font-size:12px}
+@media(max-width:560px){.site-clock-hijri{font-size:11px}}
+@media(max-width:360px){.site-clock-hijri{font-size:10px}}
+
+@media print{dialog.dxp,.dxp-trigger,.tool-listen,.read-listen-note,.site-clock-hijri{display:none!important}}
+@media(prefers-reduced-motion:reduce){dialog.dxp,.dxp-box,.dxp-r,.dxp-trigger,.dxp-chip{transition:none!important;animation:none!important}}
+
+/* ল্যাপটপের প্রস্থে (১১৮০–১৫৬০) হেডার সামান্য চওড়া হয়ে ডান পাশ কেটে যাচ্ছিল —
+   ছোট পর্দার মতোই ফেসবুক বোতামের লেখা লুকিয়ে ঠিক রাখা হয় (হিজরি তারিখ ও সার্চ বোতামও তখন অটুট থাকে) */
+@media(min-width:1180px) and (max-width:1560px){.fbp span{display:none}}
+@media(min-width:1180px) and (max-width:1279px){#menu a{padding:7px 4px}}
