@@ -29,7 +29,9 @@
 | `read.html` | লাইব্রেরির লেখা এই সাইটেই পড়ার পেজ (`read.html?k=…`); তালিকার ভিডিও দেখার পেজও (`read.html?v=…`) |
 | `texts/` | প্রকাশকদের অনুমতিক্রমে আনা লেখা (`texts/<শেষ ৩ অক্ষর>.json`) ও তার সূচি `texts/index.json` |
 | `tools/import-texts.cjs`, `.github/workflows/import-texts.yml` | উৎস সাইট থেকে লেখা আনার স্বয়ংক্রিয় ব্যবস্থা (GitHub Actions-এ চলে) |
-| `sitemap.xml` | সার্চ ইঞ্জিনের জন্য পেজের তালিকা |
+| `saved.html` | পাঠকের «সংরক্ষিত লেখা» তালিকা (শুধু তার নিজের ব্রাউজারে জমা থাকে) |
+| `stats.json`, `tools/build-stats.cjs` | সাইটের মোট সংখ্যা (লেখা, ফতোয়া, ভিডিও…) — এখান থেকেই হোম পেজের পরিসংখ্যান-পট্টি ভরে |
+| `sitemap.xml`, `robots.txt` | সার্চ ইঞ্জিনের জন্য পেজের তালিকা ও অনুমতি |
 | `__forms.html`, `netlify.toml` | শুধু Netlify-তে হোস্ট করলে লাগে |
 | `.nojekyll` | GitHub Pages-কে ফাইলগুলো যেমন আছে তেমন প্রকাশ করতে বলে |
 

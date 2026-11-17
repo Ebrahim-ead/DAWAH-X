@@ -80,3 +80,21 @@ Each page is its own `.html` file containing the shared chrome (head, SVG sprite
 - Row order must stay fixed (curated rows first, then the parts in manifest order), otherwise a page number would show different cards from one visit to the next.
 - Do not reset the number box on `blur`: pressing Go blurs the box before the click arrives.
 - The large Dhaka clock card on the home page was removed on the owner's instruction (2026-11-16). The small date/time line at the top of every page stays.
+
+## Smarter + professional pass (2026-11-17)
+
+- **`robots.txt`** (root) allows everything and points at `sitemap.xml`. It is a plain static file; keep it next to `sitemap.xml`.
+- **`sitemap.xml`**: 9 URLs, `<lastmod>` bumped when a page changes (2026-11-17 last). `read.html`, `saved.html` and `s/*.html` are `noindex` and must stay out of it.
+- **`stats.json`** = `{texts,fatwas,articles,questions,videos,topics,updated}` — the single source for every count shown in the UI. Generate it with `node tools/build-stats.cjs` (reads `search/meta.json`, the `*-catalog-part-*.js` chunks, `tools/topics.json`, `youtube-videos.json`).
+  - `tools/update-videos.cjs` rewrites only the `videos` field after it adds videos, so the workflow commits `stats.json` together with the list.
+  - `.github/workflows/import-texts.yml` runs `build-stats` after `build-site-data` and commits `stats.json`.
+  - The home page strip (`.home-stats` → `ul.stat-strip`) is filled by a block at the end of `app.js`: it fetches `stats.json` and replaces each `[data-stat]` number. The HTML numbers are only a fallback for no-JS/SEO — never hand-edit them into a new truth.
+- **JSON-LD**: `index.html` carries the full `@graph` (WebSite + Organization). The other pages (about, services, questions, fatwa, videos, ask, contact, topics) carry a compact `WebSite` block inserted before `</head>`. Keep one `application/ld+json` block per page; `node -e` parse check is enough to validate.
+- **Reader tools** (`read.html`, block in `app.js` guarded by `#read-tools`):
+  - `A−` / `A+` set `--read-scale` on `<article id="read">` (0.85–1.4, stored in `localStorage` `dawahx-read-scale`); `.article-body` font-size is `calc(17px * var(--read-scale))` and `calc(16.5px * …)` under 560 px.
+  - **সংরক্ষণ করুন** stores `{k,t,c,d,f}` in `localStorage` `dawahx-saved` (max 200). Only text pages (`k` = 14 hex) can be saved; the button is disabled on video pages.
+  - `saved.html` lists them (its own inline script, same storage key), with remove / clear-all and an empty state. It is `noindex` and linked from the footer quick links of the 10 main pages and from the reader toolbar.
+  - `প্রিন্ট / PDF` calls `window.print()`; `@media print` in `style.css` hides the chrome and turns the article to black-on-white (12 pt), hiding the video frame.
+- **New video badge**: `youtube-gallery.js` adds `.video-new` («নতুন») when `publishedAt` is inside `NEW_DAYS` (14). Videos without `publishedAt` never get the badge.
+- **Service worker**: `VERSION` is `v2`; `PRECACHE` also holds `saved.html` and `stats.json`. `netlify.toml` sends `Cache-Control: public, max-age=0, must-revalidate` for `/sw.js`.
+- **Stale file removed**: `catalog-counts.json` was outdated (its `fatwas_unique` was 12,796 against 19,025 references) and nothing reads it; deleted. The page numbers on `fatwa.html` / `questions.html` are the “unique references” metric (12,780 + 5,853 = 18,633; 911 Q&A rows) and are kept as they were — do not “fix” them from a raw catalogue row count (18,631 / 911 rows), the two metrics differ.

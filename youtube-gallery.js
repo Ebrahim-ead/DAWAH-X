@@ -13,6 +13,7 @@
   const scriptUrl=document.currentScript?.src||location.href;
   const numberFormat=new Intl.NumberFormat('en-US');
   const dateFormat=new Intl.DateTimeFormat('en-US',{month:'long',day:'numeric',year:'numeric',timeZone:'Asia/Dhaka'});
+  const NEW_DAYS=14; /* এই দিনসংখ্যার ভেতরের ভিডিওতে "নতুন" ব্যাজ */
   let videos=[];
   let page=1;
 
@@ -187,6 +188,16 @@
       info.append(time);
     }
     info.append(note);
+    /* ২১ দিনের ভেতরের আপলোডে "নতুন" ব্যাজ — তালিকা নিজে থেকেই আপডেট হয় বলে পাঠক নতুন ভিডিও চিনতে পারেন */
+    if(video.publishedAt){
+      const age=Date.now()-Date.parse(video.publishedAt);
+      if(age>-86400000&&age<NEW_DAYS*86400000){
+        const badge=document.createElement('span');
+        badge.className='video-new';
+        badge.textContent='নতুন';
+        button.append(badge);
+      }
+    }
     article.append(button,info);
     return article;
   }

@@ -707,3 +707,66 @@ a,button,input,select,textarea,.chip,.qcard{touch-action:manipulation;-webkit-ta
 @media(min-width:901px) and (max-width:1179px){.fbp span{display:none}}
 @media(min-width:1060px) and (max-width:1179px){#menu{flex-basis:660px}#menu a{padding:7px 6px;font-size:15px}}
 @media(min-width:901px) and (max-width:1059px){#menu{flex-basis:575px}#menu a{padding:7px 5px;font-size:14px}}
+
+/* হোমপেজের পরিসংখ্যান-পট্টি: সংখ্যাগুলো stats.json থেকে আসে (app.js), হাতে লেখা সংখ্যা নয় */
+.home-stats{position:relative;z-index:2;padding:4px 0 26px}
+.stat-strip{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));margin:0;padding:16px 10px;list-style:none;border:1px solid rgba(246,196,83,.16);border-radius:20px;background:linear-gradient(160deg,rgba(13,27,35,.74),rgba(8,17,23,.55));box-shadow:0 18px 44px rgba(0,0,0,.26)}
+.stat-strip li+li{border-left:1px solid rgba(246,196,83,.14)}
+.stat-strip a{display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 6px;border-radius:12px;color:inherit;text-align:center;text-decoration:none;transition:background .25s ease}
+.stat-strip a:hover,.stat-strip a:focus-visible{background:rgba(246,196,83,.07)}
+.stat-strip b{color:var(--gold2);font-size:clamp(19px,2.5vw,26px);font-weight:700;line-height:1.15;font-variant-numeric:tabular-nums;letter-spacing:.2px}
+.stat-strip span{color:#a3b1c2;font-size:12px;line-height:1.35}
+@media(max-width:900px){.stat-strip{grid-template-columns:repeat(3,minmax(0,1fr));row-gap:6px}.stat-strip li:nth-child(3n+1){border-left:0}}
+@media(max-width:560px){.home-stats{padding:2px 0 20px}.stat-strip{grid-template-columns:repeat(3,minmax(0,1fr));padding:12px 4px;border-radius:16px}.stat-strip b{font-size:17px}.stat-strip span{font-size:10.5px}}
+@media(max-width:360px){.stat-strip b{font-size:16px}.stat-strip span{font-size:10px}}
+
+/* পড়ার সরঞ্জাম: লেখার আকার, সংরক্ষণ, প্রিন্ট (read.html) */
+.read-tools{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:22px 0 18px;padding:10px 12px;border:1px solid rgba(246,196,83,.14);border-radius:16px;background:rgba(255,255,255,.03)}
+.read-tools-label{color:#93a2b4;font-size:11.5px;letter-spacing:.4px;text-transform:uppercase;margin-right:2px}
+.tools-group{display:flex;gap:4px}
+.tool-btn{display:inline-flex;align-items:center;gap:6px;min-height:38px;padding:6px 13px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.04);color:var(--text);font:inherit;font-size:13.5px;line-height:1;text-decoration:none;cursor:pointer;transition:border-color .2s ease,background .2s ease,color .2s ease,transform .2s ease}
+.tool-btn:hover{transform:translateY(-1px);border-color:rgba(246,196,83,.4);background:rgba(246,196,83,.1);color:var(--gold2)}
+.tool-btn .ic{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.7}
+.tool-save[aria-pressed="true"]{border-color:rgba(246,196,83,.5);background:linear-gradient(100deg,rgba(246,196,83,.16),rgba(246,196,83,.05));color:var(--gold2)}
+.tool-btn[disabled]{opacity:.45;cursor:default;transform:none}
+#read{--read-scale:1}
+.article-body{font-size:calc(17px * var(--read-scale))}
+@media(max-width:560px){.read-tools{gap:7px;padding:9px}.read-tools-label{display:none}.tool-btn{min-height:36px;padding:6px 11px;font-size:12.5px}.article-body{font-size:calc(16.5px * var(--read-scale))}}
+
+/* ছাপা (প্রিন্ট / PDF): মেনু, বিজ্ঞাপন-বাক্স ও গাঢ় পটভূমি বাদ — সাদা কাগজে পরিষ্কার লেখা */
+@media print{
+ body{background:#fff!important;color:#111!important}
+ header.top,.site-clockbar,footer,.ambient-motion,.cursor-light,.back-to-top,.read-tools,.article-share,.article-cta,#scroll-progress,#read-more,.video-lightbox{display:none!important}
+ main,#main-content{background:#fff!important;padding:0!important}
+ .article{padding:0!important}
+ .article-body{color:#111!important;font-size:12pt!important;line-height:1.7}
+ .article-body a{color:#111!important;text-decoration:underline}
+ .article-head h1,#read-title{color:#111!important}
+ .article-meta,#read-meta,.crumbs,.article-cat{color:#444!important}
+ .article-source{border:1px solid #999!important;background:#fff!important;color:#222!important}
+ .video-frame{display:none!important}
+ a[href^="http"]::after{content:" (" attr(href) ")";font-size:9pt;color:#555;word-break:break-all}
+}
+
+/* সংরক্ষিত লেখা (saved.html) */
+.saved-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin:20px 0 8px;padding:10px 14px;border:1px solid rgba(246,196,83,.16);border-radius:14px;background:rgba(255,255,255,.03)}
+.saved-bar span{color:#b9c6d6;font-size:13.5px}
+.saved-list{display:flex;flex-direction:column;gap:9px;margin:14px 0 0}
+.saved-row{display:flex;align-items:center;gap:8px}
+.saved-link{flex:1 1 auto;display:flex;flex-direction:column;gap:4px;padding:13px 16px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.035);color:var(--text);text-decoration:none;transition:border-color .2s ease,background .2s ease,transform .2s ease}
+.saved-link:hover{transform:translateY(-1px);border-color:rgba(246,196,83,.38);background:rgba(246,196,83,.08)}
+.saved-link b{font-size:15.5px;line-height:1.5;color:#fff;font-weight:600}
+.saved-link small{font-size:11.5px;color:#93a2b4}
+.saved-del{flex:0 0 auto;width:42px;height:44px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.03);color:#9fb0c2;font-size:20px;line-height:1;cursor:pointer;transition:color .2s ease,border-color .2s ease,background .2s ease}
+.saved-del:hover{color:#ff9c9c;border-color:rgba(255,120,120,.4);background:rgba(255,90,90,.1)}
+.saved-empty{margin:16px 0 0;padding:18px;border:1px dashed rgba(246,196,83,.25);border-radius:16px;background:rgba(246,196,83,.04);color:#cbd7e4;font-size:14.5px;line-height:1.8}
+.saved-empty a{color:var(--gold2)}
+.saved-note{margin:22px 0 0;color:#82929f;font-size:12.5px;line-height:1.7}
+@media(max-width:560px){.saved-link{padding:11px 13px}.saved-link b{font-size:14.5px}.saved-del{width:38px}}
+
+/* নতুন ভিডিওর ব্যাজ (youtube-gallery.js — ২১ দিনের ভেতরের আপলোড) */
+.video-new{position:absolute;right:10px;top:10px;z-index:2;padding:3px 9px;border-radius:999px;background:linear-gradient(100deg,#f6c453,#ffd56a);color:#241a03;font-size:11px;font-weight:700;letter-spacing:.3px;line-height:1.6;box-shadow:0 4px 14px rgba(0,0,0,.35)}
+
+/* শুধু ছাপার সময় দেখানো লাইন (পাতার নাম ও ঠিকানা) */
+.print-only{display:none}
+@media print{.print-only{display:block!important;margin:0 0 10px;color:#555!important;font-size:9pt;letter-spacing:.3px}}
