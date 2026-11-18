@@ -379,3 +379,9 @@ Light theme gets a softer shadow for both (`html[data-theme="light"] …{box-sha
 - The **name lives in the caption, not in `alt`** — so the image is `alt=""` (decorative) and the caption carries the meaning. On ≤560 px the caption is moved to a visually-hidden box (`clip-path:inset(50%)`, 1×1 px) instead of `display:none`, so screen readers still announce it on phones where the 72 px circle has no room for text. Do not switch that to `display:none`.
 - Desktop: 12.5 px, muted, centred under the circle; the `.about-brand` box grows from 166 px to ~192 px tall, `about-brand` 216 px — the grid row is auto, so nothing else moves.
 - `sw.js` → **v11**.
+
+### Caption text (2026-11-18, PR #30)
+
+The caption reads **«Ebrahim Ead»**, which is what the rest of the site already calls him — `about.html` already had «DAWAH X পরিচালনা করেন **Ebrahim Ead**» and the footer credit links to `/ead/`. Keep the caption in Latin script to match those, and keep the `alt=""` + `figcaption` split described above (the caption, not the alt, carries the name).
+
+`sw.js` → **v12**.
