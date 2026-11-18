@@ -349,3 +349,25 @@ Fix — a new `@media(max-width:360px)` block right after the ≤430 px one:
 - Shrinking every control until it fits was measured to leave ~5 px of slack and would have pushed the theme toggle and the search button below their current 32/38 px; the **Facebook pill is the one item with a duplicate** (footer «সামাজিক যোগাযোগ» and the menu), so it is the one that goes at ≤360 px. Everything else keeps its size and its tap target.
 - After the fix: `scrollWidth == innerWidth` on **all 13 pages** at 320 px, and the header height stays 64 px. Checked at 280/300/320/340/360/361/412 — no overflow, and ≥361 px is unchanged.
 - If the Facebook pill must stay on tiny phones too, the alternative is `.theme-toggle`/`.dxp-trigger` down to 30/34 px **and** a 32 px logo — tighter and worse for tapping.
+
+## Founder portrait (2026-11-17, PR #29)
+
+**Files** (made from the owner's 565×565 upload, WebP `method=6`):
+| file | size | used for |
+|---|---|---|
+| `founder.webp` | 480×480, 15.1 KB | `about.html`, desktop column (166 px @2x) |
+| `founder-sm.webp` | 160×160, 3.4 KB | `about.html` on phones + the contact card |
+
+Regenerate with `convert <source.png> -resize 480x480 -define webp:method=6 -quality 82 founder.webp` (and 160x160 / q84 for the small one).
+
+**Where it shows**
+1. **`about.html`** — the `.about-brand` box (which used to hold the wordmark logo, already repeated in the header and footer) is now the portrait: a circular crop with a gold 2 px ring. `srcset="founder-sm.webp 160w, founder.webp 480w"` with `sizes="(max-width:560px) 72px,(max-width:760px) 120px,166px"`, so a phone downloads the 3.4 KB file, not the 15 KB one. `fetchpriority="high"`, `alt="ইব্রাহিম বিন কমরুজ্জামান — DAWAH X"`, and explicit `width`/`height` — the column width is fixed (190/135/82/72 px at the existing breakpoints), so there is no layout shift.
+2. **`contact.html`** — the «Facebook ID» card shows his face (`img.face`, 46 px circle) in place of the generic `#fb` icon. `alt=""` on purpose: the name is already the card's `<b>`, a second announcement would be noise.
+
+`object-fit:cover` + `object-position:50% 28%` keeps the head centred in the circle at every size; if the photo is ever replaced, re-check that crop.
+
+**Bonus fix:** `.ccard b` used `word-break:break-all`, so «Ebrahim Bin Kamruzzaman» broke mid-word («Kamruzzam / an»). It is now `overflow-wrap:anywhere`: it still breaks when it must, but at spaces first.
+
+Light theme gets a softer shadow for both (`html[data-theme="light"] …{box-shadow:0 10px 24px rgba(23,36,44,.18)}`). `sw.js` → **v10**, with both images added to the precache shell.
+
+**Verification** — 13 pages at 412 px: no horizontal overflow, no 4xx, no console errors, no broken images; the portrait is only fetched on `about`/`contact`. Element screenshots at 412/1366 in light + dark. CLS measured 0.073 (about) / 0.090 (contact) — in line with the font-swap shift the other pages already had, not the portrait.

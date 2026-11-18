@@ -116,8 +116,9 @@ footer{border-top:1px solid var(--line);padding:30px 0 20px;font-size:14px}
 .ccard:hover{border-color:var(--gold);transform:translateY(-4px);box-shadow:0 12px 30px rgba(0,0,0,.35)}
 .ccard>.i{font-size:40px;color:var(--gold)}
 .ccard>.ic{width:40px;height:40px}
+.ccard>.face{width:46px;height:46px;border-radius:50%;object-fit:cover;object-position:50% 28%;flex:none;border:2px solid rgba(246,196,83,.55)}
 .ccard small{display:block;color:var(--muted);font-size:13px}
-.ccard b{display:block;font-size:19px;font-weight:600;word-break:break-all}
+.ccard b{display:block;font-size:19px;font-weight:600;overflow-wrap:anywhere}
 .ccard span{color:var(--gold2);font-size:14px}
 .askbox{max-width:720px;margin:0 auto;border:1px solid var(--line);border-radius:14px;padding:26px;background:linear-gradient(135deg,rgba(255,255,255,.04),rgba(255,255,255,.01))}
 .askbox label{display:block;font-weight:500;margin:14px 0 4px}
@@ -380,6 +381,10 @@ footer{background:rgba(0,0,0,.13)}
 .about-header{display:grid;grid-template-columns:190px minmax(0,1fr);gap:26px;align-items:center;margin-bottom:22px;padding:18px 24px;border:1px solid var(--line);border-radius:20px;background:linear-gradient(115deg,rgba(246,196,83,.08),rgba(255,255,255,.025) 45%,rgba(255,255,255,.01));box-shadow:0 18px 44px rgba(0,0,0,.18)}
 .about-brand{display:flex;align-items:center;justify-content:center;min-height:0;padding:12px;border-right:1px solid rgba(246,196,83,.22);background:radial-gradient(ellipse,rgba(246,196,83,.07),transparent 72%)}
 #about .about-brand .word{width:min(100%,180px);height:auto}
+/* প্রতিষ্ঠাতার ছবি (about.html) — গোল ফ্রেমে, সোনালি রিং */
+#about .about-brand .portrait{width:min(100%,166px);height:auto;aspect-ratio:1/1;object-fit:cover;object-position:50% 28%;border-radius:50%;border:2px solid rgba(246,196,83,.5);box-shadow:0 12px 30px rgba(0,0,0,.38);background:#0d1b24}
+@media(max-width:760px){#about .about-brand .portrait{width:min(100%,120px)}}
+@media(max-width:560px){#about .about-brand .portrait{width:min(100%,72px);border-width:1px}}
 .about-eyebrow,.about-kicker{display:inline-block;color:var(--gold);font-size:12px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase}
 .about-intro h1{font-size:clamp(27px,4vw,36px);margin:7px 0 10px;color:var(--text)}
 #about .about-intro p{max-width:790px;margin:0;color:rgba(237,243,250,.9);font-size:17px;line-height:1.85}
@@ -1132,6 +1137,7 @@ html[data-theme="light"] .back-to-top{background:rgba(255,253,248,.92);border-co
 html[data-theme="light"] footer{background:rgba(23,36,44,.04);border-top-color:var(--line)}
 html[data-theme="light"] .fg li a{color:var(--muted)}
 html[data-theme="light"] .fg .word{filter:none}
+html[data-theme="light"] #about .about-brand .portrait,html[data-theme="light"] .ccard>.face{box-shadow:0 10px 24px rgba(23,36,44,.18)}
 html[data-theme="light"] .soc a{border-color:var(--line);background:rgba(255,255,255,.7);color:var(--text)}
 html[data-theme="light"] .follow-btn{background:rgba(255,255,255,.8);border-color:var(--line);color:var(--text)}
 html[data-theme="light"] .copy{color:var(--muted)}
