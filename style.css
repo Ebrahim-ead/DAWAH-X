@@ -385,6 +385,11 @@ footer{background:rgba(0,0,0,.13)}
 #about .about-brand .portrait{width:min(100%,166px);height:auto;aspect-ratio:1/1;object-fit:cover;object-position:50% 28%;border-radius:50%;border:2px solid rgba(246,196,83,.5);box-shadow:0 12px 30px rgba(0,0,0,.38);background:#0d1b24}
 @media(max-width:760px){#about .about-brand .portrait{width:min(100%,120px)}}
 @media(max-width:560px){#about .about-brand .portrait{width:min(100%,72px);border-width:1px}}
+/* নাম-ক্যাপশন: বড় পর্দায় ছবির নিচে, ছোট পর্দায় চোখে দেখা যায় না কিন্তু স্ক্রিন-রিডার পড়ে */
+.about-portrait{display:flex;flex-direction:column;align-items:center;gap:9px;margin:0;min-width:0}
+.about-portrait figcaption{font-size:12.5px;font-weight:600;line-height:1.45;color:var(--muted);text-align:center;letter-spacing:.2px}
+@media(max-width:760px){.about-portrait figcaption{font-size:11.5px}}
+@media(max-width:560px){.about-portrait{gap:0}.about-portrait figcaption{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}}
 .about-eyebrow,.about-kicker{display:inline-block;color:var(--gold);font-size:12px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase}
 .about-intro h1{font-size:clamp(27px,4vw,36px);margin:7px 0 10px;color:var(--text)}
 #about .about-intro p{max-width:790px;margin:0;color:rgba(237,243,250,.9);font-size:17px;line-height:1.85}

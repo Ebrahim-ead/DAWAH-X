@@ -371,3 +371,11 @@ Regenerate with `convert <source.png> -resize 480x480 -define webp:method=6 -qua
 Light theme gets a softer shadow for both (`html[data-theme="light"] …{box-shadow:0 10px 24px rgba(23,36,44,.18)}`). `sw.js` → **v10**, with both images added to the precache shell.
 
 **Verification** — 13 pages at 412 px: no horizontal overflow, no 4xx, no console errors, no broken images; the portrait is only fetched on `about`/`contact`. Element screenshots at 412/1366 in light + dark. CLS measured 0.073 (about) / 0.090 (contact) — in line with the font-swap shift the other pages already had, not the portrait.
+
+### Name caption under the portrait (same PR)
+
+`about.html` wraps the image in `<figure class="about-portrait"><img …><figcaption>ইব্রাহিম বিন কমরুজ্জামান</figcaption></figure>`.
+
+- The **name lives in the caption, not in `alt`** — so the image is `alt=""` (decorative) and the caption carries the meaning. On ≤560 px the caption is moved to a visually-hidden box (`clip-path:inset(50%)`, 1×1 px) instead of `display:none`, so screen readers still announce it on phones where the 72 px circle has no room for text. Do not switch that to `display:none`.
+- Desktop: 12.5 px, muted, centred under the circle; the `.about-brand` box grows from 166 px to ~192 px tall, `about-brand` 216 px — the grid row is auto, so nothing else moves.
+- `sw.js` → **v11**.
