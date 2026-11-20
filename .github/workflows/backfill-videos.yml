@@ -55,6 +55,12 @@ jobs:
                 echo "$ch $tab: $n"
               done
             done
+            echo "=== lemnoslife (key-less data api copy)"
+            for base in "https://yt.lemnoslife.com/noKey/videos" "https://yt.lemnoslife.com/videos"; do
+              echo "--- $base"
+              curl -s -m 25 "$base?part=snippet&id=8Gop_lDQtuA,WbDFS-_e7qc,KILXY0bmSAU" | head -c 420
+              echo
+            done
           } | tee tools/probe-report.txt
       - name: Walk the channel and add missing videos
         env:

@@ -213,7 +213,33 @@ function ytdlpList(url) {
 }
 
 /* প্রকাশের সঠিক তারিখ: Return YouTube Dislike API-র dateCreated (কোনো key লাগে না) */
-const rydStats = { ok: 0, miss: 0, err: 0 };
+/* ব্যাচে ৫০টি করে সঠিক প্রকাশের তারিখ — YouTube Data API-র প্রতিলিপি, key ছাড়া।
+   (একই অনুরোধে ৫০টি ভিডিও, তাই ৪ হাজার ভিডিও ৮০টি অনুরোধেই শেষ) */
+async function lemnosDates(ids) {
+  const found = new Map();
+  for (let i = 0; i < ids.length; i += 50) {
+    const chunk = ids.slice(i, i + 50);
+    for (const base of ['https://yt.lemnoslife.com/noKey/videos', 'https://yt.lemnoslife.com/videos']) {
+      try {
+        const r = await fetch(base + '?part=snippet&id=' + chunk.join(','), { headers: { 'Accept': 'application/json', 'User-Agent': UA_HEADER } });
+        if (!r.ok) continue;
+        const j = await r.json();
+        for (const it of (j && j.items) || []) {
+          const iso = it && it.snippet && it.snippet.publishedAt;
+          const t = iso ? Date.parse(iso) : NaN;
+          if (it.id && !Number.isNaN(t)) found.set(it.id, new Date(t).toISOString());
+        }
+        if (found.size) break;
+      } catch (e) { /* পরের base চেষ্টা */ }
+    }
+  }
+  return found;
+}
+
+/* এই রানের শুরুর দিকে পাওয়া dateCreated মানে RYD-র নিজের রেকর্ড তৈরি হয়েছে এখনই —
+   ভিডিওর প্রকাশের তারিখ নয়। এমন মান বাদ দেওয়া হয়। */
+const RUN_START = Date.now() - 15 * 60000;
+const rydStats = { ok: 0, miss: 0, suspect: 0, err: 0 };
 async function rydDate(id) {
   for (let i = 0; i < 3; i++) {
     try {
@@ -221,7 +247,13 @@ async function rydDate(id) {
         { headers: { 'Accept': 'application/json', 'User-Agent': UA_HEADER } });
       if (!r.ok) throw new Error('HTTP ' + r.status);
       const j = await r.json();
-      if (j && j.dateCreated) { const t = Date.parse(j.dateCreated); if (!Number.isNaN(t)) { rydStats.ok++; return new Date(t).toISOString(); } }
+      if (j && j.dateCreated) {
+        const t = Date.parse(j.dateCreated);
+        if (!Number.isNaN(t)) {
+          if (t >= RUN_START && t <= Date.now() + 60000) { rydStats.suspect++; return ''; }
+          rydStats.ok++; return new Date(t).toISOString();
+        }
+      }
       rydStats.miss++;
       return '';
     } catch (e) { if (i === 2) { rydStats.err++; return ''; } await sleep(1500 * (i + 1)); }
@@ -311,13 +343,15 @@ function compact(videos) {
     /* ধাপ ২: যেগুলো তালিকায় নেই, তাদের প্রকাশের তারিখ */
     const todo = ids.filter(x => !known.has(x.id));
     console.log('  নতুন ' + todo.length + 'টি · তালিকায় আগেই আছে ' + (ids.length - todo.length) + 'টি');
-    const started = Date.now();
-    let added = 0, failed = 0;
     const batch = todo.slice(0, Math.max(0, Math.min(todo.length, LIMIT - fresh.length)));
-    await pool(batch, 4, async it => {
+    const dates = batch.length ? await lemnosDates(batch.map(x => x.id)) : new Map();
+    console.log('  ব্যাচ-তারিখ: ' + dates.size + '/' + batch.length);
+    const startedAt = Date.now();
+    let added = 0, failed = 0;
+    await pool(batch, 3, async it => {
       if (left() < 45000) return;
-      let iso = '';
-      try { iso = await rydDate(it.id); } catch (e) { failed++; }
+      let iso = dates.get(it.id) || '';
+      if (!iso) { try { iso = await rydDate(it.id); } catch (e) { failed++; } }
       if (!iso) failed++;
       const t = iso ? Date.parse(iso) : NaN;
       fresh.push({
@@ -330,12 +364,12 @@ function compact(videos) {
       known.add(it.id);
       added++;
       if (added % 200 === 0) {
-        const per = (Date.now() - started) / added;
+        const per = (Date.now() - startedAt) / added;
         console.log('  +' + added + '/' + batch.length + ' · ' + Math.round(left() / 1000) + 's বাকি · আনুমানিক ' +
           Math.round(per * (batch.length - added) / 1000) + 's');
       }
     });
-    console.log('  যোগ হবে ' + fresh.filter(v => v.channelTitle === label).length + 'টি' + (failed ? ' · তথ্য মেলেনি ' + failed + 'টি' : ''));
+    console.log('  যোগ হবে ' + fresh.filter(v => v.channelTitle === label).length + 'টি' + (failed ? ' · তারিখ মেলেনি ' + failed + 'টি' : ''));
   }
 
   /* ধাপ ৩ (ঐচ্ছিক): আগে থেকেই থাকা তারিখ-ফাঁকা সারি — আবার চেষ্টা */
@@ -344,10 +378,12 @@ function compact(videos) {
     const labels = new Set(targets.map(c => c.title).filter(Boolean));
     const blank = videos.filter(v => !v.publishedAt && (labels.size === 0 || labels.has(v.channelTitle) || v.channelTitle === 'Al-Itisam TV' || v.channelTitle === 'Attahreek TV'));
     console.log('\n=== তারিখ পূরণ · ফাঁকা ' + blank.length + 'টি');
+    const fillDates = blank.length ? await lemnosDates(blank.map(v => v.id)) : new Map();
+    console.log('  ব্যাচ-তারিখ: ' + fillDates.size + '/' + blank.length);
     const startedFill = Date.now();
     await pool(blank, 3, async v => {
       if (left() < 45000) return;
-      const iso = await rydDate(v.id);
+      const iso = fillDates.get(v.id) || await rydDate(v.id);
       if (!iso) return;
       v.publishedAt = iso;
       filled++;
@@ -356,7 +392,7 @@ function compact(videos) {
     });
     console.log('  পূরণ হলো ' + filled + 'টি');
   }
-  console.log('  RYD: পাওয়া ' + rydStats.ok + ' ·Entry নেই ' + rydStats.miss + ' · এরর ' + rydStats.err);
+  console.log('  RYD: পাওয়া ' + rydStats.ok + ' · এন্ট্রি নেই ' + rydStats.miss + ' · সন্দেহজনক (আজকের) ' + rydStats.suspect + ' · এরর ' + rydStats.err);
 
   console.log('\nযোগ হবে মোট ' + fresh.length + 'টি · এখন তালিকায় ' + videos.length + 'টি' + (DRY ? ' (dry run)' : ''));
   if (DRY || !fresh.length) return;
