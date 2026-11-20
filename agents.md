@@ -419,3 +419,9 @@ The caption reads **«Ebrahim Ead»**, which is what the rest of the site alread
 **Catalogue weight.** `youtube-videos.json` no longer stores `thumbnail` (every row was the same derived `i.ytimg.com/vi/<id>/hqdefault.jpg` that `thumbUrl` already builds). Both writers delete it, so the file compacts itself. Measured at 8,941 rows: **2.54 MB raw / 408 KB gzipped**, first 20 cards 2.1 s at 4× CPU throttling, 447 pages, channel chips and the last page all render, no console errors. `drawFilters()` now collects the present topics in one pass into a `Set` instead of running `videos.some(...)` per topic (22 full scans of every title).
 
 **Pushing from a session, not from CI.** A bot commit and a local commit touching `youtube-videos.json` conflict on the whole (single-line) file, and `git pull --rebase -X theirs` during a local rebase keeps the *local* copy — which silently dropped two bot data commits. Keep no local edits to that file, or sync it from origin before pushing.
+
+### Streams pass (2026-11-20, same PR #31 follow-up)
+
+Past live streams sit in a separate `/streams` tab (Attahreek TV 219, Al-Itisam TV 142), so `--tab streams` was run once: **9,302 rows** now (8,941 + 361), 4,044 with a date. RYD had no record for about 60 of the new stream ids, so those joined the blacklist and show no date. The workflow input `tab` selects `videos | shorts | streams` for such one-off passes; the default stays `videos`.
+
+One gotcha seen here: the `BACKFILL_TAB` env var did not take effect for the pass while `--tab streams` on the command line did, so a one-off pass should pass the flag explicitly. The commit step also lost a run's data once when the branch head moved between checkout and push — it now fetches, rebases and pushes up to four times.
