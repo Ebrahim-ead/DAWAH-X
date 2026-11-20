@@ -32,12 +32,12 @@ on:
         default: ''
   push:
     branches: ['arena/**']
-    paths: ['tools/backfill-videos.cjs', 'tools/probe-videos.cjs', '.github/workflows/backfill-videos.yml']
+    paths: ['tools/backfill-videos.cjs', '.github/workflows/backfill-videos.yml']
 permissions:
   contents: write
   pages: write
 concurrency:
-  group: backfill-videos-b-${{ github.ref_name }}  # বি-গ্রুপ: পুরোনো (ধীর) রান আটকে থাকলেও এটি সাথে সাথে শুরু হয়
+  group: backfill-videos-${{ github.ref_name }}
   cancel-in-progress: false
 jobs:
   backfill:
