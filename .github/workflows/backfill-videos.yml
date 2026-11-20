@@ -22,6 +22,14 @@ on:
         description: 'আগে থেকে থাকা তারিখ-ফাঁকা সারির তারিখও খোঁজা হবে (1/0)'
         required: false
         default: '1'
+      suspect_from:
+        description: 'অডিট: এই সময়ের পরের ও আগের (ISO) তারিখ সন্দেহজনক'
+        required: false
+        default: ''
+      suspect_to:
+        description: 'অডিট: সন্দেহজনক জানালার শেষ (ISO)'
+        required: false
+        default: ''
   push:
     branches: ['arena/**']
     paths: ['tools/backfill-videos.cjs', 'tools/probe-videos.cjs', '.github/workflows/backfill-videos.yml']
@@ -68,6 +76,9 @@ jobs:
           BACKFILL_LIMIT: ${{ inputs.limit || '4000' }}
           BACKFILL_TAB: ${{ inputs.tab || 'videos' }}
           BACKFILL_FILL: '1'
+          # এক-বারের অডিট: আগের রানে সন্দেহজনক ভাবে বসানো তারিখগুলো আবার যাচাই
+          BACKFILL_SUSPECT_FROM: ${{ inputs.suspect_from }}
+          BACKFILL_SUSPECT_TO: ${{ inputs.suspect_to }}
         run: |
           node tools/backfill-videos.cjs --minutes 100 2>&1 | tee tools/backfill-report.txt
           exit "${PIPESTATUS[0]}"
