@@ -428,6 +428,7 @@ function compact(videos) {
   });
   compact(videos);
   fs.writeFileSync(LIST, JSON.stringify(videos));
+  if (unknownIds.size) fs.writeFileSync(UNKNOWN, JSON.stringify(Array.from(unknownIds).sort()) + '\n');
   if (configChanged) fs.writeFileSync(CONFIG, JSON.stringify(config, null, 2) + '\n');
 
   let stats = null;
