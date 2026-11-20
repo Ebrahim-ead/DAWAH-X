@@ -1,26 +1,7 @@
-# probe 2026-11-20T06:05:46.128Z
-channel: UCc6cxJCSSaLxd4JE_GHxsEA
-
-[page] 200 286ms 1386KB · lockup 31 · contentId 30
-  declared video count: 3K videos
-  header meta: contentMetadataViewModel","flexibleActionsViewModel","buttonViewModel","modalWithTitleAndButtonRenderer","buttonRenderer","descriptionPreviewViewModel","engagementPanelSectionListRenderer","engagementPanelTitleHeaderRenderer","sectionListRe
-  ytInitialData parsed: true
-
-[walk] key AIzaSyAO_F… · cv 2.20261119.01.00 · visitor yes
-  page 1: 30 ids (unique 30) · tokens 6
-  page 2: 200 156ms · 30 ids · unique 60 (+30) · tokens 6
-  page 3: 200 236ms · 30 ids · unique 60 (+0) · tokens 6
-  page 4: 200 131ms · 30 ids · unique 90 (+30) · tokens 6
-  page 5: 200 153ms · 30 ids · unique 120 (+30) · tokens 6
-  page 6: 200 52ms · 0 ids · unique 120 (+0) · tokens 5
-  walk total: 120 unique ids in 6 pages
-
-[player] 8Gop_lDQtuA: 200 99ms 7KB · status LOGIN_REQUIRED (Sign in to confirm you’re not a bot) · videoDetails false · publishDate (none)
-[watch] 200 593ms 1291KB · datePublished (none) · botcheck true
-
-[ryd] ids: 8Gop_lDQtuA, KILXY0bmSAU, WbDFS-_e7qc
-  8Gop_lDQtuA: 200 218ms · dateCreated 2026-11-19T14:45:21.512623Z · views 216 · deleted false
-  KILXY0bmSAU: 200 148ms · dateCreated 2023-12-12T06:47:11.662962Z · views 1059 · deleted false
-  WbDFS-_e7qc: 200 131ms · dateCreated 2022-03-12T09:24:36.360849Z · views 21143 · deleted false
-
-[rss] 200 94ms · entry 15
+=== tab counts 2026-11-20T06:11:06Z
+UCc6cxJCSSaLxd4JE_GHxsEA videos: 0
+UCc6cxJCSSaLxd4JE_GHxsEA shorts: 0
+UCc6cxJCSSaLxd4JE_GHxsEA streams: 0
+UCtip528n2pKDumGCvftZPIg videos: 0
+UCtip528n2pKDumGCvftZPIg shorts: 0
+UCtip528n2pKDumGCvftZPIg streams: 0
