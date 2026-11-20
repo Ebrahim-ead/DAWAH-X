@@ -54,6 +54,18 @@ const ID_RE = /^[\w-]{11}$/, CH_RE = /^UC[\w-]{22}$/;
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const warn = m => console.log('::warning::' + String(m).replace(/\r?\n/g, ' '));
 const left = () => DEADLINE - Date.now();
+/* ছোট pool: একসাথে কয়েকটি অনুরোধ (YouTube ধীরে উত্তর দেয়, একটার পর একটা করলে সময় বহুগুণ লাগে) */
+async function pool(items, size, worker) {
+  let at = 0;
+  const runners = Array.from({ length: Math.min(size, items.length) }, async () => {
+    while (at < items.length) {
+      const item = items[at++];
+      try { await worker(item); } catch (e) { warn('  ব্যর্থ: ' + (item && item.id || '') + ' → ' + e.message); }
+      await sleep(40);
+    }
+  });
+  await Promise.all(runners);
+}
 
 async function req(url, opts = {}, tries = 3) {
   let last;
@@ -196,15 +208,20 @@ async function videoInfo(ch, id) {
     const push = vr => { const id = vr.videoId; if (ID_RE.test(id) && !seen.has(id)) { seen.add(id); ids.push({ id, title: titleOf(vr) }); } };
     ch.items.forEach(push);
     let tokens = ch.tokens.slice();
+    const used = new Set();
     let pages = 1;
-    while (tokens.length && left() > 60000) {
+    while (tokens.length && left() > 60000 && pages < 600) {
       const token = tokens.shift();
+      if (used.has(token)) continue;      /* একই token দুবার এলে আটকে যাওয়ার আগেই থামা */
+      used.add(token);
       let res;
       try { res = await browse(ch, token); } catch (e) { warn('  তালিকার ধাপ ব্যর্থ: ' + e.message); continue; }
       pages++;
+      const before = ids.length;
       res.items.forEach(push);
-      for (const t of res.tokens) if (t !== token && !tokens.includes(t)) tokens.push(t);
-      if (pages % 10 === 0) console.log('  ' + pages + ' ধাপ · ' + ids.length + 'টি videoId');
+      for (const t of res.tokens) if (!used.has(t) && !tokens.includes(t)) tokens.push(t);
+      if (pages % 10 === 0) console.log('  ' + pages + ' ধাপ · ' + ids.length + 'টি videoId · ' + Math.round(left() / 1000) + 's বাকি');
+      if (ids.length === before && res.items.length === 0) { console.log('  (নতুন কিছু নেই — তালিকা শেষ)'); break; }
       await sleep(120);
     }
     console.log('  মোট তালিকায় ' + ids.length + 'টি videoId (' + pages + ' ধাপ)');
@@ -212,30 +229,31 @@ async function videoInfo(ch, id) {
     /* ধাপ ২: যেগুলো নেই, তাদের শিরোনাম+তারিখ */
     const todo = ids.filter(x => !known.has(x.id));
     console.log('  নতুন ' + todo.length + 'টি · তালিকায় আগেই আছে ' + (ids.length - todo.length) + 'টি');
+    const started = Date.now();
     let added = 0, failed = 0;
-    for (let i = 0; i < todo.length; i++) {
-      if (left() < 45000 || fresh.length >= LIMIT) { console.log('  (বাকিটা পরের রানে)'); break; }
-      const it = todo[i];
+    const batch = todo.slice(0, Math.max(0, Math.min(todo.length, LIMIT - fresh.length)));
+    await pool(batch, 6, async it => {
+      if (left() < 45000) return;
       let info = null;
       try { info = await videoInfo(ch, it.id); } catch (e) { failed++; }
-      await sleep(90);
-      if (!info) {
-        /* তারিখ না পেলেও ভিডিওটি রাখা হয় — তালিকা থেকে বাদ পড়ার চেয়ে ভালো */
-        fresh.push({ id: it.id, title: it.title, channelTitle: label, publishedAt: '', thumbnail: 'https://i.ytimg.com/vi/' + it.id + '/hqdefault.jpg', time: 0 });
-      } else {
-        if (info.channelId && info.channelId !== ch.id) continue; /* অন্য চ্যানেলের (কপি/রিপোস্ট) */
-        const t = Date.parse(info.date);
-        fresh.push({
-          id: it.id, title: info.title || it.title, channelTitle: label,
-          publishedAt: Number.isNaN(t) ? '' : new Date(t).toISOString(),
-          thumbnail: 'https://i.ytimg.com/vi/' + it.id + '/hqdefault.jpg',
-          time: Number.isNaN(t) ? 0 : t,
-        });
-      }
+      if (info && info.channelId && info.channelId !== ch.id) { known.add(it.id); return; } /* কপি/রিপোস্ট */
+      const t = info ? Date.parse(info.date) : NaN;
+      fresh.push({
+        id: it.id,
+        title: (info && info.title) || it.title,
+        channelTitle: label,
+        publishedAt: Number.isNaN(t) ? '' : new Date(t).toISOString(),
+        thumbnail: 'https://i.ytimg.com/vi/' + it.id + '/hqdefault.jpg',
+        time: Number.isNaN(t) ? 0 : t,
+      });
       known.add(it.id);
       added++;
-      if (added % 50 === 0) console.log('  +' + added + ' · বাকি ' + (todo.length - i - 1) + ' · ' + Math.round(left() / 1000) + 's');
-    }
+      if (added % 100 === 0) {
+        const per = (Date.now() - started) / added;
+        console.log('  +' + added + '/' + batch.length + ' · ' + Math.round(left() / 1000) + 's বাকি · আনুমানিক ' +
+          Math.round(per * (batch.length - added) / 1000) + 's');
+      }
+    });
     console.log('  যোগ হবে ' + fresh.filter(v => v.channelTitle === label).length + 'টি' + (failed ? ' · তথ্য মেলেনি ' + failed + 'টি' : ''));
   }
 

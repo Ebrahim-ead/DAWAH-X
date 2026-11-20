@@ -2,7 +2,7 @@ name: Backfill channel videos
 # নতুন চ্যানেলের পুরো (পুরোনো) ভিডিও তালিকা নামায় — tools/backfill-videos.cjs।
 # update-videos.yml শুধু সর্বশেষ ১৫টি দেখে; এই ওয়ার্কফ্লো চ্যানেলের সব আপলোড ধরে।
 # - workflow_dispatch: হাতে চালান (channel/limit ইচ্ছেমতো); রান বারবার চালালে বাকিটা যোগ হয়।
-# - push (arena/**): স্ক্রিপ্ট বা চ্যানেল-তালিকা বদলালে পরীক্ষার জন্য একবার চলে।
+# (স্বয়ংক্রিয় ট্রিগার নেই — Actions ট্যাব থেকে হাতে চালাতে হয়, নইলে একাধিক লম্বা রান queue-তে জমে।)
 on:
   workflow_dispatch:
     inputs:
@@ -18,9 +18,7 @@ on:
         description: 'videos | shorts'
         required: false
         default: 'videos'
-  push:
-    branches: ['arena/**']
-    paths: ['tools/backfill-videos.cjs', '.github/workflows/backfill-videos.yml']
+# (স্ক্রিপ্ট বদলালে যেন নিজে থেকে আবার চালু হয়ে Actions সময় না খায় — হাতে চালাতে হবে)
 permissions:
   contents: write
   pages: write
