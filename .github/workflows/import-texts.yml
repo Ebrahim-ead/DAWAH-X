@@ -39,7 +39,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A -- source-data.json recent-data.json sources.html recent.html faq.html texts search rel s stats.json series.json series.html 'series-*.html' 'topic-*.html' topics.html index.html 'sitemap-*.xml' sitemap.xml robots.txt
+          git add -A -- source-data.json source-index.json 'source-??-*.json' recent-data.json sources.html recent.html faq.html texts search rel s stats.json series.json series.html 'series-*.html' 'topic-*.html' topics.html index.html 'sitemap-*.xml' sitemap.xml robots.txt
           git diff --cached --quiet || git commit -q -m "Import library texts (automated)"
           git pull -q --rebase -X theirs origin "${GITHUB_REF_NAME}" || { git rebase --abort; git pull -q --rebase -X theirs origin "${GITHUB_REF_NAME}"; }
           git push -q origin "HEAD:${GITHUB_REF_NAME}"

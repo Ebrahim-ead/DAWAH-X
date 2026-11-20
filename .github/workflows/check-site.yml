@@ -25,3 +25,5 @@ jobs:
           node tests/home-sections.cjs
           node tests/text-date.cjs
           node tests/new-text-import.cjs
+          node tests/source-shards.cjs
+          node tests/sw-precache.cjs

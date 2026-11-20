@@ -102,13 +102,9 @@
     if(!filters)return;
     const loaded=videos.length>0;
     let topicItems;
-    if(!loaded){
+    if(!loaded||!topicsPresent){
       topicItems=VIDEO_TOPICS.map(row=>[row[0],row[0]]);
     }else{
-      if(!topicsPresent){
-        topicsPresent=new Set();
-        for(const video of videos)for(const label of videoTopics(video))topicsPresent.add(label);
-      }
       topicItems=VIDEO_TOPICS.map(row=>row[0]).filter(label=>topicsPresent.has(label)).map(label=>[label,label]);
     }
     const names=loaded?[...new Set(videos.map(video=>video.channelTitle).filter(Boolean))]:VIDEO_CHANNELS.map(row=>row[0]);
@@ -123,6 +119,23 @@
     const rows=[chipRow('topic','বিষয়',topicItems,topic)];
     if(channelItems.length>1)rows.push(chipRow('channel','চ্যানেল',channelItems,channel));
     filters.replaceChildren(...rows,note);
+  }
+  /* বিষয় গণনা একটানা হাজারো ভিডিওতে না চালিয়ে ছোট কাজে ভাগ করি — প্রথম কার্ড আগে দেখা যায়। */
+  function prepareTopics(){
+    const current=videos,present=new Set();let i=0;
+    function batch(){
+      if(videos!==current)return;
+      const start=performance.now();let processed=0;
+      while(i<current.length&&processed<75&&(processed===0||performance.now()-start<8)){
+        for(const label of videoTopics(current[i++]))present.add(label);processed++;
+      }
+      if(i<current.length){setTimeout(batch,0);return}
+      topicsPresent=present;
+      const active=document.activeElement,kind=active?.closest?.('[data-kind]')?.dataset.kind,value=active?.dataset?.value;
+      drawFilters();
+      if(kind&&value!==undefined){const box=filters?.querySelector('[data-kind="'+kind+'"]');[...box?.querySelectorAll('button.chip')||[]].find(b=>b.dataset.value===value)?.focus({preventScroll:true})}
+    }
+    setTimeout(batch,0);
   }
   filters?.addEventListener('click',event=>{
     const b=event.target.closest('button.chip');if(!b)return;
@@ -286,6 +299,7 @@
       page=1;
       drawFilters();
       render();
+      prepareTopics();
     })
     .catch(error=>{
       console.warn('Static YouTube catalogue could not be loaded:',error);

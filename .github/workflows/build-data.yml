@@ -64,7 +64,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A -- source-data.json recent-data.json sources.html recent.html faq.html s series.json series.html 'series-*.html' 'topic-*.html' topics.html index.html 'sitemap-*.xml' sitemap.xml robots.txt feed.xml
+          git add -A -- source-data.json source-index.json 'source-??-*.json' recent-data.json sources.html recent.html faq.html s series.json series.html 'series-*.html' 'topic-*.html' topics.html index.html 'sitemap-*.xml' sitemap.xml robots.txt feed.xml
           if git diff --cached --quiet; then
             echo "কিছু বদলায়নি"
             exit 0

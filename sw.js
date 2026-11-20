@@ -4,7 +4,7 @@
          আনা না গেলে তবেই জমানো কপি দেওয়া হয়। শুধু নিজের সাইটের ফাইল ও Google Fonts জমানো হয়।
    কোনো ফাইলের তালিকা বদলালে VERSION বাড়ান — পুরোনো জমা মুছে যায়। */
 'use strict';
-const VERSION='v18';
+const VERSION='v19';
 const SHELL='dawahx-shell-'+VERSION;   /* পাতার কাঠামো: HTML, CSS, JS, লোগো (ইনস্টলের সময় আনা হয়) */
 const PAGES='dawahx-pages-'+VERSION;   /* ব্যবহারের সময় আনা অন্য ফাইল */
 const TEXTS='dawahx-texts-'+VERSION;   /* পড়া লেখা (texts/, rel/) */
@@ -20,9 +20,12 @@ const OFFLINE='<!doctype html><html lang="bn"><meta charset="utf-8"><meta name="
  +'<p style="margin:0"><a href="'+self.registration.scope+'index.html" style="color:#ffe09a">হোম পেজে যান</a></p></div></body></html>';
 
 self.addEventListener('install',event=>{
- /* একটি ফাইল আনা না গেলেও ইনস্টল থামে না */
- event.waitUntil(caches.open(SHELL).then(cache=>Promise.all(PRECACHE.map(url=>
-  fetch(new Request(url,{cache:'reload'})).then(res=>{if(res.ok)return cache.put(url,res)}).catch(()=>{})))).then(()=>self.skipWaiting()));
+ /* একই সঙ্গে অল্প কয়েকটি অফলাইন ফাইল আনি, যাতে প্রথম পাতার ছবির সাথে ব্যান্ডউইথের প্রতিযোগিতা না হয়। */
+ event.waitUntil(caches.open(SHELL).then(async cache=>{
+  let next=0;
+  const worker=async()=>{while(next<PRECACHE.length){const url=PRECACHE[next++];try{const res=await fetch(new Request(url,{cache:'reload'}));if(res.ok)await cache.put(url,res)}catch(_){}}};
+  await Promise.all(Array.from({length:3},worker));
+ }).then(()=>self.skipWaiting()));
 });
 
 self.addEventListener('activate',event=>{
