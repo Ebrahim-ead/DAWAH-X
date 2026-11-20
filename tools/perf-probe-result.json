@@ -1,95 +1,91 @@
 {
   "index.html": {
-    "ready": 1560,
+    "ready": 1042,
     "loads": [],
     "tasks": [
-      63,
-      240,
-      73,
-      57
+      103,
+      79,
+      81
     ],
     "errors": []
   },
   "questions.html": {
-    "ready": 911,
+    "ready": 470,
     "loads": [
       {
         "url": "questions-catalog-part-03.js",
         "size": 2595,
-        "ms": 21
+        "ms": 18
       },
       {
         "url": "questions-catalog-part-04.js",
         "size": 2511,
-        "ms": 22
+        "ms": 15
       },
       {
         "url": "questions-catalog-part-05.js",
         "size": 1406,
-        "ms": 22
+        "ms": 15
       },
       {
         "url": "questions-catalog-part-00.js",
         "size": 154620,
-        "ms": 24
+        "ms": 20
       },
       {
         "url": "questions-catalog-part-01.js",
         "size": 85517,
-        "ms": 24
+        "ms": 20
       },
       {
         "url": "questions-catalog-part-02.js",
         "size": 134426,
-        "ms": 23
+        "ms": 20
       }
     ],
     "tasks": [
-      296,
-      73
+      89
     ],
     "errors": []
   },
   "fatwa.html": {
-    "ready": 591,
+    "ready": 416,
     "loads": [],
     "tasks": [
-      110
+      86
     ],
     "errors": []
   },
   "sources.html": {
-    "ready": 421,
+    "ready": 298,
     "loads": [
       {
         "url": "source-index.json",
         "size": 2933,
-        "ms": 96
+        "ms": 76
       },
       {
         "url": "source-at-000.json",
         "size": 38024,
-        "ms": 6
+        "ms": 4
       }
     ],
     "tasks": [
-      99
+      73
     ],
     "errors": []
   },
   "videos.html": {
-    "ready": 545,
+    "ready": 371,
     "loads": [
       {
         "url": "youtube-videos.json",
         "size": 2652379,
-        "ms": 99
+        "ms": 77
       }
     ],
     "tasks": [
-      67,
-      53,
-      80
+      54
     ],
     "errors": []
   }
