@@ -57,7 +57,7 @@ const sw=read('sw.js');
 const pre=(sw.match(/const PRECACHE=\[([\s\S]*?)\];/)||[])[1]||'';
 if(!/const VERSION='v\d+'/.test(sw))fail('sw.js: VERSION পাওয়া যায়নি');
 for(const f of pages){
- if(f==='__forms.html'||/^google[0-9a-f]+\.html$/i.test(f))continue;
+ if(f==='__forms.html'||/^google[0-9a-f]+\.html$/i.test(f)||/^series-[0-9a-f]{10}\.html$/.test(f))continue; /* পৃথক সিরিজ পাতা ব্যবহারের সময় ক্যাশ হয় */
  if(!pre.includes("'"+f+"'"))fail(`sw.js: প্রি-ক্যাশ তালিকায় ${f} নেই (অফলাইনে খুলবে না)`);
 }
 for(const m of pre.matchAll(/'([^']+)'/g)){
@@ -67,17 +67,19 @@ for(const m of pre.matchAll(/'([^']+)'/g)){
 /* ---------- ৩) সাইটম্যাপ ও robots ---------- */
 const site=JSON.parse(read('tools/site.json')).url.replace(/\/+$/,'/');
 const sm=read('sitemap.xml');
+if(!/<sitemapindex\b/.test(sm))fail('sitemap.xml: sitemap index নয়');
+const childFiles=[];
 for(const m of sm.matchAll(/<loc>([^<]+)<\/loc>/g)){
  const u=m[1].trim();
  if(!u.startsWith(site)){fail(`sitemap.xml: অন্য ডোমেইনের ঠিকানা → ${u}`);continue}
- const rel=u.slice(site.length);
- if(!exists(rel))fail(`sitemap.xml: মৃত ঠিকানা → ${u}`);
+ const rel=u.slice(site.length);if(!/^sitemap-[a-z0-9-]+\.xml$/.test(rel)||!exists(rel)){fail(`sitemap.xml: মৃত বা অবৈধ সাইটম্যাপ → ${u}`);continue}childFiles.push(rel);
 }
+if(!childFiles.includes('sitemap-static.xml'))fail('sitemap.xml: static sitemap নেই');
+const allLocations=new Set();
+for(const f of childFiles){const xml=read(f);if(!/<urlset\b/.test(xml))fail(`${f}: urlset নেই`);for(const m of xml.matchAll(/<loc>([^<]+)<\/loc>/g)){const u=m[1].trim();if(!u.startsWith(site)){fail(`${f}: অন্য ডোমেইনের ঠিকানা → ${u}`);continue}const rel=u.slice(site.length);if(rel&&!exists(rel))fail(`${f}: মৃত ঠিকানা → ${u}`);if(allLocations.has(u))fail(`${f}: duplicate URL → ${u}`);allLocations.add(u)}}
 for(const f of pages){
- if(/^google[0-9a-f]+\.html$/i.test(f))continue;
- if(/<meta[^>]*noindex/i.test(read(f)))continue;   /* noindex পাতা সাইটম্যাপে যায় না */
- if(f==='index.html'){if(!sm.includes('<loc>'+site+'</loc>')&&!sm.includes('<loc>'+site+'index.html</loc>'))fail('sitemap.xml: প্রথম পাতা নেই');continue}
- if(!sm.includes(site+f))fail(`sitemap.xml: ${f} নেই`);
+ if(/^google[0-9a-f]+\.html$/i.test(f)||/<meta[^>]*noindex/i.test(read(f)))continue;
+ if(!allLocations.has(site+(f==='index.html'?'':f)))fail(`sitemap-static.xml: ${f} নেই`);
 }
 const robots=read('robots.txt');
 for(const m of robots.matchAll(/^Sitemap:\s*(\S+)$/gm)){
@@ -149,6 +151,34 @@ if(fs.existsSync(shareDir)){
  }
  console.log('s/ নমুনা:',pick.length,'পাতা, ল্যান্ডিং',landing);
 }
+
+/* ---------- ৮) সিরিজ, বিষয় ও নতুন প্রকাশনার সূচি ---------- */
+try{
+ const series=JSON.parse(read('series.json'));const seen=new Set();
+ if(series.n!==series.s.length)fail('series.json: সিরিজের সংখ্যা মেলে না');
+ series.s.forEach((sr,i)=>{
+  if(!/^[0-9a-f]{10}$/.test(sr.id)||!exists('series-'+sr.id+'.html'))fail(`series.json: সিরিজ পাতা নেই ${sr.id}`);
+  if(!Array.isArray(sr.p)||sr.p.length<2){fail(`series.json: খুব কম পর্ব ${sr.id}`);return}
+  const nums=new Set();sr.p.forEach((part,j)=>{const [key,,no]=part;
+   if(seen.has(key)||nums.has(no))fail(`series.json: একই লেখা বা পর্ব পুনরাবৃত্তি ${key}`);seen.add(key);nums.add(no);
+   if(!exists('s/'+key+'.html'))fail(`series.json: লেখা নেই ${key}`);
+   if(JSON.stringify(series.m[key])!==JSON.stringify([i,j]))fail(`series.json: পর্বের সূচি মেলে না ${key}`);
+   const landing=read('s/'+key+'.html');if(!landing.includes('series-'+sr.id+'.html'))fail(`s/${key}.html: সিরিজের সূচি লিংক নেই`);
+  });
+ });
+ if(Object.keys(series.m).length!==seen.size)fail('series.json: অচেনা পর্ব-সূচি আছে');
+ const topics=JSON.parse(read('tools/topics.json'));for(const t of topics.topics)if(!exists('topic-'+t.id+'.html'))fail(`বিষয়ের পাতা নেই ${t.id}`);
+ const faq=read('faq.html'),faqScript=(faq.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)||[])[1];
+ const faqData=JSON.parse(faqScript||'null');if(!faqData||faqData['@type']!=='FAQPage'||faqData.mainEntity.length!==(faq.match(/class="faq-item"/g)||[]).length)fail('faq.html: দৃশ্যমান প্রশ্নোত্তর ও structured data মেলে না');
+ const sources=JSON.parse(read('source-data.json')),recent=JSON.parse(read('recent-data.json'));
+ const sourceKeys=new Set();for(const code in sources.sources)for(const row of sources.sources[code]){if(sourceKeys.has(row[0]))fail(`source-data.json: পুনরাবৃত্তি ${row[0]}`);sourceKeys.add(row[0]);if(!exists('s/'+row[0]+'.html'))fail(`source-data.json: লেখা নেই ${row[0]}`)}
+ const videoIds=new Set(JSON.parse(read('youtube-videos.json')).map(v=>v.id));
+ const cross=JSON.parse(read('cross-links.json'));for(const link of cross.links){if(!videoIds.has(link.id))fail(`cross-links.json: অচেনা ভিডিও ${link.id}`);for(const t of link.texts)if(!sourceKeys.has(t.k))fail(`cross-links.json: অচেনা লেখা ${t.k}`)}
+ for(const v of recent.videos)if(!videoIds.has(v.id))fail(`recent-data.json: অচেনা ভিডিও ${v.id}`);
+ for(const t of recent.texts)if(!sourceKeys.has(t.k))fail(`recent-data.json: অচেনা লেখা ${t.k}`);
+ if(/read\.html\?v=/.test(read('feed.xml')))fail('feed.xml: সীমিত পাঠক-প্লেয়ারে ভিডিও লিংক রয়েছে');
+ console.log('সিরিজ:',series.s.length,'টি, পর্ব:',seen.size,'টি; প্রকাশনা:',Object.keys(sources.sources).length,'টি');
+}catch(e){fail('সিরিজ/প্রকাশনা পরীক্ষা ব্যর্থ: '+e.message)}
 
 /* ---------- ফলাফল ---------- */
 for(const w of warns)console.log('⚠ ',w);

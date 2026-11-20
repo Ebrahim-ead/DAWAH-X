@@ -17,4 +17,7 @@ jobs:
         with:
           node-version: 20
       - name: Validate the site
-        run: node tools/check-site.cjs
+        run: |
+          node tools/check-site.cjs
+          node tests/video-audit.cjs
+          node tests/video-audit-integration.cjs

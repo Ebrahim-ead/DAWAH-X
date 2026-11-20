@@ -6,11 +6,12 @@ name: Update video list
 # - push (arena/**): স্ক্রিপ্ট বা চ্যানেলের তালিকা বদলালে সেই শাখাতেই একবার চলে — বদল পরীক্ষা করার জন্য।
 # - repository_dispatch (youtube-upload): YouTube-এর WebSub পুশ (tools/websub-worker.js) ভিডিও প্রকাশের
 #   সাথে সাথেই এই রানটি চালু করতে পারে — তখন ক্রনের অপেক্ষা করতে হয় না।
-# এই রানে কোনো ব্রাউজার/Chromium চলে না — শুধু ছয়টি RSS ফিড fetch করা হয়, তাই রান ~২০–৪০ সেকেন্ড।
-run-name: নতুন ভিডিও আনা
+# এই রানে ব্রাউজার লাগে না; প্রতি ৬ ঘণ্টায় পুরোনো ভিডিওও সার্ভার-পাশে পালাক্রমে যাচাই করা হয়।
+run-name: ভিডিও তালিকা হালনাগাদ
 on:
   schedule:
     - cron: '2,7,12,17,22,27,32,37,42,47,52,57 * * * *'
+    - cron: '15 */6 * * *'  # পুরোনো ভিডিওর উপলভ্যতা পালাক্রমে যাচাই
   workflow_dispatch:
   repository_dispatch:
     types: [youtube-upload]
@@ -36,12 +37,20 @@ jobs:
           node-version: 20
       - name: Look for new uploads
         run: node tools/update-videos.cjs
+      - name: Audit old videos
+        if: github.event.schedule == '15 */6 * * *'
+        run: node tools/audit-videos.cjs
+      - name: Refresh recent publications and feed
+        run: |
+          node tools/build-discovery.cjs
+          node tools/build-feed.cjs
       - name: Commit new videos
         id: commit
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add youtube-videos.json stats.json tools/video-channels.json
+          git add youtube-videos.json stats.json tools/video-channels.json recent-data.json source-data.json sources.html recent.html feed.xml cross-links.json app.js
+          if [ -f tools/video-audit-state.json ]; then git add tools/video-audit-state.json; fi
           if git diff --cached --quiet; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
             echo "নতুন কিছু নেই"

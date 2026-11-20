@@ -20,6 +20,12 @@ on:
       - 'youtube-videos.json'
       - 'tools/build-site-data.cjs'
       - 'tools/build-feed.cjs'
+      - 'tools/build-series.cjs'
+      - 'tools/build-topics.cjs'
+      - 'tools/page-template.cjs'
+      - 'tools/build-sitemaps.cjs'
+      - 'tools/build-discovery.cjs'
+      - 'tools/build-faq.cjs'
       - '.github/workflows/build-data.yml'
 permissions:
   contents: write
@@ -45,13 +51,20 @@ jobs:
           SHARE_MAX: ${{ github.event.inputs.share_max }}
           SHARE_EXCERPT: '900'
         run: node tools/build-site-data.cjs share
+      - name: Build series, topics and sitemaps
+        run: |
+          node tools/build-series.cjs
+          node tools/build-topics.cjs
+          node tools/build-discovery.cjs
+          node tools/build-faq.cjs
+          node tools/build-sitemaps.cjs
       - name: Build feed.xml
         run: node tools/build-feed.cjs
       - name: Commit
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add s sitemap-articles-*.xml sitemap.xml robots.txt feed.xml
+          git add -A -- source-data.json recent-data.json sources.html recent.html faq.html s series.json series.html 'series-*.html' 'topic-*.html' topics.html index.html 'sitemap-*.xml' sitemap.xml robots.txt feed.xml
           if git diff --cached --quiet; then
             echo "কিছু বদলায়নি"
             exit 0
