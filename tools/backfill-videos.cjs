@@ -30,6 +30,8 @@ const ROOT = path.join(__dirname, '..');
 const LIST = path.join(ROOT, 'youtube-videos.json');
 const CONFIG = path.join(__dirname, 'video-channels.json');
 const STATS = path.join(ROOT, 'stats.json');
+/* যে ভিডিওগুলোর জন্য dislike API "এখনই বানানো" তারিখ দিয়েছিল — আর কখনো সেই মান নেওয়া হবে না */
+const UNKNOWN = path.join(__dirname, 'video-dates-unknown.json');
 
 const arg = (name, dflt) => {
   const i = process.argv.indexOf('--' + name);
@@ -215,8 +217,10 @@ function ytdlpList(url) {
 /* প্রকাশের সঠিক তারিখ: Return YouTube Dislike API-র dateCreated (কোনো key লাগে না) */
 /* ব্যাচে ৫০টি করে সঠিক প্রকাশের তারিখ — YouTube Data API-র প্রতিলিপি, key ছাড়া।
    (একই অনুরোধে ৫০টি ভিডিও, তাই ৪ হাজার ভিডিও ৮০টি অনুরোধেই শেষ) */
+let lemnosDead = false;
 async function lemnosDates(ids) {
   const found = new Map();
+  if (lemnosDead) return found;
   for (let i = 0; i < ids.length; i += 50) {
     const chunk = ids.slice(i, i + 50);
     for (const base of ['https://yt.lemnoslife.com/noKey/videos', 'https://yt.lemnoslife.com/videos']) {
@@ -232,6 +236,7 @@ async function lemnosDates(ids) {
         if (found.size) break;
       } catch (e) { /* পরের base চেষ্টা */ }
     }
+    if (!found.size) { lemnosDead = true; break; }   /* কাজ করছে না — বাকি চাঙ্ক আর চেষ্টা নয় */
   }
   return found;
 }
@@ -239,8 +244,15 @@ async function lemnosDates(ids) {
 /* এই রানের শুরুর দিকে পাওয়া dateCreated মানে RYD-র নিজের রেকর্ড তৈরি হয়েছে এখনই —
    ভিডিওর প্রকাশের তারিখ নয়। এমন মান বাদ দেওয়া হয়। */
 const RUN_START = Date.now() - 15 * 60000;
+/* এক-বারের জন্য জানালা বদলানোর সুযোগ (আগের রানের ভুয়া তারিখ ধরতে) */
+const SUSPECT_FROM = Date.parse(process.env.BACKFILL_SUSPECT_FROM || '') || RUN_START;
+const SUSPECT_TO = Date.parse(process.env.BACKFILL_SUSPECT_TO || '') || Date.now() + 60000;
 const rydStats = { ok: 0, miss: 0, suspect: 0, err: 0 };
+let unknownIds = new Set();
+try { unknownIds = new Set(JSON.parse(fs.readFileSync(UNKNOWN, 'utf8'))); } catch (e) {}
 async function rydDate(id) {
+  if (unknownIds.has(id)) return '';
+
   for (let i = 0; i < 3; i++) {
     try {
       const r = await fetch('https://returnyoutubedislikeapi.com/votes?videoId=' + encodeURIComponent(id),
@@ -250,7 +262,7 @@ async function rydDate(id) {
       if (j && j.dateCreated) {
         const t = Date.parse(j.dateCreated);
         if (!Number.isNaN(t)) {
-          if (t >= RUN_START && t <= Date.now() + 60000) { rydStats.suspect++; return ''; }
+          if (t >= SUSPECT_FROM && t <= SUSPECT_TO) { rydStats.suspect++; unknownIds.add(id); return ''; }
           rydStats.ok++; return new Date(t).toISOString();
         }
       }
@@ -376,7 +388,8 @@ function compact(videos) {
   let filled = 0;
   if (FILL && left() > 60000) {
     const labels = new Set(targets.map(c => c.title).filter(Boolean));
-    const blank = videos.filter(v => !v.publishedAt && (labels.size === 0 || labels.has(v.channelTitle) || v.channelTitle === 'Al-Itisam TV' || v.channelTitle === 'Attahreek TV'));
+    const blank = videos.filter(v => !v.publishedAt && !unknownIds.has(v.id) &&
+      (labels.size === 0 || labels.has(v.channelTitle) || v.channelTitle === 'Al-Itisam TV' || v.channelTitle === 'Attahreek TV'));
     console.log('\n=== তারিখ পূরণ · ফাঁকা ' + blank.length + 'টি');
     const fillDates = blank.length ? await lemnosDates(blank.map(v => v.id)) : new Map();
     console.log('  ব্যাচ-তারিখ: ' + fillDates.size + '/' + blank.length);
@@ -414,6 +427,7 @@ function compact(videos) {
   });
   compact(videos);
   fs.writeFileSync(LIST, JSON.stringify(videos));
+  if (unknownIds.size) fs.writeFileSync(UNKNOWN, JSON.stringify(Array.from(unknownIds).sort()) + '\n');
   if (configChanged) fs.writeFileSync(CONFIG, JSON.stringify(config, null, 2) + '\n');
 
   let stats = null;
