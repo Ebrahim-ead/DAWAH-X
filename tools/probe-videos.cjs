@@ -45,11 +45,14 @@ const count = (text, re) => (text.match(re) || []).length;
     const r = await get(url);
     say(`\n[page] ${url.replace('https://www.youtube.com/channel/' + CH, '')} → ${r.status} ${r.ms}ms ${(r.text.length / 1024) | 0}KB`);
     say('  ytInitialData: ' + /ytInitialData/.test(r.text) + ' · videoRenderer: ' + count(r.text, /"videoRenderer"/g) +
-      ' · richItemRenderer: ' + count(r.text, /"richItemRenderer"/g) + ' · continuationCommand: ' + count(r.text, /continuationCommand/g) +
+      ' · richItemRenderer: ' + count(r.text, /"richItemRenderer"/g) + ' · lockupViewModel: ' + count(r.text, /"lockupViewModel"/g) +
+      ' · contentId: ' + count(r.text, /"contentId":"[\w-]{11}"/g) + ' · continuationCommand: ' + count(r.text, /continuationCommand/g) +
       ' · consent: ' + /consent\.youtube\.com|Before you continue/.test(r.text) +
       ' · signin/bot: ' + /sign in to confirm|unusual traffic|not a robot/i.test(r.text));
     const alert = (r.text.match(/"alerts":\[.{0,160}/) || [])[0];
     if (alert) say('  alerts: ' + alert.replace(/\s+/g, ' ').slice(0, 150));
+    const at = r.text.indexOf('"lockupViewModel"');
+    if (at > 0) say('  snippet: ' + r.text.slice(at, at + 700).replace(/\s+/g, ' '));
   }
 
   /* ২) RSS ফিড (নিশ্চিত কাজ করে) */
@@ -76,13 +79,13 @@ const count = (text, re) => (text.match(re) || []).length;
   }
 
   /* ৪) Invidious ও Piped (YouTube নয়, তাই block হওয়ার কথা নয়) */
-  for (const host of ['inv.nadeko.net', 'invidious.nerdvpn.de', 'yewtu.be', 'iv.melmac.space', 'invidious.f5.si']) {
+  for (const host of process.env.PROBE_MIRRORS ? ['inv.nadeko.net', 'yewtu.be'] : []) {
     const r = await get('https://' + host + '/api/v1/channels/' + CH + '/videos?fields=videoId,title,published,author', { headers: { 'Accept': 'application/json' } });
     let n = 0, sample = '';
     try { const j = JSON.parse(r.text); n = (j.videos || []).length; sample = JSON.stringify((j.videos || [])[0] || {}).slice(0, 90); } catch (e) {}
     say(`[invidious] ${host}: ${r.status} ${r.ms}ms · ${n} videos ${sample}`);
   }
-  for (const host of ['pipedapi.kavin.rocks', 'pipedapi.adminforge.de', 'api.piped.private.coffee']) {
+  for (const host of process.env.PROBE_MIRRORS ? ['pipedapi.kavin.rocks', 'api.piped.private.coffee'] : []) {
     const r = await get('https://' + host + '/channel/' + CH, { headers: { 'Accept': 'application/json' } });
     let n = 0, sample = '', next = '';
     try { const j = JSON.parse(r.text); n = (j.relatedStreams || j.items || []).length; next = String(j.nextpage || '').slice(0, 20); sample = JSON.stringify((j.relatedStreams || j.items || [])[0] || {}).slice(0, 90); } catch (e) {}

@@ -112,6 +112,9 @@ function collectVideos(node, out) {
   if (Array.isArray(node)) { for (const n of node) collectVideos(n, out); return; }
   const vr = node.videoRenderer || node.gridVideoRenderer || node.playlistVideoRenderer;
   if (vr && vr.videoId && ID_RE.test(vr.videoId)) out.push(vr);
+  /* ২০২৫-এর কাঠামো: richItemRenderer > content > lockupViewModel (contentId-ই videoId) */
+  const lv = node.lockupViewModel;
+  if (lv && ID_RE.test(lv.contentId || '') && !/PLAYLIST|CHANNEL|ALBUM/.test(String(lv.contentType || ''))) out.push(lv);
   for (const k in node) collectVideos(node[k], out);
 }
 function collectTokens(node, out) {
@@ -124,8 +127,11 @@ function collectTokens(node, out) {
 const titleOf = vr => {
   if (vr.title && vr.title.runs) return vr.title.runs.map(r => r.text).join('');
   if (vr.title && vr.title.simpleText) return vr.title.simpleText;
+  const lv = vr.metadata && vr.metadata.lockupMetadataViewModel;
+  if (lv && lv.title) return lv.title.content || (lv.title.runs || []).map(r => r.text).join('') || '';
   return '';
 };
+const idOf = vr => vr.videoId || vr.contentId || '';
 
 /* চ্যানেলের পাতা: channelId, নাম, innertube key, প্রথম ধাপের তালিকা */
 async function openChannel(channel) {
@@ -213,7 +219,7 @@ function compact(videos) {
 
     /* ধাপ ১: তালিকা ধরে সব videoId */
     const ids = [], seen = new Set();
-    const push = vr => { const id = vr.videoId; if (ID_RE.test(id) && !seen.has(id)) { seen.add(id); ids.push({ id, title: titleOf(vr) }); } };
+    const push = vr => { const id = idOf(vr); if (ID_RE.test(id) && !seen.has(id)) { seen.add(id); ids.push({ id, title: titleOf(vr) }); } };
     ch.items.forEach(push);
     let tokens = ch.tokens.slice();
     const used = new Set();
