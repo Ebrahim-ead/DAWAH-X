@@ -3,9 +3,9 @@
 'use strict';
 const fs=require('fs'),path=require('path');const {ROOT,SITE,fromQuestions}=require('./page-template.cjs');
 const SRC={at:'মাসিক আত-তাহরীক',ai:'মাসিক আল-ইতিছাম',ik:'মাসিক আল-ইখলাছ',fm:'From Muslims',ra:'Response to Anti-Islam',iz:'Insight Zone',ia:'Islamic Authors'};
-const months=[/জানু/,/ফেব্রু/,/মার্চ/,/এপ্রি/,/^মে/,/জুন/,/জুলা/,/আগ/,/সেপ্টে/,/অক্টো/,/নভে/,/ডিসে/];
+const {textDate}=require('./text-date.cjs');
 const latin=v=>String(v||'').replace(/[০-৯]/g,c=>String('০১২৩৪৫৬৭৮৯'.indexOf(c)));
-const dateOf=v=>{const s=latin(v),m=months.findIndex(x=>x.test(s));const nums=(s.match(/\d+/g)||[]).map(Number),year=nums.find(n=>n>=1900&&n<=2100);if(m<0||!year)return '';const day=nums.find(n=>n!==year&&n>=1&&n<=31)||1;const dt=new Date(Date.UTC(year,m,day));return dt.getUTCMonth()===m?dt.toISOString().slice(0,10):''};
+const dateOf=v=>{const d=textDate(v);return d.length===7?d+'-01':d};
 const sources={};for(const code in SRC)sources[code]=[];const recent=[];
 for(const f of fs.readdirSync(path.join(ROOT,'texts'))){if(!/^[0-9a-f]{3}\.json$/.test(f))continue;const o=JSON.parse(fs.readFileSync(path.join(ROOT,'texts',f),'utf8'));for(const k in o){const x=o[k],t=latin(x.t||'').trim();if(!sources[x.s]||!t)continue;const row=[k,t,x.s==='ai'||x.s==='at'?'f':'q'];sources[x.s].push(row);const d=dateOf(x.d);if(d)recent.push({k,t,s:x.s,d,shown:latin(x.d)})}}
 for(const code in sources)sources[code].sort((a,b)=>a[1].localeCompare(b[1],'bn')||a[0].localeCompare(b[0]));

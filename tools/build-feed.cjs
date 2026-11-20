@@ -8,13 +8,8 @@ const fs=require('fs'),path=require('path');
 const ROOT=path.join(__dirname,'..');
 const SITE=JSON.parse(fs.readFileSync(path.join(__dirname,'site.json'),'utf8')).url.replace(/\/+$/,'/');
 const N=+process.env.FEED_N||40;
-const BN_M=[[/জানু/,'01'],[/ফেব্রু/,'02'],[/মার্চ/,'03'],[/এপ্রি/,'04'],[/মে/,'05'],[/জুন/,'06'],[/জুলা/,'07'],[/আগ/,'08'],[/সেপ্টে/,'09'],[/অক্টো/,'10'],[/নভে/,'11'],[/ডিসে/,'12']];
-const toEn=v=>String(v).replace(/[০-৯]/g,c=>String('০১২৩৪৫৬৭৮৯'.indexOf(c)));
-const isoDate=d=>{const t=toEn(d||'');if(!t)return '';let mon='';
- for(const [re,m] of BN_M)if(re.test(t)){mon=m;break}
- if(!mon)return '';const nums=(t.match(/\d+/g)||[]).map(Number);if(!nums.length)return '';
- const year=nums.find(n=>n>=1300&&n<=2200);if(!year)return '';
- const day=nums.find(n=>n!==year&&n>=1&&n<=31)||1;return year+'-'+mon+'-'+String(day).padStart(2,'0')+'T00:00:00+06:00'};
+const {textDate}=require('./text-date.cjs');
+const isoDate=d=>{const date=textDate(d);return date?(date.length===7?date+'-01':date)+'T00:00:00+06:00':''};
 const plain=h=>String(h||'').replace(/<(script|style)[\s\S]*?<\/\1>/gi,' ').replace(/<[^>]+>/g,' ')
  .replace(/&nbsp;/g,' ').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"')
  .replace(/\s+/g,' ').trim();
