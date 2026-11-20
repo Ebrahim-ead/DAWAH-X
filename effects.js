@@ -31,7 +31,8 @@
  const backToTop=document.createElement('button');backToTop.type='button';backToTop.id='back-to-top';backToTop.className='back-to-top';backToTop.setAttribute('aria-label','পাতার শুরুতে যান');backToTop.setAttribute('title','উপরে যান');backToTop.innerHTML='<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 19V5M6.5 10.5 12 5l5.5 5.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';document.body.appendChild(backToTop);
  backToTop.addEventListener('click',()=>{const behavior=window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth';try{window.scrollTo({top:0,behavior})}catch(_){window.scrollTo(0,0)}});
  const updateProgress=()=>{const max=document.documentElement.scrollHeight-window.innerHeight;const ratio=max>0?window.scrollY/max:0;if(progress)progress.style.transform='scaleX('+ ratio +')';backToTop.style.setProperty('--pct',String(Math.round(ratio*100)));backToTop.classList.toggle('is-visible',window.scrollY>480)};
- window.addEventListener('scroll',updateProgress,{passive:true});window.addEventListener('resize',updateProgress);updateProgress();
+ let progressQueued=false;const queueProgress=()=>{if(progressQueued)return;progressQueued=true;requestAnimationFrame(()=>{progressQueued=false;updateProgress()})};
+ window.addEventListener('scroll',queueProgress,{passive:true});window.addEventListener('resize',queueProgress);updateProgress();
  const visible=root.querySelector('section#'+root.dataset.page);
  const videoDialog=document.createElement('dialog');videoDialog.className='video-lightbox';videoDialog.setAttribute('aria-label','ভিডিও প্লেয়ার');
  videoDialog.innerHTML='<button type="button" class="video-lightbox-close" aria-label="ভিডিও বন্ধ করুন" autofocus>×</button><div class="video-lightbox-player"></div>';

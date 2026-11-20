@@ -49,7 +49,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add youtube-videos.json stats.json tools/video-channels.json recent-data.json source-data.json sources.html recent.html feed.xml cross-links.json app.js
+          git add -A -- youtube-videos.json stats.json tools/video-channels.json recent-data.json source-data.json source-index.json 'source-??-*.json' sources.html recent.html feed.xml cross-links.json app.js
           if [ -f tools/video-audit-state.json ]; then git add tools/video-audit-state.json; fi
           if git diff --cached --quiet; then
             echo "changed=false" >> "$GITHUB_OUTPUT"

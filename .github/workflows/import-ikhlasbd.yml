@@ -81,7 +81,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A -- source-data.json recent-data.json sources.html recent.html faq.html texts search rel s stats.json series.json series.html 'series-*.html' 'topic-*.html' topics.html index.html 'sitemap-*.xml' sitemap.xml robots.txt tools/ik-ids.json tools/ik-report.txt 2>/dev/null || true
+          git add -A -- source-data.json source-index.json 'source-??-*.json' recent-data.json sources.html recent.html faq.html texts search rel s stats.json series.json series.html 'series-*.html' 'topic-*.html' topics.html index.html 'sitemap-*.xml' sitemap.xml robots.txt tools/ik-ids.json tools/ik-report.txt 2>/dev/null || true
           if git diff --cached --quiet; then echo "নতুন কিছু নেই"; exit 0; fi
           git commit -q -m "Import ikhlasbd texts (automated)"
           for i in 1 2 3 4; do

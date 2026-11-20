@@ -273,7 +273,7 @@ function textKey(u){try{u=decodeURI(u)}catch(e){}let h1=0xdeadbeef,h2=0x41c6ce57
 function textBucket(k){return k.slice(-3)}
 /* texts/index.json: {full:{উৎস:host}, missing:[key], keys:[key]} */
 let LOCAL_TEXTS=null;
-const localTextsReady=(location.protocol==="file:"?Promise.resolve(null):fetch("texts/index.json").then(r=>r.ok?r.json():null).catch(()=>null)).then(x=>{
+const localTextsReady=(location.protocol==="file:"||!($("qgrid")||$("fgrid"))?Promise.resolve(null):fetch("texts/index.json").then(r=>r.ok?r.json():null).catch(()=>null)).then(x=>{
  if(x&&x.n)LOCAL_TEXTS={hosts:new Set(Object.values(x.full||{})),missing:new Set(x.missing||[]),keys:new Set(x.keys||[])};return LOCAL_TEXTS});
 const localKeyOf=u=>{if(!LOCAL_TEXTS)return"";const k=textKey(u);if(LOCAL_TEXTS.keys.has(k))return k;let h="";try{h=new URL(u).host}catch(e){}return LOCAL_TEXTS.hosts.has(h)&&!LOCAL_TEXTS.missing.has(k)?k:""};
 /* তালিকার ইউটিউব ভিডিও: কার্ডে চাপলে ইউটিউবে না গিয়ে সাইটের পাঠ-পাতায় (read.html?v=<id>) প্লেয়ার খোলে।
