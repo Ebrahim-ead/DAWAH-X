@@ -13,7 +13,7 @@
   const scriptUrl=document.currentScript?.src||location.href;
   const numberFormat=new Intl.NumberFormat('en-US');
   const dateFormat=new Intl.DateTimeFormat('en-US',{month:'long',day:'numeric',year:'numeric',timeZone:'Asia/Dhaka'});
-  const NEW_DAYS=14; /* এই দিনসংখ্যার ভেতরের ভিডিওতে "নতুন" ব্যাজ */
+  const NEW_DAYS=3; /* প্রকাশের পর এই কত দিন «নতুন» ব্যাজ থাকবে */
   let videos=[];
   let page=1;
 
@@ -200,7 +200,7 @@
       info.append(time);
     }
     info.append(note);
-    /* ২১ দিনের ভেতরের আপলোডে "নতুন" ব্যাজ — তালিকা নিজে থেকেই আপডেট হয় বলে পাঠক নতুন ভিডিও চিনতে পারেন */
+    /* প্রকাশের পর ৩ দিন «নতুন» ব্যাজ — তালিকা নিজে থেকেই আপডেট হয় বলে পাঠক নতুন ভিডিও চিনতে পারেন */
     if(video.publishedAt){
       const age=Date.now()-Date.parse(video.publishedAt);
       if(age>-86400000&&age<NEW_DAYS*86400000){
