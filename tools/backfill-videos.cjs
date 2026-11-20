@@ -117,6 +117,23 @@ function collectVideos(node, out) {
   if (lv && ID_RE.test(lv.contentId || '') && !/PLAYLIST|CHANNEL|ALBUM/.test(String(lv.contentType || ''))) out.push(lv);
   for (const k in node) collectVideos(node[k], out);
 }
+/* শুধু গ্রিডের (richGridRenderer) ভেতরের token — উপরের সারি/সার্চ-বাক্সের token ধরে হাঁটলে
+   একই পাতা বারবার আসে আর ১২০টি ভিডিওর পর হাঁটা আটকে যায় (রিপোর্টে দেখা গেছে)। */
+function collectGridTokens(node, out) {
+  if (!node || typeof node !== 'object') return;
+  if (Array.isArray(node)) { for (const n of node) collectGridTokens(n, out); return; }
+  const grid = node.richGridRenderer || node.gridRenderer;
+  if (grid) { collectTokens(grid, out); return; }
+  for (const k in node) collectGridTokens(node[k], out);
+}
+/* browse উত্তরে নতুন পাতা আসে appendContinuationItemsAction-এ; ওখানে পরের token থাকে
+   continuationItemRenderer-এ — তাই শুধু সেগুলোই নেওয়া হয়। */
+function collectMoreTokens(node, out) {
+  if (!node || typeof node !== 'object') return;
+  if (Array.isArray(node)) { for (const n of node) collectMoreTokens(n, out); return; }
+  if (node.continuationItemRenderer) collectTokens(node.continuationItemRenderer, out);
+  for (const k in node) collectMoreTokens(node[k], out);
+}
 function collectTokens(node, out) {
   if (!node || typeof node !== 'object') return;
   if (Array.isArray(node)) { for (const n of node) collectTokens(n, out); return; }
@@ -146,7 +163,8 @@ async function openChannel(channel) {
   const data = jsonAfter(html, 'ytInitialData');
   if (!data) throw new Error('ytInitialData নেই (পাতার কাঠামো বদলেছে?)');
   const items = []; collectVideos(data, items);
-  const tokens = []; collectTokens(data, tokens);
+  const tokens = []; collectGridTokens(data, tokens);
+  if (!tokens.length) collectMoreTokens(data, tokens);
   return {
     id,
     title: ogTitle.replace(/&#39;/g, "'").replace(/&amp;/g, '&').replace(/&quot;/g, '"'),
@@ -166,7 +184,8 @@ async function browse(ch, token) {
   const txt = await req(url, { method: 'POST', body, headers: { 'Content-Type': 'application/json', 'X-YouTube-Client-Name': '1', 'X-YouTube-Client-Version': ch.clientVersion, 'Origin': 'https://www.youtube.com' } });
   const data = JSON.parse(txt);
   const items = []; collectVideos(data, items);
-  const tokens = []; collectTokens(data, tokens);
+  const tokens = []; collectGridTokens(data, tokens);
+  if (!tokens.length) collectMoreTokens(data, tokens);
   return { items, tokens };
 }
 
@@ -223,7 +242,7 @@ function compact(videos) {
     ch.items.forEach(push);
     let tokens = ch.tokens.slice();
     const used = new Set();
-    let pages = 1;
+    let pages = 1, bar = 0;
     while (tokens.length && left() > 60000 && pages < 600) {
       const token = tokens.shift();
       if (used.has(token)) continue;      /* একই token দুবার এলে আটকে যাওয়ার আগেই থামা */
@@ -235,7 +254,8 @@ function compact(videos) {
       res.items.forEach(push);
       for (const t of res.tokens) if (!used.has(t) && !tokens.includes(t)) tokens.push(t);
       if (pages % 10 === 0) console.log('  ' + pages + ' ধাপ · ' + ids.length + 'টি videoId · ' + Math.round(left() / 1000) + 's বাকি');
-      if (ids.length === before && res.items.length === 0) { console.log('  (নতুন কিছু নেই — তালিকা শেষ)'); break; }
+      if (ids.length === before) { bar++; } else { bar = 0; }
+      if (bar >= 2) { console.log('  (দুই ধাপে নতুন কিছু নেই — তালিকা শেষ)'); break; }
       await sleep(120);
     }
     console.log('  মোট তালিকায় ' + ids.length + 'টি videoId (' + pages + ' ধাপ)');

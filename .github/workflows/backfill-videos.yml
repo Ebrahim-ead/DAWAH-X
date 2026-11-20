@@ -39,7 +39,27 @@ jobs:
         with:
           node-version: 20
       - name: Probe which routes work from this runner
-        run: node tools/probe-videos.cjs 2>&1 | tee tools/probe-report.txt
+        env:
+          CH: UCc6cxJCSSaLxd4JE_GHxsEA
+        run: |
+          node tools/probe-videos.cjs 2>&1 | tee tools/probe-report.txt
+          echo "--- yt-dlp ---" >> tools/probe-report.txt
+          if pip install -q yt-dlp >/dev/null 2>&1; then
+            yt-dlp --version >> tools/probe-report.txt 2>&1
+            {
+              echo "dates (3 latest):"
+              yt-dlp --no-warnings --skip-download --print "%(id)s|%(upload_date)s|%(title).40s" \
+                "https://www.youtube.com/channel/$CH/videos" --playlist-end 3 2>&1 | tail -6
+              echo "flat listing:"
+              yt-dlp --no-warnings --flat-playlist --print "%(id)s" \
+                "https://www.youtube.com/channel/$CH/videos" > /tmp/flat.txt 2>/tmp/flat.err || true
+              echo "  lines: $(wc -l < /tmp/flat.txt) · first: $(head -1 /tmp/flat.txt) · last: $(tail -1 /tmp/flat.txt)"
+              echo "  err: $(tail -2 /tmp/flat.err)"
+            } >> tools/probe-report.txt 2>&1
+          else
+            echo "pip install yt-dlp failed" >> tools/probe-report.txt
+          fi
+          cat tools/probe-report.txt
       - name: Walk the channel and add missing videos
         env:
           BACKFILL_CHANNEL: ${{ inputs.channel }}
