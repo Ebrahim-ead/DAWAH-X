@@ -122,6 +122,12 @@ async function fetchFeed(channelId){
   const fresh=[];let configChanged=false,okChannels=0;
 
   for(const channel of config.channels){
+    if(!channel.title){
+      /* নাম এখনো অজানা (নতুন চ্যানেল): খালি channelTitle নিয়ে সারি ঢোকানোর চেয়ে বাদ দেওয়া ভালো।
+         tools/backfill-videos.cjs একবার চালালেই নাম বসে যায়। */
+      warn((channel.handle||channel.channelId||'?')+': নাম এখনো অজানা — backfill-videos.cjs একবার চালান, ততক্ষণ বাদ।');
+      continue;
+    }
     console.log('\n'+channel.title);
     try{
       if(!CH_RE.test(channel.channelId||'')){

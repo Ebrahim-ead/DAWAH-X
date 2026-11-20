@@ -1,0 +1,63 @@
+name: Backfill channel videos
+# নতুন চ্যানেলের পুরো (পুরোনো) ভিডিও তালিকা নামায় — tools/backfill-videos.cjs।
+# update-videos.yml শুধু সর্বশেষ ১৫টি দেখে; এই ওয়ার্কফ্লো চ্যানেলের সব আপলোড ধরে।
+# - workflow_dispatch: হাতে চালান (channel/limit ইচ্ছেমতো); রান বারবার চালালে বাকিটা যোগ হয়।
+# - push (arena/**): স্ক্রিপ্ট বা চ্যানেল-তালিকা বদলালে পরীক্ষার জন্য একবার চলে।
+on:
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: 'শুধু একটি চ্যানেল (handle/ID/নাম) — খালি রাখলে সব backfill:true চ্যানেল'
+        required: false
+        default: ''
+      limit:
+        description: 'এক রানে সর্বোচ্চ কতটি নতুন ভিডিও'
+        required: false
+        default: '4000'
+      tab:
+        description: 'videos | shorts'
+        required: false
+        default: 'videos'
+  push:
+    branches: ['arena/**']
+    paths: ['tools/backfill-videos.cjs', '.github/workflows/backfill-videos.yml']
+permissions:
+  contents: write
+  pages: write
+concurrency:
+  group: backfill-videos-${{ github.ref_name }}
+  cancel-in-progress: false
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Walk the channel and add missing videos
+        env:
+          BACKFILL_CHANNEL: ${{ inputs.channel }}
+          BACKFILL_LIMIT: ${{ inputs.limit || '4000' }}
+          BACKFILL_TAB: ${{ inputs.tab || 'videos' }}
+        run: node tools/backfill-videos.cjs --minutes 100
+      - name: Commit new videos
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add youtube-videos.json stats.json tools/video-channels.json
+          if git diff --cached --quiet; then
+            echo "নতুন কিছু নেই"
+            exit 0
+          fi
+          git commit -q -m "Backfill channel videos (automated)"
+          git pull -q --rebase -X theirs origin "${GITHUB_REF_NAME}" || { git rebase --abort; git pull -q --rebase -X theirs origin "${GITHUB_REF_NAME}"; }
+          git push -q origin "HEAD:${GITHUB_REF_NAME}"
+      - name: Ask GitHub Pages to publish
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X POST "repos/${GITHUB_REPOSITORY}/pages/builds"

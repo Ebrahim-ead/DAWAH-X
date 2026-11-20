@@ -20,6 +20,18 @@
       "title": "Peace TV Bangla · PeaceTVprogram",
       "handle": "@PeaceTVprogram",
       "channelId": "UCClsYw7y1BTTtTT8-EE_GPw"
+    },
+    {
+      "title": "Attahreek TV",
+      "handle": "@attahreektv",
+      "channelId": "",
+      "backfill": true
+    },
+    {
+      "title": "",
+      "handle": "",
+      "channelId": "UCtip528n2pKDumGCvftZPIg",
+      "backfill": true
     }
   ]
 }
