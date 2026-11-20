@@ -56,13 +56,12 @@ jobs:
         env:
           BACKFILL_CHANNEL: ${{ inputs.channel }}
           BACKFILL_LIMIT: ${{ inputs.limit || '4000' }}
-          BACKFILL_TAB: 'streams'   # এক-বারের রান: লাইভ/স্ট্রিম তালিকা
+          BACKFILL_TAB: ${{ inputs.tab || 'videos' }}
           BACKFILL_FILL: ${{ inputs.fill == '' && '1' || inputs.fill }}
           BACKFILL_SUSPECT_FROM: ${{ inputs.suspect_from }}
           BACKFILL_SUSPECT_TO: ${{ inputs.suspect_to }}
         run: |
-          echo "TAB=$BACKFILL_TAB LIMIT=$BACKFILL_LIMIT FILL=$BACKFILL_FILL"
-          node tools/backfill-videos.cjs --minutes 100 --tab streams 2>&1 | tee tools/backfill-report.txt
+          node tools/backfill-videos.cjs --minutes 100 2>&1 | tee tools/backfill-report.txt
           exit "${PIPESTATUS[0]}"
       - name: Commit new videos
         run: |
