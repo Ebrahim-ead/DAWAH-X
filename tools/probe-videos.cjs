@@ -137,6 +137,16 @@ function collect(node, bag) {
     say(`[watch] ${w.status} ${w.ms}ms ${(w.text.length / 1024) | 0}KB · datePublished ${wd || '(none)'} · botcheck ${/sign in to confirm|unusual traffic|not a robot/i.test(w.text)}`);
   }
 
+  /* তারিখের অন্য উৎস: Return YouTube Dislike API (dateCreated = ভিডিও প্রকাশের তারিখ) */
+  const f = fs.existsSync('/tmp/flat.txt') ? fs.readFileSync('/tmp/flat.txt', 'utf8').trim().split('\n').filter(Boolean) : [...seen];
+  const picks = [f[0], f[Math.floor(f.length / 2)], f[f.length - 1]].filter(Boolean);
+  say('\n[ryd] ids: ' + picks.join(', '));
+  for (const pid of picks) {
+    const r = await get('https://returnyoutubedislikeapi.com/votes?videoId=' + pid, { headers: { 'Accept': 'application/json' } });
+    let j = null; try { j = JSON.parse(r.text); } catch (e) {}
+    say(`  ${pid}: ${r.status} ${r.ms}ms · dateCreated ${(j && j.dateCreated) || '(none)'} · views ${(j && j.viewCount) || '?'} · deleted ${j ? j.deleted : '?'}`);
+  }
+
   const feed = await get('https://www.youtube.com/feeds/videos.xml?channel_id=' + CH);
   say(`\n[rss] ${feed.status} ${feed.ms}ms · entry ${count(feed.text, /<entry>/g)}`);
 
