@@ -51,27 +51,35 @@ mode=probe
 নতুন আনতে হবে 4040টি (প্রোব: প্রথম 6টি)
 
 --- 7588 · ইসলামের দৃষ্টিতে ছবি, মূর্তি ও ভাস্কর্য
-    date=- author=- len=6776
-    html: <h3 style="text-align: center;"><span style="font-weight: bold; color: rgb(57, 123, 33);">ইসলামের দৃষ্টিতে ছবি, মূর্তি ও ভাস্কর্য</span></h3><div style="text-align: center;"><hr></div><h4 style="text-align: center;"><span style="color: rgb(57, 123, 33);"><span style="font-weight: 700;"><br></span></span></h4><h4 style="text-align: center;"><span style="color: rgb(57, 123, 33);"><span style="font-weight: 700;">&nbsp;</span><span style="font-weight: 700;">اَلْحَمْدُ لِلّٰهِ وَحْدَهُ وَالصَّلَاةُ و
+    date=- author=- len=6736
+    html: <div style="text-align: center;"><hr></div><h4 style="text-align: center;"><span style="color: rgb(57, 123, 33);"><span style="font-weight: 700;"><br></span></span></h4><h4 style="text-align: center;"><span style="color: rgb(57, 123, 33);"><span style="font-weight: 700;">&nbsp;</span><span style="font-weight: 700;">اَلْحَمْدُ لِلّٰهِ وَحْدَهُ وَالصَّلَاةُ وَالسَّلَامُ عَلٰى مَنْ لَا نَبِيَّ بَعْدَ
+    before: []
+    after: ["DIV.related-articles new-category-post-design :: এ বিভাগের আরও প্রবন্ধ ইসকন: মুসলিম নিধনে হিন্দুত্ববাদী ইহুদী আগ্রাসন - সম্পাদকীয় ইলিয়াসী ত"]
+    bangla dates on page: ["২০ নভেম্বর ২০২৬"]
+  ✗ 7589 (parse: TypeError: Assignment to constant variable.
+    at extract (/home/runner/work/DAWAH-X/DAWAH-X/tools/import-ikhlasbd.cjs:185:19)
+    at /home/runner/work/DAWAH-X/DAWAH-X/tools/import-ikhlasbd.cjs:244:1)
+     page title:  ইসলামী জামা‘আতের মূল স্তম্ভ (৪র্থ কিস্তি),জানুয়ারী ২০২১ - মাসিক আল-ইখ
+     biggest: ["container-fluid · 13958","row · 13958","col-md-9 col-sm-12 default_margin · 10832","article-details · 9983","col-lg-3 order-lg-2 order-md-2 order-2 wow f · 923"]
+  ✗ 7590 (parse: TypeError: Assignment to constant variable.
+    at extract (/home/runner/work/DAWAH-X/DAWAH-X/tools/import-ikhlasbd.cjs:185:19)
+    at /home/runner/work/DAWAH-X/DAWAH-X/tools/import-ikhlasbd.cjs:244:1)
+     page title: সূদ-ঘুষ ও অবৈধ ব্যবসা (৫ম কিস্তি),জানুয়ারী ২০২১ - মাসিক আল-ইখলাছ
+     biggest: ["container-fluid · 20945","row · 20945","col-md-9 col-sm-12 default_margin · 17819","article-details · 16977","col-lg-3 order-lg-2 order-md-2 order-2 wow f · 923"]
+  ✗ 11652 (parse: TypeError: Assignment to constant variable.
+    at extract (/home/runner/work/DAWAH-X/DAWAH-X/tools/import-ikhlasbd.cjs:185:19)
+    at /home/runner/work/DAWAH-X/DAWAH-X/tools/import-ikhlasbd.cjs:244:1)
+     page title: সফল জীবনের তিন অমূল্য সম্পদ ,নভেম্বর ২০২৬ - মাসিক আল-ইখলাছ
+     biggest: ["container-fluid · 19514","row · 19514","col-md-9 col-sm-12 default_margin · 16388","article-details · 15631","col-lg-3 order-lg-2 order-md-2 order-2 wow f · 923"]
+  ✗ 11653 (parse: TypeError: Assignment to constant variable.
+    at extract (/home/runner/work/DAWAH-X/DAWAH-X/tools/import-ikhlasbd.cjs:185:19)
+    at /home/runner/work/DAWAH-X/DAWAH-X/tools/import-ikhlasbd.cjs:244:1)
+     page title: ইসলামী দৃষ্টিতে বিয়ে ও দাম্পত্য জীবন (৭ম কিস্তি) ,নভেম্বর ২০২৬ - মাসিক
+     biggest: ["container-fluid · 25617","row · 25617","col-md-9 col-sm-12 default_margin · 22491","article-details · 21544","related-articles new-category-post-design · 946"]
+  ✗ 11654 (parse: TypeError: Assignment to constant variable.
+    at extract (/home/runner/work/DAWAH-X/DAWAH-X/tools/import-ikhlasbd.cjs:185:19)
+    at /home/runner/work/DAWAH-X/DAWAH-X/tools/import-ikhlasbd.cjs:244:1)
+     page title: ইয়ামানের বিদ্রোহী হুতি শী‘আদের আসল চেহারা,নভেম্বর ২০২৬ - মাসিক আল-ইখলা
+     biggest: ["container-fluid · 20627","row · 20627","col-md-9 col-sm-12 default_margin · 17501","article-details · 16630","col-lg-3 order-lg-2 order-md-2 order-2 wow f · 923"]
 
---- 7589 · ইসলামী জামা‘আতের মূল স্তম্ভ (৪র্থ কিস্তি)
-    date=- author=- len=10481
-    html: <h3 style="text-align: center;"><span style="font-weight: bold;">&nbsp;ইসলামী জামা‘আতের মূল স্তম্ভ</span></h3><h4 style="text-align: center;"><span style="font-style: italic; font-weight: bold;">-ড. মুহাম্মাদ মুছলেহুদ্দীন*</span></h4><div><hr style="text-align: center;"></div><div style="text-align: center;"><span style="font-weight: bold;">(৪র্থ কিস্তি)</span><br></div><div><br></div><h4 style="text-align: justify; "><span style="font-weight: bold; color: rgb(255, 0, 255);">৫). সহজাত যোগ্যতা, অ
-
---- 7590 · সূদ-ঘুষ ও অবৈধ ব্যবসা (৫ম কিস্তি)
-    date=- author=- len=17477
-    html: <h3 style="text-align: center;"><span style="font-weight: bold; color: rgb(57, 123, 33);">সূদ-ঘুষ ও অবৈধ ব্যবসা</span></h3><h4 style="text-align: center;"><span style="font-style: italic; color: rgb(57, 123, 33);">-ড. ইমামুদ্দীন বিন আব্দুল বাছীর*</span></h4><div style="text-align: center;"><hr></div><div style="text-align: center;"><br></div><div style="text-align: center;"><span style="font-weight: bold;">(৫ম কিস্তি)</span></div><div style="text-align: justify;"><br></div><h4 style="text-align:
-
---- 11652 · সফল জীবনের তিন অমূল্য সম্পদ
-    date=- author=- len=16130
-    html: <h3 style="text-align: center; "><span style="color: rgb(57, 123, 33); font-weight: bold;">সফল জীবনের তিন অমূল্য সম্পদ</span></h3><h4 style="text-align: center;"><span style="color: rgb(57, 123, 33); font-style: italic;">&nbsp;- শায়খ আব্দুল গাফফার মাদানী*&nbsp;</span></h4><div style="text-align: justify; "><hr></div><div style="text-align: justify;"><span style="color: rgb(0, 0, 0);"><br></span></div><div style="text-align: justify;"><span style="color: rgb(0, 0, 0);">সমস্ত প্রশংসা আল্লাহ তা‘আলা
-
---- 11653 · ইসলামী দৃষ্টিতে বিয়ে ও দাম্পত্য জীবন (৭ম কিস্তি)
-    date=- author=- len=22086
-    html: <h3 style="text-align: center; "><span style="color: rgb(57, 123, 33); font-weight: bold;">ইসলামী দৃষ্টিতে বিয়ে ও দাম্পত্য জীবন</span></h3><h4 style="text-align: center;"><span style="color: rgb(57, 123, 33); font-style: italic;">&nbsp;-আবূ মাহদী মামুন বিন আব্দুল্লাহ*&nbsp;</span></h4><div style="text-align: center;"><hr></div><div style="text-align: center;"><span style="color: rgb(57, 123, 33); font-weight: bold;">&nbsp;(৭ম কিস্তি)&nbsp;</span></div><div><br></div><div><span style="font-weight
-
---- 11654 · ইয়ামানের বিদ্রোহী হুতি শী‘আদের আসল চেহারা
-    date=- author=- len=17177
-    html: <h3 style="text-align: center;"><span style="font-weight: bold; color: rgb(57, 123, 33);">ইয়ামানের বিদ্রোহী হুতি শী‘আদের আসল চেহারা</span></h3><h4 style="text-align: center;"><span style="color: rgb(57, 123, 33);"><span style="font-style: italic;">&nbsp;-মূল : প্রফেসর ড. সুলাইমান বিন সালিহ আল-গুসন*&nbsp;<br></span><span style="font-style: italic;">&nbsp;-অনুবাদক : আব্দুল্লাহিল হাদী বিন আব্দুল জলীল মাদানী**&nbsp;</span></span></h4><div style="text-align: justify;"><hr></div><div style="text-align
-
-সম্পন্ন: যোগ 0 · ব্যর্থ 0 · প্রোব 6
+সম্পন্ন: যোগ 0 · ব্যর্থ 5 · প্রোব 1
