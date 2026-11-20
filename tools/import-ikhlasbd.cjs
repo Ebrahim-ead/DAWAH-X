@@ -159,10 +159,18 @@ function extract(html) {
   if (!title) title = ($('meta[property="og:title"]').attr('content') || '').replace(/,\s*[^,]*?\d{4}\s*-\s*.*$/, '').trim();
   title = title.replace(/\s*[-–|]\s*মাসিক আল-ইখলাছ\s*$/, '').trim();
 
-  /* তারিখ ও লেখক: লেখার ঠিক উপরে-নিচে যেটুকু আছে (পাতার হেডারের "আজকের তারিখ" নয়) */
+  /* তারিখ: পাতার শিরোনামেই সংখ্যার মাস থাকে — "…,নভেম্বর ২০২৬ - মাসিক আল-ইখলাছ"
+     (অন্য সূত্রগুলোর মতো বাংলা লেখা-রূপেই রাখা হয়, যেমন "জানুয়ারী ২০২৫") */
+  const headTitle = ($('title').text() || '').replace(/\s*[-–|]\s*মাসিক আল-ইখলাছ.*$/, '').trim();
+  const issueDate = (() => {
+    const m = /(?:^|,)\s*((?:জানু|ফেব্রু|মার্চ|এপ্রিল|মে|জুন|জুলাই|আগস্ট|সেপ্টেম্বর|অক্টোবর|নভেম্বর|ডিসেম্বর)[^,]{0,24}?\s*[০-৯0-9]{4})\s*$/.exec(headTitle);
+    return m ? m[1].replace(/\s+/g, ' ').trim() : '';
+  })();
+
+  /* লেখক: লেখার ঠিক উপরে-নিচে যেটুকু আছে (পাতার হেডারের "আজকের তারিখ" নয়) */
   const around = body.prevAll().slice(0, 4).add(body.nextAll().slice(0, 2)).text().replace(/\s+/g, ' ');
-  const date = isoDate(around) || isoDate($('.article-details').text().slice(0, 400));
-  const author = (() => {
+  const date = issueDate || isoDate(around) || isoDate($('.article-details').text().slice(0, 400));
+  let author = (() => {
     const t = around;
     const m = /(?:লেখক|লিখেছেন|প্রশ্নকারী)\s*[:：]\s*([^\d।]{2,60})/.exec(t);
     if (m) return m[1].replace(/\s+/g, ' ').trim();
