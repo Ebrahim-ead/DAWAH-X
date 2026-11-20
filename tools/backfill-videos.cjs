@@ -407,6 +407,7 @@ function compact(videos) {
   }
   console.log('  RYD: পাওয়া ' + rydStats.ok + ' · এন্ট্রি নেই ' + rydStats.miss + ' · সন্দেহজনক (আজকের) ' + rydStats.suspect + ' · এরর ' + rydStats.err);
 
+  if (unknownIds.size) fs.writeFileSync(UNKNOWN, JSON.stringify(Array.from(unknownIds).sort()) + '\n');
   console.log('\nযোগ হবে মোট ' + fresh.length + 'টি · এখন তালিকায় ' + videos.length + 'টি' + (DRY ? ' (dry run)' : ''));
   if (DRY || !fresh.length) return;
 
@@ -427,7 +428,6 @@ function compact(videos) {
   });
   compact(videos);
   fs.writeFileSync(LIST, JSON.stringify(videos));
-  if (unknownIds.size) fs.writeFileSync(UNKNOWN, JSON.stringify(Array.from(unknownIds).sort()) + '\n');
   if (configChanged) fs.writeFileSync(CONFIG, JSON.stringify(config, null, 2) + '\n');
 
   let stats = null;

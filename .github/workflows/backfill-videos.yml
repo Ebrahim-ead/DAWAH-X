@@ -1,8 +1,8 @@
 name: Backfill channel videos
 # নতুন চ্যানেলের পুরো (পুরোনো) ভিডিও তালিকা নামায় — tools/backfill-videos.cjs।
-# update-videos.yml শুধু সর্বশেষ ১৫টি দেখে; এই ওয়ার্কফ্লো চ্যানেলের সব আপলোড ধরে।
-# - workflow_dispatch: হাতে চালান (channel/limit ইচ্ছেমতো); রান বারবার চালালে বাকিটা যোগ হয়।
-# - push (arena/**): স্ক্রিপ্ট বদলালে একবার চলে (এই রিপোতে workflow_dispatch করার অনুমতি নেই, তাই এটিই উপায়)।
+# update-videos.yml শুধু সর্বশেষ ১৫টি দেখে (RSS); এই ওয়ার্কফ্লো চ্যানেলের সব আপলোড ধরে।
+#   node tools/backfill-videos.cjs --channel @attahreektv --limit 4000
+# রান বারবার চালালে যেখানে থেমেছিল সেখান থেকেই এগোয় (তালিকায় থাকা ভিডিও বাদ যায়)।
 on:
   workflow_dispatch:
     inputs:
@@ -15,7 +15,7 @@ on:
         required: false
         default: '4000'
       tab:
-        description: 'videos | shorts'
+        description: 'videos | shorts | streams'
         required: false
         default: 'videos'
       fill:
@@ -23,21 +23,21 @@ on:
         required: false
         default: '1'
       suspect_from:
-        description: 'অডিট: এই সময়ের পরের ও আগের (ISO) তারিখ সন্দেহজনক'
+        description: 'অডিট: (ঐচ্ছিক) সন্দেহজনক জানালার শুরু, ISO'
         required: false
         default: ''
       suspect_to:
-        description: 'অডিট: সন্দেহজনক জানালার শেষ (ISO)'
+        description: 'অডিট: (ঐচ্ছিক) সন্দেহজনক জানালার শেষ, ISO'
         required: false
         default: ''
   push:
     branches: ['arena/**']
-    paths: ['tools/backfill-videos.cjs', 'tools/probe-videos.cjs', '.github/workflows/backfill-videos.yml']
+    paths: ['tools/backfill-videos.cjs', '.github/workflows/backfill-videos.yml']
 permissions:
   contents: write
   pages: write
 concurrency:
-  group: backfill-videos-b-${{ github.ref_name }}  # বি-গ্রুপ: পুরোনো (ধীর) রান আটকে থাকলেও এটি সাথে সাথে শুরু হয়
+  group: backfill-videos-${{ github.ref_name }}
   cancel-in-progress: false
 jobs:
   backfill:
@@ -50,33 +50,14 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Install yt-dlp (channel listing)
+      - name: Install yt-dlp
         run: pip install -q yt-dlp
-      - name: Count what each tab holds
-        run: |
-          {
-            echo "=== tab counts $(date -u +%FT%TZ)"
-            for ch in UCc6cxJCSSaLxd4JE_GHxsEA UCtip528n2pKDumGCvftZPIg; do
-              for tab in videos shorts streams; do
-                n=$(yt-dlp --no-warnings --flat-playlist --print "%(id)s" \
-                      "https://www.youtube.com/channel/$ch/$tab" 2>/dev/null | wc -l)
-                echo "$ch $tab: $n"
-              done
-            done
-            echo "=== lemnoslife (key-less data api copy)"
-            for base in "https://yt.lemnoslife.com/noKey/videos" "https://yt.lemnoslife.com/videos"; do
-              echo "--- $base"
-              curl -s -m 25 "$base?part=snippet&id=8Gop_lDQtuA,WbDFS-_e7qc,KILXY0bmSAU" | head -c 420
-              echo
-            done
-          } | tee tools/probe-report.txt
       - name: Walk the channel and add missing videos
         env:
           BACKFILL_CHANNEL: ${{ inputs.channel }}
           BACKFILL_LIMIT: ${{ inputs.limit || '4000' }}
           BACKFILL_TAB: ${{ inputs.tab || 'videos' }}
-          BACKFILL_FILL: '1'
-          # এক-বারের অডিট: আগের রানে সন্দেহজনক ভাবে বসানো তারিখগুলো আবার যাচাই
+          BACKFILL_FILL: ${{ inputs.fill == '' && '1' || inputs.fill }}
           BACKFILL_SUSPECT_FROM: '2026-11-20T05:55:00Z'
           BACKFILL_SUSPECT_TO: '2026-11-20T06:15:00Z'
         run: |
@@ -87,7 +68,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add youtube-videos.json stats.json
-          git add tools/video-channels.json tools/backfill-report.txt tools/probe-report.txt tools/video-dates-unknown.json || true
+          git add tools/video-channels.json tools/backfill-report.txt tools/video-dates-unknown.json tools/probe-report.txt 2>/dev/null || true
           if git diff --cached --quiet; then
             echo "নতুন কিছু নেই"
             exit 0
