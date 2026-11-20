@@ -5,13 +5,83 @@
   "lang": "bn",
   "dir": "ltr",
   "start_url": "./index.html",
+  "id": "./",
+  "categories": [
+    "education",
+    "lifestyle"
+  ],
+  "shortcuts": [
+    {
+      "name": "প্রশ্নোত্তর",
+      "short_name": "প্রশ্নোত্তর",
+      "url": "./questions.html",
+      "description": "প্রশ্নোত্তর তালিকা",
+      "icons": [
+        {
+          "src": "icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "ফতোয়া",
+      "short_name": "ফতোয়া",
+      "url": "./fatwa.html",
+      "description": "ফতোয়ার তালিকা",
+      "icons": [
+        {
+          "src": "icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "ভিডিও",
+      "short_name": "ভিডিও",
+      "url": "./videos.html",
+      "description": "সব ভিডিও এক জায়গায়",
+      "icons": [
+        {
+          "src": "icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "প্রশ্ন করুন",
+      "short_name": "প্রশ্ন",
+      "url": "./ask.html",
+      "description": "প্রশ্ন পাঠান",
+      "icons": [
+        {
+          "src": "icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
   "scope": "./",
   "display": "standalone",
   "background_color": "#08151a",
   "theme_color": "#08151a",
   "icons": [
-    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ]
 }

@@ -9,7 +9,18 @@ const LINKS={
   personal:"https://ebrahim-ead.github.io/ead/" /* পরিচালকের ব্যক্তিগত সাইট — ফুটার ও “আমাদের সম্পর্কে” পাতার লিংক */
 };
 const MESSENGER="https://m.me/61595349861689"; /* প্রশ্ন এই Messenger ইনবক্সে যায় */
-const ASK_ACTION="https://formsubmit.co/ajax/www.mdrazu55555@gmail.com"; /* FormSubmit (formsubmit.co): "প্রশ্ন পাঠান" চাপলে প্রশ্ন সরাসরি এই ইমেইল ঠিকানায় আসে। ঠিকানা বদলাতে /ajax/-এর পরের অংশ বদলান (FormSubmit-এর দেওয়া এলোমেলো কোডও বসানো যায়, তাতে ঠিকানাটি কোডে দেখা যায় না)। ফাঁকা ("") রাখলে আগের মতো Messenger খোলে */
+/* FormSubmit (formsubmit.co): «প্রশ্ন পাঠান» চাপলে প্রশ্ন সরাসরি এই ইমেইল ঠিকানায় আসে।
+   ঠিকানা টুকরো টুকরো করে জোড়া হয়, যাতে সাইটের কোড পড়ে কোনো স্ক্র্যাপার সহজে ইমেইল পেয়ে স্প্যাম না পাঠায়।
+   ঠিকানা বদলাতে ASK_USER-এর দুই টুকরো বদলান; ফাঁকা ("") রাখলে আগের মতো Messenger খোলে।
+   FormSubmit-এর দেওয়া এলোমেলো কোডও এখানে বসানো যায় (তখন ঠিকানাটি কোডে থাকে না)। */
+const ASK_ACTION="https://formsubmit.co/ajax/"+["www","mdrazu55555"].join(".")+String.fromCharCode(64)+["gmail","com"].join(String.fromCharCode(46));
+/* পরিসংখ্যান (ঐচ্ছিক) — GoatCounter: কুকি ছাড়া, ব্যানার/সম্মতি লাগে না, বিনা পয়সায়।
+   চালু করতে: goatcounter.com-এ বিনা পয়সার অ্যাকাউন্ট খুলে নিজের সাইট-কোডটি (যেমন "dawahx") এখানে বসান।
+   খালি থাকলে সাইট থেকে কোনো বাইরের স্ক্রিপ্টই লোড হয় না (পাঠকের কিছুই ট্র্যাক হয় না)।
+   চালু থাকলে লেখা-ভিত্তিক সংখ্যা আসবে; সাথে «কোন শব্দে কিছু পাওয়া যায়নি»-ও জমা হবে (search-none),
+   সেটি দেখে বোঝা যাবে পাঠক কী খুঁজছে আর সাইটে কী নেই। */
+const ANALYTICS={provider:"goatcounter",code:""};
+/* ================================== */
 /* ================================== */
 /* «নতুন» ব্যাজ কত দিন থাকবে — youtube-gallery.js ও হোমপেজের সর্বশেষ ভিডিও একই মান ব্যবহার করে,
    তাই বদলাতে হলে শুধু এই একটি জায়গা বদলান */
@@ -990,6 +1001,10 @@ setupLibrary({id:"f",deep:PAGE==="fatwa",rows:FT,manifest:PAGE==="fatwa"?FATWA_P
   /* Netlify Forms শুধু Netlify-তে চলে; GitHub Pages বা নিজস্ব ডোমেইনে সরাসরি জমার জন্য ASK_ACTION লাগে */
   const netlifyHost=/(^|\.)netlify\.app$/i.test(location.hostname);
   const directPossible=Boolean(ASK_ACTION)||netlifyHost;
+  /* স্প্যাম ঠেকানো: (১) লুকানো ঘর «ab» ভরা থাকলে, (২) ফর্ম খোলার ২ সেকেন্ডের মধ্যে পাঠালে —
+     কোনো স্ক্রিপ্ট ধরা পড়বে; ব্যবহারকারীকে আগের মতোই «ধন্যবাদ» দেখানো হয়, শুধু কিছু পাঠানো হয় না */
+  const formBorn=Date.now();
+  const looksAutomated=()=>{const trap=$("ab");return (trap&&trap.value.trim().length>0)||(Date.now()-formBorn<1500)};
   if(!directPossible&&how)how.textContent="«প্রশ্ন পাঠান» চাপলে WhatsApp ও Messenger-এর বোতাম আসবে; যেকোনো একটিতে আপনার প্রশ্ন লেখা অবস্থায় চ্যাট খুলবে, সেখানে Send চাপলেই প্রশ্নটি আমাদের কাছে পৌঁছাবে।";
 
   const copyText=text=>{let ok=false;
@@ -1070,6 +1085,7 @@ setupLibrary({id:"f",deep:PAGE==="fatwa",rows:FT,manifest:PAGE==="fatwa"?FATWA_P
 
   btn.addEventListener("click",async()=>{
    const m=compose();if(!m)return;
+   if(looksAutomated()){const trap=$("ab");if(trap)trap.value="";msg.textContent="ধন্যবাদ! আপনার প্রশ্ন আমাদের কাছে পৌঁছেছে। ইন শা আল্লাহ শীঘ্রই উত্তর দেওয়া হবে।";return}
    const {data,text}=m;
    if(!directPossible){chatOptions(text,"");return}
    btn.disabled=true;msg.textContent="পাঠানো হচ্ছে...";
@@ -1080,7 +1096,7 @@ setupLibrary({id:"f",deep:PAGE==="fatwa",rows:FT,manifest:PAGE==="fatwa"?FATWA_P
         যোগাযোগের ঘরে ইমেইল থাকলে email ও _replyto হিসেবেও যায় (তখন ইমেইলে Reply চাপলেই উত্তর দেওয়া যায়)।
         উত্তরে success "true" না এলে (যেমন ফর্ম এখনো সক্রিয় করা হয়নি) জমা হয়নি ধরে Messenger/WhatsApp-এর পথ দেখানো হয় */
      const out={};for(const k in data)if(data[k])out[k]=data[k];
-     out._subject="DAWAH X — নতুন প্রশ্ন ("+data.topic+")";out._captcha="false";out._template="table";
+     out._subject="DAWAH X — নতুন প্রশ্ন ("+data.topic+")";out._captcha="false";out._template="table";out._honey="";
      if(EMAIL_RE.test(data.contact)){out.email=data.contact;out._replyto=data.contact}
      const ctl=typeof AbortController==="function"?new AbortController():null,timer=ctl?setTimeout(()=>ctl.abort(),20000):0;
      try{const r=await fetch(ASK_ACTION,{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json"},body:JSON.stringify(out),signal:ctl?ctl.signal:undefined});
@@ -1099,6 +1115,25 @@ setupLibrary({id:"f",deep:PAGE==="fatwa",rows:FT,manifest:PAGE==="fatwa"?FATWA_P
    btn.disabled=false;
   });
  }}
+
+/* ---- পড়ার জায়গা মনে রাখা (read.html): ফিরে এলে «যেখানে ছিলেন সেখানে যান» বোতাম ----
+   যা ব্রাউজারেই থাকে (localStorage), কোনো সার্ভারে যায় না; ৩০ দিন পরে নিজেই বাতিল */
+(()=>{
+ const body=$("read-body");if(!body)return;
+ const KEY="dawahx-readpos",id=(location.search||"").replace(/^\?/,"");
+ if(!/^(k|v)=/.test(id))return;
+ let timer=0;
+ const savePos=()=>{try{localStorage.setItem(KEY,JSON.stringify({id:location.search,y:Math.round(scrollY),t:Date.now()}))}catch(e){}};
+ addEventListener("scroll",()=>{clearTimeout(timer);timer=setTimeout(savePos,700)},{passive:true});
+ addEventListener("pagehide",savePos);                       /* ট্যাব বন্ধ/বেরিয়ে গেলেও জায়গা থাকে */
+ document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden")savePos()});
+ let got=null;try{got=JSON.parse(localStorage.getItem(KEY)||"null")}catch(e){}
+ if(!got||got.id!==location.search||!(got.y>700)||!(Date.now()-got.t<1000*60*60*24*30))return;
+ const bar=document.createElement("button");
+ bar.type="button";bar.className="read-pos";bar.textContent="যেখানে ছিলেন সেখানে যান ↓";
+ bar.addEventListener("click",()=>{try{scrollTo({top:got.y,behavior:"smooth"})}catch(e){scrollTo(0,got.y)}bar.remove()});
+ body.parentNode.insertBefore(bar,body);
+})();
 
 /* ---- পড়ার সরঞ্জাম (read.html): লেখার আকার, সংরক্ষিত লেখা, প্রিন্ট ----
    সংরক্ষিত লেখার তালিকা ব্রাউজারেই (localStorage) থাকে — কোনো সার্ভারে যায় না */
@@ -1289,7 +1324,10 @@ const DXP={
   }
   if(res.kind==="loading"){this.count.textContent="খোঁজা হচ্ছে…";this.body.innerHTML='<p class="dxp-note dxp-loading">“'+escHTML(term)+'” খোঁজা হচ্ছে…</p>';return}
   if(res.kind==="error"){this.count.textContent="";this.body.innerHTML='<p class="dxp-note">সার্চের তথ্য আনা যায়নি। ইন্টারনেট সংযোগ দেখে আবার চেষ্টা করুন।</p>';return}
-  if(res.kind!=="ok"){this.count.textContent="";this.body.innerHTML='<p class="dxp-note">শিরোনামে “'+escHTML(term)+'” পাওয়া যায়নি। <a class="dxp-all" href="questions.html?s='+encodeURIComponent(term)+'">লেখার ভেতরে খুঁজুন ›</a></p>';return}
+  if(res.kind!=="ok"){this.count.textContent="";try{ /* পরিসংখ্যান: কোন শব্দে কিছু পাওয়া যায়নি (একই শব্দে বারবার নয়) */
+   this._missed=this._missed||new Set();
+   if(!this._missed.has(term)){this._missed.add(term);window.dawahxTrack?.("search-none/"+encodeURIComponent(term).slice(0,60))}}catch(e){}
+   this.body.innerHTML='<p class="dxp-note">শিরোনামে “'+escHTML(term)+'” পাওয়া যায়নি। <a class="dxp-all" href="questions.html?s='+encodeURIComponent(term)+'">লেখার ভেতরে খুঁজুন ›</a></p>';return}
   this.count.textContent="“"+toLatinDigits(term)+'” — '+formatCount(res.total)+"টি শিরোনামে মিলেছে";
   this.body.innerHTML=res.rows.map(r=>{
    const href="read.html?k="+escAttr(r.k)+"&from="+r.side+"&q="+encodeURIComponent(term);
@@ -1491,6 +1529,16 @@ if(latestGrid){
   const slot=document.getElementById("latest-videos");
   if(slot)slot.removeAttribute("hidden");
  }).catch(()=>{});
+}
+
+/* ---- পরিসংখ্যান লোড (কেবল ANALYTICS.code ভরা থাকলে) ---- */
+window.dawahxTrack=()=>{};   /* কোথাও কল হলেও কোড না থাকলে নীরবে কিছুই হয় না */
+if(ANALYTICS.provider==="goatcounter"&&ANALYTICS.code){
+ const sc=document.createElement("script");
+ sc.async=true;sc.src="https://gc.zgo.at/count.js";
+ sc.setAttribute("data-goatcounter","https://"+ANALYTICS.code+".goatcounter.com/count");
+ document.head.appendChild(sc);
+ window.dawahxTrack=path=>{try{if(window.goatcounter&&goatcounter.count)goatcounter.count({path:String(path),event:true})}catch(e){}};
 }
 
 /* ---- অফলাইন: আগে খোলা পাতা ও পড়া লেখা ইন্টারনেট ছাড়াও খোলে (sw.js) ---- */
