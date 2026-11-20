@@ -136,17 +136,17 @@ if(readTitle){
 const ALL="সব",LIBRARY_PAGE_SIZE=20;
 const BN_DIGITS="০১২৩৪৫৬৭৮৯";
 const toLatinDigits=v=>String(v).replace(/[০-৯]/g,d=>String(BN_DIGITS.indexOf(d)));
-const toBnDigits=v=>String(v).replace(/[0-9]/g,d=>BN_DIGITS[+d]);
-/* তারিখের চেহারা এক: ২০২৬-০৪-২৯ / Apr 29, 2026 / Feb 26, 2018 → \"২৯ এপ্রিল ২০২৬\" (বাংলা মাস, বাংলা সংখ্যা) */
+/* তারিখের চেহারা এক: ২০২৬-০৪-২৯ / Apr 29, 2026 / Feb 26, 2018 → «29 এপ্রিল 2026»
+   (বাংলা মাসের নাম, সংখ্যা ইংরেজিতে — সাইটের বাকি জায়গার মতোই; escHTML নিজেই সংখ্যা ল্যাটিন করে) */
 const BN_MONTH_NAMES=["জানুয়ারি","ফেব্রুয়ারি","মার্চ","এপ্রিল","মে","জুন","জুলাই","আগস্ট","সেপ্টেম্বর","অক্টোবর","নভেম্বর","ডিসেম্বর"];
 const EN_MONTH_IDX={jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11};
 const bnDate=v=>{const s=String(v||"").trim();if(!s)return "";
  let m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
- if(m&&+m[2]>=1&&+m[2]<=12)return toBnDigits(+m[3])+" "+BN_MONTH_NAMES[+m[2]-1]+" "+toBnDigits(m[1]);
+ if(m&&+m[2]>=1&&+m[2]<=12)return (+m[3])+" "+BN_MONTH_NAMES[+m[2]-1]+" "+m[1];
  m=/^(\d{1,2})\s+([A-Za-z]{3,9})\.?\s*,?\s*(\d{4})$/.exec(s);
- if(m){const i=EN_MONTH_IDX[m[2].slice(0,3).toLowerCase()];if(i!=null)return toBnDigits(+m[1])+" "+BN_MONTH_NAMES[i]+" "+toBnDigits(m[3]);}
+ if(m){const i=EN_MONTH_IDX[m[2].slice(0,3).toLowerCase()];if(i!=null)return (+m[1])+" "+BN_MONTH_NAMES[i]+" "+m[3];}
  m=/^([A-Za-z]{3,9})\.?\s+(\d{1,2})\s*,\s*(\d{4})$/.exec(s);
- if(m){const i=EN_MONTH_IDX[m[1].slice(0,3).toLowerCase()];if(i!=null)return toBnDigits(+m[2])+" "+BN_MONTH_NAMES[i]+" "+toBnDigits(m[3]);}
+ if(m){const i=EN_MONTH_IDX[m[1].slice(0,3).toLowerCase()];if(i!=null)return (+m[2])+" "+BN_MONTH_NAMES[i]+" "+m[3];}
  return s;};
 /* escAttr: শুধু HTML escape (লিংকের জন্য — সংখ্যা বদলানো যাবে না); escHTML: দৃশ্যমান লেখার জন্য, সংখ্যা ইংরেজিতে */
 const escAttr=v=>String(v).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll("\"","&quot;");
