@@ -61,7 +61,8 @@ jobs:
           BACKFILL_SUSPECT_FROM: ${{ inputs.suspect_from }}
           BACKFILL_SUSPECT_TO: ${{ inputs.suspect_to }}
         run: |
-          node tools/backfill-videos.cjs --minutes 100 2>&1 | tee tools/backfill-report.txt
+          echo "TAB=$BACKFILL_TAB LIMIT=$BACKFILL_LIMIT FILL=$BACKFILL_FILL"
+          node tools/backfill-videos.cjs --minutes 100 --tab streams 2>&1 | tee tools/backfill-report.txt
           exit "${PIPESTATUS[0]}"
       - name: Commit new videos
         run: |
