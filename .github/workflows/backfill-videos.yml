@@ -1,0 +1,83 @@
+name: Backfill channel videos
+# নতুন চ্যানেলের পুরো (পুরোনো) ভিডিও তালিকা নামায় — tools/backfill-videos.cjs।
+# update-videos.yml শুধু সর্বশেষ ১৫টি দেখে (RSS); এই ওয়ার্কফ্লো চ্যানেলের সব আপলোড ধরে।
+#   node tools/backfill-videos.cjs --channel @attahreektv --limit 4000
+# রান বারবার চালালে যেখানে থেমেছিল সেখান থেকেই এগোয় (তালিকায় থাকা ভিডিও বাদ যায়)।
+on:
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: 'শুধু একটি চ্যানেল (handle/ID/নাম) — খালি রাখলে সব backfill:true চ্যানেল'
+        required: false
+        default: ''
+      limit:
+        description: 'এক রানে সর্বোচ্চ কতটি নতুন ভিডিও'
+        required: false
+        default: '4000'
+      tab:
+        description: 'videos | shorts | streams'
+        required: false
+        default: 'videos'
+      fill:
+        description: 'আগে থেকে থাকা তারিখ-ফাঁকা সারির তারিখও খোঁজা হবে (1/0)'
+        required: false
+        default: '1'
+      suspect_from:
+        description: 'অডিট: (ঐচ্ছিক) সন্দেহজনক জানালার শুরু, ISO'
+        required: false
+        default: ''
+      suspect_to:
+        description: 'অডিট: (ঐচ্ছিক) সন্দেহজনক জানালার শেষ, ISO'
+        required: false
+        default: ''
+  push:
+    branches: ['arena/**']
+    paths: ['tools/backfill-videos.cjs', '.github/workflows/backfill-videos.yml']
+permissions:
+  contents: write
+  pages: write
+concurrency:
+  group: backfill-videos-${{ github.ref_name }}
+  cancel-in-progress: false
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install yt-dlp
+        run: pip install -q yt-dlp
+      - name: Walk the channel and add missing videos
+        env:
+          BACKFILL_CHANNEL: ${{ inputs.channel }}
+          BACKFILL_LIMIT: ${{ inputs.limit || '4000' }}
+          BACKFILL_TAB: ${{ inputs.tab || 'videos' }}
+          BACKFILL_FILL: ${{ inputs.fill == '' && '1' || inputs.fill }}
+          BACKFILL_SUSPECT_FROM: ${{ inputs.suspect_from }}
+          BACKFILL_SUSPECT_TO: ${{ inputs.suspect_to }}
+        run: |
+          node tools/backfill-videos.cjs --minutes 100 2>&1 | tee tools/backfill-report.txt
+          exit "${PIPESTATUS[0]}"
+      - name: Commit new videos
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add youtube-videos.json stats.json
+          git add tools/video-channels.json tools/backfill-report.txt tools/video-dates-unknown.json tools/probe-report.txt 2>/dev/null || true
+          if git diff --cached --quiet; then
+            echo "নতুন কিছু নেই"
+            exit 0
+          fi
+          git commit -q -m "Backfill channel videos (automated)"
+          git pull -q --rebase -X theirs origin "${GITHUB_REF_NAME}" || { git rebase --abort; git pull -q --rebase -X theirs origin "${GITHUB_REF_NAME}"; }
+          git push -q origin "HEAD:${GITHUB_REF_NAME}"
+      - name: Ask GitHub Pages to publish
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X POST "repos/${GITHUB_REPOSITORY}/pages/builds"

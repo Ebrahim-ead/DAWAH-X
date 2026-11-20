@@ -119,9 +119,16 @@ async function fetchFeed(channelId){
   if(!Array.isArray(videos)||videos.length<1000)throw new Error('youtube-videos.json ঠিক নেই');
   const since=Date.parse(config.addSince||'')||0;
   const known=new Set(videos.map(v=>v.id));
-  const fresh=[];let configChanged=false,okChannels=0;
+  const byId=new Map(videos.map(v=>[v.id,v]));
+  const fresh=[];let configChanged=false,okChannels=0,patched=0;
 
   for(const channel of config.channels){
+    if(!channel.title){
+      /* নাম এখনো অজানা (নতুন চ্যানেল): খালি channelTitle নিয়ে সারি ঢোকানোর চেয়ে বাদ দেওয়া ভালো।
+         tools/backfill-videos.cjs একবার চালালেই নাম বসে যায়। */
+      warn((channel.handle||channel.channelId||'?')+': নাম এখনো অজানা — backfill-videos.cjs একবার চালান, ততক্ষণ বাদ।');
+      continue;
+    }
     console.log('\n'+channel.title);
     try{
       if(!CH_RE.test(channel.channelId||'')){
@@ -133,10 +140,15 @@ async function fetchFeed(channelId){
       let added=0,old=0;
       for(const e of entries){
         if(e.channelId&&e.channelId!==channel.channelId)continue; // অন্য চ্যানেলের সারি (হওয়ার কথা নয়)
-        if(known.has(e.id))continue;
+        if(known.has(e.id)){
+          /* তালিকায় আছে কিন্তু তারিখ ফাঁকা — ফিডের নির্ভুল তারিখ বসিয়ে দেওয়া */
+          const row=byId.get(e.id);
+          if(row&&!row.publishedAt&&e.publishedAt){row.publishedAt=e.publishedAt;patched++;}
+          continue;
+        }
         if(!e.time||e.time<since){old++;continue;}
         known.add(e.id);added++;
-        fresh.push({id:e.id,title:e.title,channelTitle:channel.title,publishedAt:e.publishedAt,thumbnail:'https://i.ytimg.com/vi/'+e.id+'/hqdefault.jpg',time:e.time});
+        fresh.push({id:e.id,title:e.title,channelTitle:channel.title,publishedAt:e.publishedAt,time:e.time});
       }
       console.log('  ফিডে '+entries.length+'টি · নতুন '+added+'টি'+(old?' · পুরনো বলে বাদ '+old+'টি':''));
     }catch(e){warn(channel.title+': '+e.message);}
@@ -146,16 +158,19 @@ async function fetchFeed(channelId){
   if(fresh.length>MAX_NEW){warn('এক রানে '+fresh.length+'টি নতুন ভিডিও — অস্বাভাবিক, তাই কিছু যোগ করা হয়নি।');fresh.length=0;}
   fresh.sort((a,b)=>b.time-a.time);
   for(const v of fresh)console.log('  + '+v.publishedAt+'  '+v.channelTitle.slice(0,24)+'  '+v.id+'  '+v.title.slice(0,70));
-  console.log('\nনতুন ভিডিও: '+fresh.length+'টি · মোট হবে '+(videos.length+fresh.length)+'টি'+(DRY?' (dry run — কিছু লেখা হয়নি)':''));
+  console.log('\nনতুন ভিডিও: '+fresh.length+'টি · মোট হবে '+(videos.length+fresh.length)+'টি'+
+    (patched?' · পুরোনো '+patched+'টির ফাঁকা তারিখ পূরণ হলো':'')+(DRY?' (dry run — কিছু লেখা হয়নি)':''));
   if(DRY)return;
-  if(fresh.length){
+  if(fresh.length||patched){
     /* নতুনগুলো তালিকার শুরুতে, তারিখ অনুযায়ী পুরনো সারিগুলোর মাঝে ঠিক জায়গায় (তালিকার শুরুটা নতুন-থেকে-পুরনো সাজানো) */
     for(const v of fresh.reverse()){
-      const record={id:v.id,title:v.title,channelTitle:v.channelTitle,publishedAt:v.publishedAt,thumbnail:v.thumbnail};
+      const record={id:v.id,title:v.title,channelTitle:v.channelTitle,publishedAt:v.publishedAt};
       let at=0;
       while(at<videos.length&&videos[at].publishedAt&&Date.parse(videos[at].publishedAt)>v.time)at++;
       videos.splice(at,0,record);
     }
+    /* thumbnail id থেকেই তৈরি হয় — বাড়তি ঘরগুলো মুছে ফেলা (ফাইল হালকা থাকে) */
+    for(const v of videos)if(v.thumbnail==='https://i.ytimg.com/vi/'+v.id+'/hqdefault.jpg')delete v.thumbnail;
     fs.writeFileSync(LIST,JSON.stringify(videos));
   }
   /* হোমপেজের পরিসংখ্যান: ভিডিওর সংখ্যা বদলালে stats.json-এ লেখা হয় (বাকি সংখ্যা tools/build-stats.cjs-এর) */
