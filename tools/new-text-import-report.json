@@ -43,7 +43,7 @@
       "already": 4,
       "added": 2,
       "failed": 0,
-      "note": "Older 2025 posts in the mixed blog listing were excluded."
+      "note": "Older 2025 posts in the mixed blog listing were excluded. A later retry for the featured recent article returned HTTP 403, so it was not imported."
     }
   },
   "added": [

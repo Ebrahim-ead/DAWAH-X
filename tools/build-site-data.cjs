@@ -185,12 +185,8 @@ if(!ONLY||ONLY==='share'){
     return /^https?:\/\//i.test(u)?'<a href="'+esc(u)+'" target="_blank" rel="noopener noreferrer nofollow">':'<span>'}
    return closing?'</'+t+'>':'<'+t+'>'})
   .replace(/\s+/g,' ').replace(/>\s+</g,'><').trim();
- const BN_M=[[/জানু/,'01'],[/ফেব্রু/,'02'],[/মার্চ/,'03'],[/এপ্রি/,'04'],[/মে/,'05'],[/জুন/,'06'],[/জুলা/,'07'],[/আগ/,'08'],[/সেপ্টে/,'09'],[/অক্টো/,'10'],[/নভে/,'11'],[/ডিসে/,'12']];
+ const {textDate:isoDate}=require('./text-date.cjs');
  const toEn=v=>String(v).replace(/[০-৯]/g,c=>String('০১২৩৪৫৬৭৮৯'.indexOf(c)));
- const isoDate=d=>{const t=toEn(d||'');if(!t)return '';let mon='';for(const [re,m] of BN_M){if(re.test(t)){mon=m;break}}
-  if(!mon)return '';const nums=(t.match(/\d+/g)||[]).map(Number);if(!nums.length)return '';
-  const year=nums.find(n=>n>=1300&&n<=2200);if(!year)return '';
-  const day=nums.find(n=>n!==year&&n>=1&&n<=31);if(!day)return year+'-'+mon;const dt=new Date(Date.UTC(year,+mon-1,day));return dt.getUTCMonth()===+mon-1?year+'-'+mon+'-'+String(day).padStart(2,'0'):''};
 
  /* কোন লেখাগুলো ল্যান্ডিং পাতা হবে (নবীনতম আগে) */
  const docsWithIso=docs.map(d=>({d,iso:isoDate(d.d)})).sort((a,b)=>b.iso===a.iso?0:(b.iso>a.iso?1:-1));
