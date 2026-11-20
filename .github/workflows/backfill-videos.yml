@@ -20,7 +20,7 @@ on:
         default: 'videos'
   push:
     branches: ['arena/**']
-    paths: ['tools/backfill-videos.cjs', '.github/workflows/backfill-videos.yml']
+    paths: ['tools/backfill-videos.cjs', 'tools/probe-videos.cjs', '.github/workflows/backfill-videos.yml']
 permissions:
   contents: write
   pages: write
