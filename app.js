@@ -972,19 +972,18 @@ const FT=[
 
 /* পূর্ণ সূচির chunk ফাইল — শুধু সংশ্লিষ্ট পেজে, প্রয়োজন হলে লোড হয় */
 const QUESTION_PARTS=[
- {category:"Response to Anti-Islam · নতুন লেখা",src:"questions-catalog-part-03.js",count:40},
  {category:"Islamic Authors · নতুন লেখা",src:"questions-catalog-part-03.js",count:11},
- {category:"From Muslims · নতুন লেখা",src:"questions-catalog-part-03.js",count:5},
- {category:"Insight Zone · নতুন লেখা",src:"questions-catalog-part-03.js",count:8},
+ {category:"From Muslims · নতুন লেখা",src:"questions-catalog-part-04.js",count:5},
+ {category:"Insight Zone · নতুন লেখা",src:"questions-catalog-part-05.js",count:2},
  {category:"Response to Anti-Islam",src:"questions-catalog-part-00.js",count:327},
  {category:"From Muslims · প্রশ্নোত্তর",src:"questions-catalog-part-01.js",count:227},
  {category:"From Muslims · প্রবন্ধ",src:"questions-catalog-part-02.js",count:357}
 ];
 const FATWA_PARTS=[
  {category:"আত-তাহরীক · নতুন প্রবন্ধ",src:"fatwa-catalog-part-07.js",count:31},
- {category:"আত-তাহরীক · নতুন প্রশ্নোত্তর",src:"fatwa-catalog-part-07.js",count:39},
- {category:"আল-ইতিছাম · নতুন প্রবন্ধ",src:"fatwa-catalog-part-07.js",count:24},
- {category:"আল-ইতিছাম · নতুন প্রশ্নোত্তর",src:"fatwa-catalog-part-07.js",count:50},
+ {category:"আত-তাহরীক · নতুন প্রশ্নোত্তর",src:"fatwa-catalog-part-08.js",count:39},
+ {category:"আল-ইতিছাম · নতুন প্রবন্ধ",src:"fatwa-catalog-part-09.js",count:24},
+ {category:"আল-ইতিছাম · নতুন প্রশ্নোত্তর",src:"fatwa-catalog-part-10.js",count:50},
  {category:"মাসিক আল-ইখলাছ · প্রবন্ধ",src:"fatwa-catalog-part-06.js",count:1031},
  {category:"মাসিক আল-ইখলাছ · প্রশ্নোত্তর",src:"fatwa-catalog-part-05.js",count:3009},
  {category:"আত-তাহরীক",src:"fatwa-catalog-part-00.js",count:7996},
