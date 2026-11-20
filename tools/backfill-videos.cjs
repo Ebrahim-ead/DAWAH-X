@@ -179,6 +179,14 @@ async function videoInfo(ch, id) {
   return { title: vd.title || '', date, channelId: vd.channelId || '', author: vd.author || '' };
 }
 
+/* thumbnail সব সারির জন্য একই নিয়মে id থেকে তৈরি হয় (youtube-gallery.js: thumbUrl) — JSON-এ রাখা
+   বাড়তি ৫০ বাইট × হাজার হাজার সারি। লেখার সময়েই মুছে দেওয়া হয়, তাই তালিকা নিজে থেকেই হালকা হয়। */
+function compact(videos) {
+  for (const v of videos) {
+    if (v.thumbnail && v.thumbnail === 'https://i.ytimg.com/vi/' + v.id + '/hqdefault.jpg') delete v.thumbnail;
+  }
+}
+
 (async () => {
   const config = JSON.parse(fs.readFileSync(CONFIG, 'utf8'));
   const videos = JSON.parse(fs.readFileSync(LIST, 'utf8'));
@@ -243,7 +251,6 @@ async function videoInfo(ch, id) {
         title: (info && info.title) || it.title,
         channelTitle: label,
         publishedAt: Number.isNaN(t) ? '' : new Date(t).toISOString(),
-        thumbnail: 'https://i.ytimg.com/vi/' + it.id + '/hqdefault.jpg',
         time: Number.isNaN(t) ? 0 : t,
       });
       known.add(it.id);
@@ -263,11 +270,12 @@ async function videoInfo(ch, id) {
   /* নতুন → পুরোনো ক্রমে ঢোকানো (তারিখ না থাকলে শেষে) */
   fresh.sort((a, b) => (b.time || 0) - (a.time || 0));
   for (const v of fresh.reverse()) {
-    const rec = { id: v.id, title: v.title, channelTitle: v.channelTitle, publishedAt: v.publishedAt, thumbnail: v.thumbnail };
+    const rec = { id: v.id, title: v.title, channelTitle: v.channelTitle, publishedAt: v.publishedAt };
     let at = 0;
     while (at < videos.length && videos[at].publishedAt && Date.parse(videos[at].publishedAt) > (v.time || 0)) at++;
     videos.splice(at, 0, rec);
   }
+  compact(videos);
   fs.writeFileSync(LIST, JSON.stringify(videos));
   if (configChanged) fs.writeFileSync(CONFIG, JSON.stringify(config, null, 2) + '\n');
 

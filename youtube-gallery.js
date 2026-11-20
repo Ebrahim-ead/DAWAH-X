@@ -59,6 +59,7 @@
     return {label,re:new RegExp(' (?:'+alts.join('|')+')(?= )','u')};
   });
   const topicsOf=new WeakMap();
+  let topicsPresent=null;   /* একবারেই সব ভিডিওর বিষয় গুনে রাখি (হাজারো ভিডিওতে ২২টি রেগেক্স বারবার চালানো নয়) */
   const videoTopics=video=>{
     let list=topicsOf.get(video);
     if(!list){const t=vtFold(video.title);list=vtRules.filter(rule=>rule.re.test(t)).map(rule=>rule.label);topicsOf.set(video,list);}
@@ -94,7 +95,16 @@
   function drawFilters(){
     if(!filters)return;
     const loaded=videos.length>0;
-    const topicItems=VIDEO_TOPICS.map(row=>[row[0],row[0]]).filter(item=>!loaded||videos.some(video=>videoTopics(video).includes(item[0])));
+    let topicItems;
+    if(!loaded){
+      topicItems=VIDEO_TOPICS.map(row=>[row[0],row[0]]);
+    }else{
+      if(!topicsPresent){
+        topicsPresent=new Set();
+        for(const video of videos)for(const label of videoTopics(video))topicsPresent.add(label);
+      }
+      topicItems=VIDEO_TOPICS.map(row=>row[0]).filter(label=>topicsPresent.has(label)).map(label=>[label,label]);
+    }
     const names=loaded?[...new Set(videos.map(video=>video.channelTitle).filter(Boolean))]:VIDEO_CHANNELS.map(row=>row[0]);
     const order=title=>{const i=VIDEO_CHANNELS.findIndex(row=>row[0]===title);return i<0?VIDEO_CHANNELS.length:i;};
     const channelItems=names.sort((a,b)=>order(a)-order(b)).map(title=>[title,channelName(title)]);

@@ -385,3 +385,19 @@ Light theme gets a softer shadow for both (`html[data-theme="light"] …{box-sha
 The caption reads **«Ebrahim Ead»**, which is what the rest of the site already calls him — `about.html` already had «DAWAH X পরিচালনা করেন **Ebrahim Ead**» and the footer credit links to `/ead/`. Keep the caption in Latin script to match those, and keep the `alt=""` + `figcaption` split described above (the caption, not the alt, carries the name).
 
 `sw.js` → **v12**.
+
+## Importing a channel's whole back catalogue (2026-11-20, PR #31)
+
+`tools/update-videos.cjs` only reads the public RSS feed, which carries the **latest 15** uploads. Adding a channel therefore never brought its history. `tools/backfill-videos.cjs` (+ `.github/workflows/backfill-videos.yml`) does that once:
+
+1. walks the channel's `/videos` tab (`youtubei/v1/browse` with the continuation tokens found in `ytInitialData`) collecting every `videoId` — ~135 pages for 4,000 videos, no API key;
+2. for every id that is not in `youtube-videos.json`, asks `youtubei/v1/player` for the exact `title` and `microformat.playerMicroformatRenderer.publishDate` — a ~10 KB JSON, **not** the 200 KB watch page;
+3. inserts the new rows in date order (rows without a date go to the end — the script never invents a date), updates `stats.json`, writes the resolved `channelId`/`title` back into `tools/video-channels.json`.
+
+**Resumable by design:** ids already in the list are skipped, so `--limit` / `--minutes` only decide how much one run does. Re-running simply continues. `videoInfo` calls run in a pool of 6 (serial was ~1 request/s, i.e. the whole budget for 4,000 videos). The walk tracks consumed continuation tokens and stops if one comes back, with a 600-page cap — without that a repeated token can loop until the time budget runs out.
+
+**Channels added** (`backfill: true` in `video-channels.json`): `@attahreektv` and `UCtip528n2pKDumGCvftZPIg` (its title is resolved from the channel page on the first run; until then `update-videos.cjs` skips a channel with an empty title so no row lands with `channelTitle: ""`). New uploads then arrive through the normal 30-minute RSS run — nothing else to configure.
+
+**Catalogue weight.** `youtube-videos.json` no longer stores `thumbnail`: every row was the same derived URL (`i.ytimg.com/vi/<id>/hqdefault.jpg`), and `youtube-gallery.js` already falls back to it (`thumbUrl`). Both scripts now delete that field when they write, so the file compacts itself; ~50 B × every row. Measured with a 9,060-row simulation: **2.52 MB raw / 332 KB gzipped** (Pages gzips JSON), first 20 cards 1.94 s under 4× CPU throttling, 453 pages, no console errors, last page renders.
+
+**Gallery fix that came with it:** `drawFilters()` ran `videos.some(v => videoTopics(v).includes(label))` for each of the 22 topics — with thousands of videos that is 22 full scans (each regex-folding titles). It now collects the present topics in **one** pass into a `Set` (`topicsPresent`) and filters from that.

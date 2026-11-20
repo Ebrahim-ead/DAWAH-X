@@ -162,6 +162,8 @@ async function fetchFeed(channelId){
       while(at<videos.length&&videos[at].publishedAt&&Date.parse(videos[at].publishedAt)>v.time)at++;
       videos.splice(at,0,record);
     }
+    /* thumbnail id থেকেই তৈরি হয় — বাড়তি ঘরগুলো মুছে ফেলা (ফাইল হালকা থাকে) */
+    for(const v of videos)if(v.thumbnail==='https://i.ytimg.com/vi/'+v.id+'/hqdefault.jpg')delete v.thumbnail;
     fs.writeFileSync(LIST,JSON.stringify(videos));
   }
   /* হোমপেজের পরিসংখ্যান: ভিডিওর সংখ্যা বদলালে stats.json-এ লেখা হয় (বাকি সংখ্যা tools/build-stats.cjs-এর) */
