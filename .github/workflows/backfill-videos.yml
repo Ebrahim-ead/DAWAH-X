@@ -56,7 +56,7 @@ jobs:
         env:
           BACKFILL_CHANNEL: ${{ inputs.channel }}
           BACKFILL_LIMIT: ${{ inputs.limit || '4000' }}
-          BACKFILL_TAB: ${{ inputs.tab || 'videos' }}
+          BACKFILL_TAB: 'streams'   # এক-বারের রান: লাইভ/স্ট্রিম তালিকা
           BACKFILL_FILL: ${{ inputs.fill == '' && '1' || inputs.fill }}
           BACKFILL_SUSPECT_FROM: ${{ inputs.suspect_from }}
           BACKFILL_SUSPECT_TO: ${{ inputs.suspect_to }}
