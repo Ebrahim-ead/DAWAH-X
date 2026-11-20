@@ -133,6 +133,7 @@
       topicsPresent=present;
       const active=document.activeElement,kind=active?.closest?.('[data-kind]')?.dataset.kind,value=active?.dataset?.value;
       drawFilters();
+      if(topic)render();
       if(kind&&value!==undefined){const box=filters?.querySelector('[data-kind="'+kind+'"]');[...box?.querySelectorAll('button.chip')||[]].find(b=>b.dataset.value===value)?.focus({preventScroll:true})}
     }
     setTimeout(batch,0);
@@ -249,6 +250,8 @@
   }
 
   function render(){
+    /* শ্রেণিবিন্যাস শেষ হওয়ার আগেই বিষয় বাছলে অপেক্ষা দেখাই; সব ভিডিও একসাথে না গুনি। */
+    if(topic&&!topicsPresent){status.textContent='বিষয় অনুযায়ী ভিডিও সাজানো হচ্ছে…';return}
     const query=normalize(search?.value);
     const matches=matchingVideos();
     const pages=Math.max(1,Math.ceil(matches.length/pageSize));
