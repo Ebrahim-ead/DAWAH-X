@@ -1,0 +1,70 @@
+name: Import ikhlasbd texts
+# মাসিক আল-ইখলাছ (ikhlasbd.com) থেকে লেখা ও ফতোয়া — tools/import-ikhlasbd.cjs
+# প্রথমে --discover (তালিকা), তারপর ব্যাচে ব্যাচে লেখা আনা; আগে আনা লেখা আর আনা হয় না।
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'probe | discover | import'
+        required: false
+        default: 'import'
+      limit:
+        description: 'এক রানে সর্বোচ্চ কতটি লেখা'
+        required: false
+        default: '300'
+  push:
+    branches: ['arena/**']
+    paths: ['tools/import-ikhlasbd.cjs', '.github/workflows/import-ikhlasbd.yml', 'tools/ik-request']
+permissions:
+  contents: write
+concurrency:
+  group: import-ikhlasbd
+  cancel-in-progress: false
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install --no-save --prefix /tmp/imp cheerio@1.0.0
+      - name: Discover / probe / import
+        env:
+          NODE_PATH: /tmp/imp/node_modules
+          IK_MODE: ${{ inputs.mode || 'probe' }}
+          IK_LIMIT: ${{ inputs.limit || '300' }}
+        run: |
+          set -o pipefail
+          echo "mode=$IK_MODE" | tee tools/ik-report.txt
+          if [ "$IK_MODE" = "discover" ] || [ "$IK_MODE" = "probe" ]; then
+            node tools/import-ikhlasbd.cjs --discover 2>&1 | tee -a tools/ik-report.txt
+          fi
+          if [ "$IK_MODE" = "probe" ]; then
+            node tools/import-ikhlasbd.cjs --probe 3 2>&1 | tee -a tools/ik-report.txt
+          fi
+          if [ "$IK_MODE" = "import" ]; then
+            node tools/import-ikhlasbd.cjs --limit "$IK_LIMIT" --minutes 300 2>&1 | tee -a tools/ik-report.txt
+          fi
+      - name: Rebuild search index, related lists and share pages
+        if: ${{ inputs.mode == 'import' }}
+        run: node --max-old-space-size=4096 tools/build-site-data.cjs
+      - name: Refresh site totals
+        if: ${{ inputs.mode == 'import' }}
+        run: node tools/build-stats.cjs
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add texts search rel s stats.json tools/ik-ids.json tools/ik-report.txt 2>/dev/null || true
+          if git diff --cached --quiet; then echo "নতুন কিছু নেই"; exit 0; fi
+          git commit -q -m "Import ikhlasbd texts (automated)"
+          for i in 1 2 3 4; do
+            git fetch -q origin "${GITHUB_REF_NAME}"
+            git rebase -X theirs "origin/${GITHUB_REF_NAME}" >/dev/null 2>&1 || git rebase --abort >/dev/null 2>&1 || true
+            if git push -q origin "HEAD:${GITHUB_REF_NAME}"; then echo "pushed (try $i)"; break; fi
+            sleep 20
+          done
