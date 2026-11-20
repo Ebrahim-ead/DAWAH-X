@@ -101,7 +101,7 @@ Each page is its own `.html` file containing the shared chrome (head, SVG sprite
 ## Smarter + professional pass (2026-11-17)
 
 - **`robots.txt`** (root) allows everything and points at `sitemap.xml`. It is a plain static file; keep it next to `sitemap.xml`.
-- **`sitemap.xml`**: 9 URLs, `<lastmod>` bumped when a page changes (2026-11-17 last). `read.html`, `saved.html` and `s/*.html` are `noindex` and must stay out of it.
+- **`sitemap.xml`**: 10 URLs (the 9 main pages plus `policy.html`), `<lastmod>` bumped when a page changes. `read.html`, `saved.html`, `404.html` and `s/*.html` are `noindex` and must stay out of it.
 - **`stats.json`** = `{texts,fatwas,articles,questions,videos,topics,updated}` — the single source for every count shown in the UI. Generate it with `node tools/build-stats.cjs` (reads `search/meta.json`, the `*-catalog-part-*.js` chunks, `tools/topics.json`, `youtube-videos.json`).
   - `tools/update-videos.cjs` rewrites only the `videos` field after it adds videos, so the workflow commits `stats.json` together with the list.
   - `.github/workflows/import-texts.yml` runs `build-stats` after `build-site-data` and commits `stats.json`.
@@ -113,7 +113,7 @@ Each page is its own `.html` file containing the shared chrome (head, SVG sprite
   - `saved.html` lists them (its own inline script, same storage key), with remove / clear-all and an empty state. It is `noindex` and linked from the footer quick links of the 10 main pages and from the reader toolbar.
   - `প্রিন্ট / PDF` calls `window.print()`; `@media print` in `style.css` hides the chrome and turns the article to black-on-white (12 pt), hiding the video frame.
 - **New video badge**: `youtube-gallery.js` adds `.video-new` («নতুন») when `publishedAt` is inside `NEW_DAYS` (**3** days; a timestamp up to 24 h in the future also counts, for premieres). Videos without `publishedAt` never get the badge.
-- **Service worker**: `VERSION` is `v2`; `PRECACHE` also holds `saved.html` and `stats.json`. `netlify.toml` sends `Cache-Control: public, max-age=0, must-revalidate` for `/sw.js`.
+- **Service worker**: `VERSION` is `v14`; `PRECACHE` holds every top-level page (including `policy.html`, `saved.html` and `404.html`) plus `stats.json`. Bump `VERSION` whenever that list changes. `netlify.toml` sends `Cache-Control: public, max-age=0, must-revalidate` for `/sw.js`.
 - **Library summary list**: `.library-summary` under the heading of `#questions` / `#fatwa` is **one wrapping row of round pills** (`display:flex;flex-wrap:wrap;gap:8px`, `.library-stat{border-radius:999px}`). It was briefly turned into a vertical list on 2026-11-17 and the owner asked for the original layout back the same day — keep the pills, do not stack them.
 - **Stale file removed**: `catalog-counts.json` was outdated (its `fatwas_unique` was 12,796 against 19,025 references) and nothing reads it; deleted. The page numbers on `fatwa.html` / `questions.html` are the “unique references” metric (12,780 + 5,853 = 18,633; 911 Q&A rows) and are kept as they were — do not “fix” them from a raw catalogue row count (18,631 / 911 rows), the two metrics differ.
 
@@ -428,9 +428,9 @@ The caption reads **«Ebrahim Ead»**, which is what the rest of the site alread
 
 `live.js` fetches `live.json` and renders a **single-purpose button**, not a card: `<div class="live-slot" id="live-slot" hidden>` sits **inside `#videos`, right after the `.title` block of `videos.html`** (the home page has no live section at all and does not even load `live.js`). When at least one channel is live and the data is younger than **45 minutes** the slot fills with `.live-bar > button.live-watch[data-video-id][data-video-title]` — red pill, pulsing dot, «লাইভ দেখুন» + the channel name (one pill per live channel). Clicking it is handled by the **lightbox in `effects.js`** (its click selector now includes `.live-watch[data-video-id]`), so the stream plays in the site's own dialog with `autoplay=1&rel=0`; nothing is loaded from YouTube until the button is pressed.
 
-Freshness: `adopt()` keeps only 11-character ids, `apply()` renders nothing when `updated` is missing or older than `MAX_AGE_MS` (45 min), the slot is re-checked every 60 s while the page is open, `live.json` is re-fetched every 2 min (and on `visibilitychange`), and the button is never removed while `body.video-modal-open` (someone is watching). Empty list, stale data, bad ids, missing file → slot stays `hidden`, height 0, zero layout change. `sw.js` **v13** treats `/live.json` as network-only, so a cached copy can never show a stale button.
+Freshness: `adopt()` keeps only 11-character ids, `apply()` renders nothing when `updated` is missing or older than `MAX_AGE_MS` (45 min), the slot is re-checked every 60 s while the page is open, `live.json` is re-fetched every 2 min (and on `visibilitychange`), and the button is never removed while `body.video-modal-open` (someone is watching). Empty list, stale data, bad ids, missing file → slot stays `hidden`, height 0, zero layout change. `sw.js` **v14** treats `/live.json` as network-only, so a cached copy can never show a stale button.
 
-`sw.js` **v13** treats `/live.json` as network-only (`fetch(request,{cache:'no-store'})`, JSON `{"v":1,"live":[]}` on failure) so a cached copy can never show a stale live card; the card also disappears silently when the fetch fails offline.
+`sw.js` **v14** treats `/live.json` as network-only (`fetch(request,{cache:'no-store'})`, JSON `{"v":1,"live":[]}` on failure) so a cached copy can never show a stale live card; the button also disappears silently when the fetch fails offline.
 
 ## Reader dates normalised to Bengali (2026-11-20)
 
