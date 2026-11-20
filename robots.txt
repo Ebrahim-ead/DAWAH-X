@@ -3,3 +3,4 @@ Allow: /
 
 Sitemap: https://ebrahim-ead.github.io/DAWAH-X/sitemap.xml
 Sitemap: https://ebrahim-ead.github.io/DAWAH-X/sitemap-articles-1.xml
+Sitemap: https://ebrahim-ead.github.io/DAWAH-X/sitemap-articles-2.xml

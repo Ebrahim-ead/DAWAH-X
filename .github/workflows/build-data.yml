@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       share_max:
-        description: 'কতটি লেখার ল্যান্ডিং পাতা হবে (0 = সব ২৪ হাজার; খালি = ডিফল্ট ৩০০০)'
+        description: 'কতটি লেখার ল্যান্ডিং পাতা হবে (খালি বা 0 = সব ২৪,০৪৫টি; 3000 = কেবল নবীনতম ৩০০০)'
         required: false
         default: ''
   schedule:

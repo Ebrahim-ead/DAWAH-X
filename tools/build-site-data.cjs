@@ -102,7 +102,7 @@ if(!ONLY||ONLY==='rel'){
        স্কিমা ও ভেতরের লিংক; গুগল/বিং এগুলো পড়ে পাঠক সরাসরি আসে। পুরো লেখা ও সুবিধা
        (বড় করা, শোনা, সংরক্ষণ) পাঠকের পাতায় — read.html (noindex, তাই নকল কনটেন্ট নেই)।
    (খ) বাকি লেখার শেয়ার-স্টাব — আগের মতোই og-ট্যাগ + সাথে সাথে read.html-এ রিডাইরেক্ট।
-   কী কী ল্যান্ডিং পাতা হবে: SHARE_MAX (ডিফল্ট ৩০০০, নবীনতম আগে; 0 দিলে সব ২৪ হাজার),
+   কী কী ল্যান্ডিং পাতা হবে: ডিফল্টে সব লেখা; SHARE_MAX=<n> দিলে কেবল নবীনতম n-টি,
    লেখার অংশ: SHARE_EXCERPT অক্ষর (ডিফল্ট ৯০০)। SHARE_LIMIT=<n> শুধু পরীক্ষার জন্য।
    * পাতা আগেরটার সাথে হুবহু মিললে ফাইল আর লেখা হয় না (incremental) — তাই প্রতিবার
      পুরো তালিকা চালালেও কেবল বদলানো/নতুন লেখার পাতা লেখা হয়।
@@ -111,7 +111,7 @@ if(!ONLY||ONLY==='rel'){
 if(!ONLY||ONLY==='share'){
  const out=path.join(ROOT,'s');if(!fs.existsSync(out))fs.mkdirSync(out);
  const LIMIT=+process.env.SHARE_LIMIT||0;
- const RAW=process.env.SHARE_MAX,MAX=RAW==null?3000:(+RAW||0);   /* 0 = সব */
+ const RAW=process.env.SHARE_MAX,MAX=RAW==null?0:(+RAW||0);      /* ডিফল্ট 0 = সব লেখা; SHARE_MAX=3000 দিলে কেবল ৩০০০ */
  const EXCERPT=+process.env.SHARE_EXCERPT||900;
  const PAGE_V='ax5';
  const SRC={ai:'মাসিক আল-ইতিছাম',at:'মাসিক আত-তাহরীক',ik:'মাসিক আল-ইখলাছ',ra:'Response to Anti-Islam',fm:'From Muslims',ia:'Islamic Authors',iz:'Insight Zone'};
