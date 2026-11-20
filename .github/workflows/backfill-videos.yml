@@ -58,8 +58,8 @@ jobs:
           BACKFILL_LIMIT: ${{ inputs.limit || '4000' }}
           BACKFILL_TAB: ${{ inputs.tab || 'videos' }}
           BACKFILL_FILL: ${{ inputs.fill == '' && '1' || inputs.fill }}
-          BACKFILL_SUSPECT_FROM: '2026-11-20T05:55:00Z'
-          BACKFILL_SUSPECT_TO: '2026-11-20T06:15:00Z'
+          BACKFILL_SUSPECT_FROM: ${{ inputs.suspect_from }}
+          BACKFILL_SUSPECT_TO: ${{ inputs.suspect_to }}
         run: |
           node tools/backfill-videos.cjs --minutes 100 2>&1 | tee tools/backfill-report.txt
           exit "${PIPESTATUS[0]}"
