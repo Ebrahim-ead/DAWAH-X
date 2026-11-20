@@ -401,3 +401,21 @@ The caption reads **«Ebrahim Ead»**, which is what the rest of the site alread
 **Catalogue weight.** `youtube-videos.json` no longer stores `thumbnail`: every row was the same derived URL (`i.ytimg.com/vi/<id>/hqdefault.jpg`), and `youtube-gallery.js` already falls back to it (`thumbUrl`). Both scripts now delete that field when they write, so the file compacts itself; ~50 B × every row. Measured with a 9,060-row simulation: **2.52 MB raw / 332 KB gzipped** (Pages gzips JSON), first 20 cards 1.94 s under 4× CPU throttling, 453 pages, no console errors, last page renders.
 
 **Gallery fix that came with it:** `drawFilters()` ran `videos.some(v => videoTopics(v).includes(label))` for each of the 22 topics — with thousands of videos that is 22 full scans (each regex-folding titles). It now collects the present topics in **one** pass into a `Set` (`topicsPresent`) and filters from that.
+
+## Importing a channel's whole back catalogue (2026-11-20, PR #31)
+
+`tools/update-videos.cjs` reads only the public RSS feed, which carries the **latest 15** uploads, so adding a channel never brought its history. `tools/backfill-videos.cjs` + `.github/workflows/backfill-videos.yml` do that, with no API key:
+
+1. **Enumerate.** `yt-dlp --flat-playlist --print "%(id)s\t%(title)s" <channel>/<tab>` lists every upload. (The innertube walk over `richGridRenderer` continuations is kept as a fallback; it stalled at 120 ids because each response carries ~6 tokens for other shelves.)
+2. **Date.** `https://returnyoutubedislikeapi.com/votes?videoId=…` returns `dateCreated`, the publish date, for videos the service already knows. Four requests at a time.
+3. Insert in date order, update `stats.json`, write the resolved `channelId`/`title` back into `tools/video-channels.json`.
+
+**What a GitHub runner cannot do.** `youtubei/v1/player` and the watch page both answer `LOGIN_REQUIRED — Sign in to confirm you're not a bot`, and yt-dlp's own per-video extraction fails the same way. Only the *flat listing* and the RSS feed are open. Invidious and Piped instances all answered 403, and `yt.lemnoslife.com` (a key-less copy of `videos.list`) returns an empty body.
+
+**RYD caveat — read before trusting a date.** For a video it has never seen, RYD creates the record on the spot and `dateCreated` is *that moment*, not the publish date. The first fill wrote 238 such rows dated to the minute it ran. A date inside the last 15 minutes of a run is therefore rejected, the id is stored in `tools/video-dates-unknown.json`, and it is never dated from that source again (`--fill-dates` skips those). **238 videos therefore show no date at all** — deliberately, rather than a wrong one.
+
+**Numbers.** Attahreek TV `UCc6cxJCSSaLxd4JE_GHxsEA`: 2,063 videos (721 shorts, 219 streams). Al-Itisam TV `UCtip528n2pKDumGCvftZPIg`: 1,818 videos (417 shorts, 142 streams). Both added with `backfill: true`, so `update-videos.cjs` picks up new uploads every 30 minutes afterwards. `update-videos.cjs` also fills an empty `publishedAt` from RSS when the id is already listed.
+
+**Catalogue weight.** `youtube-videos.json` no longer stores `thumbnail` (every row was the same derived `i.ytimg.com/vi/<id>/hqdefault.jpg` that `thumbUrl` already builds). Both writers delete it, so the file compacts itself. Measured at 8,941 rows: **2.54 MB raw / 408 KB gzipped**, first 20 cards 2.1 s at 4× CPU throttling, 447 pages, channel chips and the last page all render, no console errors. `drawFilters()` now collects the present topics in one pass into a `Set` instead of running `videos.some(...)` per topic (22 full scans of every title).
+
+**Pushing from a session, not from CI.** A bot commit and a local commit touching `youtube-videos.json` conflict on the whole (single-line) file, and `git pull --rebase -X theirs` during a local rebase keeps the *local* copy — which silently dropped two bot data commits. Keep no local edits to that file, or sync it from origin before pushing.
