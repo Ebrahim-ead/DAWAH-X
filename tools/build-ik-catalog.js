@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 /* DAWAH X — মাসিক আল-ইখলাছের (ik) লেখাগুলোকে সূচিতে (catalog) যোগ করে।
-   imported texts/ থেকে s:"ik" রেকর্ড পড়ে দুইটি chunk ফাইল বানায় —
-     · questions-catalog-part-03.js   (যে বিভাগের শিরোনামগুলো «প্রশ্ন…»)
-     · fatwa-catalog-part-05.js      (বাকি লেখা ও প্রবন্ধ)
+   texts/ থেকে s:"ik" রেকর্ড পড়ে ফতোয়া পাতার জন্য দুইটি chunk ফাইল বানায় —
+     · fatwa-catalog-part-05.js  মাসিক আল-ইখলাছ · প্রশ্নোত্তর (শিরোনাম «প্রশ্ন…»)
+     · fatwa-catalog-part-06.js  মাসিক আল-ইখলাছ · প্রবন্ধ   (বাকি লেখা)
+   প্রশ্নোত্তর পাতার chunk ছোট রাখা হয়, তাই ik-এর সব কিছু ফতোয়া পাতাতেই থাকে।
    তারপর app.js-এর QUESTION_PARTS / FATWA_PARTS-এ count হালনাগাদ করে,
    আর build-stats.cjs সংখ্যা মিলিয়ে নেয়।  চালানো: node tools/build-ik-catalog.js  (--dry) */
 'use strict';
@@ -63,8 +64,8 @@ const write = (file, partsKey, groups) => {
   fs.writeFileSync(path.join(ROOT, file), out);
   console.log('লেখা হলো ' + file + ' (' + (Buffer.byteLength(out) / 1024).toFixed(0) + ' KB)');
 };
-write('questions-catalog-part-03.js', 'DAWAH_QUESTIONS_PARTS', [['মাসিক আল-ইখলাছ · প্রশ্নোত্তর', qRows]]);
-write('fatwa-catalog-part-05.js', 'DAWAH_FATWAS_PARTS', [['মাসিক আল-ইখলাছ', fRows]]);
+write('fatwa-catalog-part-05.js', 'DAWAH_FATWAS_PARTS', [['মাসিক আল-ইখলাছ · প্রশ্নোত্তর', qRows]]);
+write('fatwa-catalog-part-06.js', 'DAWAH_FATWAS_PARTS', [['মাসিক আল-ইখলাছ · প্রবন্ধ', fRows]]);
 
 /* app.js-এর manifest-এ সংখ্যা বসানো */
 const appPath = path.join(ROOT, 'app.js');
@@ -74,10 +75,9 @@ const setEntry = (block, category, entry) => {
   if (re.test(block)) return block.replace(re, entry);
   return block.replace(/(const (?:QUESTION|FATWA)_PARTS=\[\n)/, '$1 ' + entry + ',\n');
 };
-let qBlock = /const QUESTION_PARTS=\[[\s\S]*?\n\];/.exec(src)[0];
-const fBlock = /const FATWA_PARTS=\[[\s\S]*?\n\];/.exec(src)[0];
-const qNew = setEntry(qBlock, 'মাসিক আল-ইখলাছ · প্রশ্নোত্তর', '{category:"মাসিক আল-ইখলাছ · প্রশ্নোত্তর",src:"questions-catalog-part-03.js",count:' + qRows.length + '}');
-const fNew = setEntry(fBlock, 'মাসিক আল-ইখলাছ', '{category:"মাসিক আল-ইখলাছ",src:"fatwa-catalog-part-05.js",count:' + fRows.length + '}');
-src = src.replace(qBlock, qNew).replace(fBlock, fNew);
+let fBlock = /const FATWA_PARTS=\[[\s\S]*?\n\];/.exec(src)[0];
+let fNew = setEntry(fBlock, 'মাসিক আল-ইখলাছ · প্রশ্নোত্তর', '{category:"মাসিক আল-ইখলাছ · প্রশ্নোত্তর",src:"fatwa-catalog-part-05.js",count:' + qRows.length + '}');
+fNew = setEntry(fNew, 'মাসিক আল-ইখলাছ · প্রবন্ধ', '{category:"মাসিক আল-ইখলাছ · প্রবন্ধ",src:"fatwa-catalog-part-06.js",count:' + fRows.length + '}');
+src = src.replace(fBlock, fNew);
 fs.writeFileSync(appPath, src);
 console.log('app.js-এ সূচির সংখ্যা বসানো হলো');

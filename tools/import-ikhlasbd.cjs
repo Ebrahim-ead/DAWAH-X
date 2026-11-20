@@ -120,15 +120,18 @@ function textLen(h) { return String(h).replace(/<[^>]+>/g, ' ').replace(/&nbsp;|
 
 /* বাংলা সংখ্যা/তারিখ → ইংরেজি ISO (জানা না থাকলে ফাঁকা) */
 const BN_MONTHS = ['জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন', 'জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর'];
+const EN_MONTHS = 'janfebmaraprmayjunjulaugsepoctnovdec';
 const bnToEn = s => String(s).replace(/[০-৯]/g, d => String('০১২৩৪৫৬৭৮৯'.indexOf(d)));
 function isoDate(text) {
   const t = bnToEn(text);
   const m = new RegExp('(\\d{1,2})\\s*(?:' + BN_MONTHS.join('|') + ')\\s*,?\\s*(\\d{4})').exec(t) ||
     /(\d{1,2})\s*([A-Za-z]{3,9})\s*,?\s*(\d{4})/.exec(t);
   if (!m) return '';
-  const mon = BN_MONTHS.indexOf(m[2]) >= 0 ? BN_MONTHS.indexOf(m[2]) + 1 : ('janfebmaraprmayjunjulaugsepoctnovdec'.indexOf(m[2].slice(0, 3).toLowerCase()) / 3 + 1);
-  if (!mon) return '';
-  return m[3] + '-' + String(mon).padStart(2, '0') + '-' + String(m[1]).padStart(2, '0');
+  const i = BN_MONTHS.indexOf(m[2]);
+  const mon = i >= 0 ? i + 1 : EN_MONTHS.indexOf(m[2].slice(0, 3).toLowerCase()) / 3 + 1;
+  /* অজানা মাস বা অসম্পূর্ণ অংশ: তারিখ বানানো হয় না (ভুল তারিখের চেয়ে ফাঁকা ভালো) */
+  if (!(mon >= 1 && mon <= 12) || !/^\d{4}$/.test(String(m[3])) || !/^\d{1,2}$/.test(String(m[1]))) return '';
+  return m[3] + '-' + String(Math.round(mon)).padStart(2, '0') + '-' + String(m[1]).padStart(2, '0');
 }
 
 function clean($, root) {

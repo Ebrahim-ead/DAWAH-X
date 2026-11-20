@@ -964,6 +964,8 @@ const QUESTION_PARTS=[
  {category:"From Muslims · প্রবন্ধ",src:"questions-catalog-part-02.js",count:357}
 ];
 const FATWA_PARTS=[
+ {category:"মাসিক আল-ইখলাছ · প্রবন্ধ",src:"fatwa-catalog-part-06.js",count:1031},
+ {category:"মাসিক আল-ইখলাছ · প্রশ্নোত্তর",src:"fatwa-catalog-part-05.js",count:3009},
  {category:"আত-তাহরীক",src:"fatwa-catalog-part-00.js",count:7996},
  {category:"আল-ইতিছাম",src:"fatwa-catalog-part-01.js",count:4641},
  {category:"আত-তাহরীক · প্রবন্ধ",src:"fatwa-catalog-part-02.js",count:3599},
