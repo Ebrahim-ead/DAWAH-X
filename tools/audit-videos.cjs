@@ -5,16 +5,24 @@
    The browser never calls YouTube to fetch video metadata. */
 'use strict';
 const fs=require('fs'),path=require('path');
+const {manualBlocked}=require('./video-blocklist.cjs');
 const ROOT=path.join(__dirname,'..'),LIST=path.join(ROOT,'youtube-videos.json'),STATE=path.join(__dirname,'video-audit-state.json');
-const MIN_GAP=20*3600e3,MIN_SPAN=48*3600e3,MAX_SCAN=250,MAX_PENDING=80,CONCURRENCY=10;
+const MIN_GAP=20*3600e3,MIN_SPAN=48*3600e3,MAX_SCAN=250,MAX_RECENT=50,RECENT_AGE=30*86400e3,MAX_PENDING=80,CONCURRENCY=10;
 const valid=id=>/^[\w-]{11}$/.test(id||'');
 const iso=now=>new Date(now).toISOString();
 function select(videos,state,now){
  const ids=[...new Set(videos.map(v=>v.id).filter(valid))].sort(),set=new Set(ids),pending=Object.keys(state.pending||{}).filter(id=>set.has(id));
  const due=pending.filter(id=>now-Date.parse(state.pending[id].last||0)>=MIN_GAP).sort((a,b)=>Date.parse(state.pending[a].last)-Date.parse(state.pending[b].last)).slice(0,MAX_PENDING);
- const pendingSet=new Set(pending),ordered=ids.filter(id=>!pendingSet.has(id)),start=ordered.findIndex(id=>id>(state.cursor||''));
+ const pendingSet=new Set(pending);
+ // Recently published videos appear prominently on the site: check them sooner, while
+ // keeping most of the batch for the rotating, complete historical audit.
+ const recent=videos.filter(v=>set.has(v.id)&&!pendingSet.has(v.id)&&Number.isFinite(Date.parse(v.publishedAt))&&now-Date.parse(v.publishedAt)>=0&&now-Date.parse(v.publishedAt)<=RECENT_AGE)
+  .sort((a,b)=>Date.parse(b.publishedAt)-Date.parse(a.publishedAt)||a.id.localeCompare(b.id));
+ const recentIds=[...new Set(recent.map(v=>v.id))].slice(0,MAX_RECENT),recentSet=new Set(recentIds);
+ const ordered=ids.filter(id=>!pendingSet.has(id)&&!recentSet.has(id)),start=ordered.findIndex(id=>id>(state.cursor||''));
  const rotated=start<0?ordered:ordered.slice(start).concat(ordered.slice(0,start));
- const scan=rotated.slice(0,MAX_SCAN);return {due,scan,all:[...due,...scan]};
+ const rest=rotated.slice(0,MAX_SCAN-recentIds.length),scan=recentIds.concat(rest);
+ return {due,scan,cursor:rest.at(-1)||state.cursor||'',all:[...due,...scan]};
 }
 function apply(videos,state,selection,results,now){
  const counts={ok:0,missing:0,unknown:0};for(const r of results)counts[r.status]++;
@@ -33,7 +41,7 @@ function apply(videos,state,selection,results,now){
   if(x.count>=3&&now-Date.parse(x.first)>=MIN_SPAN){removed.push(r.id);blocked[r.id]=iso(now);delete pending[r.id]}
  }
  const drop=new Set(removed);
- return {state:{v:1,cursor:selection.scan.at(-1)||state.cursor||'',pending,blocked},videos:videos.filter(v=>!drop.has(v.id)),removed,counts,aborted:false};
+ return {state:{v:1,cursor:selection.cursor??selection.scan.at(-1)??state.cursor??'',pending,blocked},videos:videos.filter(v=>!drop.has(v.id)),removed,counts,aborted:false};
 }
 async function probe(id){
  const u='https://www.youtube.com/oembed?url='+encodeURIComponent('https://www.youtube.com/watch?v='+id)+'&format=json';
@@ -50,7 +58,8 @@ async function run(){
  if(state.v!==1||!state.pending||typeof state.pending!=='object')throw Error('অডিটের অবস্থা অবৈধ; পরীক্ষা বন্ধ');
  const appFile=path.join(ROOT,'app.js'),app=fs.readFileSync(appFile,'utf8');
  const legacy=Object.keys(JSON.parse((app.match(/const SITE_VIDEOS=(\{[^\n]+\});/)||[])[1]||'{}'));
- const candidates=videos.concat(legacy.map(id=>({id}))).filter(v=>!state.blocked?.[v.id]);
+ const manual=manualBlocked();
+ const candidates=videos.concat(legacy.map(id=>({id}))).filter(v=>!state.blocked?.[v.id]&&!manual.has(v.id));
  const now=Date.now(),selection=select(candidates,state,now),results=[];let cursor=0;
  await Promise.all(Array.from({length:Math.min(CONCURRENCY,selection.all.length)},async()=>{while(cursor<selection.all.length){const id=selection.all[cursor++];results.push(await probe(id))}}));
  const next=apply(candidates,state,selection,results,now);console.log('পরীক্ষা:',results.length,'পাওয়া গেছে:',next.counts.ok,'404:',next.counts.missing,'অনিশ্চিত:',next.counts.unknown,'সরানো:',next.removed.length);

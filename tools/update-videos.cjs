@@ -16,6 +16,7 @@
    পরীক্ষা: VIDEO_FIXTURES=<ফোল্ডার> দিলে নেটওয়ার্কের বদলে সেই ফোল্ডারের ফাইল পড়ে (নাম = encodeURIComponent(url))। */
 'use strict';
 const fs=require('fs'),path=require('path');
+const {manualBlocked}=require('./video-blocklist.cjs');
 const ROOT=path.join(__dirname,'..');
 const LIST=path.join(ROOT,'youtube-videos.json');
 const CONFIG=path.join(__dirname,'video-channels.json');
@@ -119,7 +120,7 @@ async function fetchFeed(channelId){
   if(!Array.isArray(videos)||videos.length<1000)throw new Error('youtube-videos.json ঠিক নেই');
   const since=Date.parse(config.addSince||'')||0;
   let blocked={};try{blocked=JSON.parse(fs.readFileSync(path.join(__dirname,'video-audit-state.json'),'utf8')).blocked||{}}catch(e){if(e.code!=='ENOENT')throw e}
-  const known=new Set([...videos.map(v=>v.id),...Object.keys(blocked)]);
+  const known=new Set([...videos.map(v=>v.id),...Object.keys(blocked),...manualBlocked()]);
   const byId=new Map(videos.map(v=>[v.id,v]));
   const fresh=[];let configChanged=false,okChannels=0,patched=0;
 

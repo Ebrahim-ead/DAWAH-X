@@ -21,3 +21,4 @@ jobs:
           node tools/check-site.cjs
           node tests/video-audit.cjs
           node tests/video-audit-integration.cjs
+          node tests/video-blocklist-integration.cjs

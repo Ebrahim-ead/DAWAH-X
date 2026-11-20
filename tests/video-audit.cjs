@@ -13,6 +13,11 @@ state={v:1,cursor:'',pending:{},blocked:{}};const selection=select(videos,state,
 r=apply(videos,state,selection,selection.all.map(i=>({id:i,status:'missing'})),t);assert(r.aborted);assert.equal(r.removed.length,0);assert.deepEqual(r.state,state);
 r=apply(videos,state,selection,selection.all.map(i=>({id:i,status:'unknown'})),t);assert(r.aborted);assert.equal(r.removed.length,0);
 r=apply(videos,state,selection,selection.all.map(i=>({id:i,status:i===id?'unknown':'ok'})),t);assert(!r.aborted);assert(!r.state.pending[id]);
+// The newest videos get a dedicated portion of each batch; history still advances by cursor.
+const newer=Array.from({length:400},(_,i)=>({id:String(i).padStart(11,'0'),publishedAt:i>=350?'2026-01-01T00:00:00Z':'2020-01-01T00:00:00Z'}));
+let batch=select(newer,{cursor:'',pending:{}},t+86400e3);assert.equal(batch.scan.length,250);
+for(const v of newer.slice(350))assert(batch.scan.includes(v.id));assert(batch.scan.includes(newer[0].id));assert.equal(batch.cursor,newer[199].id);
+batch=select(newer,{cursor:batch.cursor,pending:{}},t+86400e3);assert(batch.scan.includes(newer[200].id));assert(batch.scan.includes(newer[399].id));
 console.log('video audit: confirmation, recovery, throttling and systemic failure safeguards pass');
 (async()=>{
  const {probe}=require('../tools/audit-videos.cjs');

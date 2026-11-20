@@ -173,6 +173,7 @@ try{
  const sources=JSON.parse(read('source-data.json')),recent=JSON.parse(read('recent-data.json'));
  const sourceKeys=new Set();for(const code in sources.sources)for(const row of sources.sources[code]){if(sourceKeys.has(row[0]))fail(`source-data.json: পুনরাবৃত্তি ${row[0]}`);sourceKeys.add(row[0]);if(!exists('s/'+row[0]+'.html'))fail(`source-data.json: লেখা নেই ${row[0]}`)}
  const videoIds=new Set(JSON.parse(read('youtube-videos.json')).map(v=>v.id));
+ const blocked=require('./video-blocklist.cjs').manualBlocked();for(const id of blocked){if(videoIds.has(id))fail(`youtube-videos.json: বাদ দেওয়া ভিডিও আবার যোগ হয়েছে ${id}`);if(read('feed.xml').includes(id))fail(`feed.xml: বাদ দেওয়া ভিডিও রয়ে গেছে ${id}`);}
  const cross=JSON.parse(read('cross-links.json'));for(const link of cross.links){if(!videoIds.has(link.id))fail(`cross-links.json: অচেনা ভিডিও ${link.id}`);for(const t of link.texts)if(!sourceKeys.has(t.k))fail(`cross-links.json: অচেনা লেখা ${t.k}`)}
  for(const v of recent.videos)if(!videoIds.has(v.id))fail(`recent-data.json: অচেনা ভিডিও ${v.id}`);
  for(const t of recent.texts)if(!sourceKeys.has(t.k))fail(`recent-data.json: অচেনা লেখা ${t.k}`);
