@@ -1330,3 +1330,28 @@ html[data-theme="light"] ::placeholder,html[data-theme="light"] #dxp-q::placehol
  #menu a.on:not([aria-current="page"])::before{width:0;opacity:0}
  #menu a.on:not([aria-current="page"])::after{content:'';position:absolute;left:50%;right:auto;bottom:2px;width:26px;height:3px;border-radius:999px;background:linear-gradient(90deg,var(--gold),var(--gold2),#fff1b9);box-shadow:0 0 10px rgba(246,196,83,.4);transform:translateX(-50%)}
 }
+
+/* ফতোয়া পাতার প্রকাশনা-সূচি সংক্ষিপ্ত, তবে সব তথ্য ও লিংক আগের মতোই আছে। */
+body[data-page="fatwa"] .library-panel{padding:clamp(14px,1.5vw,20px);margin-bottom:20px}
+body[data-page="fatwa"] .library-heading{gap:12px;margin-bottom:12px}
+body[data-page="fatwa"] .library-heading b{font-size:clamp(17px,1.65vw,20px)}
+body[data-page="fatwa"] .library-heading p{margin-top:4px;line-height:1.5}
+body[data-page="fatwa"] .library-kicker{margin-bottom:5px;padding:3px 8px}
+body[data-page="fatwa"] .library-total{min-width:74px;padding:7px 9px}
+body[data-page="fatwa"] .library-total strong{font-size:19px}
+body[data-page="fatwa"] .library-links{gap:8px}
+body[data-page="fatwa"] .library-link{gap:8px;min-height:76px;padding:10px 12px;border-radius:13px}
+body[data-page="fatwa"] .library-link-copy{gap:2px}
+body[data-page="fatwa"] .library-link b{font-size:14px}
+body[data-page="fatwa"] .library-count{min-width:48px}
+body[data-page="fatwa"] .library-count b{font-size:18px}
+body[data-page="fatwa"] .library-new{padding:4px 6px}
+body[data-page="fatwa"] .library-summary{gap:6px;margin-top:10px;padding-top:10px}
+body[data-page="fatwa"] .library-stat{padding:4px 8px}
+body[data-page="fatwa"] .library-note:not(.catalog-status){margin-top:7px!important}
+@media(min-width:1100px){body[data-page="fatwa"] .library-links{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:560px){
+ body[data-page="fatwa"] .library-panel{padding:13px}
+ body[data-page="fatwa"] .library-link{min-height:70px;padding:9px 10px}
+ body[data-page="fatwa"] .library-link b{font-size:14px}
+}
