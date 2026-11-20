@@ -25,6 +25,7 @@
 */
 'use strict';
 const fs = require('fs'), path = require('path');
+const { execFileSync } = require('child_process');
 const ROOT = path.join(__dirname, '..');
 const LIST = path.join(ROOT, 'youtube-videos.json');
 const CONFIG = path.join(__dirname, 'video-channels.json');
@@ -37,6 +38,8 @@ const arg = (name, dflt) => {
   return v && !v.startsWith('--') ? v : true;
 };
 const DRY = process.argv.includes('--dry');
+/* --fill-dates: তালিকায় আগেই থাকা কিন্তু তারিখ-ফাঁকা সারিগুলোর তারিখ আবার খোঁজা */
+const FILL = process.argv.includes('--fill-dates') || process.env.BACKFILL_FILL === '1';
 /* ওয়ার্কফ্লো ইনপুট env দিয়ে আসে (bash-এ উদ্ধৃতি নিয়ে ঝামেলা এড়াতে) */
 const ONLY = arg('channel', process.env.BACKFILL_CHANNEL || '');
 const LIMIT = +(arg('limit', process.env.BACKFILL_LIMIT || 4000)) || 4000;
@@ -210,16 +213,18 @@ function ytdlpList(url) {
 }
 
 /* প্রকাশের সঠিক তারিখ: Return YouTube Dislike API-র dateCreated (কোনো key লাগে না) */
+const rydStats = { ok: 0, miss: 0, err: 0 };
 async function rydDate(id) {
-  for (let i = 0; i < 2; i++) {
+  for (let i = 0; i < 3; i++) {
     try {
       const r = await fetch('https://returnyoutubedislikeapi.com/votes?videoId=' + encodeURIComponent(id),
         { headers: { 'Accept': 'application/json', 'User-Agent': UA_HEADER } });
       if (!r.ok) throw new Error('HTTP ' + r.status);
       const j = await r.json();
-      if (j && j.dateCreated) { const t = Date.parse(j.dateCreated); if (!Number.isNaN(t)) return new Date(t).toISOString(); }
+      if (j && j.dateCreated) { const t = Date.parse(j.dateCreated); if (!Number.isNaN(t)) { rydStats.ok++; return new Date(t).toISOString(); } }
+      rydStats.miss++;
       return '';
-    } catch (e) { if (i) return ''; await sleep(1500); }
+    } catch (e) { if (i === 2) { rydStats.err++; return ''; } await sleep(1500 * (i + 1)); }
   }
   return '';
 }
@@ -333,6 +338,26 @@ function compact(videos) {
     console.log('  যোগ হবে ' + fresh.filter(v => v.channelTitle === label).length + 'টি' + (failed ? ' · তথ্য মেলেনি ' + failed + 'টি' : ''));
   }
 
+  /* ধাপ ৩ (ঐচ্ছিক): আগে থেকেই থাকা তারিখ-ফাঁকা সারি — আবার চেষ্টা */
+  let filled = 0;
+  if (FILL && left() > 60000) {
+    const labels = new Set(targets.map(c => c.title).filter(Boolean));
+    const blank = videos.filter(v => !v.publishedAt && (labels.size === 0 || labels.has(v.channelTitle) || v.channelTitle === 'Al-Itisam TV' || v.channelTitle === 'Attahreek TV'));
+    console.log('\n=== তারিখ পূরণ · ফাঁকা ' + blank.length + 'টি');
+    const startedFill = Date.now();
+    await pool(blank, 3, async v => {
+      if (left() < 45000) return;
+      const iso = await rydDate(v.id);
+      if (!iso) return;
+      v.publishedAt = iso;
+      filled++;
+      if (filled % 200 === 0) console.log('  পূরণ ' + filled + '/' + blank.length + ' · ' + Math.round(left() / 1000) + 's বাকি · ' +
+        Math.round((Date.now() - startedFill) / filled * (blank.length - filled) / 1000) + 's আনুমানিক');
+    });
+    console.log('  পূরণ হলো ' + filled + 'টি');
+  }
+  console.log('  RYD: পাওয়া ' + rydStats.ok + ' ·Entry নেই ' + rydStats.miss + ' · এরর ' + rydStats.err);
+
   console.log('\nযোগ হবে মোট ' + fresh.length + 'টি · এখন তালিকায় ' + videos.length + 'টি' + (DRY ? ' (dry run)' : ''));
   if (DRY || !fresh.length) return;
 
@@ -344,6 +369,13 @@ function compact(videos) {
     while (at < videos.length && videos[at].publishedAt && Date.parse(videos[at].publishedAt) > (v.time || 0)) at++;
     videos.splice(at, 0, rec);
   }
+  /* তারিখ-পূরণের পরে আবার ক্রম (তারিখহীন শেষে, নিজেদের ক্রম অটুট) */
+  const order = new Map(videos.map((v, i) => [v, i]));
+  videos.sort((a, b) => {
+    const ta = a.publishedAt ? Date.parse(a.publishedAt) : 0;
+    const tb = b.publishedAt ? Date.parse(b.publishedAt) : 0;
+    return (tb || 0) - (ta || 0) || order.get(a) - order.get(b);
+  });
   compact(videos);
   fs.writeFileSync(LIST, JSON.stringify(videos));
   if (configChanged) fs.writeFileSync(CONFIG, JSON.stringify(config, null, 2) + '\n');

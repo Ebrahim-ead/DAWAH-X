@@ -18,6 +18,10 @@ on:
         description: 'videos | shorts'
         required: false
         default: 'videos'
+      fill:
+        description: 'আগে থেকে থাকা তারিখ-ফাঁকা সারির তারিখও খোঁজা হবে (1/0)'
+        required: false
+        default: '1'
   push:
     branches: ['arena/**']
     paths: ['tools/backfill-videos.cjs', 'tools/probe-videos.cjs', '.github/workflows/backfill-videos.yml']
@@ -63,6 +67,7 @@ jobs:
           BACKFILL_CHANNEL: ${{ inputs.channel }}
           BACKFILL_LIMIT: ${{ inputs.limit || '4000' }}
           BACKFILL_TAB: ${{ inputs.tab || 'videos' }}
+          BACKFILL_FILL: '1'
         run: |
           node tools/backfill-videos.cjs --minutes 100 2>&1 | tee tools/backfill-report.txt
           exit "${PIPESTATUS[0]}"
