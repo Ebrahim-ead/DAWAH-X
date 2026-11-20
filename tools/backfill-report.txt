@@ -1,40 +1,44 @@
 
 === Attahreek TV
   channelId UCc6cxJCSSaLxd4JE_GHxsEA · Attahreek TV
-  10 ধাপ · 239টি videoId · 5998s বাকি
-  20 ধাপ · 439টি videoId · 5995s বাকি
-  30 ধাপ · 660টি videoId · 5992s বাকি
-  40 ধাপ · 850টি videoId · 5990s বাকি
-  50 ধাপ · 1048টি videoId · 5987s বাকি
-  60 ধাপ · 1205টি videoId · 5985s বাকি
-  70 ধাপ · 1380টি videoId · 5982s বাকি
-  80 ধাপ · 1517টি videoId · 5980s বাকি
-  90 ধাপ · 1653টি videoId · 5977s বাকি
-  100 ধাপ · 1736টি videoId · 5975s বাকি
-  110 ধাপ · 1863টি videoId · 5972s বাকি
-  120 ধাপ · 1960টি videoId · 5970s বাকি
-  130 ধাপ · 2045টি videoId · 5967s বাকি
-  (দুই ধাপে নতুন কিছু নেই — তালিকা শেষ)
-  মোট তালিকায় 2061টি videoId (136 ধাপ)
+::warning::  yt-dlp ব্যর্থ: execFileSync is not defined
+::warning::  yt-dlp ব্যর্থ: execFileSync is not defined
+  yt-dlp নেই/ব্যর্থ — নিজের হাঁটায় যাচ্ছি
+  10 ধাপ · 239টি videoId
+  20 ধাপ · 439টি videoId
+  30 ধাপ · 660টি videoId
+  40 ধাপ · 850টি videoId
+  50 ধাপ · 1048টি videoId
+  60 ধাপ · 1205টি videoId
+  70 ধাপ · 1380টি videoId
+  80 ধাপ · 1517টি videoId
+  90 ধাপ · 1653টি videoId
+  100 ধাপ · 1736টি videoId
+  110 ধাপ · 1863টি videoId
+  120 ধাপ · 1960টি videoId
+  130 ধাপ · 2045টি videoId
+  নিজের হাঁটা: 2061টি videoId (136 ধাপ)
   নতুন 0টি · তালিকায় আগেই আছে 2061টি
   যোগ হবে 0টি
 
 === Al-Itisam TV
   channelId UCtip528n2pKDumGCvftZPIg · Al-Itisam TV
-  10 ধাপ · 231টি videoId · 5963s বাকি
-  20 ধাপ · 423টি videoId · 5961s বাকি
-  30 ধাপ · 635টি videoId · 5958s বাকি
-  40 ধাপ · 801টি videoId · 5955s বাকি
-  50 ধাপ · 975টি videoId · 5953s বাকি
-  60 ধাপ · 1114টি videoId · 5950s বাকি
-  70 ধাপ · 1280টি videoId · 5947s বাকি
-  80 ধাপ · 1389টি videoId · 5945s বাকি
-  90 ধাপ · 1543টি videoId · 5942s বাকি
-  100 ধাপ · 1643টি videoId · 5939s বাকি
-  110 ধাপ · 1748টি videoId · 5937s বাকি
-  120 ধাপ · 1814টি videoId · 5934s বাকি
-  (দুই ধাপে নতুন কিছু নেই — তালিকা শেষ)
-  মোট তালিকায় 1814টি videoId (120 ধাপ)
+::warning::  yt-dlp ব্যর্থ: execFileSync is not defined
+::warning::  yt-dlp ব্যর্থ: execFileSync is not defined
+  yt-dlp নেই/ব্যর্থ — নিজের হাঁটায় যাচ্ছি
+  10 ধাপ · 231টি videoId
+  20 ধাপ · 423টি videoId
+  30 ধাপ · 635টি videoId
+  40 ধাপ · 801টি videoId
+  50 ধাপ · 975টি videoId
+  60 ধাপ · 1114টি videoId
+  70 ধাপ · 1280টি videoId
+  80 ধাপ · 1389টি videoId
+  90 ধাপ · 1543টি videoId
+  100 ধাপ · 1643টি videoId
+  110 ধাপ · 1748টি videoId
+  120 ধাপ · 1814টি videoId
+  নিজের হাঁটা: 1814টি videoId (120 ধাপ)
   নতুন 0টি · তালিকায় আগেই আছে 1814টি
   যোগ হবে 0টি
 
