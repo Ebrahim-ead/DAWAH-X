@@ -388,22 +388,6 @@ The caption reads **«Ebrahim Ead»**, which is what the rest of the site alread
 
 ## Importing a channel's whole back catalogue (2026-11-20, PR #31)
 
-`tools/update-videos.cjs` only reads the public RSS feed, which carries the **latest 15** uploads. Adding a channel therefore never brought its history. `tools/backfill-videos.cjs` (+ `.github/workflows/backfill-videos.yml`) does that once:
-
-1. walks the channel's `/videos` tab (`youtubei/v1/browse` with the continuation tokens found in `ytInitialData`) collecting every `videoId` — ~135 pages for 4,000 videos, no API key;
-2. for every id that is not in `youtube-videos.json`, asks `youtubei/v1/player` for the exact `title` and `microformat.playerMicroformatRenderer.publishDate` — a ~10 KB JSON, **not** the 200 KB watch page;
-3. inserts the new rows in date order (rows without a date go to the end — the script never invents a date), updates `stats.json`, writes the resolved `channelId`/`title` back into `tools/video-channels.json`.
-
-**Resumable by design:** ids already in the list are skipped, so `--limit` / `--minutes` only decide how much one run does. Re-running simply continues. `videoInfo` calls run in a pool of 6 (serial was ~1 request/s, i.e. the whole budget for 4,000 videos). The walk tracks consumed continuation tokens and stops if one comes back, with a 600-page cap — without that a repeated token can loop until the time budget runs out.
-
-**Channels added** (`backfill: true` in `video-channels.json`): `@attahreektv` and `UCtip528n2pKDumGCvftZPIg` (its title is resolved from the channel page on the first run; until then `update-videos.cjs` skips a channel with an empty title so no row lands with `channelTitle: ""`). New uploads then arrive through the normal 30-minute RSS run — nothing else to configure.
-
-**Catalogue weight.** `youtube-videos.json` no longer stores `thumbnail`: every row was the same derived URL (`i.ytimg.com/vi/<id>/hqdefault.jpg`), and `youtube-gallery.js` already falls back to it (`thumbUrl`). Both scripts now delete that field when they write, so the file compacts itself; ~50 B × every row. Measured with a 9,060-row simulation: **2.52 MB raw / 332 KB gzipped** (Pages gzips JSON), first 20 cards 1.94 s under 4× CPU throttling, 453 pages, no console errors, last page renders.
-
-**Gallery fix that came with it:** `drawFilters()` ran `videos.some(v => videoTopics(v).includes(label))` for each of the 22 topics — with thousands of videos that is 22 full scans (each regex-folding titles). It now collects the present topics in **one** pass into a `Set` (`topicsPresent`) and filters from that.
-
-## Importing a channel's whole back catalogue (2026-11-20, PR #31)
-
 `tools/update-videos.cjs` reads only the public RSS feed, which carries the **latest 15** uploads, so adding a channel never brought its history. `tools/backfill-videos.cjs` + `.github/workflows/backfill-videos.yml` do that, with no API key:
 
 1. **Enumerate.** `yt-dlp --flat-playlist --print "%(id)s\t%(title)s" <channel>/<tab>` lists every upload. (The innertube walk over `richGridRenderer` continuations is kept as a fallback; it stalled at 120 ids because each response carries ~6 tokens for other shelves.)
@@ -419,3 +403,17 @@ The caption reads **«Ebrahim Ead»**, which is what the rest of the site alread
 **Catalogue weight.** `youtube-videos.json` no longer stores `thumbnail` (every row was the same derived `i.ytimg.com/vi/<id>/hqdefault.jpg` that `thumbUrl` already builds). Both writers delete it, so the file compacts itself. Measured at 8,941 rows: **2.54 MB raw / 408 KB gzipped**, first 20 cards 2.1 s at 4× CPU throttling, 447 pages, channel chips and the last page all render, no console errors. `drawFilters()` now collects the present topics in one pass into a `Set` instead of running `videos.some(...)` per topic (22 full scans of every title).
 
 **Pushing from a session, not from CI.** A bot commit and a local commit touching `youtube-videos.json` conflict on the whole (single-line) file, and `git pull --rebase -X theirs` during a local rebase keeps the *local* copy — which silently dropped two bot data commits. Keep no local edits to that file, or sync it from origin before pushing.
+
+## "এখন লাইভ" — live streams of the six channels (2026-11-20)
+
+`tools/live-status.cjs` + `.github/workflows/live-status.yml` (cron `*/10 * * * *`) ask each id in `tools/video-channels.json` for `https://www.youtube.com/channel/<id>/live`. A channel that is live answers `302` with `Location: …/watch?v=<videoId>`; a channel that is not answers `200` with the channel page, so no API key and no quota are involved. The workflow writes `live.json` only when the payload changed, rebases over any bot commit and pushes, then triggers a Pages rebuild through `gh api -X POST repos/$REPO/pages/builds`.
+
+`live.json` = `{v:1, updated, checked:[channel titles], live:[{channelId, channel, id, title, since}]}`. `since` is the first time *this agent* saw the stream, not the true start time — YouTube does not expose that keylessly, so the card never claims "started at".
+
+`live.js` fetches `live.json` once, renders into `<div class="live-slot" id="live-slot" hidden>` (present right after `<main id="main-content">` in `index.html` and `videos.html`) and re-polls every 2 minutes while the tab is visible. Nothing live → the slot stays `hidden`, so no empty box and no layout change. Playback is `https://www.youtube-nocookie.com/embed/<id>?autoplay=1&rel=0` injected on click (privacy-enhanced, no iframe cost until asked). Thumbnail: `i.ytimg.com/vi/<id>/hqdefault_live.jpg`.
+
+`sw.js` **v13** treats `/live.json` as network-only (`fetch(request,{cache:'no-store'})`, JSON `{"v":1,"live":[]}` on failure) so a cached copy can never show a stale live card; the card also disappears silently when the fetch fails offline.
+
+## Reader dates normalised to Bengali (2026-11-20)
+
+`texts/*.json` keeps whatever the source printed in `d` — Bengali strings (`জানুয়ারী ২০২৫`), ISO (`2026-04-29`, all 85 frommuslims rows), or English (`Feb 26, 2018`, ~100 response-to-anti-islam rows). The reader used to print `d` verbatim, so a Bengali page showed three shapes. `bnDate()` in `app.js` now maps ISO and both English orders to `২৯ এপ্রিল ২০২৬` (Bengali digits + Bengali month names) at render time; the stored data is untouched and anything unmatched passes through unchanged.
