@@ -108,6 +108,9 @@
       topicItems=VIDEO_TOPICS.map(row=>row[0]).filter(label=>topicsPresent.has(label)).map(label=>[label,label]);
     }
     const names=loaded?[...new Set(videos.map(video=>video.channelTitle).filter(Boolean))]:VIDEO_CHANNELS.map(row=>row[0]);
+    /* হেডারের "চারটি YouTube চ্যানেলের ভিডিও" — চ্যানেল যোগ/বাদ হলে সংখ্যাটা নিজেই বদলাবে */
+    const headNote=document.querySelector('.channel-left small');
+    if(headNote&&names.length)headNote.textContent=names.length+'টি YouTube চ্যানেলের ভিডিও';
     const order=title=>{const i=VIDEO_CHANNELS.findIndex(row=>row[0]===title);return i<0?VIDEO_CHANNELS.length:i;};
     const channelItems=names.sort((a,b)=>order(a)-order(b)).map(title=>[title,channelName(title)]);
     if(loaded){if(topic&&!topicItems.some(item=>item[0]===topic))topic='';if(channel&&!names.includes(channel))channel='';}
