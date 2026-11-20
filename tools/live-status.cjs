@@ -98,7 +98,7 @@ function previous() {
     if (!id) continue;
     let meta = await oembed(id);
     if (meta && !meta.title) meta.title = await watchTitle(id);
-    /* শিরোনাম যদি চ্যানেলের নামেরই পুনরাবৃত্তি হয় (বা "… - YouTube"), কার্ডে চ্যানেলের নাম দুবার দেখানোর দরকার নেই */
+    /* শিরোনাম যদি চ্যানেলের নামেরই পুনরাবৃত্তি হয় (বা "… - YouTube"), বোতামে চ্যানেলের নাম দুবার দেখানোর দরকার নেই */
     if (meta && meta.title) {
       const strip = v => String(v || '').replace(/\s*-\s*YouTube\s*$/i, '').replace(/\s+/g, ' ').trim();
       const t = strip(meta.title), c = strip(ch.title || (meta && meta.author) || '');
@@ -121,7 +121,7 @@ function previous() {
   let old = '';
   try { old = fs.readFileSync(OUT, 'utf8'); } catch (e) {}
   /* প্রতিবার লেখা হয়, যদিও লাইভ-তালিকা না বদলায়: «updated»-ই প্রমাণ যে কিছুক্ষণ আগেও
-     দেখা হয়েছে। সাইট এর বয়স দেখে ঠিক করে — ৩০ মিনিটের বেশি পুরোনো হলে কার্ড দেখানো হয় না,
+     দেখা হয়েছে। সাইট এর বয়স দেখে ঠিক করে — ৪৫ মিনিটের বেশি পুরোনো হলে বোতাম দেখানো হয় না,
      তাই পুরোনো তথ্যে ভর করে ভুল «লাইভ» দেখানোর সুযোগ নেই। */
   fs.writeFileSync(OUT, text);
   let same = false;
