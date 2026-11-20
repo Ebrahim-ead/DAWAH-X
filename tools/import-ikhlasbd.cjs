@@ -170,7 +170,20 @@ function extract(html) {
     return a.slice(0, 80);
   })();
 
+  /* লেখার শুরুতে শিরোনামটি আবার থাকলে (h1–h4) বাদ */
+  const flat = t => String(t).replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/[^\p{L}\p{N}]+/gu, '').toLowerCase();
+  const titleKey = flat(title);
+  body.children('h1,h2,h3,h4').slice(0, 2).each((i, el) => {
+    if (titleKey && flat($(el).text()).includes(titleKey.slice(0, Math.min(28, titleKey.length)))) $(el).remove();
+  });
   let htmlOut = clean($, body);
+
+  /* লেখক: লেখার শুরুতে "-ড. অমুক*" ধরনের লাইন, নইলে আগের অংশে "লেখক:" */
+  if (!author) {
+    const head = $('<div>').html(htmlOut).text().replace(/\s+/g, ' ').slice(0, 400);
+    const m = /[-–—]\s*([^–—*]{2,60}?)\s*\*/.exec(head) || /^(?:মূল|অনুবাদ)\s*:\s*([^,।]{2,60})/.exec(head.replace(/\s+/g, ' ').trim());
+    if (m) author = m[1].replace(/\s+/g, ' ').trim();
+  }
   /* লেখার ভেতরে থাকা "শেয়ার করুন / প্রিন্ট / ← আগের লেখা" জাতীয় সারি বাদ */
   htmlOut = htmlOut.replace(/<p[^>]*>\s*(?:শেয়ার|প্রিন্ট|আরো পড়ুন)[\s\S]{0,120}?<\/p>/g, '');
   const len = textLen(htmlOut);
@@ -246,7 +259,19 @@ function loadBuckets() {
     if (PROBE) {
       log('\n--- ' + id + ' · ' + x.title.slice(0, 70));
       log('    date=' + (x.date || '-') + ' author=' + (x.author || '-') + ' len=' + textLen(x.html));
-      log('    html: ' + x.html.replace(/\s+/g, ' ').slice(0, 500));
+      log('    html: ' + x.html.replace(/\s+/g, ' ').slice(0, 400));
+      {
+        const $p = loadCheerio().load(r.html);
+        const box = $p('.article-details').first();
+        if (box.length) {
+          const prev = box.prevAll().slice(0, 3).toArray().map(e => $p(e).prop('tagName') + '.' + ($p(e).attr('class') || '') + ' :: ' + $p(e).text().replace(/\s+/g, ' ').trim().slice(0, 90));
+          const next = box.nextAll().slice(0, 2).toArray().map(e => $p(e).prop('tagName') + '.' + ($p(e).attr('class') || '') + ' :: ' + $p(e).text().replace(/\s+/g, ' ').trim().slice(0, 90));
+          log('    before: ' + JSON.stringify(prev));
+          log('    after: ' + JSON.stringify(next));
+          const dates = [...r.html.matchAll(/([০-৯0-9]{1,2}\s+(?:জানুয়ারি|ফেব্রুয়ারি|মার্চ|এপ্রিল|মে|জুন|জুলাই|আগস্ট|সেপ্টেম্বর|অক্টোবর|নভেম্বর|ডিসেম্বর)\s*,?\s*[০-৯0-9]{4})/g)].map(m => m[1]);
+          log('    bangla dates on page: ' + JSON.stringify([...new Set(dates)]));
+        }
+      }
       skipped++; await sleep(350); continue;
     }
 
