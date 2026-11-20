@@ -1281,3 +1281,48 @@ html[data-theme="light"] ::placeholder,html[data-theme="light"] #dxp-q::placehol
 #read-video-links{display:grid;gap:.5rem;margin-top:.75rem}
 .faq-item{border:1px solid var(--line);background:var(--card);padding:1.25rem;border-radius:.8rem;margin:1rem 0}.faq-item h2{font-size:1.2rem;line-height:1.5;margin-bottom:.7rem}.faq-item p{line-height:1.9}.faq-item a{display:inline-block;color:var(--gold2);margin-top:.7rem;text-decoration:underline}
 .video-find-texts{margin-top:.7rem}#read-suggested-videos{display:grid;gap:.5rem;margin-top:.7rem}
+
+/* Navigation refresh: calm, tactile feedback without changing the shared links. */
+@media (min-width:1100px){
+ #menu a{border-radius:12px;color:var(--text);animation:none;transition:color .2s ease,background-color .2s ease,box-shadow .2s ease,transform .2s ease}
+ #menu a::before{bottom:3px;height:2px;background:var(--gold2);box-shadow:none;transition:width .24s ease}
+ #menu a[aria-current="page"],#menu a.on{color:var(--gold2);background:linear-gradient(180deg,rgba(246,196,83,.15),rgba(246,196,83,.035));box-shadow:inset 0 0 0 1px rgba(246,196,83,.24)}
+ #menu a[aria-current="page"]::after{bottom:2px;width:26px;height:3px;animation:navActiveIn .38s ease-out both}
+ #menu a:active{transform:translateY(0) scale(.97)}
+}
+@keyframes navActiveIn{from{opacity:0;transform:translateX(-50%) scaleX(.35)}to{opacity:1;transform:translateX(-50%) scaleX(1)}}
+@media (max-width:1099px){
+ body.menu-open::after{background:rgba(1,8,12,.66);backdrop-filter:none;-webkit-backdrop-filter:none}
+ #menu{top:calc(100% + 8px);width:min(460px,calc(100vw - 24px));max-height:calc(100dvh - 82px - env(safe-area-inset-bottom,0px));gap:3px;padding:12px;border:1px solid rgba(246,196,83,.22);border-radius:20px;background:linear-gradient(160deg,#13252a,#091419 56%,#070f14);box-shadow:0 18px 48px rgba(0,0,0,.38),inset 0 1px rgba(255,255,255,.06);backdrop-filter:none;-webkit-backdrop-filter:none}
+ #menu::before{content:'সাইটের বিভাগ';display:block;padding:4px 12px 10px;color:#a6b5b8;font-size:12px;font-weight:600;letter-spacing:.02em;border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:5px}
+ #menu.open{animation:navPanelReveal .28s cubic-bezier(.2,.75,.25,1) backwards}
+ #menu.open a{min-height:45px;padding:9px 40px 9px 36px;border-radius:12px;color:#e7eff0;font-weight:600;line-height:1.4;animation:navItemReveal .3s cubic-bezier(.2,.75,.25,1) backwards;transition:background-color .2s ease,border-color .2s ease,color .2s ease,transform .2s ease}
+ #menu.open a:nth-child(1){animation-delay:.025s}#menu.open a:nth-child(2){animation-delay:.045s}#menu.open a:nth-child(3){animation-delay:.065s}#menu.open a:nth-child(4){animation-delay:.085s}#menu.open a:nth-child(5){animation-delay:.105s}#menu.open a:nth-child(6){animation-delay:.125s}#menu.open a:nth-child(7){animation-delay:.145s}#menu.open a:nth-child(8){animation-delay:.165s}#menu.open a:nth-child(9){animation-delay:.185s}
+ #menu.open a::before{left:15px;width:7px;height:7px;background:#78908e;opacity:.58;transform:translateY(-50%) scale(.7);box-shadow:none}
+ #menu.open a::after{content:'';position:absolute;left:auto;right:18px;top:50%;bottom:auto;width:7px;height:7px;border-top:1.5px solid currentColor;border-right:1.5px solid currentColor;border-radius:0;background:none;box-shadow:none;opacity:.38;transform:translateY(-50%) rotate(45deg);animation:none;transition:transform .2s ease,opacity .2s ease}
+ #menu.open a[aria-current="page"],#menu.open a.on{color:#ffe3a0;background:linear-gradient(100deg,rgba(246,196,83,.16),rgba(246,196,83,.035));border-color:rgba(246,196,83,.28);box-shadow:inset 3px 0 #e6bd61}
+ #menu.open a[aria-current="page"]::before,#menu.open a.on::before{background:#ffd56a;opacity:1;transform:translateY(-50%) scale(1);box-shadow:0 0 8px rgba(255,213,106,.45)}
+ #menu.open a[aria-current="page"]::after,#menu.open a.on::after{width:7px;height:7px;border-top:1.5px solid currentColor;border-right:1.5px solid currentColor;border-radius:0;background:none;box-shadow:none;opacity:.85;transform:translateY(-50%) rotate(45deg)}
+ #menu.open a:focus-visible{outline:2px solid var(--gold2);outline-offset:-3px}
+ #menu.open a:active{transform:scale(.99)}
+ #burger{display:grid;place-items:center;width:40px;height:40px;padding:0;border:1px solid rgba(246,196,83,.24);border-radius:12px;background:rgba(246,196,83,.07);font-size:23px;line-height:1;transition:background-color .2s ease,border-color .2s ease,color .2s ease,transform .2s ease}
+ #burger[aria-expanded="true"]{color:var(--gold2);background:rgba(246,196,83,.15);border-color:rgba(246,196,83,.45);transform:none}
+ #burger:focus-visible{outline:2px solid var(--gold2);outline-offset:2px}
+ html[data-theme="light"] #menu{background:linear-gradient(155deg,#fffdf7,#f3f2e9);border-color:rgba(162,112,10,.27);box-shadow:0 18px 48px rgba(23,36,44,.18),inset 0 1px #fff}
+ html[data-theme="light"] #menu::before{color:#667673;border-color:rgba(23,36,44,.1)}
+ html[data-theme="light"] #menu.open a{color:#253a3a}
+ html[data-theme="light"] #menu.open a[aria-current="page"],html[data-theme="light"] #menu.open a.on{color:#704600;background:linear-gradient(100deg,rgba(182,127,25,.16),rgba(182,127,25,.035));border-color:rgba(162,112,10,.26);box-shadow:inset 3px 0 #a2700a}
+ html[data-theme="light"] #menu.open a[aria-current="page"]::before,html[data-theme="light"] #menu.open a.on::before{background:#a2700a;box-shadow:none}
+ html[data-theme="light"] #burger{background:rgba(162,112,10,.06);border-color:rgba(162,112,10,.25)}
+ html[data-theme="light"] #burger[aria-expanded="true"]{color:#704600;background:rgba(162,112,10,.14)}
+}
+@media (hover:hover) and (pointer:fine){
+ #menu.open a:hover:not([aria-current="page"]):not(.on){color:var(--gold2);background:rgba(246,196,83,.08);border-color:rgba(246,196,83,.13);transform:translateX(3px)}
+ #menu.open a:hover::after{opacity:.9;transform:translate(3px,-50%) rotate(45deg)}
+ html[data-theme="light"] #menu.open a:hover:not([aria-current="page"]):not(.on){color:#704600;background:rgba(162,112,10,.08)}
+}
+@media (hover:none){#menu.open a:hover:not([aria-current="page"]):not(.on){color:#e7eff0;background:transparent;border-color:transparent;transform:none}html[data-theme="light"] #menu.open a:hover:not([aria-current="page"]):not(.on){color:#253a3a}}
+@keyframes navPanelReveal{from{opacity:0;transform:translateX(-50%) translateY(-8px) scale(.98)}to{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}}
+@keyframes navItemReveal{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+@media (prefers-reduced-motion:reduce){#menu.open,#menu.open a,#menu a[aria-current="page"]::after,#burger{animation:none!important;transition:none!important}}
+@media (max-width:1099px) and (hover:none){#menu.open a:hover:not([aria-current="page"]):not(.on)::before{opacity:.58;transform:translateY(-50%) scale(.7);box-shadow:none}}
