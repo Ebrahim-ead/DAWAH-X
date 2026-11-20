@@ -22,3 +22,4 @@ jobs:
           node tests/video-audit.cjs
           node tests/video-audit-integration.cjs
           node tests/video-blocklist-integration.cjs
+          node tests/home-sections.cjs

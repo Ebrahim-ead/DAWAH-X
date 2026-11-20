@@ -3,7 +3,7 @@
  'use strict';
  const daily=document.getElementById('daily-reading-card');
  if(daily){
-  const cards=[...document.querySelectorAll('#daily-guidance .guidance-card')];
+  const cards=[...(document.getElementById('daily-reading-templates')?.content.querySelectorAll('.guidance-card')||[])];
   if(cards.length){
    // Dhaka calendar day, independent of the device's time zone.
    const parts=Object.fromEntries(new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Dhaka',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()).map(p=>[p.type,p.value]));
