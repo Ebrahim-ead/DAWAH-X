@@ -11,6 +11,9 @@ const LINKS={
 const MESSENGER="https://m.me/61595349861689"; /* প্রশ্ন এই Messenger ইনবক্সে যায় */
 const ASK_ACTION="https://formsubmit.co/ajax/www.mdrazu55555@gmail.com"; /* FormSubmit (formsubmit.co): "প্রশ্ন পাঠান" চাপলে প্রশ্ন সরাসরি এই ইমেইল ঠিকানায় আসে। ঠিকানা বদলাতে /ajax/-এর পরের অংশ বদলান (FormSubmit-এর দেওয়া এলোমেলো কোডও বসানো যায়, তাতে ঠিকানাটি কোডে দেখা যায় না)। ফাঁকা ("") রাখলে আগের মতো Messenger খোলে */
 /* ================================== */
+/* «নতুন» ব্যাজ কত দিন থাকবে — youtube-gallery.js ও হোমপেজের সর্বশেষ ভিডিও একই মান ব্যবহার করে,
+   তাই বদলাতে হলে শুধু এই একটি জায়গা বদলান */
+window.DAWAHX_NEW_DAYS=3;
 
 const $=id=>document.getElementById(id);
 const PAGE=document.body.dataset.page||"";
@@ -1441,6 +1444,52 @@ if(statStrip){
     if(t<1)requestAnimationFrame(step);else el.textContent=formatCount(v)};
    requestAnimationFrame(step);
   });
+ }).catch(()=>{});
+}
+
+/* ---- হোমপেজের «সর্বশেষ ভিডিও»: youtube-videos.json-এর নতুন ৪টি ----
+   তালিকা নিজে থেকেই হালনাগাদ হয় (tools/update-videos.cjs), তাই হাতে কিছু লিখতে হয় না।
+   কার্ডের ক্লাস হুবহু ভিডিও-গ্যালারির মতো — দেখতেও এক, আর ক্লিকে effects.js-এর লাইটবক্সে এখানেই চলে।
+   তথ্য না এলে বা কোনো ভিডিও না থাকলে অংশটি লুকানোই থাকে (ফাঁকা জায়গা তৈরি হয় না)। */
+const latestGrid=document.getElementById("latest-grid");
+if(latestGrid){
+ fetch("youtube-videos.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null).then(all=>{
+  if(!Array.isArray(all))return;
+  const DAY=86400000,NEW_DAYS=window.DAWAHX_NEW_DAYS||3,now=Date.now();
+  const picked=all.filter(v=>v&&typeof v.id==="string"&&/^[\w-]{11}$/.test(v.id))
+   .map((v,i)=>({v,i,t:Date.parse(v.publishedAt||"")}))
+   /* নতুন আগে; তারিখ না থাকলে তালিকার ক্রমই থাকে (ফাইলেও নতুন ভিডিও আগে বসে) */
+   .sort((a,b)=>(isNaN(b.t)?-Infinity:b.t)-(isNaN(a.t)?-Infinity:a.t)||a.i-b.i)
+   .slice(0,4);
+  if(!picked.length)return;
+  const frag=document.createDocumentFragment();
+  picked.forEach(({v:video,t:stamp})=>{
+   const card=document.createElement("article");card.className="video-card";
+   const button=document.createElement("button");button.type="button";button.className="video-preview";
+   button.dataset.videoId=video.id;button.dataset.videoTitle=video.title||"";
+   button.setAttribute("aria-label",(video.title||"ভিডিও")+" — ভিডিওটি এই পেজে চালান");
+   const image=document.createElement("img");
+   image.src="https://i.ytimg.com/vi/"+encodeURIComponent(video.id)+"/mqdefault.jpg";
+   image.alt="";image.width=320;image.height=180;image.loading="lazy";image.decoding="async";
+   button.append(image);
+   const age=now-stamp;
+   if(!isNaN(stamp)&&age>-DAY&&age<NEW_DAYS*DAY){
+    const badge=document.createElement("span");badge.className="video-new";badge.textContent="নতুন";button.append(badge);
+   }
+   const info=document.createElement("div");info.className="video-info";
+   const channel=document.createElement("span");channel.className="video-channel-label";channel.textContent=video.channelTitle||"YouTube";
+   const heading=document.createElement("h2");heading.textContent=video.title||"";
+   info.append(channel,heading);
+   if(!isNaN(stamp)){
+    const time=document.createElement("time");time.dateTime=video.publishedAt;
+    time.textContent=new Intl.DateTimeFormat("en-US",{month:"long",day:"numeric",year:"numeric",timeZone:"Asia/Dhaka"}).format(new Date(stamp));
+    info.append(time);
+   }
+   card.append(button,info);frag.append(card);
+  });
+  latestGrid.append(frag);
+  const slot=document.getElementById("latest-videos");
+  if(slot)slot.removeAttribute("hidden");
  }).catch(()=>{});
 }
 

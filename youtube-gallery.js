@@ -13,7 +13,9 @@
   const scriptUrl=document.currentScript?.src||location.href;
   const numberFormat=new Intl.NumberFormat('en-US');
   const dateFormat=new Intl.DateTimeFormat('en-US',{month:'long',day:'numeric',year:'numeric',timeZone:'Asia/Dhaka'});
-  const NEW_DAYS=3; /* প্রকাশের পর এই কত দিন «নতুন» ব্যাজ থাকবে */
+  /* প্রকাশের পর কত দিন «নতুন» ব্যাজ থাকবে — মানটি app.js-এ একবার লেখা (window.DAWAHX_NEW_DAYS),
+     হোমপেজের «সর্বশেষ ভিডিও» অংশও একই মান ব্যবহার করে, তাই দুই জায়গায় আলাদা হয়ে যায় না */
+  const NEW_DAYS=window.DAWAHX_NEW_DAYS||3;
   let videos=[];
   let page=1;
 
