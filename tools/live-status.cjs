@@ -61,6 +61,14 @@ async function liveIdOf(channel) {
   return '';
 }
 
+/* oEmbed শিরোনাম না দিলে (নতুন/কিছু লাইভ স্ট্রিমে হয়) ওয়াচ-পাতার og:title */
+async function watchTitle(id) {
+  const r = await get('https://www.youtube.com/watch?v=' + id, { body: true });
+  if (r.status !== 200) return '';
+  const m = /<meta property="og:title" content="([^"]*)"/.exec(r.text);
+  return m ? m[1].replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'").trim() : '';
+}
+
 async function oembed(id) {
   const url = 'https://www.youtube.com/oembed?url=' + encodeURIComponent('https://www.youtube.com/watch?v=' + id) + '&format=json';
   const r = await get(url, { body: true });
@@ -88,7 +96,8 @@ function previous() {
     const id = await liveIdOf(ch);
     checked.push(ch.title || ch.channelId);
     if (!id) continue;
-    const meta = await oembed(id);
+    let meta = await oembed(id);
+    if (meta && !meta.title) meta.title = await watchTitle(id);
     const since = wasLive.get(ch.channelId + '|' + id) || new Date().toISOString();
     found.push({
       channelId: ch.channelId,
