@@ -1,30 +1,26 @@
-# probe 2026-11-20T05:49:24.095Z
+# probe 2026-11-20T05:55:31.789Z
 channel: UCc6cxJCSSaLxd4JE_GHxsEA
 
-[page] 200 355ms 1380KB · lockup 31 · contentId 30
+[page] 200 265ms 1381KB · lockup 31 · contentId 30
   declared video count: 3K videos
   header meta: contentMetadataViewModel","flexibleActionsViewModel","buttonViewModel","modalWithTitleAndButtonRenderer","buttonRenderer","descriptionPreviewViewModel","engagementPanelSectionListRenderer","engagementPanelTitleHeaderRenderer","sectionListRe
   ytInitialData parsed: true
 
 [walk] key AIzaSyAO_F… · cv 2.20261119.01.00 · visitor yes
   page 1: 30 ids (unique 30) · tokens 6
-  page 2: 200 159ms · 30 ids · unique 60 (+30) · tokens 6
-  page 3: 200 151ms · 30 ids · unique 60 (+0) · tokens 6
-  page 4: 200 162ms · 30 ids · unique 90 (+30) · tokens 6
-  page 5: 200 156ms · 30 ids · unique 120 (+30) · tokens 6
-  page 6: 200 33ms · 0 ids · unique 120 (+0) · tokens 5
+  page 2: 200 146ms · 30 ids · unique 60 (+30) · tokens 6
+  page 3: 200 158ms · 30 ids · unique 60 (+0) · tokens 6
+  page 4: 200 167ms · 30 ids · unique 90 (+30) · tokens 6
+  page 5: 200 186ms · 30 ids · unique 120 (+30) · tokens 6
+  page 6: 200 32ms · 0 ids · unique 120 (+0) · tokens 5
   walk total: 120 unique ids in 6 pages
 
 [player] 8Gop_lDQtuA: 200 77ms 7KB · status LOGIN_REQUIRED (Sign in to confirm you’re not a bot) · videoDetails false · publishDate (none)
-[watch] 200 572ms 1278KB · datePublished (none) · botcheck true
+[watch] 200 636ms 1277KB · datePublished (none) · botcheck true
+
+[ryd] ids: 8Gop_lDQtuA, KILXY0bmSAU, WbDFS-_e7qc
+  8Gop_lDQtuA: 200 162ms · dateCreated 2026-11-19T14:45:21.512623Z · views 216 · deleted false
+  KILXY0bmSAU: 200 109ms · dateCreated 2023-12-12T06:47:11.662962Z · views 269 · deleted false
+  WbDFS-_e7qc: 200 105ms · dateCreated 2022-03-12T09:24:36.360849Z · views 13902 · deleted false
 
 [rss] 200 7ms · entry 15
---- yt-dlp ---
-2026.10.26
-dates (3 latest):
-ERROR: [youtube] 8Gop_lDQtuA: Sign in to confirm you’re not a bot. This helps protect our community. Use --cookies-from-browser or --cookies for the authentication. See  https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp  for how to manually pass cookies. Also see  https://github.com/yt-dlp/yt-dlp/wiki/Extractors#exporting-youtube-cookies  for tips on effectively exporting YouTube cookies
-ERROR: [youtube] ThWqcaQ0kG8: Sign in to confirm you’re not a bot. This helps protect our community. Use --cookies-from-browser or --cookies for the authentication. See  https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp  for how to manually pass cookies. Also see  https://github.com/yt-dlp/yt-dlp/wiki/Extractors#exporting-youtube-cookies  for tips on effectively exporting YouTube cookies
-ERROR: [youtube] qsd8GUKmXjc: Sign in to confirm you’re not a bot. This helps protect our community. Use --cookies-from-browser or --cookies for the authentication. See  https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp  for how to manually pass cookies. Also see  https://github.com/yt-dlp/yt-dlp/wiki/Extractors#exporting-youtube-cookies  for tips on effectively exporting YouTube cookies
-flat listing:
-  lines: 2063 · first: 8Gop_lDQtuA · last: WbDFS-_e7qc
-  err: 
