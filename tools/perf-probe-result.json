@@ -1,4 +1,96 @@
 {
-  "error": "AssertionError [ERR_ASSERTION]: false == true",
-  "stack": "AssertionError [ERR_ASSERTION]: false == true\n    at /home/runner/work/DAWAH-X/DAWAH-X/tools/perf-probe.cjs:4:660"
+  "index.html": {
+    "ready": 1548,
+    "loads": [],
+    "tasks": [
+      78,
+      238,
+      69,
+      64
+    ],
+    "errors": []
+  },
+  "questions.html": {
+    "ready": 633,
+    "loads": [
+      {
+        "url": "questions-catalog-part-03.js",
+        "size": 2595,
+        "ms": 23
+      },
+      {
+        "url": "questions-catalog-part-04.js",
+        "size": 2511,
+        "ms": 25
+      },
+      {
+        "url": "questions-catalog-part-05.js",
+        "size": 1406,
+        "ms": 24
+      },
+      {
+        "url": "questions-catalog-part-00.js",
+        "size": 154620,
+        "ms": 24
+      },
+      {
+        "url": "questions-catalog-part-01.js",
+        "size": 85517,
+        "ms": 31
+      },
+      {
+        "url": "questions-catalog-part-02.js",
+        "size": 134426,
+        "ms": 30
+      }
+    ],
+    "tasks": [
+      125,
+      52
+    ],
+    "errors": []
+  },
+  "fatwa.html": {
+    "ready": 525,
+    "loads": [],
+    "tasks": [
+      100
+    ],
+    "errors": []
+  },
+  "sources.html": {
+    "ready": 404,
+    "loads": [
+      {
+        "url": "source-index.json",
+        "size": 2933,
+        "ms": 100
+      },
+      {
+        "url": "source-at-000.json",
+        "size": 38024,
+        "ms": 6
+      }
+    ],
+    "tasks": [
+      103
+    ],
+    "errors": []
+  },
+  "videos.html": {
+    "ready": 506,
+    "loads": [
+      {
+        "url": "youtube-videos.json",
+        "size": 2652379,
+        "ms": 64
+      }
+    ],
+    "tasks": [
+      63,
+      50,
+      71
+    ],
+    "errors": []
+  }
 }
