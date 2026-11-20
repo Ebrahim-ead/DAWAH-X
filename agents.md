@@ -40,6 +40,22 @@ Each page is its own `.html` file containing the shared chrome (head, SVG sprite
 - `SUGGEST` reads `search/titles.json` + `search/tNN.json` (title-word index, 64 shards), the body shards `search/NNN.json` for word weights, `rel/*.json` for titles, and `youtube-videos.json` for videos. A text is shown only if most of the meaningful question words are in its title (at least two words, or one rare word). Greetings, question words and verb forms are listed in `ASK_SKIP` (folded spelling); add to it when a filler word causes wrong matches. Do not loosen the gate to single common words, and keep stems under 4 letters on exact match.
 - `#asksug` cards are exempt from the scroll-reveal animation (`.ask-sug [data-reveal]` in `style.css`); without that they stay invisible until scrolled into view.
 
+## Ask form (`ask.html`)
+
+- Fields: `#an` name, `#ac` contact, `#at` topic, `#ar` religious identity (**required**; `compose()` in `app.js` blocks sending and focuses the select while it is empty), `#aq` question. The identity goes into the chat text ("ধর্মীয় পরিচয়: …") and into the form data as `religion`; `__forms.html` must list the same field names for Netlify.
+- Draft: the five fields are kept in `sessionStorage` (`dawahx-ask-draft`), because matching texts open in a new tab and the visitor comes back to the form.
+- Matching content while typing: `showSuggestions()` (600 ms debounce, 6+ characters) calls `SUGGEST.find(q)` and fills `#asksug` with up to 3 Q&A/article cards, 3 fatwa cards (`a.qcard.qcard-own` → `read.html?k=…`, new tab) and up to 2 videos (`button.ask-vid[data-video-id]`, opened by the lightbox in `effects.js`). Nothing in the box may link to another site.
+- `SUGGEST` reads `search/titles.json` + `search/tNN.json` (title-word index, 64 shards), the body shards `search/NNN.json` for word weights, `rel/*.json` for titles, and `youtube-videos.json` for videos. A text is shown only if most of the meaningful question words are in its title (at least two words, or one rare word). Greetings, question words and verb forms are listed in `ASK_SKIP` (folded spelling); add to it when a filler word causes wrong matches. Do not loosen the gate to single common words, and keep stems under 4 letters on exact match.
+- `#asksug` cards are exempt from the scroll-reveal animation (`.ask-sug [data-reveal]` in `style.css`); without that they stay invisible until scrolled into view.
+
+## Ask form (`ask.html`)
+
+- Fields: `#an` name, `#ac` contact, `#at` topic, `#ar` religious identity (**required**; `compose()` in `app.js` blocks sending and focuses the select while it is empty), `#aq` question. The identity goes into the chat text ("ধর্মীয় পরিচয়: …") and into the form data as `religion`; `__forms.html` must list the same field names for Netlify.
+- Draft: the five fields are kept in `sessionStorage` (`dawahx-ask-draft`), because matching texts open in a new tab and the visitor comes back to the form.
+- Matching content while typing: `showSuggestions()` (600 ms debounce, 6+ characters) calls `SUGGEST.find(q)` and fills `#asksug` with up to 3 Q&A/article cards, 3 fatwa cards (`a.qcard.qcard-own` → `read.html?k=…`, new tab) and up to 2 videos (`button.ask-vid[data-video-id]`, opened by the lightbox in `effects.js`). Nothing in the box may link to another site.
+- `SUGGEST` reads `search/titles.json` + `search/tNN.json` (title-word index, 64 shards), the body shards `search/NNN.json` for word weights, `rel/*.json` for titles, and `youtube-videos.json` for videos. A text is shown only if most of the meaningful question words are in its title (at least two words, or one rare word). Greetings, question words and verb forms are listed in `ASK_SKIP` (folded spelling); add to it when a filler word causes wrong matches. Do not loosen the gate to single common words, and keep stems under 4 letters on exact match.
+- `#asksug` cards are exempt from the scroll-reveal animation (`.ask-sug [data-reveal]` in `style.css`); without that they stay invisible until scrolled into view.
+
 ## On-site reader for library texts (`read.html`, `texts/`)
 
 - `tools/import-texts.cjs` (run by `.github/workflows/import-texts.yml`; the sandbox cannot reach the source sites, GitHub runners can) fetches catalogue URLs, extracts the article with per-source selectors (`SOURCES`: `ai` al-itisam.com, `at` at-tahreek.com, `ra` response-to-anti-islam.com, `ia` islamicauthors.com), reduces it to an allow-list of tags and stores `{u,s,c,t,l,d,a,h}` in `texts/<last 3 hex of key>.json`. The workflow commits `texts/` back to the branch; pull before committing.
@@ -388,22 +404,6 @@ The caption reads **«Ebrahim Ead»**, which is what the rest of the site alread
 
 ## Importing a channel's whole back catalogue (2026-11-20, PR #31)
 
-`tools/update-videos.cjs` only reads the public RSS feed, which carries the **latest 15** uploads. Adding a channel therefore never brought its history. `tools/backfill-videos.cjs` (+ `.github/workflows/backfill-videos.yml`) does that once:
-
-1. walks the channel's `/videos` tab (`youtubei/v1/browse` with the continuation tokens found in `ytInitialData`) collecting every `videoId` — ~135 pages for 4,000 videos, no API key;
-2. for every id that is not in `youtube-videos.json`, asks `youtubei/v1/player` for the exact `title` and `microformat.playerMicroformatRenderer.publishDate` — a ~10 KB JSON, **not** the 200 KB watch page;
-3. inserts the new rows in date order (rows without a date go to the end — the script never invents a date), updates `stats.json`, writes the resolved `channelId`/`title` back into `tools/video-channels.json`.
-
-**Resumable by design:** ids already in the list are skipped, so `--limit` / `--minutes` only decide how much one run does. Re-running simply continues. `videoInfo` calls run in a pool of 6 (serial was ~1 request/s, i.e. the whole budget for 4,000 videos). The walk tracks consumed continuation tokens and stops if one comes back, with a 600-page cap — without that a repeated token can loop until the time budget runs out.
-
-**Channels added** (`backfill: true` in `video-channels.json`): `@attahreektv` and `UCtip528n2pKDumGCvftZPIg` (its title is resolved from the channel page on the first run; until then `update-videos.cjs` skips a channel with an empty title so no row lands with `channelTitle: ""`). New uploads then arrive through the normal 30-minute RSS run — nothing else to configure.
-
-**Catalogue weight.** `youtube-videos.json` no longer stores `thumbnail`: every row was the same derived URL (`i.ytimg.com/vi/<id>/hqdefault.jpg`), and `youtube-gallery.js` already falls back to it (`thumbUrl`). Both scripts now delete that field when they write, so the file compacts itself; ~50 B × every row. Measured with a 9,060-row simulation: **2.52 MB raw / 332 KB gzipped** (Pages gzips JSON), first 20 cards 1.94 s under 4× CPU throttling, 453 pages, no console errors, last page renders.
-
-**Gallery fix that came with it:** `drawFilters()` ran `videos.some(v => videoTopics(v).includes(label))` for each of the 22 topics — with thousands of videos that is 22 full scans (each regex-folding titles). It now collects the present topics in **one** pass into a `Set` (`topicsPresent`) and filters from that.
-
-## Importing a channel's whole back catalogue (2026-11-20, PR #31)
-
 `tools/update-videos.cjs` reads only the public RSS feed, which carries the **latest 15** uploads, so adding a channel never brought its history. `tools/backfill-videos.cjs` + `.github/workflows/backfill-videos.yml` do that, with no API key:
 
 1. **Enumerate.** `yt-dlp --flat-playlist --print "%(id)s\t%(title)s" <channel>/<tab>` lists every upload. (The innertube walk over `richGridRenderer` continuations is kept as a fallback; it stalled at 120 ids because each response carries ~6 tokens for other shelves.)
@@ -419,6 +419,34 @@ The caption reads **«Ebrahim Ead»**, which is what the rest of the site alread
 **Catalogue weight.** `youtube-videos.json` no longer stores `thumbnail` (every row was the same derived `i.ytimg.com/vi/<id>/hqdefault.jpg` that `thumbUrl` already builds). Both writers delete it, so the file compacts itself. Measured at 8,941 rows: **2.54 MB raw / 408 KB gzipped**, first 20 cards 2.1 s at 4× CPU throttling, 447 pages, channel chips and the last page all render, no console errors. `drawFilters()` now collects the present topics in one pass into a `Set` instead of running `videos.some(...)` per topic (22 full scans of every title).
 
 **Pushing from a session, not from CI.** A bot commit and a local commit touching `youtube-videos.json` conflict on the whole (single-line) file, and `git pull --rebase -X theirs` during a local rebase keeps the *local* copy — which silently dropped two bot data commits. Keep no local edits to that file, or sync it from origin before pushing.
+
+## "এখন লাইভ" — live streams of the six channels (2026-11-20)
+
+`tools/live-status.cjs` + `.github/workflows/live-status.yml` (cron `*/10 * * * *`) ask each id in `tools/video-channels.json` for `https://www.youtube.com/channel/<id>/live`. A channel that is live answers `302` with `Location: …/watch?v=<videoId>`; a channel that is not answers `200` with the channel page, so no API key and no quota are involved. The workflow writes `live.json` only when the payload changed, rebases over any bot commit and pushes, then triggers a Pages rebuild through `gh api -X POST repos/$REPO/pages/builds`.
+
+`live.json` = `{v:1, updated, checked:[channel titles], live:[{channelId, channel, id, title, since}]}`. `since` is the first time *this agent* saw the stream, not the true start time — YouTube does not expose that keylessly, so the card never claims "started at".
+
+`live.js` fetches `live.json` once, renders into `<div class="live-slot" id="live-slot" hidden>` (present right after `<main id="main-content">` in `index.html` and `videos.html`) and re-polls every 2 minutes while the tab is visible. Nothing live → the slot stays `hidden`, so no empty box and no layout change. Playback is `https://www.youtube-nocookie.com/embed/<id>?autoplay=1&rel=0` injected on click (privacy-enhanced, no iframe cost until asked). Thumbnail: `i.ytimg.com/vi/<id>/hqdefault_live.jpg`.
+
+`sw.js` **v13** treats `/live.json` as network-only (`fetch(request,{cache:'no-store'})`, JSON `{"v":1,"live":[]}` on failure) so a cached copy can never show a stale live card; the card also disappears silently when the fetch fails offline.
+
+## Reader dates normalised to Bengali (2026-11-20)
+
+`texts/*.json` keeps whatever the source printed in `d` — Bengali strings (`জানুয়ারী ২০২৫`), ISO (`2026-04-29`, all 85 frommuslims rows), or English (`Feb 26, 2018`, ~100 response-to-anti-islam rows). The reader used to print `d` verbatim, so a Bengali page showed three shapes. `bnDate()` in `app.js` now maps ISO and both English orders to `29 এপ্রিল 2026` (Bengali month names; digits stay Latin like the rest of the site, since `escHTML` runs `toLatinDigits`) at render time; the stored data is untouched and anything unmatched passes through unchanged.
+
+## Importing মাসিক আল-ইখলাছ (ikhlasbd.com) — 4,040 texts (2026-11-20)
+
+`tools/import-ikhlasbd.cjs` + `.github/workflows/import-ikhlasbd.yml`. Modes: `--discover` (walk `category_archive/<id>` for ids 1–48 → `tools/ik-ids.json`, 44 live categories, 4,040 ids; `?page=N` returns the same page, so a category is one page only), `--probe N` (log date/author/body for the oldest and newest N/2), `--limit N --minutes M` (the import). Already-imported ids are skipped, so runs resume; `tools/ik-request` (`{"mode":"import","limit":4200}`) selects mode and batch for **push**-triggered runs, because a `workflow_dispatch` needs a token the runner does not have.
+
+**Extraction.** Body = `div.article-details`. The leading `h1–h4` that repeats the title is dropped (the page title may carry "(৪র্থ কিস্তি)" that the heading lacks). The byline comes from `মূল : …` when the piece is a translation, otherwise from the last starred dash line (`-ড. অসমুক*`). The issue month comes from the page `<title>` (`…,নভেম্বর ২০২৬ - মাসিক আল-ইখলাছ`) and is stored the way the at-tahreek texts store it (`জানুয়ারী ২০২১`); `isoDate()` is only a fallback and now refuses to build a date from an unknown month. 44 texts carry no date at all and one was ambiguous — all stay empty rather than guessed. Chrome-less fetch, 320 ms between pages, buckets flushed every 100 records.
+
+**Browsing.** The catalogue chunks, not `texts/`, are what `questions.html`/`fatwa.html` list, so `tools/build-ik-catalog.js` writes `fatwa-catalog-part-05.js` (৩,০০৯ rows, "মাসিক আল-ইখলাছ · প্রশ্নোত্তর") and `fatwa-catalog-part-06.js` (১,০৩১ rows, "… · প্রবন্ধ"), and patches the two `FATWA_PARTS` entries in `app.js`. They sit on the fatwa page on purpose: the questions page's chunks are 83–151 KB and a 1.3 MB chunk there would be ten times the largest one. `tools/build-stats.cjs` derives the counts from the catalogue rows (`r[0]` containing "প্রবন্ধ" → article), which is why `stats.json` moved to texts 24,045 / fatwas 15,789 / articles 6,882 without any hand-written number.
+
+## Site audit round (2026-11-20)
+
+13 pages × 4 viewports (320/412/768/1280) = 52 loads: no horizontal overflow, no page errors, no broken internal links, no duplicate ids; images all have `alt`, buttons all have a name, every input has a label or placeholder. PWA checked with the server killed: shell and visited articles open offline, an unseen URL renders the offline page (503 body). Saved list and share links checked in-browser.
+
+**Bugs found and fixed.** (1) The live card was **invisible**: `style.css` has `body[data-page="home"] section:not(#home){display:none!important}` and the card was a `<section>`; it is `<div role="region" aria-labelledby=…>` now. (2) The reader printed `d` verbatim, so one page showed `2026-04-29`, another `Feb 26, 2018`, another `জানুয়ারী ২০২৫`; `bnDate()` maps ISO and both English orders to `29 এপ্রিল 2026` (Latin digits, like `escHTML` does everywhere). (3) `videos.html` said «৫,০০০টি ইসলামিক ভিডিও» with 8,941 rows and «চারটি চ্যানেল» with six channels; the wording no longer carries a count and the channel line reads `names.length`. (4) `fatwa.html`'s totals and `library-link` cards now include the ikhlasbd parts. (5) The duplicated back-catalogue section in `site-notes.md` and `agents.md` was removed.
 
 ### Streams pass (2026-11-20, same PR #31 follow-up)
 

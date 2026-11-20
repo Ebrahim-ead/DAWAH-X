@@ -122,7 +122,7 @@ if(readTitle){
   const srcName=TEXT_SOURCES[x.s]||hostOf(x.u);
   readTitle.textContent=toLatinDigits(x.t);document.title=toLatinDigits(x.t)+" — DAWAH X";
   const cat=$("read-cat");if(cat&&x.c){cat.textContent=x.c;cat.hidden=false}
-  $("read-meta").innerHTML=[srcName,x.a,x.d].filter(Boolean).map(v=>`<span>${escHTML(v)}</span>`).join('<span aria-hidden="true">·</span>');
+  $("read-meta").innerHTML=[srcName,x.a,bnDate(x.d)].filter(Boolean).map(v=>`<span>${escHTML(v)}</span>`).join('<span aria-hidden="true">·</span>');
   body.textContent="";body.appendChild(safeArticle(x.h,/^https?:\/\//i.test(x.u||"")?x.u:""));
   $("read-credit").innerHTML=`এই লেখাটি <b>${escHTML(srcName)}</b>-এর (${escHTML(hostOf(x.u))})। প্রকাশকের অনুমতিক্রমে এখানে হুবহু তুলে ধরা হয়েছে; লেখার স্বত্ব মূল প্রকাশকের।`+(/^\d{8}/.test(x.w||"")?` এই কপিটি Internet Archive-এ সংরক্ষিত ${x.w.slice(0,4)}-${x.w.slice(4,6)}-${x.w.slice(6,8)} তারিখের সংস্করণ থেকে নেওয়া; মূল পেজে এরপর পরিবর্তন হয়ে থাকতে পারে।`:"");
   $("read-original").href=x.u;$("read-source").hidden=false;
@@ -136,6 +136,18 @@ if(readTitle){
 const ALL="সব",LIBRARY_PAGE_SIZE=20;
 const BN_DIGITS="০১২৩৪৫৬৭৮৯";
 const toLatinDigits=v=>String(v).replace(/[০-৯]/g,d=>String(BN_DIGITS.indexOf(d)));
+/* তারিখের চেহারা এক: ২০২৬-০৪-২৯ / Apr 29, 2026 / Feb 26, 2018 → «29 এপ্রিল 2026»
+   (বাংলা মাসের নাম, সংখ্যা ইংরেজিতে — সাইটের বাকি জায়গার মতোই; escHTML নিজেই সংখ্যা ল্যাটিন করে) */
+const BN_MONTH_NAMES=["জানুয়ারি","ফেব্রুয়ারি","মার্চ","এপ্রিল","মে","জুন","জুলাই","আগস্ট","সেপ্টেম্বর","অক্টোবর","নভেম্বর","ডিসেম্বর"];
+const EN_MONTH_IDX={jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11};
+const bnDate=v=>{const s=String(v||"").trim();if(!s)return "";
+ let m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
+ if(m&&+m[2]>=1&&+m[2]<=12)return (+m[3])+" "+BN_MONTH_NAMES[+m[2]-1]+" "+m[1];
+ m=/^(\d{1,2})\s+([A-Za-z]{3,9})\.?\s*,?\s*(\d{4})$/.exec(s);
+ if(m){const i=EN_MONTH_IDX[m[2].slice(0,3).toLowerCase()];if(i!=null)return (+m[1])+" "+BN_MONTH_NAMES[i]+" "+m[3];}
+ m=/^([A-Za-z]{3,9})\.?\s+(\d{1,2})\s*,\s*(\d{4})$/.exec(s);
+ if(m){const i=EN_MONTH_IDX[m[1].slice(0,3).toLowerCase()];if(i!=null)return (+m[2])+" "+BN_MONTH_NAMES[i]+" "+m[3];}
+ return s;};
 /* escAttr: শুধু HTML escape (লিংকের জন্য — সংখ্যা বদলানো যাবে না); escHTML: দৃশ্যমান লেখার জন্য, সংখ্যা ইংরেজিতে */
 const escAttr=v=>String(v).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll("\"","&quot;");
 const escHTML=v=>escAttr(toLatinDigits(v));
@@ -240,7 +252,7 @@ const SUGGEST={tm:null,side:null,ready:null,tsh:new Map(),relc:new Map(),vid:nul
 const hostOf=u=>{try{return new URL(u).hostname.replace(/^www\./,"")}catch(e){return""}};
 const formatCount=n=>new Intl.NumberFormat("en-US").format(n);
 /* ---- সাইটেই পড়ার লেখা (texts/…json; tools/import-texts.cjs দিয়ে আনা) ---- */
-const TEXT_SOURCES={ai:"মাসিক আল-ইতিছাম",at:"মাসিক আত-তাহরীক",ra:"Response to Anti-Islam",fm:"From Muslims",ia:"Islamic Authors",iz:"Insight Zone"};
+const TEXT_SOURCES={ai:"মাসিক আল-ইতিছাম",at:"মাসিক আত-তাহরীক",ik:"মাসিক আল-ইখলাছ",ra:"Response to Anti-Islam",fm:"From Muslims",ia:"Islamic Authors",iz:"Insight Zone"};
 /* tools/import-texts.cjs-এর keyOfUrl()-এর সাথে হুবহু এক হতে হবে */
 function textKey(u){try{u=decodeURI(u)}catch(e){}let h1=0xdeadbeef,h2=0x41c6ce57;for(let i=0;i<u.length;i++){const c=u.charCodeAt(i);h1=Math.imul(h1^c,2654435761);h2=Math.imul(h2^c,1597334677)}
  h1=Math.imul(h1^(h1>>>16),2246822507)^Math.imul(h2^(h2>>>13),3266489909);h2=Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909);
@@ -952,6 +964,8 @@ const QUESTION_PARTS=[
  {category:"From Muslims · প্রবন্ধ",src:"questions-catalog-part-02.js",count:357}
 ];
 const FATWA_PARTS=[
+ {category:"মাসিক আল-ইখলাছ · প্রবন্ধ",src:"fatwa-catalog-part-06.js",count:1031},
+ {category:"মাসিক আল-ইখলাছ · প্রশ্নোত্তর",src:"fatwa-catalog-part-05.js",count:3009},
  {category:"আত-তাহরীক",src:"fatwa-catalog-part-00.js",count:7996},
  {category:"আল-ইতিছাম",src:"fatwa-catalog-part-01.js",count:4641},
  {category:"আত-তাহরীক · প্রবন্ধ",src:"fatwa-catalog-part-02.js",count:3599},

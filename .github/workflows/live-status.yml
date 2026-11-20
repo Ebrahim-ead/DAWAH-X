@@ -1,0 +1,50 @@
+name: Live status
+# চ্যানেলগুলো এখন লাইভ কি না, তা দেখে live.json লেখে — ওয়েবসাইট সেটি পড়ে "এখন লাইভ" দেখায়।
+# কোনো API key লাগে না: YouTube-এর /channel/<id>/live ঠিকানাটি লাইভ থাকলে watch?v=<id>-তে redirect করে।
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+  push:
+    branches: ['arena/**']
+    paths: ['tools/live-status.cjs', '.github/workflows/live-status.yml']
+permissions:
+  contents: write
+  pages: write
+concurrency:
+  group: live-status-${{ github.ref_name }}
+  cancel-in-progress: false
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Check every channel
+        run: node tools/live-status.cjs --verbose
+      - name: Commit live.json
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add live.json
+          if git diff --cached --quiet; then
+            echo "লাইভ-তালিকা অপরিবর্তিত"
+            exit 0
+          fi
+          git commit -q -m "Update live status (automated)"
+          for i in 1 2 3; do
+            git fetch -q origin "${GITHUB_REF_NAME}"
+            git rebase -X theirs "origin/${GITHUB_REF_NAME}" >/dev/null 2>&1 || git rebase --abort >/dev/null 2>&1 || true
+            if git push -q origin "HEAD:${GITHUB_REF_NAME}"; then echo "pushed (try $i)"; break; fi
+            sleep 15
+          done
+      - name: Ask GitHub Pages to publish
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X POST "repos/${GITHUB_REPOSITORY}/pages/builds"
