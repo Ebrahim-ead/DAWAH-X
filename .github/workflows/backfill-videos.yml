@@ -43,12 +43,14 @@ jobs:
           BACKFILL_CHANNEL: ${{ inputs.channel }}
           BACKFILL_LIMIT: ${{ inputs.limit || '4000' }}
           BACKFILL_TAB: ${{ inputs.tab || 'videos' }}
-        run: node tools/backfill-videos.cjs --minutes 100
+        run: |
+          node tools/backfill-videos.cjs --minutes 100 2>&1 | tee tools/backfill-report.txt
+          exit "${PIPESTATUS[0]}"
       - name: Commit new videos
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add youtube-videos.json stats.json tools/video-channels.json
+          git add youtube-videos.json stats.json tools/video-channels.json tools/backfill-report.txt
           if git diff --cached --quiet; then
             echo "নতুন কিছু নেই"
             exit 0
