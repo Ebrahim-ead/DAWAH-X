@@ -453,3 +453,9 @@ The caption reads **«Ebrahim Ead»**, which is what the rest of the site alread
 Past live streams sit in a separate `/streams` tab (Attahreek TV 219, Al-Itisam TV 142), so `--tab streams` was run once: **9,302 rows** now (8,941 + 361), 4,044 with a date. RYD had no record for about 60 of the new stream ids, so those joined the blacklist and show no date. The workflow input `tab` selects `videos | shorts | streams` for such one-off passes; the default stays `videos`.
 
 One gotcha seen here: the `BACKFILL_TAB` env var did not take effect for the pass while `--tab streams` on the command line did, so a one-off pass should pass the flag explicitly. The commit step also lost a run's data once when the branch head moved between checkout and push — it now fetches, rebases and pushes up to four times.
+
+## The live slot is on only when a channel is really live (2026-11-20)
+
+`live.js` renders nothing unless three conditions hold: `live.json` parses, `updated` is younger than `MAX_AGE_MS` (**45 min**, i.e. four missed 10-minute checks), and at least one entry carries an 11-character video id. A 60-second timer re-evaluates the age while the page is open, so a card whose data goes stale disappears without a reload — and a page torn down that way returns to the exact baseline layout (slot height 0). A playing iframe is left alone (`[data-playing]` guard) so a hiccup never stops a stream someone is watching. With no live entry the slot keeps its `hidden` attribute and never takes space.
+
+`tools/live-status.cjs` now writes `live.json` **on every run**, not only when the live set changed: `updated` is the heartbeat the age guard reads, so a continuing stream stays visible while a checker that stopped shows nothing. `.github/workflows/live-status.yml` keeps the `*/10` cron and adds `workflow_run` on *Update video list* and *Backfill channel videos*, because GitHub's scheduler can lag by a long way; it still ignores a run whose list is unchanged.

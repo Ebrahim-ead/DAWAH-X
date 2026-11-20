@@ -120,12 +120,12 @@ function previous() {
   const text = JSON.stringify(out) + '\n';
   let old = '';
   try { old = fs.readFileSync(OUT, 'utf8'); } catch (e) {}
-  /* updated বাদ দিয়ে তুলনা: লাইভ-তালিকা না বদলালে কমিট হবে না */
-  const slim = o => JSON.stringify({ live: o.live });
-  if (old && slim(JSON.parse(old)) === slim(out)) {
-    console.log('লাইভ-তালিকা অপরিবর্তিত (' + found.length + 'টি)');
-    return;
-  }
+  /* প্রতিবার লেখা হয়, যদিও লাইভ-তালিকা না বদলায়: «updated»-ই প্রমাণ যে কিছুক্ষণ আগেও
+     দেখা হয়েছে। সাইট এর বয়স দেখে ঠিক করে — ৩০ মিনিটের বেশি পুরোনো হলে কার্ড দেখানো হয় না,
+     তাই পুরোনো তথ্যে ভর করে ভুল «লাইভ» দেখানোর সুযোগ নেই। */
   fs.writeFileSync(OUT, text);
-  console.log('live.json লেখা হলো · লাইভ ' + found.length + 'টি · দেখা হয়েছে ' + checked.length + 'টি চ্যানেল');
+  let same = false;
+  try { same = JSON.stringify({ live: JSON.parse(old).live }) === JSON.stringify({ live: found }); } catch (e) {}
+  console.log('live.json লেখা হলো · লাইভ ' + found.length + 'টি · দেখা হয়েছে ' + checked.length + 'টি চ্যানেল'
+    + (same ? ' (তালিকা অপরিবর্তিত, শুধু সময় হালনাগাদ)' : ''));
 })().catch(e => { console.error(e); process.exit(1); });

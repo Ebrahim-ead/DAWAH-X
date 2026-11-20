@@ -8,6 +8,10 @@ on:
   push:
     branches: ['arena/**']
     paths: ['tools/live-status.cjs', '.github/workflows/live-status.yml']
+  # ক্রন GitHub-এ কখনো দেরি করে; ভিডিও-তালিকার রান শেষ হলেই আরেকবার দেখা হয় (বাড়তি আস্থা)
+  workflow_run:
+    workflows: ['Update video list', 'Backfill channel videos']
+    types: [completed]
 permissions:
   contents: write
   pages: write
