@@ -34,11 +34,13 @@
         + '<a class="live-out" href="https://www.youtube.com/watch?v=' + esc(v.id) + '" target="_blank" rel="noopener">YouTube-এ দেখুন</a></div>'
         + '</article>';
     }).join('');
-    slot.innerHTML = '<section class="live-now" aria-labelledby="live-now-title">'
+    /* <section> নয়: style.css-এ body[data-page=…] section:not(#…) {display:none!important} আছে,
+       তাই কার্ড অদৃশ্য হয়ে যেত — div + role=region একই অর্থ দেয়, নিয়মে আটকায় না */
+    slot.innerHTML = '<div class="live-now" role="region" aria-labelledby="live-now-title">'
       + '<div class="live-head"><span class="live-pulse" aria-hidden="true"></span>'
       + '<h2 id="live-now-title">এখন লাইভ</h2>'
       + '<span class="live-note">' + bnDigit(list.length) + 'টি সম্প্রচার চলছে</span></div>'
-      + '<div class="live-list">' + cards + '</div></section>';
+      + '<div class="live-list">' + cards + '</div></div>';
     slot.hidden = false;
     slot.querySelectorAll('.live-card').forEach(function (card) {
       card.addEventListener('click', function (e) {
