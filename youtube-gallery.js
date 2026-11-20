@@ -49,6 +49,8 @@
     ['Professor Dr. Abubakar Muhammad Zakaria','ড. আবু বকর যাকারিয়া'],
     ['Salafi Manhaj 2 · সালাফী মানহাজ','সালাফী মানহাজ 2'],
     ['Peace TV Bangla · PeaceTVprogram','Peace TV Bangla'],
+    ['Attahreek TV','আত-তারীক টিভি'],
+    ['Al-Itisam TV','আল-ইতিসাম টিভি'],
   ];
   const VT_SUFFIX='(?:ের|র|ে|য়|তে|কে|টি|টা|ও|ই|য়ে|য়ের|দের|গুলো|সমূহ|টাই|টিও)?';
   const vtEsc=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
