@@ -1,7 +1,7 @@
-=== tab counts 2026-11-20T06:11:06Z
-UCc6cxJCSSaLxd4JE_GHxsEA videos: 0
-UCc6cxJCSSaLxd4JE_GHxsEA shorts: 0
-UCc6cxJCSSaLxd4JE_GHxsEA streams: 0
-UCtip528n2pKDumGCvftZPIg videos: 0
-UCtip528n2pKDumGCvftZPIg shorts: 0
-UCtip528n2pKDumGCvftZPIg streams: 0
+=== tab counts 2026-11-20T06:15:13Z
+UCc6cxJCSSaLxd4JE_GHxsEA videos: 2063
+UCc6cxJCSSaLxd4JE_GHxsEA shorts: 721
+UCc6cxJCSSaLxd4JE_GHxsEA streams: 219
+UCtip528n2pKDumGCvftZPIg videos: 1818
+UCtip528n2pKDumGCvftZPIg shorts: 417
+UCtip528n2pKDumGCvftZPIg streams: 142
