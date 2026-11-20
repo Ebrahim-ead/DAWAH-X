@@ -32,29 +32,42 @@ jobs:
         with:
           node-version: 20
       - run: npm install --no-save --prefix /tmp/imp cheerio@1.0.0
+      - name: Resolve mode and limit
+        # dispatch-এ ইনপুট না থাকলে tools/ik-request ({"mode":"import","limit":1200}) থেকে নেওয়া হয়
+        env:
+          IN_MODE: ${{ inputs.mode }}
+          IN_LIMIT: ${{ inputs.limit }}
+        run: |
+          node -e '
+            const fs = require("fs");
+            let req = {};
+            try { req = JSON.parse(fs.readFileSync("tools/ik-request", "utf8")); } catch (e) {}
+            const mode = process.env.IN_MODE || req.mode || "probe";
+            const limit = String(process.env.IN_LIMIT || req.limit || 300);
+            fs.appendFileSync(process.env.GITHUB_ENV, "IK_MODE_EFF=" + mode + "\nIK_LIMIT_EFF=" + limit + "\n");
+            console.log("mode=" + mode + " limit=" + limit);
+          '
       - name: Discover / probe / import
         env:
           NODE_PATH: /tmp/imp/node_modules
-          IK_MODE: ${{ inputs.mode || 'probe' }}
-          IK_LIMIT: ${{ inputs.limit || '300' }}
         run: |
-          echo "mode=$IK_MODE" | tee tools/ik-report.txt
+          echo "mode=$IK_MODE_EFF · limit=$IK_LIMIT_EFF" | tee tools/ik-report.txt
           # রান ব্যর্থ হলেও রিপোর্ট কমিট হয়, যাতে কারণটা পড়া যায়
-          if [ "$IK_MODE" = "discover" ] || [ "$IK_MODE" = "probe" ]; then
+          if [ "$IK_MODE_EFF" = "discover" ] || [ "$IK_MODE_EFF" = "probe" ]; then
             node tools/import-ikhlasbd.cjs --discover 2>&1 | tee -a tools/ik-report.txt || echo "discover failed: $?" | tee -a tools/ik-report.txt
           fi
-          if [ "$IK_MODE" = "probe" ]; then
+          if [ "$IK_MODE_EFF" = "probe" ]; then
             node tools/import-ikhlasbd.cjs --probe 6 2>&1 | tee -a tools/ik-report.txt || echo "probe failed: $?" | tee -a tools/ik-report.txt
           fi
-          if [ "$IK_MODE" = "import" ]; then
-            node tools/import-ikhlasbd.cjs --limit "$IK_LIMIT" --minutes 300 2>&1 | tee -a tools/ik-report.txt || echo "import failed: $?" | tee -a tools/ik-report.txt
+          if [ "$IK_MODE_EFF" = "import" ]; then
+            node tools/import-ikhlasbd.cjs --limit "$IK_LIMIT_EFF" --minutes 300 2>&1 | tee -a tools/ik-report.txt || echo "import failed: $?" | tee -a tools/ik-report.txt
           fi
           exit 0
       - name: Rebuild search index, related lists and share pages
-        if: ${{ inputs.mode == 'import' }}
+        if: env.IK_MODE_EFF == 'import'
         run: node --max-old-space-size=4096 tools/build-site-data.cjs
       - name: Refresh site totals
-        if: ${{ inputs.mode == 'import' }}
+        if: env.IK_MODE_EFF == 'import'
         run: node tools/build-stats.cjs
       - name: Commit
         run: |
