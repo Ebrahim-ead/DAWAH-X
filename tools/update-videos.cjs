@@ -8,7 +8,7 @@
    - চ্যানেলের channelId ফাঁকা থাকলে চ্যানেলের পাতা (ও তালিকার একটি পুরনো ভিডিওর পাতা) থেকে বের করে
      video-channels.json-এ লিখে রাখে; পরের বার আর খুঁজতে হয় না।
    - addSince-এর আগের ভিডিও যোগ হয় না (স্থির সংগ্রহে ইচ্ছা করে বাদ রাখা পুরনো ভিডিও যেন ঢুকে না পড়ে)।
-   - কোনো ভিডিও মুছে ফেলে না, পুরনো সারি বদলায় না। কোনো চ্যানেলের ফিড না পেলে সেটি বাদ দিয়ে বাকিগুলো দেখে;
+   - সরাসরি ভিডিও মুছে ফেলে না; আলাদা audit-videos.cjs অনুপলভ্যতা যাচাই করে। কোনো চ্যানেলের ফিড না পেলে সেটি বাদ দিয়ে বাকিগুলো দেখে;
      ব্যর্থতায় রান "failed" হয় না (প্রতি আধা ঘণ্টায় ইমেইল না আসার জন্য), লগে ::warning:: থাকে।
 
    চালানো:  node tools/update-videos.cjs          (ফাইল বদলায়)
@@ -118,7 +118,8 @@ async function fetchFeed(channelId){
   const videos=JSON.parse(fs.readFileSync(LIST,'utf8'));
   if(!Array.isArray(videos)||videos.length<1000)throw new Error('youtube-videos.json ঠিক নেই');
   const since=Date.parse(config.addSince||'')||0;
-  const known=new Set(videos.map(v=>v.id));
+  let blocked={};try{blocked=JSON.parse(fs.readFileSync(path.join(__dirname,'video-audit-state.json'),'utf8')).blocked||{}}catch(e){if(e.code!=='ENOENT')throw e}
+  const known=new Set([...videos.map(v=>v.id),...Object.keys(blocked)]);
   const byId=new Map(videos.map(v=>[v.id,v]));
   const fresh=[];let configChanged=false,okChannels=0,patched=0;
 

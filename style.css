@@ -1264,3 +1264,24 @@ html[data-theme="light"] .video-lightbox-close{color:var(--text)}
 /* «যেখানে ছিলেন সেখানে যান» বোতাম (read.html) */
 .read-pos{display:inline-flex;align-items:center;gap:8px;margin:0 0 14px;padding:9px 18px;border:1px solid var(--gold);border-radius:999px;background:rgba(246,196,83,.12);color:var(--gold2);font:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:background .2s ease,transform .2s ease}
 .read-pos:hover{background:rgba(246,196,83,.2);transform:translateY(-1px)}
+
+/* ধারাবাহিক লেখা, বিষয়ের নিজস্ব সূচি ও পড়ার অগ্রগতি */
+.series-index-list,.series-part-list{list-style:none;padding:0;display:grid;gap:.75rem}
+.series-index-link,.series-part-list li,.series-inline{display:flex;gap:.65rem;align-items:flex-start;border:1px solid var(--line);background:var(--card);border-radius:.8rem;padding:1rem}
+.series-index-link,.series-part-list a{flex:1;text-decoration:none;color:var(--text)}
+.series-index-link{flex-direction:column}.series-index-link small,.series-part-list small{display:block;color:var(--muted);margin-top:.25rem}
+.series-part-no{color:var(--gold2);font-weight:700;white-space:nowrap}.series-inline{flex-wrap:wrap;margin:1.5rem 0}
+.series-inline a,.topic-page-link a{color:var(--gold2)}.series-inline a{padding:.25rem .5rem}
+.series-index-note,.topic-hub-intro,.read-progress{color:var(--muted);line-height:1.7}
+html[data-theme="light"]{--gold:#8a5a00}
+html[data-theme="light"] ::placeholder,html[data-theme="light"] #dxp-q::placeholder{color:#5b6b77;opacity:1}
+.quote-dialog{margin:auto;width:min(680px,calc(100% - 2rem));max-height:90vh;overflow:auto;padding:1.5rem;border:1px solid var(--line);border-radius:1rem;background:var(--bg);color:var(--text)}
+.quote-dialog::backdrop{background:rgba(0,0,0,.8)}.quote-dialog p,.quote-dialog label{display:block;margin:.7rem 0;color:var(--muted)}
+.quote-dialog textarea{width:100%;font:inherit;padding:.7rem;background:var(--card);color:var(--text);border:1px solid var(--line);border-radius:.5rem}
+.quote-dialog canvas{display:block;width:min(100%,320px);height:auto;margin:1rem auto}.quote-actions{display:flex;gap:.5rem;flex-wrap:wrap}.quote-actions button{font:inherit;padding:.5rem 1rem;cursor:pointer}
+#source-browser select,#source-browser input{font:inherit;padding:.6rem;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:.5rem;margin:.5rem .5rem .5rem 0}
+#daily-reading .guidance-grid{grid-template-columns:minmax(0,600px);justify-content:center}
+.video-related-texts{display:grid;gap:.35rem;margin-top:.8rem;font-size:.9rem}.video-related-texts a{color:var(--gold2);text-decoration:underline;text-underline-offset:3px}
+#read-video-links{display:grid;gap:.5rem;margin-top:.75rem}
+.faq-item{border:1px solid var(--line);background:var(--card);padding:1.25rem;border-radius:.8rem;margin:1rem 0}.faq-item h2{font-size:1.2rem;line-height:1.5;margin-bottom:.7rem}.faq-item p{line-height:1.9}.faq-item a{display:inline-block;color:var(--gold2);margin-top:.7rem;text-decoration:underline}
+.video-find-texts{margin-top:.7rem}#read-suggested-videos{display:grid;gap:.5rem;margin-top:.7rem}

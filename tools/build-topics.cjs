@@ -7,6 +7,7 @@ const fs=require('fs'),path=require('path');
 const ROOT=path.join(__dirname,'..'),TEXTS=path.join(ROOT,'texts');
 const SITE=JSON.parse(fs.readFileSync(path.join(__dirname,'site.json'),'utf8')).url.replace(/\/*$/,'/');
 const cfg=JSON.parse(fs.readFileSync(path.join(__dirname,'topics.json'),'utf8'));
+const {fromQuestions}=require('./page-template.cjs');
 const SRC={ra:'Response to Anti-Islam',fm:'From Muslims',ia:'Islamic Authors',iz:'Insight Zone',ai:'মাসিক আল-ইতিছাম',at:'মাসিক আত-তাহরীক'};
 const esc=v=>String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const BN='০১২৩৪৫৬৭৮৯',latin=v=>String(v).replace(/[০-৯]/g,d=>String(BN.indexOf(d)));
@@ -17,7 +18,7 @@ const keys=[...all.keys()];
 const full=p=>{if(all.has(p))return p;const m=keys.filter(k=>k.startsWith(p));if(m.length!==1)throw new Error('চাবি "'+p+'": '+(m.length?'একাধিক লেখা মেলে':'এমন লেখা নেই'));return m[0]};
 let total=0;
 const sections=cfg.topics.map(t=>{const rows=t.keys.map(full).map(k=>{const[title,s]=all.get(k);total++;return `<li><a href="read.html?k=${k}&amp;from=${s==='ai'||s==='at'?'f':'q'}"><b>${esc(latin(title))}</b><small>${esc(SRC[s]||'')}</small></a></li>`});
- return `<section aria-labelledby="t-${t.id}-h" class="topic" id="t-${t.id}"><div class="topic-head"><h2 id="t-${t.id}-h">${esc(t.title)}</h2><span class="topic-count">${rows.length}টি লেখা</span></div><p class="topic-intro">${esc(t.intro)}</p><ol class="topic-list">\n${rows.join('\n')}\n</ol></section>`});
+ return `<section aria-labelledby="t-${t.id}-h" class="topic" id="t-${t.id}"><div class="topic-head"><h2 id="t-${t.id}-h">${esc(t.title)}</h2><span class="topic-count">${rows.length}টি লেখা</span></div><p class="topic-intro">${esc(t.intro)}</p><p class="topic-page-link"><a href="topic-${t.id}.html">এই বিষয়ের আলাদা সূচি পাতায় যান →</a></p><ol class="topic-list">\n${rows.join('\n')}\n</ol></section>`});
 const chips=cfg.topics.map(t=>`<a class="chip" href="#t-${t.id}">${esc(t.title)}</a>`).join('');
 const main=`<section id="topics" style="padding-top:0"><div class="wrap">
 <div class="title" data-reveal=""><h1>বিষয় ধরে পড়ুন</h1><p>কোথা থেকে শুরু করবেন বুঝতে পারছেন না? নিচের ${cfg.topics.length}টি বিষয়ে বাছাই করা ${total}টি লেখা সাজানো আছে — প্রতিটি এই সাইটেই পড়া যায়।</p></div>
@@ -39,5 +40,18 @@ h=h.replace(/<title>[^<]*<\/title>/,`<title>${title}</title>`).replace(/(<meta c
 fs.writeFileSync(path.join(ROOT,'topics.html'),h);
 /* হোম পেজের "বিষয় ধরে পড়ুন" অংশ (<!--topics--> … <!--/topics--> এর মাঝখান) */
 {const f=path.join(ROOT,'index.html');let x=fs.readFileSync(f,'utf8');const i=x.indexOf('<!--topics-->'),j=x.indexOf('<!--/topics-->');
- if(i>=0&&j>i){x=x.slice(0,i)+'<!--topics--><nav aria-label="বিষয়ের তালিকা" class="qchips topic-nav">'+cfg.topics.map(t=>`<a class="chip" href="topics.html#t-${t.id}">${esc(t.title)}</a>`).join('')+'</nav>'+x.slice(j);fs.writeFileSync(f,x)}}
+ if(i>=0&&j>i){x=x.slice(0,i)+'<!--topics--><nav aria-label="বিষয়ের তালিকা" class="qchips topic-nav">'+cfg.topics.map(t=>`<a class="chip" href="topic-${t.id}.html">${esc(t.title)}</a>`).join('')+'</nav>'+x.slice(j);fs.writeFileSync(f,x)}}
+/* Each curated topic has its own crawlable landing page and a truthful CollectionPage/ItemList description. */
+for(const t of cfg.topics){
+ const rows=t.keys.map(full).map(k=>{const[title,source]=all.get(k);return `<li><a href="s/${k}.html"><b>${esc(latin(title))}</b><small>${esc(SRC[source]||'')}</small></a></li>`});
+ const url=SITE+'topic-'+t.id+'.html';
+ const section=`<section id="topic" style="padding-top:0"><div class="wrap"><nav aria-label="আপনি কোথায় আছেন" class="crumbs"><a href="index.html">হোম</a><span aria-hidden="true">›</span><a href="topics.html">বিষয়ভিত্তিক</a></nav>
+<div class="title" data-reveal=""><h1>${esc(t.title)}</h1><p>${esc(t.intro)}</p></div>
+<p class="topic-hub-intro">এই বিষয়ে বাছাই করা ${rows.length}টি লেখা। শিরোনামে চাপলে লেখার নিজস্ব পাতায় খুলবে।</p>
+<ol class="topic-list topic-hub-list">${rows.join('\n')}</ol>
+<p class="qnote"><a href="topics.html">← সব বিষয়ের সূচিতে ফিরে যান</a></p></div></section>`;
+ const ld={'@context':'https://schema.org','@type':'CollectionPage',name:t.title+' — DAWAH X',description:t.intro,url,inLanguage:'bn',mainEntity:{'@type':'ItemList',numberOfItems:rows.length,itemListElement:t.keys.map((key,i)=>({'@type':'ListItem',position:i+1,url:SITE+'s/'+full(key)+'.html'}))}};
+ const html=fromQuestions({sectionId:'topic',section,title:t.title+' — DAWAH X',description:t.intro,url,pageId:'topic',structuredData:ld});
+ const file=path.join(ROOT,'topic-'+t.id+'.html');let old='';try{old=fs.readFileSync(file,'utf8')}catch(e){}if(old!==html)fs.writeFileSync(file,html);
+}
 console.log('topics.html:',cfg.topics.length,'topics,',total,'texts');

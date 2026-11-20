@@ -35,8 +35,8 @@ const items=[];
 for(const t of texts){ if(!t.iso||!t.t)continue;
  items.push({date:t.iso,title:t.t,link:SITE+'s/'+t.k+'.html',desc:t.desc,cat:'লেখা'})}
 for(const v of (Array.isArray(vids)?vids:[])){
- if(!v.id||!v.title||!v.publishedAt)continue;
- items.push({date:new Date(v.publishedAt).toISOString(),title:v.title,link:SITE+'read.html?v='+encodeURIComponent(v.id)+'&from=q',
+ if(!/^[\w-]{11}$/.test(v.id||'')||!v.title||!v.publishedAt||Number.isNaN(Date.parse(v.publishedAt)))continue;
+ items.push({date:new Date(v.publishedAt).toISOString(),title:v.title,link:SITE+'videos.html?v='+encodeURIComponent(v.id),
   desc:'ভিডিও — '+(v.channelTitle||'DAWAH X'),cat:'ভিডিও'})}
 items.sort((a,b)=>a.date<b.date?1:-1);
 const top=items.slice(0,N);

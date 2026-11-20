@@ -88,7 +88,10 @@
        sub=document.createElement("small"),del=document.createElement("button");
    row.className="saved-row";
    link.className="saved-link";link.href="read.html?k="+encodeURIComponent(x.k)+"&from="+(x.f==="f"?"f":"q");
-   txt.textContent=x.t||"শিরোনাম নেই";sub.textContent=(x.c?x.c+" · ":"")+(x.d||"");
+   txt.textContent=x.t||"শিরোনাম নেই";
+   var progress={};try{progress=JSON.parse(localStorage.getItem("dawahx-progress")||"{}")}catch(e){}
+   var item=progress[x.k],label=item?(item.done?"পড়া হয়েছে":(Math.round(item.p||0)+"% পড়া")):"এখনো পড়া শুরু হয়নি";
+   sub.textContent=(x.c?x.c+" · ":"")+(x.d||"")+" · "+label;
    link.append(txt,sub);
    del.className="saved-del";del.type="button";del.textContent="×";
    del.setAttribute("aria-label","তালিকা থেকে বাদ দিন: "+(x.t||""));
@@ -101,7 +104,7 @@
   if(window.confirm("সংরক্ষিত সব লেখা তালিকা থেকে মুছে ফেলবেন?")){save([]);draw()}
  });
  draw();
- window.addEventListener("storage",function(e){if(e.key===KEY)draw()});
+ window.addEventListener("storage",function(e){if(e.key===KEY||e.key==="dawahx-progress")draw()});
 })();
 </script>
 <script fetchpriority="low" src="app.js"></script>

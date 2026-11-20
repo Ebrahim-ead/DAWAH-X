@@ -17,7 +17,10 @@
      হোমপেজের «সর্বশেষ ভিডিও» অংশও একই মান ব্যবহার করে, তাই দুই জায়গায় আলাদা হয়ে যায় না */
   const NEW_DAYS=window.DAWAHX_NEW_DAYS||3;
   let videos=[];
+  let crossLinks=[];
   let page=1;
+  let requestedId=new URLSearchParams(location.search).get('v')||'';
+  if(!/^[\w-]{11}$/.test(requestedId))requestedId='';
 
   /* ===== বিষয় ও চ্যানেলের বোতাম (ফতোয়ার পাতার বিভাগ-বোতামের মতো) =====
      ভিডিওর তালিকায় (youtube-videos.json) কোনো বিভাগ নেই, তাই বিষয় ঠিক হয় শিরোনামের শব্দ মিলিয়ে।
@@ -125,6 +128,7 @@
   filters?.addEventListener('click',event=>{
     const b=event.target.closest('button.chip');if(!b)return;
     const kind=b.closest('[data-kind]')?.dataset.kind,value=b.dataset.value||'';
+    requestedId='';
     if(kind==='topic')topic=value;else if(kind==='channel')channel=value;else return;
     b.parentElement.querySelectorAll('button.chip').forEach(other=>{const on=other===b;other.classList.toggle('on',on);other.setAttribute('aria-pressed',String(on));});
     page=1;
@@ -145,7 +149,7 @@
   const searchText=new WeakMap();
   function matchingVideos(){
     const terms=normalize(search?.value).split(' ').filter(Boolean);
-    let list=videos;
+    let list=requestedId?videos.filter(video=>video.id===requestedId):videos;
     if(channel)list=list.filter(video=>video.channelTitle===channel);
     if(topic)list=list.filter(video=>videoTopics(video).includes(topic));
     if(!terms.length)return list;
@@ -202,6 +206,22 @@
       info.append(time);
     }
     info.append(note);
+    const find=document.createElement('button');find.type='button';find.className='tool-btn video-find-texts';find.textContent='মিল থাকতে পারে এমন লেখা খুঁজুন';
+    const results=document.createElement('div');results.className='video-related-texts';results.setAttribute('aria-live','polite');
+    find.addEventListener('click',async()=>{find.disabled=true;results.textContent='খোঁজা হচ্ছে…';
+      try{const query=video.title.split(/[?|│┇]/u)[0].trim().slice(0,160);const found=await SUGGEST.find(query||video.title.slice(0,160));if(!found)throw Error();results.replaceChildren();
+        if(!found.texts.length)results.textContent='শিরোনামের শব্দে কোনো লেখা পাওয়া যায়নি।';
+        else{const note=document.createElement('small');note.textContent='শিরোনামের শব্দে পাওয়া ফল; বিষয় মিলিয়ে দেখুন।';results.append(note);
+         found.texts.forEach(t=>{const a=document.createElement('a');a.href='s/'+encodeURIComponent(t.k)+'.html';a.textContent=t.title;results.append(a)})}
+      }catch(_){results.textContent='খোঁজা যায়নি। সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।'}finally{find.disabled=false}
+    });info.append(find,results);
+    const related=crossLinks.find(x=>x.id===video.id);
+    if(related&&Array.isArray(related.texts)){
+      const section=document.createElement('div');section.className='video-related-texts';
+      const label=document.createElement('b');label.textContent='একই বিষয়ে লেখা';section.append(label);
+      related.texts.forEach(item=>{if(!/^[0-9a-f]{14}$/.test(item.k))return;const a=document.createElement('a');a.href='s/'+item.k+'.html';a.textContent=String(item.t||'').replace(/[০-৯]/g,d=>String('০১২৩৪৫৬৭৮৯'.indexOf(d)));section.append(a)});
+      info.append(section);
+    }
     /* প্রকাশের পর ৩ দিন «নতুন» ব্যাজ — তালিকা নিজে থেকেই আপডেট হয় বলে পাঠক নতুন ভিডিও চিনতে পারেন */
     if(video.publishedAt){
       const age=Date.now()-Date.parse(video.publishedAt);
@@ -250,12 +270,13 @@
   }
 
   let searchTimer;
-  search?.addEventListener('input',()=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>{page=1;render();},140);});
+  search?.addEventListener('input',()=>{requestedId='';clearTimeout(searchTimer);searchTimer=setTimeout(()=>{page=1;render();},140);});
   prev?.addEventListener('click',()=>goToPage(page-1,true));
   next?.addEventListener('click',()=>goToPage(page+1,true));
   pageGo?.addEventListener('click',()=>goToPage(pageInput?.value,true));
   pageInput?.addEventListener('keydown',event=>{if(event.key==='Enter')goToPage(pageInput.value,true);});
 
+  fetch(new URL('cross-links.json',baseUrl)).then(r=>r.ok?r.json():null).then(data=>{if(Array.isArray(data?.links)){crossLinks=data.links;if(videos.length)render()}}).catch(()=>{});
   const catalogUrl=new URL('youtube-videos.json',baseUrl);
   fetch(catalogUrl.href,{cache:'no-cache'})
     .then(response=>{if(!response.ok)throw new Error(`Catalogue request failed (${response.status})`);return response.json();})
@@ -269,7 +290,7 @@
     })
     .catch(error=>{
       console.warn('Static YouTube catalogue could not be loaded:',error);
-      status.textContent='ভিডিও তালিকা লোড হয়নি; আপাতত সংরক্ষিত প্রথম ২০টি ভিডিও দেখানো হচ্ছে।';
+      status.textContent='ভিডিও তালিকা লোড হয়নি। ইন্টারনেট সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।';
       if(prev)prev.disabled=true;if(next)next.disabled=true;if(pageGo)pageGo.disabled=true;if(pageInput)pageInput.disabled=true;
       if(filters)filters.hidden=true; // তালিকা ছাড়া বাছাই করা যায় না
     });

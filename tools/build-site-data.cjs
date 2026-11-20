@@ -6,7 +6,7 @@
    search/titles.json, search/tNN.json — শুধু শিরোনামের শব্দের সূচি (প্রশ্ন পাঠানোর পাতা লেখার সময় মিলে-যাওয়া লেখা দেখাতে এটি ব্যবহার করে)
    চালানো: node tools/build-site-data.cjs            (সাইটের ঠিকানা tools/site.json থেকে নেয়) */
 'use strict';
-const fs=require('fs'),path=require('path');
+const fs=require('fs'),path=require('path'),crypto=require('crypto');
 const ROOT=path.join(__dirname,'..'),TEXTS=path.join(ROOT,'texts');
 const SITE=JSON.parse(fs.readFileSync(path.join(__dirname,'site.json'),'utf8')).url.replace(/\/*$/,'/');
 const SHARDS=512,REL_N=5;
@@ -34,9 +34,55 @@ const rmrf=d=>fs.rmSync(d,{recursive:true,force:true});
 /* ---- সব লেখা পড়া ---- */
 const docs=[];
 for(const f of fs.readdirSync(TEXTS)){if(!/^[0-9a-f]{3}\.json$/.test(f))continue;const d=JSON.parse(fs.readFileSync(path.join(TEXTS,f),'utf8'));
- for(const k in d){const x=d[k];docs.push({k,s:x.s,c:x.c||'',t:String(x.t||'').replace(/\s+/g,' ').trim(),h:x.h||''})}}
+ for(const k in d){const x=d[k];docs.push({k,s:x.s,c:x.c||'',t:String(x.t||'').replace(/\s+/g,' ').trim(),h:x.h||'',d:x.d||'',a:x.a||'',u:/^https?:\/\//i.test(x.u||'')?x.u:''})}}
 docs.sort((a,b)=>a.k<b.k?-1:1);
 const N=docs.length;console.log('texts',N);
+/* ---- সিরিজ চেনা (পর্ব / কিস্তি) ----
+   শিরোনামের শেষে বন্ধনীর ভেতর বা «– পর্ব ১» ধাঁচে লেখা থাকলে একই নামের লেখা জোড়া হয়।
+   নাম মেলাতে সার্চের উচ্চারণ-ভাঁজ ব্যবহার করা হয় না—দুটি আলাদা শিরোনাম ভুল করে এক সিরিজে যাবে না। */
+const BN_ORD={প্রথম:1,দ্বিতীয়:2,দ্বিতীয়:2,তৃতীয়:3,তৃতীয়:3,চতুর্থ:4,পঞ্চম:5,ষষ্ঠ:6,সপ্তম:7,অষ্টম:8,নবম:9,দশম:10,একাদশ:11,দ্বাদশ:12,ত্রয়োদশ:13,ত্রয়োদশ:13,চতুর্দশ:14,পঞ্চদশ:15,ষোড়শ:16,ষোড়শ:16,সপ্তদশ:17,অষ্টাদশ:18,ঊনবিংশ:19,বিংশ:20};
+const BN2EN=v=>String(v||'').replace(/[০-৯]/g,c=>String('০১২৩৪৫৬৭৮৯'.indexOf(c)));
+const partMarker=t=>{
+ const s=String(t||'').replace(/\s+/g,' ').trim();
+ let m=/\(([^()]*(?:কিস্তি|পর্ব)[^()]*)\)\s*$/u.exec(s);
+ if(m)return {name:s.slice(0,m.index).trim(),mark:m[1]};
+ const ord='(?:[০-৯]+|[0-9]+|প্রথম|দ্বিতীয়|দ্বিতীয়|তৃতীয়|তৃতীয়|চতুর্থ|পঞ্চম|ষষ্ঠ|সপ্তম|অষ্টম|নবম|দশম|একাদশ|দ্বাদশ|ত্রয়োদশ|ত্রয়োদশ|চতুর্দশ|পঞ্চদশ|ষোড়শ|ষোড়শ|সপ্তদশ|অষ্টাদশ|ঊনবিংশ|বিংশ)';
+ m=new RegExp('^(.*?)\\s*[–—-]\\s*(?:পর্ব|কিস্তি)\\s*[-–—:]?\\s*('+ord+')(?:তম|ম|য়)?(?:\\s*\\[(?:শেষ\\s+)?(?:পর্ব|কিস্তি)\\])?\\s*$','u').exec(s);
+ if(m)return {name:m[1].trim(),mark:m[2]};
+ m=new RegExp('^(.*?)\\s+('+ord+')(?:তম|ম|য়)?\\s*(?:পর্ব|কিস্তি)\\s*$','u').exec(s);
+ if(m)return {name:m[1].trim(),mark:m[2]};
+ m=new RegExp('^(.*?)\\s+(?:পর্ব|কিস্তি)\\s*[-–—:]?\\s*('+ord+')(?:তম|ম|য়)?\\s*$','u').exec(s);
+ if(m)return {name:m[1].trim(),mark:m[2]};
+ return null;
+};
+const partNo=mark=>{
+ const s=String(mark||'');if(/শেষ/u.test(s))return 999;
+ const d=/[০-৯]+|[0-9]+/u.exec(s);if(d)return +BN2EN(d[0])||0;
+ for(const w in BN_ORD)if(s.includes(w))return BN_ORD[w];
+ return 0;
+};
+const seriesNameKey=name=>String(name||'').normalize('NFC').toLowerCase()
+ .replace(/[’‘'"“”]/g,'').replace(/[।,!?;:()[\]{}—–-]+/g,' ').replace(/\s+/g,' ').trim();
+const seriesOf=t=>{
+ const p=partMarker(t);if(!p||p.name.length<4)return null;
+ const no=partNo(p.mark);if(!no)return null;
+ const key=seriesNameKey(p.name);if(key.length<4)return null;
+ return {key,name:p.name,no};
+};
+const seriesByName=new Map();
+for(const d of docs){
+ const si=seriesOf(d.t);if(!si)continue;
+ let arr=seriesByName.get(si.key);if(!arr)seriesByName.set(si.key,arr=[]);
+ arr.push({k:d.k,no:si.no,t:d.t,name:si.name});
+}
+const series=[...seriesByName.entries()].filter(([,a])=>a.length>=2 && new Set(a.map(p=>p.no)).size===a.length)
+ .map(([key,a])=>({key,id:crypto.createHash('sha1').update(key).digest('hex').slice(0,10),t:a[0].name,
+  parts:a.slice().sort((x,y)=>x.no-y.no||(x.k<y.k?-1:1))}))
+ .sort((a,b)=>a.t.localeCompare(b.t,'bn')||(a.id<b.id?-1:1));
+const seriesMap=new Map();
+series.forEach(sr=>sr.parts.forEach((p,idx)=>seriesMap.set(p.k,{ser:sr,idx})));
+console.log('series',series.length,'texts in series',seriesMap.size);
+
 
 /* ---- ১) সার্চ-সূচি ---- */
 if(!ONLY||ONLY==='search'){
@@ -96,6 +142,17 @@ if(!ONLY||ONLY==='rel'){
  console.log('rel: files',Object.keys(files).length,'MB',(size/1e6).toFixed(1),'by title similarity',(bySim/(N*REL_N)*100).toFixed(0)+'%');
 }
 
+/* ---- সিরিজ-তথ্য: read.html, series.html ও সিরিজের পাতার জন্য ---- */
+if(!ONLY||ONLY==='share'){
+ const payload={v:1,n:series.length,
+  s:series.map(sr=>({id:sr.id,t:sr.t,p:sr.parts.map(p=>[p.k,p.t,p.no])})),
+  m:Object.fromEntries(series.flatMap((sr,i)=>sr.parts.map((p,idx)=>[p.k,[i,idx]])))};
+ const f=path.join(ROOT,'series.json'),str=JSON.stringify(payload);
+ let old='';try{old=fs.readFileSync(f,'utf8')}catch(e){}
+ if(old!==str)fs.writeFileSync(f,str);
+ console.log('series.json',(Buffer.byteLength(str)/1024).toFixed(0)+'KB','series',payload.n);
+}
+
 /* ---- ৩) প্রতিটি লেখার নিজের পাতা (s/<key>.html) ----
    দুটি রকম পাতা:
    (ক) সূচিবদ্ধ ল্যান্ডিং পাতা — নিজের শিরোনাম, বিবরণ, লেখার প্রথম অংশ, canonical, Article
@@ -133,7 +190,7 @@ if(!ONLY||ONLY==='share'){
  const isoDate=d=>{const t=toEn(d||'');if(!t)return '';let mon='';for(const [re,m] of BN_M){if(re.test(t)){mon=m;break}}
   if(!mon)return '';const nums=(t.match(/\d+/g)||[]).map(Number);if(!nums.length)return '';
   const year=nums.find(n=>n>=1300&&n<=2200);if(!year)return '';
-  const day=nums.find(n=>n!==year&&n>=1&&n<=31)||1;return year+'-'+mon+'-'+String(day).padStart(2,'0')};
+  const day=nums.find(n=>n!==year&&n>=1&&n<=31);if(!day)return year+'-'+mon;const dt=new Date(Date.UTC(year,+mon-1,day));return dt.getUTCMonth()===+mon-1?year+'-'+mon+'-'+String(day).padStart(2,'0'):''};
 
  /* কোন লেখাগুলো ল্যান্ডিং পাতা হবে (নবীনতম আগে) */
  const docsWithIso=docs.map(d=>({d,iso:isoDate(d.d)})).sort((a,b)=>b.iso===a.iso?0:(b.iso>a.iso?1:-1));
@@ -144,7 +201,7 @@ if(!ONLY||ONLY==='share'){
  const written=new Set();let size=0,changed=0,kept=0,art=0,stub=0;
  const list=LIMIT?docs.slice(0,LIMIT):docs;
  for(const d of list){
-  const full=d.t||'',t=cut(full,180),titleAttr=esc(cut(full,110)),src=SRC[d.s]||'',date=d.d||'',iso=isoDate(date);
+  const full=d.t||'',t=cut(full,180),titleAttr=esc(cut(full,110)),src=SRC[d.s]||'',date=toEn(d.d||''),iso=isoDate(date);
   const q='k='+d.k+'&from='+sideOf(d.s);
   let page;
   if(pickedSet.has(d.k)){
@@ -164,11 +221,19 @@ if(!ONLY||ONLY==='share'){
    const desc=cut(plain(d.h).replace(/^(প্রশ্ন|উত্তর)\s*[:ঃ]?\s*/,''),155)||'কুরআন ও সুন্নাহর আলোকে লেখা';
    const url=SITE+'s/'+d.k+'.html',isF=sideOf(d.s)==='f';
    const sec=isF?'fatwa.html':'questions.html',secName=isF?'ফতোয়া':'প্রশ্নোত্তর';
-   const ld=JSON.stringify(Object.assign({'@context':'https://schema.org','@type':'Article',
+   const sp=seriesMap.get(d.k);let seriesNav='';
+   if(sp){
+    const {ser,idx}=sp,prev=ser.parts[idx-1],next=ser.parts[idx+1];
+    seriesNav='<nav class="series-inline" aria-label="লেখার সিরিজ"><a class="series-all" href="../series-'+ser.id+'.html">'+esc(toEn(ser.t))+' — '+ser.parts.length+'টি পর্বের সূচি →</a>'
+     +(prev?'<a href="../s/'+prev.k+'.html">← আগের: '+esc(toEn(prev.t))+'</a>':'')
+     +(next?'<a href="../s/'+next.k+'.html">পরের: '+esc(toEn(next.t))+' →</a>':'')+'</nav>';
+   }
+   let schema=Object.assign({'@context':'https://schema.org','@type':'Article',
      headline:t,description:desc,inLanguage:'bn',url,mainEntityOfPage:{'@type':'WebPage','@id':url},
      image:SITE+'og-image.jpg',isAccessibleForFree:true,
      publisher:{'@type':'Organization',name:'DAWAH X',url:SITE,logo:{'@type':'ImageObject',url:SITE+'icon-512.png'}},
-     author:{'@type':'Organization',name:src||'DAWAH X'}},iso?{datePublished:iso}:{},d.u?{isBasedOn:d.u}:{})).replace(/</g,'\\u003c');
+     author:d.a?{'@type':'Person',name:toEn(d.a)}:{'@type':'Organization',name:src||'DAWAH X'}},iso?{datePublished:iso}:{},d.u?{isBasedOn:d.u}:{});
+   const ld=JSON.stringify(schema).replace(/</g,'\\u003c');
    const meta=[src,toEn(d.a||''),date].filter(Boolean).map(v=>'<span>'+esc(v)+'</span>').join('<span aria-hidden="true">·</span>');
    page='<!doctype html><html lang="bn"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
     +'<title>'+esc(t)+' — DAWAH X</title><meta name="description" content="'+esc(desc)+'">'
@@ -188,6 +253,7 @@ if(!ONLY||ONLY==='share'){
     +'<a class="askbtn" href="../read.html?'+esc(q)+'">পাঠকের পাতায় খুলুন →</a></div>'
     +'<div class="article-share"><span>শেয়ার করুন:</span><a class="share-btn" href="https://wa.me/?text='+encodeURIComponent(t+'\n'+url)+'" target="_blank" rel="noopener noreferrer">WhatsApp</a>'
     +'<a class="share-btn" href="https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(url)+'" target="_blank" rel="noopener noreferrer">Facebook</a></div>'
+    +seriesNav
     +'<p class="article-note">'+(d.u?'এই লেখাটি <a href="'+esc(d.u)+'" target="_blank" rel="noopener noreferrer nofollow">'+esc(src||'মূল সূত্র')+'</a>-এ প্রকাশিত হয়েছিল।':'সূত্র: '+esc(src||'DAWAH X'))
     +' · <a href="../'+sec+'">সব '+secName+' দেখুন</a></p>'
     +'</article></main></body></html>\n';
@@ -203,22 +269,6 @@ if(!ONLY||ONLY==='share'){
  /* যে লেখার পাতা আর দরকার নেই সেগুলো মোছা (LIMIT-এ ছোঁয়া হয় না) */
  if(!LIMIT)for(const f of fs.readdirSync(out)){if(/^[0-9a-f]{14}\.html$/.test(f)&&!written.has(f))fs.unlinkSync(path.join(out,f))}
 
- /* ---- সাইটম্যাপ (ল্যান্ডিং পাতা) + robots ---- */
- if(!LIMIT){
-  const arts=list.filter(d=>pickedSet.has(d.k)).map(d=>SITE+'s/'+d.k+'.html')
-   .sort((a,b)=>a<b?-1:1),CHUNK=20000,files=[];
-  for(let i=0;i<arts.length;i+=CHUNK){
-   const name='sitemap-articles-'+(i/CHUNK+1)+'.xml';
-   const xml='<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
-    +arts.slice(i,i+CHUNK).map(u=>'<url><loc>'+u+'</loc><changefreq>yearly</changefreq><priority>0.6</priority></url>').join('\n')+'\n</urlset>\n';
-   const f=path.join(ROOT,name);files.push(name);
-   let old='';try{old=fs.readFileSync(f,'utf8')}catch(e){}if(old!==xml)fs.writeFileSync(f,xml);
-  }
-  for(const f of fs.readdirSync(ROOT)){if(/^sitemap-articles-\d+\.xml$/.test(f)&&!files.includes(f))fs.unlinkSync(path.join(ROOT,f))}
-  const rp=path.join(ROOT,'robots.txt');let base='User-agent: *\nAllow: /\n';
-  try{base=fs.readFileSync(rp,'utf8').split('\n').filter(l=>!/^Sitemap:.*sitemap-articles-\d+\.xml\s*$/.test(l)).join('\n').replace(/\n+$/,'')+'\n'}catch(e){}
-  fs.writeFileSync(rp,base+files.map(f=>'Sitemap: '+SITE+f).join('\n')+'\n');
-  console.log('sitemap-articles:',files.length,'files,',arts.length,'urls');
- }
+ /* sitemap.xml, its child sitemaps and robots.txt are built by tools/build-sitemaps.cjs. */
  console.log('share: landing',art,'stubs',stub,'changed',changed,'kept',kept,'MB',(size/1e6).toFixed(1),'(template '+PAGE_V+', excerpt '+EXCERPT+')');
 }
