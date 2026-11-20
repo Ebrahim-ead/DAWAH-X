@@ -8,6 +8,9 @@
   var script = document.currentScript;
   var base = new URL('.', script ? script.src : location.href);
   var ENDPOINT = new URL('live.json', base).href;
+  /* কতক্ষণ পুরোনো তথ্য বিশ্বাস করা হবে: চেক প্রতি ১০ মিনিটে চলে, তাই ৪৫ মিনিট =
+     কয়েকটি রান মিস হলেই কার্ড সরে যায় — অনুমানে «লাইভ» দেখানো হয় না */
+  var MAX_AGE_MS = 45 * 60 * 1000;
   var THUMB = function (id) { return 'https://i.ytimg.com/vi/' + encodeURIComponent(id) + '/hqdefault_live.jpg'; };
   var bnDigit = function (n) { return String(n).replace(/[0-9]/g, function (d) { return '০১২৩৪৫৬৭৮৯'[+d]; }); };
   var esc = function (s) {
@@ -60,22 +63,38 @@
     });
   }
 
+  /* live.json-এ কেবল বৈধ ভিডিও-আইডি রাখা হয়; updated পুরোনো হলে কিছুই দেখানো হয় না */
+  var state = { list: [], updated: 0 };
   var last = '';
+  var playing = function () { return slot.querySelector('[data-playing]') !== null; };
+
+  function adopt(data) {
+    var when = Date.parse((data && data.updated) || '');
+    state.updated = isFinite(when) ? when : 0;
+    state.list = (data && Array.isArray(data.live) ? data.live : []).filter(function (v) {
+      return v && /^[A-Za-z0-9_-]{11}$/.test(String(v.id || ''));
+    });
+  }
+  function isFresh() { return state.updated > 0 && (Date.now() - state.updated) < MAX_AGE_MS; }
+  function apply() {
+    if (playing()) return;          /* কেউ দেখছে: চালু প্লেয়ার সরানো হয় না */
+    var list = isFresh() ? state.list : [];
+    var sig = JSON.stringify(list);
+    if (sig === last) return;
+    last = sig;
+    render(list);
+  }
+
   function load() {
     fetch(ENDPOINT + '?t=' + Date.now(), { cache: 'no-store', credentials: 'omit' })
       .then(function (r) { return r.ok ? r.json() : null; })
-      .then(function (data) {
-        var list = (data && data.live) || [];
-        var sig = JSON.stringify(list);
-        if (sig === last) return;
-        last = sig;
-        render(list);
-      })
-      .catch(function () { /* ইন্টারনেট নেই বা ফাইল নেই — আগের অবস্থাই থাকে */ });
+      .then(function (data) { if (data) adopt(data); apply(); })
+      .catch(function () { apply(); });  /* আনা না গেলেও পুরোনো তথ্য সময় পার হলে সরে যায় */
   }
 
   load();
-  /* পাতা খোলা থাকলে দুই মিনিটে একবার দেখা হয় (শুধু দেখা যায় এমন ট্যাবে) */
+  /* পাতা খোলা থাকলে দুই মিনিটে একবার নতুন তথ্য, আর প্রতি মিনিটে বয়স যাচাই */
   setInterval(function () { if (!document.hidden) load(); }, 120000);
+  setInterval(apply, 60000);
   document.addEventListener('visibilitychange', function () { if (!document.hidden) load(); });
 })();
