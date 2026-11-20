@@ -42,24 +42,18 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Probe which routes work from this runner
-        env:
-          CH: UCc6cxJCSSaLxd4JE_GHxsEA
+      - name: Count what each tab holds
         run: |
-          echo "--- yt-dlp ---" > tools/probe-report.txt
-          if pip install -q yt-dlp >/dev/null 2>&1; then
-            yt-dlp --version >> tools/probe-report.txt 2>&1
-            {
-              yt-dlp --no-warnings --flat-playlist --print "%(id)s" \
-                "https://www.youtube.com/channel/$CH/videos" > /tmp/flat.txt 2>/tmp/flat.err || true
-              echo "flat lines: $(wc -l < /tmp/flat.txt) · first: $(head -1 /tmp/flat.txt) · last: $(tail -1 /tmp/flat.txt)"
-              echo "err: $(tail -2 /tmp/flat.err)"
-            } >> tools/probe-report.txt 2>&1
-          else
-            echo "pip install yt-dlp failed" >> tools/probe-report.txt
-          fi
-          node tools/probe-videos.cjs 2>&1 | tee -a tools/probe-report.txt
-          cat tools/probe-report.txt
+          {
+            echo "=== tab counts $(date -u +%FT%TZ)"
+            for ch in UCc6cxJCSSaLxd4JE_GHxsEA UCtip528n2pKDumGCvftZPIg; do
+              for tab in videos shorts streams; do
+                n=$(yt-dlp --no-warnings --flat-playlist --print "%(id)s" \
+                      "https://www.youtube.com/channel/$ch/$tab" 2>/dev/null | wc -l)
+                echo "$ch $tab: $n"
+              done
+            done
+          } | tee tools/probe-report.txt
       - name: Install yt-dlp (channel listing)
         run: pip install -q yt-dlp
       - name: Walk the channel and add missing videos
