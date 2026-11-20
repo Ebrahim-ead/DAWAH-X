@@ -182,15 +182,22 @@ function extract(html) {
   const flat = t => String(t).replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/[^\p{L}\p{N}]+/gu, '').toLowerCase();
   const titleKey = flat(title);
   body.children('h1,h2,h3,h4').slice(0, 2).each((i, el) => {
-    if (titleKey && flat($(el).text()).includes(titleKey.slice(0, Math.min(28, titleKey.length)))) $(el).remove();
+    const hk = flat($(el).text());
+    if (!titleKey || hk.length < 8) return;
+    const a = hk.slice(0, 40), b = titleKey.slice(0, 40);
+    /* পাতার শিরোনামে "(৪র্থ কিস্তি)" থাকলেও লেখার ভেতরের হেডিং ছোট হতে পারে */
+    if (a.startsWith(b.slice(0, Math.min(a.length, 24))) || b.startsWith(a.slice(0, Math.min(b.length, 24)))) $(el).remove();
   });
   let htmlOut = clean($, body);
 
   /* লেখক: লেখার শুরুতে "-ড. অমুক*" ধরনের লাইন, নইলে আগের অংশে "লেখক:" */
   if (!author) {
     const head = $('<div>').html(htmlOut).text().replace(/\s+/g, ' ').slice(0, 400);
-    const m = /[-–—]\s*([^–—*]{2,60}?)\s*\*/.exec(head) || /^(?:মূল|অনুবাদ)\s*:\s*([^,।]{2,60})/.exec(head.replace(/\s+/g, ' ').trim());
-    if (m) author = m[1].replace(/\s+/g, ' ').trim();
+    const h1 = head.replace(/\s+/g, ' ').trim();
+    /* "মূল : …" থাকলে সেটিই মূল লেখক; নইলে শেষ ড্যাশের পরের নাম (তারকা-চিহ্নিত) */
+    const m = /মূল\s*:\s*([^,।*\n]{2,60})/.exec(h1) ||
+      /^[\s\S]*[-–—]\s*([^–—*]{2,60}?)\s*\*/.exec(h1);
+    if (m) author = m[1].replace(/^(?:মূল|অনুবাদক?)\s*:\s*/, '').replace(/\s+/g, ' ').trim();
   }
   /* লেখার ভেতরে থাকা "শেয়ার করুন / প্রিন্ট / ← আগের লেখা" জাতীয় সারি বাদ */
   htmlOut = htmlOut.replace(/<p[^>]*>\s*(?:শেয়ার|প্রিন্ট|আরো পড়ুন)[\s\S]{0,120}?<\/p>/g, '');
