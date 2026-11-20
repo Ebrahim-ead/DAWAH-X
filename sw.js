@@ -4,13 +4,13 @@
          আনা না গেলে তবেই জমানো কপি দেওয়া হয়। শুধু নিজের সাইটের ফাইল ও Google Fonts জমানো হয়।
    কোনো ফাইলের তালিকা বদলালে VERSION বাড়ান — পুরোনো জমা মুছে যায়। */
 'use strict';
-const VERSION='v13';
+const VERSION='v14';
 const SHELL='dawahx-shell-'+VERSION;   /* পাতার কাঠামো: HTML, CSS, JS, লোগো (ইনস্টলের সময় আনা হয়) */
 const PAGES='dawahx-pages-'+VERSION;   /* ব্যবহারের সময় আনা অন্য ফাইল */
 const TEXTS='dawahx-texts-'+VERSION;   /* পড়া লেখা (texts/, rel/) */
 const FONTS='dawahx-fonts-'+VERSION;
 const LIMIT={[PAGES]:120,[TEXTS]:300,[FONTS]:30};
-const PRECACHE=['./','index.html','about.html','services.html','questions.html','topics.html','fatwa.html','videos.html','ask.html','contact.html','read.html','saved.html',
+const PRECACHE=['./','index.html','about.html','services.html','questions.html','topics.html','fatwa.html','videos.html','ask.html','contact.html','read.html','saved.html','policy.html','404.html',
  'style.css','app.js','effects.js','live.js','youtube-gallery.js','logo.webp','logo-dark.webp','logo-icon.webp','favicon.svg','hero.webp','hero-sm.webp','hero.jpg','founder.webp','founder-sm.webp','fonts-arabic.css','manifest.webmanifest','stats.json','texts/index.json'];
 const FONT_HOSTS=['fonts.googleapis.com','fonts.gstatic.com'];
 const OFFLINE='<!doctype html><html lang="bn"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ইন্টারনেট সংযোগ নেই — DAWAH X</title>'
