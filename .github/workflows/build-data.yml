@@ -1,0 +1,65 @@
+name: Build site data
+# সাইটের ডেটা-ফাইল নিজে থেকে বানায় (কোনো বাইরের সেবা/চাবি লাগে না):
+#   s/                 — প্রতিটি লেখার নিজের পাতা (সূচিবদ্ধ ল্যান্ডিং পাতা + শেয়ার-স্টাব)
+#   sitemap-articles-* — সেই পাতাগুলোর সাইটম্যাপ, robots.txt-এ যোগ হয়
+#   feed.xml           — নতুন লেখা ও ভিডিওর RSS ফিড
+# লেখা আমদানি হলে বা এই টুলগুলো বদলালে চলে; হাতে চালাতে Actions → Build site data → Run workflow।
+on:
+  workflow_dispatch:
+    inputs:
+      share_max:
+        description: 'কতটি লেখার ল্যান্ডিং পাতা হবে (খালি বা 0 = সব ২৪,০৪৫টি; 3000 = কেবল নবীনতম ৩০০০)'
+        required: false
+        default: ''
+  schedule:
+    - cron: '17 3 * * *'   # প্রতিদিন একবার feed.xml সতেজ রাখতে
+  push:
+    branches: [main]
+    paths:
+      - 'texts/**'
+      - 'youtube-videos.json'
+      - 'tools/build-site-data.cjs'
+      - 'tools/build-feed.cjs'
+      - '.github/workflows/build-data.yml'
+permissions:
+  contents: write
+concurrency:
+  group: build-data
+  cancel-in-progress: false
+jobs:
+  build:
+    # নিজের কমিট আবার ট্রিগার না করার জন্য (কমিট বার্তায় [skip ci])
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Build article pages + sitemaps
+        env:
+          SHARE_MAX: ${{ github.event.inputs.share_max }}
+          SHARE_EXCERPT: '900'
+        run: node tools/build-site-data.cjs share
+      - name: Build feed.xml
+        run: node tools/build-feed.cjs
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add s sitemap-articles-*.xml sitemap.xml robots.txt feed.xml
+          if git diff --cached --quiet; then
+            echo "কিছু বদলায়নি"
+            exit 0
+          fi
+          git commit -q -m "Build article pages, sitemaps and feed (automated) [skip ci]"
+          for i in 1 2 3; do
+            git fetch -q origin "${GITHUB_REF_NAME}"
+            git rebase -X theirs "origin/${GITHUB_REF_NAME}" >/dev/null 2>&1 || git rebase --abort >/dev/null 2>&1 || true
+            if git push -q origin "HEAD:${GITHUB_REF_NAME}"; then echo "pushed (try $i)"; break; fi
+            sleep 15
+          done

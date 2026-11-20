@@ -99,8 +99,14 @@
   paint(next);
   try{localStorage.setItem(KEY,next?'light':'dark')}catch(e){}
  });
- /* অন্য ট্যাবে থিম বদলালে এখানেও বদলাক */
- addEventListener('storage',e=>{if(e.key===KEY)paint(e.newValue==='light')});
+ /* কোনো পছন্দ না থাকলে ফোন/কম্পিউটারের নিজের সেটিং মেনে চলা — সেটিং বদলালে সাথেই বদলায় */
+ const mq=window.matchMedia?window.matchMedia('(prefers-color-scheme: light)'):null;
+ const stored=()=>{try{return localStorage.getItem(KEY)}catch(e){return null}};
+ const followSystem=()=>{if(!stored()&&mq)paint(mq.matches)};
+ followSystem();
+ try{mq?.addEventListener('change',followSystem)}catch(e){}
+ /* অন্য ট্যাবে থিম বদলালে (বা পছন্দ মুছে ফেললে) এখানেও বদলাক */
+ addEventListener('storage',e=>{if(e.key===KEY)paint(e.newValue?e.newValue==='light':!!mq?.matches)});
 })();
 
 /* ===== আরবি ফন্ট দেরিতে: বাংলা ফন্টের সাথে ব্যান্ডউইথের লড়াই বন্ধ ===== */

@@ -96,12 +96,129 @@ if(!ONLY||ONLY==='rel'){
  console.log('rel: files',Object.keys(files).length,'MB',(size/1e6).toFixed(1),'by title similarity',(bySim/(N*REL_N)*100).toFixed(0)+'%');
 }
 
-/* ---- ৩) শেয়ার-পাতা ---- */
+/* ---- ৩) প্রতিটি লেখার নিজের পাতা (s/<key>.html) ----
+   দুটি রকম পাতা:
+   (ক) সূচিবদ্ধ ল্যান্ডিং পাতা — নিজের শিরোনাম, বিবরণ, লেখার প্রথম অংশ, canonical, Article
+       স্কিমা ও ভেতরের লিংক; গুগল/বিং এগুলো পড়ে পাঠক সরাসরি আসে। পুরো লেখা ও সুবিধা
+       (বড় করা, শোনা, সংরক্ষণ) পাঠকের পাতায় — read.html (noindex, তাই নকল কনটেন্ট নেই)।
+   (খ) বাকি লেখার শেয়ার-স্টাব — আগের মতোই og-ট্যাগ + সাথে সাথে read.html-এ রিডাইরেক্ট।
+   কী কী ল্যান্ডিং পাতা হবে: ডিফল্টে সব লেখা; SHARE_MAX=<n> দিলে কেবল নবীনতম n-টি,
+   লেখার অংশ: SHARE_EXCERPT অক্ষর (ডিফল্ট ৯০০)। SHARE_LIMIT=<n> শুধু পরীক্ষার জন্য।
+   * পাতা আগেরটার সাথে হুবহু মিললে ফাইল আর লেখা হয় না (incremental) — তাই প্রতিবার
+     পুরো তালিকা চালালেও কেবল বদলানো/নতুন লেখার পাতা লেখা হয়।
+   * সাইটম্যাপে কেবল ল্যান্ডিং পাতাগুলোই যায় (sitemap-articles-N.xml, ২০ হাজার করে),
+     robots.txt-এ সেই খণ্ডগুলোর ঠিকানা যোগ হয়। */
 if(!ONLY||ONLY==='share'){
- const out=path.join(ROOT,'s');rmrf(out);fs.mkdirSync(out);let size=0;
- for(const d of docs){const title=esc(cut(d.t||'DAWAH X',110)),desc=esc(cut(plain(d.h).replace(/^(প্রশ্ন|উত্তর)\s*[:ঃ]?\s*/,''),120)||'কুরআন ও সুন্নাহর আলোকে প্রশ্নোত্তর'),q='k='+d.k+'&from='+sideOf(d.s);
-  /* crawler স্ক্রিপ্ট চালায় না, তাই og ট্যাগ পড়ে; পাঠকের ব্রাউজার সাথে সাথে পাঠ-পাতায় যায় */
-  const s=`<!doctype html><html lang="bn"><meta charset="utf-8"><title>DAWAH X</title><meta name="robots" content="noindex,follow"><meta property="og:type" content="article"><meta property="og:site_name" content="DAWAH X"><meta property="og:title" content="${title}"><meta property="og:description" content="${desc}"><meta property="og:url" content="${SITE}s/${d.k}.html"><meta property="og:image" content="${SITE}og-image.jpg"><meta name="twitter:card" content="summary_large_image"><script>location.replace("../read.html?${q}"+location.hash)</script><a href="../read.html?${esc(q)}">লেখাটি পড়ুন — DAWAH X</a>\n`;
-  size+=Buffer.byteLength(s);fs.writeFileSync(path.join(out,d.k+'.html'),s)}
- console.log('share: files',N,'MB',(size/1e6).toFixed(1));
+ const out=path.join(ROOT,'s');if(!fs.existsSync(out))fs.mkdirSync(out);
+ const LIMIT=+process.env.SHARE_LIMIT||0;
+ const RAW=process.env.SHARE_MAX,MAX=RAW==null?0:(+RAW||0);      /* ডিফল্ট 0 = সব লেখা; SHARE_MAX=3000 দিলে কেবল ৩০০০ */
+ const EXCERPT=+process.env.SHARE_EXCERPT||900;
+ const PAGE_V='ax5';
+ const SRC={ai:'মাসিক আল-ইতিছাম',at:'মাসিক আত-তাহরীক',ik:'মাসিক আল-ইখলাছ',ra:'Response to Anti-Islam',fm:'From Muslims',ia:'Islamic Authors',iz:'Insight Zone'};
+ /* ---- লেখার HTML পরিষ্কার (সার্ভার-সাইড: শুধু নিরাপদ ট্যাগ, বাইরের লিংক nofollow) ---- */
+ const OK_TAGS=new Set(['p','b','strong','i','em','u','br','ul','ol','li','blockquote','h2','h3','h4','sup','sub','cite','span','a','small','hr','table','thead','tbody','tr','td','th']);
+ const clean=h=>String(h||'')
+  .replace(/<(script|style|iframe|object|embed|form|input|button|link|meta|svg|audio|video)\b[\s\S]*?<\/\1>/gi,' ')
+  .replace(/<\/?(script|style|iframe|object|embed|form|input|button|link|meta|svg|audio|video)\b[^>]*>/gi,' ')
+  .replace(/<\/?([a-zA-Z][a-zA-Z0-9]*)([^>]*)>/g,(m,tag,attr)=>{
+   const t=tag.toLowerCase(),closing=m.charAt(1)==='/';
+   if(!OK_TAGS.has(t))return ' ';
+   if(t==='a'){if(closing)return '</a>';
+    const h=(/href\s*=\s*("([^"]*)"|'([^']*)'|([^\s>]+))/i.exec(attr)||[]),u=(h[2]||h[3]||h[4]||'').trim();
+    return /^https?:\/\//i.test(u)?'<a href="'+esc(u)+'" target="_blank" rel="noopener noreferrer nofollow">':'<span>'}
+   return closing?'</'+t+'>':'<'+t+'>'})
+  .replace(/\s+/g,' ').replace(/>\s+</g,'><').trim();
+ const BN_M=[[/জানু/,'01'],[/ফেব্রু/,'02'],[/মার্চ/,'03'],[/এপ্রি/,'04'],[/মে/,'05'],[/জুন/,'06'],[/জুলা/,'07'],[/আগ/,'08'],[/সেপ্টে/,'09'],[/অক্টো/,'10'],[/নভে/,'11'],[/ডিসে/,'12']];
+ const toEn=v=>String(v).replace(/[০-৯]/g,c=>String('০১২৩৪৫৬৭৮৯'.indexOf(c)));
+ const isoDate=d=>{const t=toEn(d||'');if(!t)return '';let mon='';for(const [re,m] of BN_M){if(re.test(t)){mon=m;break}}
+  if(!mon)return '';const nums=(t.match(/\d+/g)||[]).map(Number);if(!nums.length)return '';
+  const year=nums.find(n=>n>=1300&&n<=2200);if(!year)return '';
+  const day=nums.find(n=>n!==year&&n>=1&&n<=31)||1;return year+'-'+mon+'-'+String(day).padStart(2,'0')};
+
+ /* কোন লেখাগুলো ল্যান্ডিং পাতা হবে (নবীনতম আগে) */
+ const docsWithIso=docs.map(d=>({d,iso:isoDate(d.d)})).sort((a,b)=>b.iso===a.iso?0:(b.iso>a.iso?1:-1));
+ const pickedSet=new Set((LIMIT?docs.slice(0,LIMIT).map(d=>d.k):(MAX?docsWithIso.slice(0,MAX).map(x=>x.d.k):docs.map(d=>d.k))));
+
+ const stubOf=(d,title,desc,q)=>({body:`<!doctype html><html lang="bn"><meta charset="utf-8"><title>DAWAH X</title><meta name="robots" content="noindex,follow"><meta property="og:type" content="article"><meta property="og:site_name" content="DAWAH X"><meta property="og:title" content="${title}"><meta property="og:description" content="${desc}"><meta property="og:url" content="${SITE}s/${d.k}.html"><meta property="og:image" content="${SITE}og-image.jpg"><meta name="twitter:card" content="summary_large_image"><script>location.replace("../read.html?${q}"+location.hash)</script><a href="../read.html?${esc(q)}">লেখাটি পড়ুন — DAWAH X</a>\n`});
+
+ const written=new Set();let size=0,changed=0,kept=0,art=0,stub=0;
+ const list=LIMIT?docs.slice(0,LIMIT):docs;
+ for(const d of list){
+  const full=d.t||'',t=cut(full,180),titleAttr=esc(cut(full,110)),src=SRC[d.s]||'',date=d.d||'',iso=isoDate(date);
+  const q='k='+d.k+'&from='+sideOf(d.s);
+  let page;
+  if(pickedSet.has(d.k)){
+   art++;
+   const paras=[...String(d.h||'').matchAll(/<p[^>]*>([\s\S]*?)<\/p>/gi)].map(m=>m[1]);
+   let bodyHtml='',used=0;
+   for(const raw of (paras.length?paras:[String(d.h||'')])){
+    if(used>=EXCERPT)break;
+    const piece=clean(raw);
+    if(!piece)continue;
+    const txt=plain(piece);
+    if(txt.length<=EXCERPT-used){bodyHtml+='<p>'+esc(txt)+'</p>';used+=txt.length}
+    else{bodyHtml+='<p>'+esc(cut(txt,EXCERPT-used))+'</p>';used=EXCERPT}
+   }
+   if(!bodyHtml)bodyHtml='<p>'+esc(cut(plain(d.h)||t,EXCERPT))+'</p>';
+   if(plain(d.h).length>EXCERPT)bodyHtml+='<p class="article-note">…লেখাটি এখানে সংক্ষেপে দেওয়া হলো।</p>';
+   const desc=cut(plain(d.h).replace(/^(প্রশ্ন|উত্তর)\s*[:ঃ]?\s*/,''),155)||'কুরআন ও সুন্নাহর আলোকে লেখা';
+   const url=SITE+'s/'+d.k+'.html',isF=sideOf(d.s)==='f';
+   const sec=isF?'fatwa.html':'questions.html',secName=isF?'ফতোয়া':'প্রশ্নোত্তর';
+   const ld=JSON.stringify(Object.assign({'@context':'https://schema.org','@type':'Article',
+     headline:t,description:desc,inLanguage:'bn',url,mainEntityOfPage:{'@type':'WebPage','@id':url},
+     image:SITE+'og-image.jpg',isAccessibleForFree:true,
+     publisher:{'@type':'Organization',name:'DAWAH X',url:SITE,logo:{'@type':'ImageObject',url:SITE+'icon-512.png'}},
+     author:{'@type':'Organization',name:src||'DAWAH X'}},iso?{datePublished:iso}:{},d.u?{isBasedOn:d.u}:{})).replace(/</g,'\\u003c');
+   const meta=[src,toEn(d.a||''),date].filter(Boolean).map(v=>'<span>'+esc(v)+'</span>').join('<span aria-hidden="true">·</span>');
+   page='<!doctype html><html lang="bn"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
+    +'<title>'+esc(t)+' — DAWAH X</title><meta name="description" content="'+esc(desc)+'">'
+    +'<link rel="canonical" href="'+url+'"><meta name="robots" content="index,follow,max-image-preview:large">'
+    +'<meta property="og:type" content="article"><meta property="og:site_name" content="DAWAH X"><meta property="og:locale" content="bn_BD">'
+    +'<meta property="og:title" content="'+esc(t)+'"><meta property="og:description" content="'+esc(desc)+'"><meta property="og:url" content="'+url+'">'
+    +'<meta property="og:image" content="'+SITE+'og-image.jpg"><meta name="twitter:card" content="summary_large_image">'
+    +'<meta name="theme-color" content="#08151a"><link rel="icon" href="../favicon.svg">'
+    +'<meta name="referrer" content="strict-origin-when-cross-origin">'
+    +'<link rel="alternate" type="application/rss+xml" title="DAWAH X — নতুন লেখা ও ভিডিও" href="../feed.xml">'
+    +'<link rel="stylesheet" href="../style.css"><script type="application/ld+json">'+ld+'</script></head>'
+    +'<body><a class="skip-link" href="#main">লেখায় যান</a><main id="main" class="wrap"><article class="article article-wrap">'
+    +'<nav class="crumbs" aria-label="পথ"><a href="../index.html"><b>DAWAH X</b></a><span aria-hidden="true">›</span><a href="../'+sec+'">'+secName+'</a></nav>'
+    +'<header class="article-head"><h1>'+esc(t)+'</h1><p class="article-meta">'+meta+'</p></header>'
+    +'<div class="article-body">'+bodyHtml+'</div>'
+    +'<div class="article-cta"><div><b>পুরো আলোচনাটি পড়ুন</b><p>বড় লেখা, শোনা (TTS) ও সংরক্ষণের সুবিধা — পাঠকের পাতায়।</p></div>'
+    +'<a class="askbtn" href="../read.html?'+esc(q)+'">পাঠকের পাতায় খুলুন →</a></div>'
+    +'<div class="article-share"><span>শেয়ার করুন:</span><a class="share-btn" href="https://wa.me/?text='+encodeURIComponent(t+'\n'+url)+'" target="_blank" rel="noopener noreferrer">WhatsApp</a>'
+    +'<a class="share-btn" href="https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(url)+'" target="_blank" rel="noopener noreferrer">Facebook</a></div>'
+    +'<p class="article-note">'+(d.u?'এই লেখাটি <a href="'+esc(d.u)+'" target="_blank" rel="noopener noreferrer nofollow">'+esc(src||'মূল সূত্র')+'</a>-এ প্রকাশিত হয়েছিল।':'সূত্র: '+esc(src||'DAWAH X'))
+    +' · <a href="../'+sec+'">সব '+secName+' দেখুন</a></p>'
+    +'</article></main></body></html>\n';
+  }else{
+   stub++;
+   const desc=esc(cut(plain(d.h).replace(/^(প্রশ্ন|উত্তর)\s*[:ঃ]?\s*/,''),120)||'কুরআন ও সুন্নাহর আলোকে প্রশ্নোত্তর');
+   page=stubOf(d,titleAttr,desc,q).body;
+  }
+  const f=path.join(out,d.k+'.html');written.add(d.k+'.html');size+=Buffer.byteLength(page);
+  let old='';try{old=fs.readFileSync(f,'utf8')}catch(e){}
+  if(old===page)kept++;else{fs.writeFileSync(f,page);changed++}
+ }
+ /* যে লেখার পাতা আর দরকার নেই সেগুলো মোছা (LIMIT-এ ছোঁয়া হয় না) */
+ if(!LIMIT)for(const f of fs.readdirSync(out)){if(/^[0-9a-f]{14}\.html$/.test(f)&&!written.has(f))fs.unlinkSync(path.join(out,f))}
+
+ /* ---- সাইটম্যাপ (ল্যান্ডিং পাতা) + robots ---- */
+ if(!LIMIT){
+  const arts=list.filter(d=>pickedSet.has(d.k)).map(d=>SITE+'s/'+d.k+'.html')
+   .sort((a,b)=>a<b?-1:1),CHUNK=20000,files=[];
+  for(let i=0;i<arts.length;i+=CHUNK){
+   const name='sitemap-articles-'+(i/CHUNK+1)+'.xml';
+   const xml='<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+    +arts.slice(i,i+CHUNK).map(u=>'<url><loc>'+u+'</loc><changefreq>yearly</changefreq><priority>0.6</priority></url>').join('\n')+'\n</urlset>\n';
+   const f=path.join(ROOT,name);files.push(name);
+   let old='';try{old=fs.readFileSync(f,'utf8')}catch(e){}if(old!==xml)fs.writeFileSync(f,xml);
+  }
+  for(const f of fs.readdirSync(ROOT)){if(/^sitemap-articles-\d+\.xml$/.test(f)&&!files.includes(f))fs.unlinkSync(path.join(ROOT,f))}
+  const rp=path.join(ROOT,'robots.txt');let base='User-agent: *\nAllow: /\n';
+  try{base=fs.readFileSync(rp,'utf8').split('\n').filter(l=>!/^Sitemap:.*sitemap-articles-\d+\.xml\s*$/.test(l)).join('\n').replace(/\n+$/,'')+'\n'}catch(e){}
+  fs.writeFileSync(rp,base+files.map(f=>'Sitemap: '+SITE+f).join('\n')+'\n');
+  console.log('sitemap-articles:',files.length,'files,',arts.length,'urls');
+ }
+ console.log('share: landing',art,'stubs',stub,'changed',changed,'kept',kept,'MB',(size/1e6).toFixed(1),'(template '+PAGE_V+', excerpt '+EXCERPT+')');
 }
