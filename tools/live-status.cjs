@@ -98,6 +98,12 @@ function previous() {
     if (!id) continue;
     let meta = await oembed(id);
     if (meta && !meta.title) meta.title = await watchTitle(id);
+    /* শিরোনাম যদি চ্যানেলের নামেরই পুনরাবৃত্তি হয় (বা "… - YouTube"), কার্ডে চ্যানেলের নাম দুবার দেখানোর দরকার নেই */
+    if (meta && meta.title) {
+      const strip = v => String(v || '').replace(/\s*-\s*YouTube\s*$/i, '').replace(/\s+/g, ' ').trim();
+      const t = strip(meta.title), c = strip(ch.title || (meta && meta.author) || '');
+      if (!t || /^youtube$/i.test(t) || (c && t.toLowerCase() === c.toLowerCase())) meta.title = '';
+    }
     const since = wasLive.get(ch.channelId + '|' + id) || new Date().toISOString();
     found.push({
       channelId: ch.channelId,
