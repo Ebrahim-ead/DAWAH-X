@@ -30,7 +30,7 @@ GitHub Pages-এ “প্রশ্ন পাঠান” চাপলে প্
 
 
 ## Static YouTube video catalogue
-`videos.html` includes a combined catalogue of public channel-list entries (5,000+; started with 1 DAWAH X video, 2,798 from Professor Dr. Abubakar Muhammad Zakaria, 201 from Salafi Manhaj 2, and 2,000 from Peace TV Bangla (@PeaceTVprogram)). It displays 20 per page, supports title/channel search, topic/channel filter chips and page navigation, and opens selected videos in an on-page YouTube player. No API key is required: `.github/workflows/update-videos.yml` runs `tools/update-videos.cjs` about every 30 minutes, which reads each channel's public upload feed (latest 15 uploads) and commits any new video to `youtube-videos.json` (channels listed in `tools/video-channels.json`). Individual videos may be restricted by YouTube or by their channel owner. See `youtube-setup.md`.
+`videos.html` includes a combined catalogue of public channel-list entries (5,000+; started with 1 DAWAH X video, 2,798 from Professor Dr. Abubakar Muhammad Zakaria, 201 from Salafi Manhaj 2, and 2,000 from Peace TV Bangla (@PeaceTVprogram)). It displays 20 per page, supports title/channel search, topic/channel filter chips and page navigation, and opens selected videos in an on-page YouTube player. No API key is required: `.github/workflows/update-videos.yml` runs `tools/update-videos.cjs` **every 5 minutes**, which reads each channel's public upload feed (latest 15 uploads) and commits any new video to `youtube-videos.json` (channels listed in `tools/video-channels.json`). Individual videos may be restricted by YouTube or by their channel owner. See `youtube-setup.md`.
 
 
 ## Live date and time
@@ -153,9 +153,9 @@ The YouTube player uses an iframe and may be blocked by strict network or browse
 - **ফোনেও মাপা:** ৪১২px ও ১২৮০px — দুই পর্দাতেই কার্ড ঠিক জায়গায়, পাশে সরা নেই, কনসোল-এরর নেই।
 
 ## নতুন চ্যানেলের পুরো ভিডিও তালিকা (২০২৬-১১-২০)
-- **কী হয়েছে:** পুরোনো নিয়ম ছিল — প্রতি আধা ঘণ্টায় চ্যানেলের *সর্বশেষ ১৫টি* ভিডিও আসে, তাই নতুন চ্যানেল যোগ করলে তার পুরোনো হাজারো ভিডিও কখনো আসত না। এখন চ্যানেলের পুরো তালিকা একবারে নামানো হয় — **কোনো API key ছাড়া**।
+- **কী হয়েছে:** পুরোনো নিয়ম ছিল — নির্দিষ্ট বিরতিতে চ্যানেলের *সর্বশেষ ১৫টি* ভিডিও আসত, তাই নতুন চ্যানেল যোগ করলে তার পুরোনো হাজারো ভিডিও কখনো আসত না। এখন চ্যানেলের পুরো তালিকা একবারে নামানো হয় — **কোনো API key ছাড়া**।
 - **যোগ হলো:** **আত-তারীক টিভি** — ২,০৬৩টি ভিডিও (সাথে ৭২১ শর্টস ও ২১৯টি লাইভ/স্ট্রিম আলাদা তালিকায়) এবং **আল-ইতিসাম টিভি** — ১,৮১৮টি ভিডিও। মোট **৩,৮৮১টি নতুন ভিডিও**, সবই শিরোনাম ও তারিখসহ।
-- **প্রতিদিন আপডেট:** নতুন ভিডিও প্রতি আধা ঘণ্টার স্বাভাবিক রানেই আসবে; রান থেমে গেলে পরের রান যেখানে থেমেছিল সেখান থেকেই এগোয়।
+- **প্রতিদিন আপডেট:** নতুন ভিডিও প্রতি **৫ মিনিটের** স্বাভাবিক রানেই আসবে; রান থেমে গেলে পরের রান যেখানে থেমেছিল সেখান থেকেই এগোয়।
 - **সৎ কথা:** ২৩৮টি ভিডিওর প্রকাশের তারিখ কোথাও পাওয়া যায়নি, তাই সেগুলো **তারিখ ছাড়াই** রাখা হয়েছে — আন্দাজে ভুল তারিখ বসানো হয়নি।
 - **ফাইল হালকা:** প্রতিটি ভিডিওর thumbnail-এর ঠিকানা আইডি থেকেই তৈরি হয়, তাই সেটি আর JSON-এ রাখা হয় না। ৮,৯৪১টি ভিডিওর ফাইল ২.৫৪ MB (gzip করে **৪০৮ KB**); প্রথম পাতা ২ সেকেন্ডে (ধীর ফোনের অনুকরণে), ৪৪৭ পাতা — শেষ পাতাও ঠিকঠাক।
 - **শর্টস যোগ করতে চাইলে:** ওয়ার্কফ্লোটি হাতে চালিয়ে `tab = shorts` দিলেই হবে (শর্টস প্রিভিউ ৯:১৬, তাই এখন আলাদা রাখা হয়েছে)।
@@ -188,3 +188,18 @@ The YouTube player uses an iframe and may be blocked by strict network or browse
 - **পুরোনো তথ্যে ভুল «লাইভ» নয়:** সাইট তথ্যের **বয়স** দেখে — ৪৫ মিনিটের বেশি পুরোনো হলে কার্ড নিজেই সরে যায় (এবং পাতা খোলা থাকলে প্রতি মিনিটে বয়স যাচাই হয়)। অর্থাৎ চেকার বন্ধ হয়ে গেলেও পুরোনো কার্ড জমে থাকে না।
 - **ফোনে জমানো কপিও নয়:** `live.json` সবসময় ইন্টারনেট থেকে টানা হয় (service worker বাইপাস), তাই একবার দেখা কার্ড পরে দেখানো হয় না।
 - **পরীক্ষা করা:** লাইভ আছে → কার্ড (৪১২px-এ ৩৭২px উঁচু, ১২৮০px-এ ৭৭১px), ক্লিকে স্ট্রিম চলে; লাইভ নেই / তথ্য পুরোনো / ফাইল নেই / ভুল ভিডিও-আইডি — চারটিতেই কার্ড শূন্য, জায়গা শূন্য, পাতার বিন্যাস অপরিবর্তিত।
+
+## নতুন ভিডিও এখন দ্রুত আসে (২০২৬-১১-২০)
+
+- **চেক এখন প্রতি ৫ মিনিটে** (আগে ৩০ মিনিটে একবার)। রানে কোনো ব্রাউজার/Chromium চলে না — শুধু ছয়টি চ্যানেলের পাবলিক RSS পড়া হয়, তাই রান ~২০–৪০ সেকেন্ড। GitHub ব্যস্ত থাকলে রান কিছুটা দেরি করতে পারে (৫ মিনিটই GitHub-এর সর্বনিম্ন সময়সীমা), তাই স্লটগুলো ঘণ্টার শুরুর মিনিটে রাখা হয়নি।
+- **এক চাপে হালনাগাদ:** GitHub → **Actions** → বাঁ দিক থেকে **«Update video list»** → ডান পাশে **Run workflow** → **Run workflow**। ৩০ সেকেন্ডে নতুন ভিডিও যোগ হয়ে সাইটে চলে আসে (ফোন থেকেও করা যায়)। Actions ঠিকানা: `https://github.com/Ebrahim-ead/DAWAH-X/actions/workflows/update-videos.yml`।
+- **কমিট হলেই প্রকাশ:** নতুন ভিডিও পেলে ওয়ার্কফ্লো নিজেই GitHub Pages-কে নতুন করে প্রকাশ করতে বলে, তাই কমিট→লাইভ দেরি হয় না।
+- **হোমপেজে «সর্বশেষ ভিডিও»:** প্রথম পাতায় (পরিসংখ্যানের নিচে) চ্যানেলগুলোর **সর্বশেষ ৪টি** ভিডিও দেখা যায় — থাম্বনেইলে চাপ দিলে ওই পাতাতেই চলে, নিচে «সব ভিডিও ও খোঁজা দেখুন ›»।
+- **«নতুন» ব্যাজ:** প্রকাশের পর **৩ দিন** থাকে (হোমপেজ ও ভিডিও পাতা — দুই জায়গাতেই একই নিয়ম, মানটি লেখা `app.js`-এর `window.DAWAHX_NEW_DAYS`-এ)।
+- **সত্যিই সাথে সাথে চাইলে (ঐচ্ছিক): WebSub** — ইউটিউব নতুন ভিডিও দিলে সেকেন্ডের মধ্যে নিজে থেকে চেক চালু হয়। gratis Cloudflare অ্যাকাউন্ট + একটি ছোট Worker লাগে; কোড প্রস্তুত আছে `tools/websub-worker.js`-এ। ধাপগুলো:
+  1. Cloudflare → Workers & Pages → **Create** → Worker; নাম দিন (যেমন `dawahx-websub`) → Edit code → `tools/websub-worker.js`-এর পুরো লেখা পেস্ট করে **Deploy**।
+  2. Worker-এর **Settings → Variables and Secrets**-এ পাঁচটি Secret যোগ করুন: `VERIFY_TOKEN` (যেকোনো লম্বা এলোমেলো শব্দ), `HUB_SECRET` (আরেকটি এলোমেলো শব্দ), `GITHUB_TOKEN` (GitHub → Settings → Developer settings → Fine-grained tokens: token তৈরি করে শুধু এই রিপোজিটরি বেছে নিন, আর ক্ষমতা দিন একটিই — **Contents: read and write**), `REPO` = `Ebrahim-ead/DAWAH-X`, আর `URL` = Worker-এর নিজের ঠিকানা (যেমন `https://dawahx-websub.<your-name>.workers.dev/`)।
+  3. Worker-এর **Triggers → Cron Triggers**-এ দিন `0 3 * * *` (প্রতিদিন একবার লিজ নবায়ন হবে)।
+  4. Worker-এর ঠিকানা ব্রাউজারে খুলুন — «চলছে» লেখা দেখলেই ঠিক। তারপর `https://<worker>/subscribe` খুললে ছয়টি চ্যানেলের সাবস্ক্রিপশন হাবের কাছে জমা হবে।
+  5. ইউটিউবে নতুন ভিডিও দিয়ে পরীক্ষা করুন: GitHub → Actions-এ «নতুন ভিডিও আনা» রান কয়েক সেকেন্ডেই শুরু হবে; `live.json`/`youtube-videos.json`-এ ফল দেখা যাবে।
+  6. Worker বন্ধ করলেও সাইট ঠিক থাকবে — তখন ফিরে ৫ মিনিটের ক্রনেই কাজ চলবে। (টোকেন কোথাও লেখা থাকে না, শুধু Worker-এর Secret-এ।)

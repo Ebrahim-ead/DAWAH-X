@@ -1,12 +1,19 @@
 name: Update video list
 # চ্যানেলগুলোর নতুন আপলোড youtube-videos.json-এ যোগ করে (tools/update-videos.cjs)।
-# - schedule: মূল শাখায় (main) প্রতি আধা ঘণ্টায়; GitHub ব্যস্ত থাকলে কিছুটা দেরি হতে পারে।
-# - workflow_dispatch: Actions ট্যাব থেকে হাতে চালানো যায় ("Run workflow")।
+# - schedule: প্রতি ৫ মিনিটে (GitHub-এর সর্বনিম্ন সময়সীমা ৫ মিনিট; ব্যস্ত থাকলে রান দেরি হতে পারে)।
+#   স্লটগুলো ঘণ্টার শুরুর মিনিটে (0) রাখা হয়নি — তখন GitHub-এ ভিড় সবচেয়ে বেশি।
+# - workflow_dispatch: Actions ট্যাব থেকে হাতে চালানো যায় ("Run workflow") — এক চাপে হালনাগাদ।
 # - push (arena/**): স্ক্রিপ্ট বা চ্যানেলের তালিকা বদলালে সেই শাখাতেই একবার চলে — বদল পরীক্ষা করার জন্য।
+# - repository_dispatch (youtube-upload): YouTube-এর WebSub পুশ (tools/websub-worker.js) ভিডিও প্রকাশের
+#   সাথে সাথেই এই রানটি চালু করতে পারে — তখন ক্রনের অপেক্ষা করতে হয় না।
+# এই রানে কোনো ব্রাউজার/Chromium চলে না — শুধু ছয়টি RSS ফিড fetch করা হয়, তাই রান ~২০–৪০ সেকেন্ড।
+run-name: নতুন ভিডিও আনা
 on:
   schedule:
-    - cron: '7,37 * * * *'
+    - cron: '2,7,12,17,22,27,32,37,42,47,52,57 * * * *'
   workflow_dispatch:
+  repository_dispatch:
+    types: [youtube-upload]
   push:
     branches: ['arena/**']
     paths: ['tools/update-videos.cjs', 'tools/video-channels.json', '.github/workflows/update-videos.yml']
