@@ -38,17 +38,18 @@ jobs:
           IK_MODE: ${{ inputs.mode || 'probe' }}
           IK_LIMIT: ${{ inputs.limit || '300' }}
         run: |
-          set -o pipefail
           echo "mode=$IK_MODE" | tee tools/ik-report.txt
+          # রান ব্যর্থ হলেও রিপোর্ট কমিট হয়, যাতে কারণটা পড়া যায়
           if [ "$IK_MODE" = "discover" ] || [ "$IK_MODE" = "probe" ]; then
-            node tools/import-ikhlasbd.cjs --discover 2>&1 | tee -a tools/ik-report.txt
+            node tools/import-ikhlasbd.cjs --discover 2>&1 | tee -a tools/ik-report.txt || echo "discover failed: $?" | tee -a tools/ik-report.txt
           fi
           if [ "$IK_MODE" = "probe" ]; then
-            node tools/import-ikhlasbd.cjs --probe 6 2>&1 | tee -a tools/ik-report.txt
+            node tools/import-ikhlasbd.cjs --probe 6 2>&1 | tee -a tools/ik-report.txt || echo "probe failed: $?" | tee -a tools/ik-report.txt
           fi
           if [ "$IK_MODE" = "import" ]; then
-            node tools/import-ikhlasbd.cjs --limit "$IK_LIMIT" --minutes 300 2>&1 | tee -a tools/ik-report.txt
+            node tools/import-ikhlasbd.cjs --limit "$IK_LIMIT" --minutes 300 2>&1 | tee -a tools/ik-report.txt || echo "import failed: $?" | tee -a tools/ik-report.txt
           fi
+          exit 0
       - name: Rebuild search index, related lists and share pages
         if: ${{ inputs.mode == 'import' }}
         run: node --max-old-space-size=4096 tools/build-site-data.cjs

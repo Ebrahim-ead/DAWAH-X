@@ -148,7 +148,7 @@ function clean($, root) {
 }
 
 function extract(html) {
-  const $ = loadCheerio()(html);
+  const $ = loadCheerio().load(html);
   $('#fb-root,script,style,noscript').remove();
 
   const body = $('.article-details').first();
@@ -228,12 +228,12 @@ function loadBuckets() {
     const r = await get(url);
     if (r.status !== 200 || !r.html) { failed++; log('  ✗ ' + id + ' (HTTP ' + r.status + ')'); await sleep(350); continue; }
     let x = null;
-    try { x = extract(r.html); } catch (e) { x = { error: 'parse: ' + String(e && e.message || e).slice(0, 80) }; }
+    try { x = extract(r.html); } catch (e) { x = { error: 'parse: ' + String((e && e.stack) || e).slice(0, 200) }; }
     if (!x || x.error) {
       failed++;
       log('  ✗ ' + id + ' (' + ((x && x.error) || 'লেখা পাওয়া যায়নি') + ')');
       if (PROBE) {
-        const $ = loadCheerio()(r.html);
+        const $ = loadCheerio().load(r.html);
         const classes = [];
         $('div[class],article[class]').each((i, e) => { const c = $(e).attr('class') || ''; const l = $(e).text().replace(/\s+/g, ' ').trim().length; classes.push(c.slice(0, 44) + ' · ' + l); });
         classes.sort((a, b) => (+b.split('· ')[1]) - (+a.split('· ')[1]));
