@@ -11,9 +11,9 @@ const {chromium}=require('playwright-core');const assert=require('node:assert/st
   for(const card of dims.cards)assert(card.scroll<=card.client+1,`${width} card content overflows`);
   const expected=width>=1100?3:width>560?2:1;
   assert.equal(dims.cards.filter(r=>Math.abs(r.top-dims.cards[0].top)<2).length,expected,`${width} columns`);
-  await page.addStyleTag({content:fs.readFileSync('/tmp/panel-old.css','utf8')});let old=await page.locator('.library-panel').evaluate(e=>e.getBoundingClientRect().height);
+  await page.locator('link[href="style.css"]').evaluate(el=>el.remove());await page.addStyleTag({content:fs.readFileSync('/tmp/panel-old.css','utf8')});let old=await page.locator('.library-panel').evaluate(e=>e.getBoundingClientRect().height);
   assert(dims.height<old,`${width} not smaller: ${dims.height} vs ${old}`);
   console.log(`${width}px height ${dims.height} vs ${old}, ${expected} columns`);await page.close();
  }
- const page=await browser.newPage({viewport:{width:390,height:900},reducedMotion:'reduce'});await page.goto('http://127.0.0.1:4173/fatwa.html',{waitUntil:'domcontentloaded'});await page.locator('.library-link').nth(3).click();await page.waitForSelector('#fchips .chip.on');assert((await page.locator('#fchips .chip.on').innerText()).includes('আল-ইতিছাম'));await page.close();
+ const page=await browser.newPage({viewport:{width:390,height:900},reducedMotion:'reduce'});await page.goto('http://127.0.0.1:4173/fatwa.html',{waitUntil:'domcontentloaded'});await page.locator('.library-link').nth(3).click();await page.waitForFunction(()=>document.querySelector('#fchips .chip.on')?.textContent.includes('আল-ইতিছাম'));assert((await page.locator('#fchips .chip.on').innerText()).includes('আল-ইতিছাম'));await page.close();
  }finally{await browser.close()}})().catch(e=>{console.error(e);process.exitCode=1});
