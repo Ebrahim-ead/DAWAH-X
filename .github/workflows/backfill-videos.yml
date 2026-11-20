@@ -74,8 +74,13 @@ jobs:
             exit 0
           fi
           git commit -q -m "Backfill channel videos (automated)"
-          git pull -q --rebase -X theirs origin "${GITHUB_REF_NAME}" || { git rebase --abort; git pull -q --rebase -X theirs origin "${GITHUB_REF_NAME}"; }
-          git push -q origin "HEAD:${GITHUB_REF_NAME}"
+          # কেউ একই সময়ে পুশ করলে পুনরায় চেষ্টা (একবার ব্যর্থ হয়ে ডেটা হারিয়েছিল)
+          for i in 1 2 3 4; do
+            git fetch -q origin "${GITHUB_REF_NAME}"
+            git rebase -X theirs "origin/${GITHUB_REF_NAME}" >/dev/null 2>&1 || git rebase --abort >/dev/null 2>&1 || true
+            if git push -q origin "HEAD:${GITHUB_REF_NAME}"; then echo "pushed (try $i)"; break; fi
+            echo "push failed, retrying…"; sleep 20
+          done
       - name: Ask GitHub Pages to publish
         continue-on-error: true
         env:
