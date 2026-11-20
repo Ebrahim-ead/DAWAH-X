@@ -56,6 +56,8 @@ jobs:
           fi
           node tools/probe-videos.cjs 2>&1 | tee -a tools/probe-report.txt
           cat tools/probe-report.txt
+      - name: Install yt-dlp (channel listing)
+        run: pip install -q yt-dlp
       - name: Walk the channel and add missing videos
         env:
           BACKFILL_CHANNEL: ${{ inputs.channel }}

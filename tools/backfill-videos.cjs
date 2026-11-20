@@ -45,6 +45,7 @@ const TAB = String(arg('tab', process.env.BACKFILL_TAB || 'videos'));
 const DEADLINE = Date.now() + MINUTES * 60000;
 
 const UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36';
+const UA_HEADER = 'Mozilla/5.0 (X11; Linux x86_64) DAWAH-X backfill';
 const HEADERS = {
   'User-Agent': UA,
   'Accept-Language': 'en-US,en;q=0.9',
@@ -189,7 +190,41 @@ async function browse(ch, token) {
   return { items, tokens };
 }
 
-/* এক videoId-র শিরোনাম ও প্রকাশের তারিখ (youtubei player) */
+/* চ্যানেলের পুরো তালিকা yt-dlp-এর ফ্ল্যাট মোডে — শিরোনামসহ, ধাপে ধাপে হাঁটার দরকার নেই।
+   (GitHub রানার থেকে youtubei player/watch "Sign in to confirm you're not a bot" দেয়, কিন্তু
+   ফ্ল্যাট তালিকা ঠিকঠাক আসে — ২,০৬৩টি ভিডিওর আইডি মিলেছে।) */
+function ytdlpList(url) {
+  try {
+    const txt = execFileSync('yt-dlp', ['--no-warnings', '--ignore-errors', '--flat-playlist', '--print', '%(id)s\t%(title)s', url],
+      { encoding: 'utf8', timeout: 20 * 60 * 1000, maxBuffer: 96 * 1024 * 1024 });
+    return txt.split('\n').filter(Boolean).map(line => {
+      const at = line.indexOf('\t');
+      const id = (at < 0 ? line : line.slice(0, at)).trim();
+      const title = at < 0 ? '' : line.slice(at + 1).trim();
+      return { id, title: title === 'NA' ? '' : title };
+    }).filter(x => ID_RE.test(x.id));
+  } catch (e) {
+    warn('  yt-dlp ব্যর্থ: ' + String((e && e.message) || e).split('\n')[0].slice(0, 160));
+    return [];
+  }
+}
+
+/* প্রকাশের সঠিক তারিখ: Return YouTube Dislike API-র dateCreated (কোনো key লাগে না) */
+async function rydDate(id) {
+  for (let i = 0; i < 2; i++) {
+    try {
+      const r = await fetch('https://returnyoutubedislikeapi.com/votes?videoId=' + encodeURIComponent(id),
+        { headers: { 'Accept': 'application/json', 'User-Agent': UA_HEADER } });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const j = await r.json();
+      if (j && j.dateCreated) { const t = Date.parse(j.dateCreated); if (!Number.isNaN(t)) return new Date(t).toISOString(); }
+      return '';
+    } catch (e) { if (i) return ''; await sleep(1500); }
+  }
+  return '';
+}
+
+/* এক videoId-র শিরোনাম ও প্রকাশের তারিখ (youtubei player) — বট-চেকের কারণে রানারে সাধারণত ব্যর্থ */
 async function videoInfo(ch, id) {
   const body = JSON.stringify({
     context: { client: { clientName: 'WEB', clientVersion: ch.clientVersion, hl: 'en', gl: 'US', ...(ch.visitor ? { visitorData: ch.visitor } : {}) } },
@@ -236,52 +271,60 @@ function compact(videos) {
     const label = channel.title || ch.title || ch.id;
     console.log('  channelId ' + ch.id + ' · ' + label);
 
-    /* ধাপ ১: তালিকা ধরে সব videoId */
-    const ids = [], seen = new Set();
-    const push = vr => { const id = idOf(vr); if (ID_RE.test(id) && !seen.has(id)) { seen.add(id); ids.push({ id, title: titleOf(vr) }); } };
-    ch.items.forEach(push);
-    let tokens = ch.tokens.slice();
-    const used = new Set();
-    let pages = 1, bar = 0;
-    while (tokens.length && left() > 60000 && pages < 600) {
-      const token = tokens.shift();
-      if (used.has(token)) continue;      /* একই token দুবার এলে আটকে যাওয়ার আগেই থামা */
-      used.add(token);
-      let res;
-      try { res = await browse(ch, token); } catch (e) { warn('  তালিকার ধাপ ব্যর্থ: ' + e.message); continue; }
-      pages++;
-      const before = ids.length;
-      res.items.forEach(push);
-      for (const t of res.tokens) if (!used.has(t) && !tokens.includes(t)) tokens.push(t);
-      if (pages % 10 === 0) console.log('  ' + pages + ' ধাপ · ' + ids.length + 'টি videoId · ' + Math.round(left() / 1000) + 's বাকি');
-      if (ids.length === before) { bar++; } else { bar = 0; }
-      if (bar >= 2) { console.log('  (দুই ধাপে নতুন কিছু নেই — তালিকা শেষ)'); break; }
-      await sleep(120);
+    /* ধাপ ১: পুরো তালিকা (yt-dlp), না পেলে নিজের হাঁটা */
+    const channelUrl = 'https://www.youtube.com/channel/' + ch.id + '/' + TAB + '?hl=en&gl=US';
+    let ids = ytdlpList(channelUrl);
+    if (!ids.length) ids = ytdlpList('https://www.youtube.com/' + (channel.handle || 'channel/' + ch.id) + '/' + TAB);
+    if (ids.length) {
+      console.log('  yt-dlp: ' + ids.length + 'টি videoId');
+    } else {
+      console.log('  yt-dlp নেই/ব্যর্থ — নিজের হাঁটায় যাচ্ছি');
+      const seen = new Set();
+      const push = vr => { const id = idOf(vr); if (ID_RE.test(id) && !seen.has(id)) { seen.add(id); ids.push({ id, title: titleOf(vr) }); } };
+      ch.items.forEach(push);
+      let tokens = ch.tokens.slice();
+      const used = new Set();
+      let pages = 1, bar = 0;
+      while (tokens.length && left() > 60000 && pages < 600) {
+        const token = tokens.shift();
+        if (used.has(token)) continue;
+        used.add(token);
+        let res;
+        try { res = await browse(ch, token); } catch (e) { warn('  তালিকার ধাপ ব্যর্থ: ' + e.message); continue; }
+        pages++;
+        const before = ids.length;
+        res.items.forEach(push);
+        for (const t of res.tokens) if (!used.has(t) && !tokens.includes(t)) tokens.push(t);
+        if (pages % 10 === 0) console.log('  ' + pages + ' ধাপ · ' + ids.length + 'টি videoId');
+        bar = ids.length === before ? bar + 1 : 0;
+        if (bar >= 2) break;
+        await sleep(120);
+      }
+      console.log('  নিজের হাঁটা: ' + ids.length + 'টি videoId (' + pages + ' ধাপ)');
     }
-    console.log('  মোট তালিকায় ' + ids.length + 'টি videoId (' + pages + ' ধাপ)');
 
-    /* ধাপ ২: যেগুলো নেই, তাদের শিরোনাম+তারিখ */
+    /* ধাপ ২: যেগুলো তালিকায় নেই, তাদের প্রকাশের তারিখ */
     const todo = ids.filter(x => !known.has(x.id));
     console.log('  নতুন ' + todo.length + 'টি · তালিকায় আগেই আছে ' + (ids.length - todo.length) + 'টি');
     const started = Date.now();
     let added = 0, failed = 0;
     const batch = todo.slice(0, Math.max(0, Math.min(todo.length, LIMIT - fresh.length)));
-    await pool(batch, 6, async it => {
+    await pool(batch, 4, async it => {
       if (left() < 45000) return;
-      let info = null;
-      try { info = await videoInfo(ch, it.id); } catch (e) { failed++; }
-      if (info && info.channelId && info.channelId !== ch.id) { known.add(it.id); return; } /* কপি/রিপোস্ট */
-      const t = info ? Date.parse(info.date) : NaN;
+      let iso = '';
+      try { iso = await rydDate(it.id); } catch (e) { failed++; }
+      if (!iso) failed++;
+      const t = iso ? Date.parse(iso) : NaN;
       fresh.push({
         id: it.id,
-        title: (info && info.title) || it.title,
+        title: it.title || '',
         channelTitle: label,
-        publishedAt: Number.isNaN(t) ? '' : new Date(t).toISOString(),
+        publishedAt: iso,
         time: Number.isNaN(t) ? 0 : t,
       });
       known.add(it.id);
       added++;
-      if (added % 100 === 0) {
+      if (added % 200 === 0) {
         const per = (Date.now() - started) / added;
         console.log('  +' + added + '/' + batch.length + ' · ' + Math.round(left() / 1000) + 's বাকি · আনুমানিক ' +
           Math.round(per * (batch.length - added) / 1000) + 's');
