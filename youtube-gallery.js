@@ -132,8 +132,8 @@
       if(i<current.length){setTimeout(batch,0);return}
       topicsPresent=present;
       const active=document.activeElement,kind=active?.closest?.('[data-kind]')?.dataset.kind,value=active?.dataset?.value;
-      drawFilters();
-      if(topic)render();
+      const hadTopic=Boolean(topic);drawFilters();
+      if(hadTopic)render();
       if(kind&&value!==undefined){const box=filters?.querySelector('[data-kind="'+kind+'"]');[...box?.querySelectorAll('button.chip')||[]].find(b=>b.dataset.value===value)?.focus({preventScroll:true})}
     }
     setTimeout(batch,0);
