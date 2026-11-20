@@ -152,7 +152,7 @@ function extract(html) {
   $('#fb-root,script,style,noscript').remove();
 
   const body = $('.article-details').first();
-  if (!body.length) return null;
+  if (!body.length) return { error: 'no .article-details container', title: ($('title').text() || '').slice(0, 60) };
 
   /* শিরোনাম: লেখার অংশের ভেতরের/আগের h1, নইলে og:title */
   let title = ($('.article-details h1').first().length ? $('.article-details h1').first() : $('h1').first()).text().replace(/\s+/g, ' ').trim();
@@ -173,8 +173,10 @@ function extract(html) {
   let htmlOut = clean($, body);
   /* লেখার ভেতরে থাকা "শেয়ার করুন / প্রিন্ট / ← আগের লেখা" জাতীয় সারি বাদ */
   htmlOut = htmlOut.replace(/<p[^>]*>\s*(?:শেয়ার|প্রিন্ট|আরো পড়ুন)[\s\S]{0,120}?<\/p>/g, '');
-  if (textLen(htmlOut) < 200) return null;
-  return { title, html: htmlOut, date, author };
+  const len = textLen(htmlOut);
+  /* ছোট উত্তরও (যেমন "উত্তর : যঈফ") পূর্ণ লেখা — সীমা ৪০, যেখানে নেভিগেশন-আবর্জনা ৪০ ছাড়ায় না */
+  if (!title || len < 40) return { error: 'too short (len ' + len + ', title ' + JSON.stringify(title.slice(0, 40)) + ')', title, len };
+  return { title, html: htmlOut, date, author, len };
 }
 
 /* ---------------- principale ---------------- */
@@ -212,7 +214,12 @@ function loadBuckets() {
 
   const todo = allIds.filter(id => !have.has(HOST + '/article_details/' + id));
   log('নতুন আনতে হবে ' + todo.length + 'টি' + (PROBE ? ' (প্রোব: প্রথম ' + PROBE + 'টি)' : ''));
-  const list = PROBE ? todo.slice(0, PROBE) : (LIMIT ? todo.slice(0, LIMIT) : todo);
+  let list = LIMIT ? todo.slice(0, LIMIT) : todo;
+  if (PROBE) {
+    const newest = todo.slice(-Math.ceil(PROBE / 2));
+    const oldest = todo.slice(0, Math.floor(PROBE / 2));
+    list = [...new Set([...oldest, ...newest])];
+  }
 
   let done = 0, failed = 0, skipped = 0;
   for (const id of list) {
@@ -221,8 +228,20 @@ function loadBuckets() {
     const r = await get(url);
     if (r.status !== 200 || !r.html) { failed++; log('  ✗ ' + id + ' (HTTP ' + r.status + ')'); await sleep(350); continue; }
     let x = null;
-    try { x = extract(r.html); } catch (e) { x = null; }
-    if (!x) { failed++; log('  ✗ ' + id + ' (লেখা পাওয়া যায়নি)'); await sleep(350); continue; }
+    try { x = extract(r.html); } catch (e) { x = { error: 'parse: ' + String(e && e.message || e).slice(0, 80) }; }
+    if (!x || x.error) {
+      failed++;
+      log('  ✗ ' + id + ' (' + ((x && x.error) || 'লেখা পাওয়া যায়নি') + ')');
+      if (PROBE) {
+        const $ = loadCheerio()(r.html);
+        const classes = [];
+        $('div[class],article[class]').each((i, e) => { const c = $(e).attr('class') || ''; const l = $(e).text().replace(/\s+/g, ' ').trim().length; classes.push(c.slice(0, 44) + ' · ' + l); });
+        classes.sort((a, b) => (+b.split('· ')[1]) - (+a.split('· ')[1]));
+        log('     page title: ' + $('title').text().slice(0, 70));
+        log('     biggest: ' + JSON.stringify(classes.slice(0, 5)));
+      }
+      await sleep(350); continue;
+    }
 
     if (PROBE) {
       log('\n--- ' + id + ' · ' + x.title.slice(0, 70));

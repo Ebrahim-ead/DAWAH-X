@@ -44,7 +44,7 @@ jobs:
             node tools/import-ikhlasbd.cjs --discover 2>&1 | tee -a tools/ik-report.txt
           fi
           if [ "$IK_MODE" = "probe" ]; then
-            node tools/import-ikhlasbd.cjs --probe 3 2>&1 | tee -a tools/ik-report.txt
+            node tools/import-ikhlasbd.cjs --probe 6 2>&1 | tee -a tools/ik-report.txt
           fi
           if [ "$IK_MODE" = "import" ]; then
             node tools/import-ikhlasbd.cjs --limit "$IK_LIMIT" --minutes 300 2>&1 | tee -a tools/ik-report.txt
