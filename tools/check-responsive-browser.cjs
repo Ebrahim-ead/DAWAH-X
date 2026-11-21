@@ -53,7 +53,15 @@ const checkOverflow=async(page,label)=>{
    if(width<=560){const box=page.locator('.video-chips[data-kind="topic"]');assert(await box.evaluate(e=>e.scrollWidth>e.clientWidth));for(const button of await box.locator('.chip').all())assert((await button.boundingBox()).height>=44)}
    const topic=page.locator('.video-chips[data-kind="topic"] .chip').nth(1);await topic.click();assert.equal(await topic.getAttribute('aria-pressed'),'true');
    await page.fill('#video-search','zzzznotavideo123');await page.waitForFunction(()=>document.querySelector('#video-grid').dataset.count==='0');await page.fill('#video-search','');await page.locator('.video-chips[data-kind="topic"] .chip').first().click();await page.waitForSelector('.video-card');
-   await page.locator('.video-preview').first().click();assert.equal(await page.locator('.video-lightbox').getAttribute('open'),'');assert(await page.locator('.video-lightbox iframe').count());await page.locator('.video-lightbox-close').click();assert.equal(await page.locator('.video-lightbox').getAttribute('open'),null);
+   const videoButton=page.locator('.video-preview').first();await videoButton.click();
+   const dialog=page.locator('.video-lightbox'),frame=dialog.locator('iframe');assert.equal(await dialog.getAttribute('open'),'');assert.equal(await frame.count(),1);
+   const frameSrc=await frame.getAttribute('src');
+   // Click both the backdrop and unused space inside the dialog: neither closes it.
+   await page.mouse.click(1,1);assert.equal(await dialog.getAttribute('open'),'');assert.equal(await frame.getAttribute('src'),frameSrc);
+   const box=await dialog.boundingBox();await page.mouse.click(box.x+5,box.y+5);assert.equal(await dialog.getAttribute('open'),'');assert.equal(await frame.getAttribute('src'),frameSrc);
+   await page.keyboard.press('Escape');assert.equal(await dialog.getAttribute('open'),'');assert.equal(await frame.getAttribute('src'),frameSrc);
+   await dialog.locator('.video-lightbox-close').focus();await page.keyboard.press('Enter');
+   assert.equal(await dialog.getAttribute('open'),null);await page.waitForFunction(()=>!document.querySelector('.video-lightbox iframe'));assert(await videoButton.evaluate(el=>document.activeElement===el));
    await visit('read.html?k=1505f35ad3d6f0');await page.waitForFunction(()=>document.querySelector('#read-body')?.textContent.trim().length>30);
    await checkOverflow(page,`${theme} ${width} article loaded`);
    const size=await page.locator('#read-body').evaluate(e=>parseFloat(getComputedStyle(e).fontSize));await page.click('#read-font-up');await page.waitForFunction(before=>parseFloat(getComputedStyle(document.querySelector('#read-body')).fontSize)>before,size);
