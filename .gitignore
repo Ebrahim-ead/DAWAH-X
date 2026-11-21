@@ -1,2 +1,9 @@
 .ideavo/project
 *.log
+
+# Local dependencies, browser-test output and private environment overrides
+node_modules/
+playwright-report/
+test-results/
+.env.local
+.env.*.local

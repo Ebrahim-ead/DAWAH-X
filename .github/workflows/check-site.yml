@@ -19,17 +19,9 @@ jobs:
       - name: Validate the site
         run: |
           node tools/check-site.cjs
-          node tests/video-audit.cjs
-          node tests/video-audit-integration.cjs
-          node tests/video-blocklist-integration.cjs
-          node tests/home-sections.cjs
-          node tests/prayer-times.cjs
-          node tests/fatwa-panel.cjs
-          node tests/responsive-controls.cjs
-          node tests/text-date.cjs
-          node tests/new-text-import.cjs
-          node tests/source-shards.cjs
-          node tests/sw-precache.cjs
+          node tools/run-tests.cjs
+          TZ=Pacific/Honolulu node tests/prayer-times.cjs
+          TZ=Pacific/Kiritimati node tests/prayer-times.cjs
   guidance-contrast:
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -42,3 +34,23 @@ jobs:
         run: npm install --prefix "$RUNNER_TEMP/guidance-browser" playwright-core@1.56.1 pngjs@7.0.0
       - name: Check daily reading contrast in Chromium
         run: NODE_PATH="$RUNNER_TEMP/guidance-browser/node_modules" node tools/check-guidance-browser.cjs
+  responsive-browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install browser test dependencies
+        run: npm install --prefix "$RUNNER_TEMP/responsive-browser" playwright-core@1.56.1
+      - name: Check responsive interactions in Chromium
+        run: NODE_PATH="$RUNNER_TEMP/responsive-browser/node_modules" TEST_ARTIFACT_DIR="$RUNNER_TEMP/responsive-results" node tools/check-responsive-browser.cjs
+      - name: Upload failure screenshot
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: responsive-browser-failure
+          path: ${{ runner.temp }}/responsive-results/
+          if-no-files-found: ignore
+          retention-days: 7

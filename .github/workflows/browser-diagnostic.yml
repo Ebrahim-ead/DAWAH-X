@@ -1,0 +1,25 @@
+name: Temporary browser diagnostics
+on:
+  push:
+    branches: [arena/cb05d652-dawah-x]
+    paths: ['tools/check-responsive-browser.cjs', '.github/workflows/browser-diagnostic.yml']
+permissions:
+  contents: write
+jobs:
+  diagnostic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install --prefix "$RUNNER_TEMP/responsive-browser" playwright-core@1.56.1
+      - run: NODE_PATH="$RUNNER_TEMP/responsive-browser/node_modules" TEST_ARTIFACT_DIR=tools/browser-diagnostic node tools/check-responsive-browser.cjs > tools/browser-diagnostic-result.txt 2>&1 || true
+      - run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add tools/browser-diagnostic-result.txt
+          if [ -d tools/browser-diagnostic ]; then git add tools/browser-diagnostic; fi
+          git commit -m 'Save temporary browser diagnostic results' || exit 0
+          git push origin HEAD:${GITHUB_REF_NAME}
