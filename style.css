@@ -1415,3 +1415,31 @@ html[data-theme="light"] .prayer-disclaimer{background:rgba(23,36,44,.025);borde
  }
 }
 @media(prefers-reduced-motion:reduce){.prayer-card,.prayer-source,.prayer-icon{animation:none!important;transition:none!important}}
+
+/* ছোট পর্দায় সহজে পড়া ও স্পর্শ: ফিল্টারগুলো লুকিয়ে না রেখে পাশে স্ক্রল করা যায়। */
+.video-filter-head{display:contents}
+.video-scroll-hint{display:none}
+@media(max-width:560px){
+ .stat-strip span{font-size:12px;line-height:1.35}
+ .stat-strip a{min-height:48px;justify-content:center}
+ .library-stat{font-size:12px;line-height:1.4}
+ .library-kind,.library-new{font-size:11px}
+ .read-tools .tool-btn{min-height:44px;font-size:13px;line-height:1.25}
+ .qchips:not(.video-chips) .chip{min-height:42px}
+ .video-filter-head{display:flex;align-items:baseline;justify-content:space-between;width:100%;gap:10px}
+ .video-scroll-hint{display:block;color:var(--muted);font-size:11px}
+ .video-chips{flex:none;width:100%;min-width:0;flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;padding:2px 1px 6px;scrollbar-width:thin;scrollbar-color:rgba(246,196,83,.45) transparent}
+ .video-chips .chip{flex:0 0 auto;min-height:44px;scroll-margin-inline:8px}
+ .video-chips::-webkit-scrollbar{height:4px}
+ .video-chips::-webkit-scrollbar-thumb{background:rgba(246,196,83,.45);border-radius:999px}
+}
+@media(max-width:360px){.stat-strip span{font-size:11.5px}}
+
+/* ছবি দেরিতে এলে বা না এলেও ভিডিও চালানোর সংকেত দৃশ্যমান থাকে। */
+.video-play{position:absolute;z-index:2;left:50%;top:50%;display:grid;place-items:center;width:52px;height:52px;padding-left:3px;border:1px solid rgba(255,255,255,.55);border-radius:50%;background:rgba(0,0,0,.72);color:#fff;font:20px/1 system-ui,sans-serif;transform:translate(-50%,-50%);pointer-events:none}
+.video-preview:focus-visible{outline-offset:-4px!important}
+@media(max-width:600px){.video-lightbox-close{width:44px;height:44px}}
+
+#video-grid[data-fade="1"] .video-preview.has-thumb,#video-grid[data-fade="1"] .video-preview.thumb-unavailable{animation:none;background:#0b1a22}
+.video-preview img[hidden]{display:none}
+@media(max-width:600px){.subscribe-btn{white-space:nowrap;font-size:12px;padding:10px 12px;gap:5px}.channel-left{min-width:0}}

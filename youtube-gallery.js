@@ -92,14 +92,18 @@
   function chipRow(kind,name,items,current){
     const row=document.createElement('div');row.className='video-filter-row';
     const title=document.createElement('span');title.className='video-filter-name';title.id='video-filter-'+kind;title.textContent=name;
+    const head=document.createElement('div');head.className='video-filter-head';head.append(title);
+    const hint=document.createElement('span');hint.className='video-scroll-hint';hint.textContent='পাশে সরিয়ে আরও দেখুন ↔';head.append(hint);
     const box=document.createElement('div');box.className='qchips video-chips';box.dataset.kind=kind;box.setAttribute('role','group');box.setAttribute('aria-labelledby',title.id);
     box.append(chip('সব','',current),...items.map(item=>chip(item[1],item[0],current)));
-    row.append(title,box);
+    row.append(head,box);
     return row;
   }
   /* তালিকা লোড হওয়ার আগে সব বোতাম দেখায় (পাতা যেন লাফ না দেয়); লোডের পরে যে বিষয়/চ্যানেলে একটিও ভিডিও নেই সেটি বাদ পড়ে */
   function drawFilters(){
     if(!filters)return;
+    // পেছনে বিষয় গণনা শেষ হলেও মোবাইলের আড়াআড়ি স্ক্রল-অবস্থান যেন হারিয়ে না যায়।
+    const offsets=new Map([...filters.querySelectorAll('.video-chips')].map(box=>[box.dataset.kind,box.scrollLeft]));
     const loaded=videos.length>0;
     let topicItems;
     if(!loaded||!topicsPresent){
@@ -119,6 +123,7 @@
     const rows=[chipRow('topic','বিষয়',topicItems,topic)];
     if(channelItems.length>1)rows.push(chipRow('channel','চ্যানেল',channelItems,channel));
     filters.replaceChildren(...rows,note);
+    filters.querySelectorAll('.video-chips').forEach(box=>{box.scrollLeft=offsets.get(box.dataset.kind)||0});
   }
   /* বিষয় গণনা একটানা হাজারো ভিডিওতে না চালিয়ে ছোট কাজে ভাগ করি — প্রথম কার্ড আগে দেখা যায়। */
   function prepareTopics(){
@@ -188,17 +193,18 @@
     const image=document.createElement('img');
     image.loading='lazy';
     image.decoding='async';
-    image.alt=video.title+' — ভিডিও thumbnail';
+    // বোতামের অ্যাক্সেসিবল নামে শিরোনাম আছে; ছবিটি সেই নামের পুনরাবৃত্তি নয়।
+    image.alt='';
     image.addEventListener('error',()=>{
-      if(image.dataset.fallback)return;
-      image.dataset.fallback='1';
-      image.src=remoteThumb(video.id,'mqdefault');
+      if(!image.dataset.fallback){image.dataset.fallback='1';image.src=remoteThumb(video.id,'mqdefault');return}
+      image.hidden=true;button.classList.add('thumb-unavailable');
     });
-    image.addEventListener('load',()=>image.classList.add('is-loaded'));
-    image.addEventListener('error',()=>image.classList.add('is-loaded'));
+    const thumbLoaded=()=>{image.classList.add('is-loaded');button.classList.add('has-thumb')};
+    image.addEventListener('load',thumbLoaded);
     image.src=thumbUrl(video);
-    if(image.complete&&image.naturalWidth)image.classList.add('is-loaded');
+    if(image.complete&&image.naturalWidth)thumbLoaded();
     button.append(image);
+    const play=document.createElement('span');play.className='video-play';play.setAttribute('aria-hidden','true');play.textContent='▶';button.append(play);
 
     const info=document.createElement('div');
     info.className='video-info';
@@ -242,6 +248,7 @@
         const badge=document.createElement('span');
         badge.className='video-new';
         badge.textContent='নতুন';
+        button.setAttribute('aria-label','নতুন — '+video.title+' — ভিডিওটি এই পেজে চালান');
         button.append(badge);
       }
     }
