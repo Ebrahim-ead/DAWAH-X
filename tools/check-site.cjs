@@ -170,6 +170,7 @@ try{
  const topics=JSON.parse(read('tools/topics.json'));for(const t of topics.topics)if(!exists('topic-'+t.id+'.html'))fail(`বিষয়ের পাতা নেই ${t.id}`);
  const faq=read('faq.html'),faqScript=(faq.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)||[])[1];
  const faqData=JSON.parse(faqScript||'null');if(!faqData||faqData['@type']!=='FAQPage'||faqData.mainEntity.length!==(faq.match(/class="faq-item"/g)||[]).length)fail('faq.html: দৃশ্যমান প্রশ্নোত্তর ও structured data মেলে না');
+ if(faqData?.mainEntity?.some(q=>/-->|প্রসঙ্গসমূহ/u.test(q.acceptedAnswer?.text||'')))fail('faq.html: উত্তরে উৎসের অপ্রাসঙ্গিক HTML আছে');
  const sources=JSON.parse(read('source-data.json')),recent=JSON.parse(read('recent-data.json'));
  const sourceKeys=new Set();for(const code in sources.sources)for(const row of sources.sources[code]){if(sourceKeys.has(row[0]))fail(`source-data.json: পুনরাবৃত্তি ${row[0]}`);sourceKeys.add(row[0]);if(!exists('s/'+row[0]+'.html'))fail(`source-data.json: লেখা নেই ${row[0]}`)}
  const videoIds=new Set(JSON.parse(read('youtube-videos.json')).map(v=>v.id));
