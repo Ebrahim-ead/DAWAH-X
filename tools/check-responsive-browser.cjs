@@ -42,6 +42,8 @@ const checkOverflow=async(page,label)=>{
    await page.goto(base+'index.html',{waitUntil:'domcontentloaded'});await page.evaluate(t=>localStorage.setItem('dawahx-theme',t),theme);
    const visit=async name=>{await page.goto(base+name,{waitUntil:'domcontentloaded'});await page.evaluate(()=>document.fonts.ready);await page.waitForFunction(t=>document.documentElement.dataset.theme===t,theme);await checkOverflow(page,`${theme} ${width} ${name}`)};
    await visit('index.html');
+   const expectedMenu=['index.html','questions.html','topics.html','fatwa.html','videos.html','ask.html','about.html','services.html','contact.html'];
+   assert.deepEqual(await page.locator('#menu a').evaluateAll(links=>links.map(a=>a.getAttribute('href'))),expectedMenu);
    await page.click('#theme-toggle');assert.notEqual(await page.getAttribute('html','data-theme'),theme);await page.reload();assert.notEqual(await page.getAttribute('html','data-theme'),theme);await page.click('#theme-toggle');
    if(width<1100){await page.click('#burger');assert.equal(await page.getAttribute('#burger','aria-expanded'),'true');await page.keyboard.press('Escape');assert.equal(await page.getAttribute('#burger','aria-expanded'),'false')}
    await page.evaluate(()=>scrollTo(0,1200));await page.waitForFunction(()=>document.querySelector('#back-to-top')?.classList.contains('is-visible'));await page.click('#back-to-top');await page.waitForFunction(()=>scrollY===0);
@@ -87,6 +89,15 @@ const checkOverflow=async(page,label)=>{
    }
    assert.deepEqual(errors,[],`${theme} ${width}: page errors`);
    await context.close();page=null;console.log(`${theme} ${width}px: navigation, reading, videos and form passed`);
+  }
+  // Desktop breakpoints near the navigation's tightest layouts.
+  for(const width of [1100,1180,1280]){
+   const context=await browser.newContext({viewport:{width,height:900},reducedMotion:'reduce',serviceWorkers:'block'});
+   page=await context.newPage();await page.goto(base+'index.html',{waitUntil:'domcontentloaded'});await page.evaluate(()=>document.fonts.ready);
+   const bounds=await page.locator('#menu a').evaluateAll(links=>links.map(link=>{const b=link.getBoundingClientRect();return {left:b.left,right:b.right,top:b.top,bottom:b.bottom}}));
+   assert.equal(bounds.length,9);for(let i=1;i<bounds.length;i++){assert(bounds[i].left>=bounds[i-1].right-1,`${width}px: overlapping navigation links`);assert(Math.abs(bounds[i].top-bounds[0].top)<2,`${width}px: wrapped navigation`)}
+   const acts=await page.locator('.acts').boundingBox();assert(bounds.at(-1).right<=acts.x+1,`${width}px: navigation overlaps actions`);
+   await checkOverflow(page,`${width}px desktop navigation`);await context.close();page=null;
   }
  }catch(error){
   if(page&&process.env.TEST_ARTIFACT_DIR){try{fs.mkdirSync(process.env.TEST_ARTIFACT_DIR,{recursive:true});await page.screenshot({path:path.join(process.env.TEST_ARTIFACT_DIR,'responsive-failure.png'),fullPage:true})}catch{}}
