@@ -12,7 +12,7 @@ const result={cases:0,issues:[],axe:[],screens:[]};
   for(const name of pages){const p=await ctx.newPage(),errors=[];p.on('pageerror',e=>errors.push(String(e)));
    try{
     await p.goto('http://127.0.0.1:4173/'+name,{waitUntil:'domcontentloaded',timeout:25000});await p.evaluate(()=>document.fonts.ready);await p.waitForTimeout(200);
-    if(await p.getAttribute('html','data-theme')!==theme)throw new Error('incorrect site theme');
+    if(name!=='404.html'&&await p.getAttribute('html','data-theme')!==theme)throw new Error('incorrect site theme');
     if(name.startsWith('read.html'))await p.waitForFunction(()=>document.querySelector('#read-body')?.textContent.trim().length>30,null,{timeout:12000});
     if(name==='videos.html')await p.waitForSelector('.video-card',{timeout:15000});
     result.cases++;

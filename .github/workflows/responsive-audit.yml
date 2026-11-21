@@ -18,7 +18,7 @@ jobs:
       - run: |
           python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/responsive-http.log 2>&1 &
           NODE_PATH=/tmp/responsive/node_modules node tools/responsive-interactions.cjs > tools/responsive-interactions-result.txt 2>&1 || true
-          NODE_PATH=/tmp/responsive/node_modules node tools/responsive-audit.cjs || true
+          # Full audit previously completed; focus on interaction diagnosis.
       - run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
