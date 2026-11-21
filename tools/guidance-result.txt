@@ -1,0 +1,8 @@
+light 320px: all four cards readable
+dark 320px: all four cards readable
+light 390px: all four cards readable
+dark 390px: all four cards readable
+light 768px: all four cards readable
+dark 768px: all four cards readable
+light 1280px: all four cards readable
+dark 1280px: all four cards readable
