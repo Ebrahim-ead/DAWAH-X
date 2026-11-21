@@ -7,8 +7,8 @@ const {chromium}=require('playwright-core');const assert=require('node:assert/st
   const panel=page.locator('.prayer-panel');await panel.scrollIntoViewIfNeeded();
   assert((await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth))<=1,`${width} overflow`);
   assert(await page.locator('.prayer-source').isVisible());
-  const f=page.frameLocator('#prayer-frame');await f.locator('body').waitFor({timeout:30000});
-  await f.getByText('Dhaka, Bangladesh',{exact:false}).first().waitFor({timeout:30000});
+  const f=page.frameLocator('#prayer-frame');await f.locator('body').waitFor({timeout:20000});
+  try{await f.getByText('Dhaka, Bangladesh',{exact:false}).first().waitFor({timeout:12000})}catch(e){const body=await f.locator('body').innerText().catch(()=>'<unreadable>');const url=page.frames().map(f=>f.url()).join(' | ');throw new Error(`frame body: ${body.slice(0,300)} frame URLs: ${url}`)};
   const body=await f.locator('body').innerText();for(const name of ['Fajr','Sunrise','Dhuhr','Asr','Maghrib','Isha'])assert(body.includes(name),`${width}: missing ${name}`);
   assert.equal((body.match(/\b\d{1,2}:\d{2}\s*[AP]M\b/g)||[]).length,6,`${width}: expected six times`);
   assert(await page.locator('#prayer-frame').evaluate(e=>{let r=e.getBoundingClientRect();return r.right<=innerWidth&&r.left>=0}));
