@@ -7,6 +7,7 @@
    চালানো: node tools/build-site-data.cjs            (সাইটের ঠিকানা tools/site.json থেকে নেয়) */
 'use strict';
 const fs=require('fs'),path=require('path'),crypto=require('crypto');
+const {excerptSource}=require('./article-excerpt.cjs');
 const ROOT=path.join(__dirname,'..'),TEXTS=path.join(ROOT,'texts');
 const SITE=JSON.parse(fs.readFileSync(path.join(__dirname,'site.json'),'utf8')).url.replace(/\/*$/,'/');
 const SHARDS=512,REL_N=5;
@@ -198,13 +199,14 @@ if(!ONLY||ONLY==='share'){
  const list=LIMIT?docs.slice(0,LIMIT):docs;
  for(const d of list){
   const full=d.t||'',t=cut(full,180),titleAttr=esc(cut(full,110)),src=SRC[d.s]||'',date=toEn(d.d||''),iso=isoDate(date);
+  const excerptHtml=excerptSource(d.h,d.s);
   const q='k='+d.k+'&from='+sideOf(d.s);
   let page;
   if(pickedSet.has(d.k)){
    art++;
-   const paras=[...String(d.h||'').matchAll(/<p[^>]*>([\s\S]*?)<\/p>/gi)].map(m=>m[1]);
+   const paras=[...excerptHtml.matchAll(/<p[^>]*>([\s\S]*?)<\/p>/gi)].map(m=>m[1]);
    let bodyHtml='',used=0;
-   for(const raw of (paras.length?paras:[String(d.h||'')])){
+   for(const raw of (paras.length?paras:[excerptHtml])){
     if(used>=EXCERPT)break;
     const piece=clean(raw);
     if(!piece)continue;
@@ -212,9 +214,9 @@ if(!ONLY||ONLY==='share'){
     if(txt.length<=EXCERPT-used){bodyHtml+='<p>'+esc(txt)+'</p>';used+=txt.length}
     else{bodyHtml+='<p>'+esc(cut(txt,EXCERPT-used))+'</p>';used=EXCERPT}
    }
-   if(!bodyHtml)bodyHtml='<p>'+esc(cut(plain(d.h)||t,EXCERPT))+'</p>';
-   if(plain(d.h).length>EXCERPT)bodyHtml+='<p class="article-note">…লেখাটি এখানে সংক্ষেপে দেওয়া হলো।</p>';
-   const desc=cut(plain(d.h).replace(/^(প্রশ্ন|উত্তর)\s*[:ঃ]?\s*/,''),155)||'কুরআন ও সুন্নাহর আলোকে লেখা';
+   if(!bodyHtml)bodyHtml='<p>'+esc(cut(plain(excerptHtml)||t,EXCERPT))+'</p>';
+   if(plain(excerptHtml).length>EXCERPT)bodyHtml+='<p class="article-note">…লেখাটি এখানে সংক্ষেপে দেওয়া হলো।</p>';
+   const desc=cut(plain(excerptHtml).replace(/^(প্রশ্ন|উত্তর)\s*[:ঃ]?\s*/,''),155)||'কুরআন ও সুন্নাহর আলোকে লেখা';
    const url=SITE+'s/'+d.k+'.html',isF=sideOf(d.s)==='f';
    const sec=isF?'fatwa.html':'questions.html',secName=isF?'ফতোয়া':'প্রশ্নোত্তর';
    const sp=seriesMap.get(d.k);let seriesNav='';
@@ -255,7 +257,7 @@ if(!ONLY||ONLY==='share'){
     +'</article></main></body></html>\n';
   }else{
    stub++;
-   const desc=esc(cut(plain(d.h).replace(/^(প্রশ্ন|উত্তর)\s*[:ঃ]?\s*/,''),120)||'কুরআন ও সুন্নাহর আলোকে প্রশ্নোত্তর');
+   const desc=esc(cut(plain(excerptHtml).replace(/^(প্রশ্ন|উত্তর)\s*[:ঃ]?\s*/,''),120)||'কুরআন ও সুন্নাহর আলোকে প্রশ্নোত্তর');
    page=stubOf(d,titleAttr,desc,q).body;
   }
   const f=path.join(out,d.k+'.html');written.add(d.k+'.html');size+=Buffer.byteLength(page);
