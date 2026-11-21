@@ -4,6 +4,7 @@ on:
     branches: ['arena/**']
     paths: ['tools/ik-probe.cjs', '.github/workflows/ik-probe.yml']
   workflow_dispatch:
+# প্রতিবেদন শুধু Actions artifact-এ রাখা হয়; ডেটা বা কনটেন্ট বদলায় না।
 permissions:
   contents: read
 jobs:
