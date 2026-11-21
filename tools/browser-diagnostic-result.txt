@@ -1,8 +1,0 @@
-light 320px: navigation, reading, videos and form passed
-dark 320px: navigation, reading, videos and form passed
-light 390px: navigation, reading, videos and form passed
-dark 390px: navigation, reading, videos and form passed
-light 768px: navigation, reading, videos and form passed
-dark 768px: navigation, reading, videos and form passed
-light 1280px: navigation, reading, videos and form passed
-dark 1280px: navigation, reading, videos and form passed
