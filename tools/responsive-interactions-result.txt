@@ -1,8 +1,4 @@
-font 320 16.5 18.15 []
 interaction checks passed 320
-font 390 16.5 18.15 []
 interaction checks passed 390
-font 768 17 18.7 []
 interaction checks passed 768
-font 1366 17 18.7 []
 interaction checks passed 1366
