@@ -1,0 +1,19 @@
+name: Temporary prayer cards browser check
+on:
+  push:
+    branches: [arena/6bab8ce3-dawah-x]
+    paths: ['index.html', 'adhan.min.js', 'prayer-times.js', 'style.css', 'tools/prayer-cards-check.cjs', '.github/workflows/prayer-cards-check.yml']
+permissions:
+  contents: read
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install --prefix /tmp/prayercheck playwright-core
+      - run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/prayer-http.log 2>&1 &
+          NODE_PATH=/tmp/prayercheck/node_modules node tools/prayer-cards-check.cjs
