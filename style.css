@@ -1094,6 +1094,9 @@ html[data-theme="light"] .library-kind{background:rgba(15,106,96,.07);border-col
 html[data-theme="light"] .library-new{background:rgba(15,106,96,.08);border-color:rgba(15,106,96,.24);color:#0f6a60}
 html[data-theme="light"] .stat-strip{background:linear-gradient(135deg,rgba(255,253,248,.95),rgba(248,245,236,.9));border-color:rgba(162,112,10,.18)}
 html[data-theme="light"] .stat-strip li+li{border-left-color:rgba(162,112,10,.16)}
+/* দিনের থিমে আজকের পাঠের পটভূমিও হালকা: গাঢ় লেখা যেন হারিয়ে না যায়। */
+html[data-theme="light"] .guidance-card{background:#fffdf8;border-color:rgba(162,112,10,.25);box-shadow:0 8px 24px rgba(23,36,44,.08)}
+html[data-theme="light"] .guidance-card:hover{border-color:rgba(162,112,10,.48);box-shadow:0 12px 28px rgba(23,36,44,.12)}
 html[data-theme="light"] .discover-card{background:linear-gradient(145deg,rgba(255,253,248,.96),rgba(247,245,238,.85));border-color:var(--line)}
 html[data-theme="light"] .topic{background:rgba(255,253,248,.9);border-color:var(--line)}
 html[data-theme="light"] .topic-head h2{color:var(--text)}

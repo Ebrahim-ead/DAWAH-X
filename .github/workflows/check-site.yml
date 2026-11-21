@@ -30,3 +30,15 @@ jobs:
           node tests/new-text-import.cjs
           node tests/source-shards.cjs
           node tests/sw-precache.cjs
+  guidance-contrast:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install browser test dependencies
+        run: npm install --prefix "$RUNNER_TEMP/guidance-browser" playwright-core@1.56.1 pngjs@7.0.0
+      - name: Check daily reading contrast in Chromium
+        run: NODE_PATH="$RUNNER_TEMP/guidance-browser/node_modules" node tools/check-guidance-browser.cjs

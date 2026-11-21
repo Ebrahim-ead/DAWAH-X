@@ -1,0 +1,24 @@
+name: Temporary guidance diagnostics
+on:
+  push:
+    branches: [arena/6f15de24-dawah-x]
+    paths: ['tools/check-guidance-browser.cjs', '.github/workflows/guidance-diagnostics.yml', 'style.css']
+permissions:
+  contents: write
+jobs:
+  diagnostic:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install --prefix "$RUNNER_TEMP/guidance-browser" playwright-core@1.56.1 pngjs@7.0.0
+      - run: NODE_PATH="$RUNNER_TEMP/guidance-browser/node_modules" GUIDANCE_SCREENSHOTS=1 node tools/check-guidance-browser.cjs > tools/guidance-result.txt 2>&1 || true
+      - run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add tools/guidance-result.txt
+          find tools -maxdepth 1 -name 'guidance-*.png' -print0 | xargs -0 -r git add
+          git commit -m 'Save temporary guidance diagnostics' || exit 0
+          git push origin HEAD:${GITHUB_REF_NAME}
