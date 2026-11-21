@@ -22,6 +22,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   import:
+    if: github.event_name != 'push' || !contains(github.event.head_commit.message, '[skip-data-jobs]')
     runs-on: ubuntu-latest
     timeout-minutes: 350
     steps:
@@ -52,7 +53,7 @@ jobs:
           NODE_PATH: /tmp/imp/node_modules
         run: |
           echo "mode=$IK_MODE_EFF · limit=$IK_LIMIT_EFF" | tee tools/ik-report.txt
-          # রান ব্যর্থ হলেও রিপোর্ট কমিট হয়, যাতে কারণটা পড়া যায়
+          # রান ব্যর্থ হলেও রিপোর্ট artifact-এ রাখা হয়, যাতে কারণটা পড়া যায়
           if [ "$IK_MODE_EFF" = "discover" ] || [ "$IK_MODE_EFF" = "probe" ]; then
             node tools/import-ikhlasbd.cjs --discover 2>&1 | tee -a tools/ik-report.txt || echo "discover failed: $?" | tee -a tools/ik-report.txt
           fi
@@ -81,7 +82,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A -- source-data.json source-index.json 'source-??-*.json' recent-data.json sources.html recent.html faq.html texts search rel s stats.json series.json series.html 'series-*.html' 'topic-*.html' topics.html index.html 'sitemap-*.xml' sitemap.xml robots.txt tools/ik-ids.json tools/ik-report.txt 2>/dev/null || true
+          git add -A -- source-data.json source-index.json 'source-??-*.json' recent-data.json sources.html recent.html faq.html texts search rel s stats.json series.json series.html 'series-*.html' 'topic-*.html' topics.html index.html 'sitemap-*.xml' sitemap.xml robots.txt tools/ik-ids.json 2>/dev/null || true
           if git diff --cached --quiet; then echo "নতুন কিছু নেই"; exit 0; fi
           git commit -q -m "Import ikhlasbd texts (automated)"
           for i in 1 2 3 4; do
@@ -90,3 +91,11 @@ jobs:
             if git push -q origin "HEAD:${GITHUB_REF_NAME}"; then echo "pushed (try $i)"; break; fi
             sleep 20
           done
+      - name: Upload import report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ikhlasbd-import-report
+          path: tools/ik-report.txt
+          if-no-files-found: ignore
+          retention-days: 30

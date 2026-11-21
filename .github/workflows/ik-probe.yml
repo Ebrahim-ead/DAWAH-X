@@ -5,9 +5,10 @@ on:
     paths: ['tools/ik-probe.cjs', '.github/workflows/ik-probe.yml']
   workflow_dispatch:
 permissions:
-  contents: write
+  contents: read
 jobs:
   probe:
+    if: github.event_name != 'push' || !contains(github.event.head_commit.message, '[skip-data-jobs]')
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -18,16 +19,11 @@ jobs:
         with:
           node-version: 20
       - run: node tools/ik-probe.cjs
-      - name: Commit the report
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add tools/ik-probe-report.txt
-          git diff --cached --quiet && exit 0
-          git commit -q -m "Probe ikhlasbd structure (automated)"
-          for i in 1 2 3; do
-            git fetch -q origin "${GITHUB_REF_NAME}"
-            git rebase -X theirs "origin/${GITHUB_REF_NAME}" >/dev/null 2>&1 || git rebase --abort >/dev/null 2>&1 || true
-            git push -q origin "HEAD:${GITHUB_REF_NAME}" && break
-            sleep 15
-          done
+      - name: Upload probe report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ikhlasbd-probe-report
+          path: tools/ik-probe-report.txt
+          if-no-files-found: ignore
+          retention-days: 30

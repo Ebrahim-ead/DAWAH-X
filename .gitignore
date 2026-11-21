@@ -7,3 +7,9 @@ playwright-report/
 test-results/
 .env.local
 .env.*.local
+
+# Regenerated diagnostic reports; CI keeps these as temporary artifacts.
+/tools/backfill-report.txt
+/tools/probe-report.txt
+/tools/ik-report.txt
+/tools/ik-probe-report.txt
