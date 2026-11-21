@@ -1,0 +1,26 @@
+name: Temporary responsive audit
+on:
+  push:
+    branches: [arena/8a4a3789-dawah-x]
+    paths: ['tools/responsive-audit.cjs', '.github/workflows/responsive-audit.yml']
+permissions:
+  contents: write
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install --prefix /tmp/responsive playwright-core axe-core
+      - run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/responsive-http.log 2>&1 &
+          NODE_PATH=/tmp/responsive/node_modules node tools/responsive-audit.cjs
+      - run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add tools/responsive-audit-result.json tools/responsive-shot-*.png
+          git commit -m 'Save temporary responsive audit' || exit 0
+          git push origin HEAD:${GITHUB_REF_NAME}
