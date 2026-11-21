@@ -47,20 +47,26 @@ const checkOverflow=async(page,label)=>{
    await page.evaluate(()=>scrollTo(0,1200));await page.waitForFunction(()=>document.querySelector('#back-to-top')?.classList.contains('is-visible'));await page.click('#back-to-top');await page.waitForFunction(()=>scrollY===0);
    for(const name of ['questions.html','fatwa.html'])await visit(name);
    await visit('videos.html');await page.waitForSelector('.video-card');await page.waitForFunction(()=>document.querySelectorAll('.video-chips[data-kind="topic"] .chip').length>3);
+   await checkOverflow(page,`${theme} ${width} videos loaded`);
    if(width<=560){const box=page.locator('.video-chips[data-kind="topic"]');assert(await box.evaluate(e=>e.scrollWidth>e.clientWidth));for(const button of await box.locator('.chip').all())assert((await button.boundingBox()).height>=44)}
    const topic=page.locator('.video-chips[data-kind="topic"] .chip').nth(1);await topic.click();assert.equal(await topic.getAttribute('aria-pressed'),'true');
    await page.fill('#video-search','zzzznotavideo123');await page.waitForFunction(()=>document.querySelector('#video-grid').dataset.count==='0');await page.fill('#video-search','');await page.locator('.video-chips[data-kind="topic"] .chip').first().click();await page.waitForSelector('.video-card');
    await page.locator('.video-preview').first().click();assert.equal(await page.locator('.video-lightbox').getAttribute('open'),'');assert(await page.locator('.video-lightbox iframe').count());await page.locator('.video-lightbox-close').click();assert.equal(await page.locator('.video-lightbox').getAttribute('open'),null);
    await visit('read.html?k=1505f35ad3d6f0');await page.waitForFunction(()=>document.querySelector('#read-body')?.textContent.trim().length>30);
+   await checkOverflow(page,`${theme} ${width} article loaded`);
    const size=await page.locator('#read-body').evaluate(e=>parseFloat(getComputedStyle(e).fontSize));await page.click('#read-font-up');await page.waitForFunction(before=>parseFloat(getComputedStyle(document.querySelector('#read-body')).fontSize)>before,size);
    if(width<=560)assert((await page.locator('#read-font-up').boundingBox()).height>=44);
    await page.click('#read-save');assert.equal(await page.getAttribute('#read-save','aria-pressed'),'true');await page.reload();assert.equal(await page.getAttribute('#read-save','aria-pressed'),'true');
    await visit('ask.html');await page.click('#askbtn');assert.equal(await page.getAttribute('#an','aria-invalid'),'true');assert.equal(submissions.length,0);
    if(width===390){
-    await page.fill('#an','পরীক্ষার নাম');await page.fill('#ac','test@example.com');await page.selectOption('#ar',{label:'মুসলিম'});await page.fill('#aq','এটি পরীক্ষার একটি প্রশ্ন।');
+    await page.fill('#an','পরীক্ষার নাম');await page.click('#askbtn');assert.equal(await page.getAttribute('#ac','aria-invalid'),'true');
+    await page.fill('#ac','invalid');await page.click('#askbtn');assert.equal(await page.getAttribute('#ac','aria-invalid'),'true');
+    await page.fill('#ac','test@example.com');await page.click('#askbtn');assert.equal(await page.getAttribute('#ar','aria-invalid'),'true');
+    await page.selectOption('#ar',{label:'মুসলিম'});await page.click('#askbtn');assert.equal(await page.getAttribute('#aq','aria-invalid'),'true');assert.equal(submissions.length,0);
+    await page.fill('#aq','এটি পরীক্ষার একটি প্রশ্ন।');
     // Form's anti-bot gate is time based; the remote endpoint is intercepted.
-    await page.waitForTimeout(1600);await page.click('#askbtn');await page.waitForFunction(()=>document.querySelector('#askm').textContent.includes('পৌঁছেছে'));assert.equal(submissions.length,1);assert.equal(submissions[0].email,'test@example.com');
-    response='false';await page.fill('#aq','আরেকটি পরীক্ষার প্রশ্ন।');await page.click('#askbtn');await page.waitForSelector('#askm .ask-whatsapp');assert.equal(submissions.length,2);assert(await page.locator('#askm .ask-messenger').count());
+    await page.waitForTimeout(1600);await page.click('#askbtn');await page.waitForFunction(()=>document.querySelector('#askm').textContent.includes('পৌঁছেছে'));assert.equal(submissions.length,1);assert.equal(submissions[0].email,'test@example.com');assert.equal(await page.inputValue('#aq'),'');
+    response='false';await page.fill('#aq','আরেকটি পরীক্ষার প্রশ্ন।');await page.click('#askbtn');await page.waitForSelector('#askm .ask-whatsapp');assert.equal(submissions.length,2);assert(await page.locator('#askm .ask-messenger').count());assert.equal(await page.inputValue('#aq'),'আরেকটি পরীক্ষার প্রশ্ন।');
    }
    assert.deepEqual(errors,[],`${theme} ${width}: page errors`);
    await context.close();page=null;console.log(`${theme} ${width}px: navigation, reading, videos and form passed`);
