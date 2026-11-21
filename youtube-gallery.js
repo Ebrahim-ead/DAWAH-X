@@ -196,14 +196,13 @@
     // বোতামের অ্যাক্সেসিবল নামে শিরোনাম আছে; ছবিটি সেই নামের পুনরাবৃত্তি নয়।
     image.alt='';
     image.addEventListener('error',()=>{
-      if(image.dataset.fallback)return;
-      image.dataset.fallback='1';
-      image.src=remoteThumb(video.id,'mqdefault');
+      if(!image.dataset.fallback){image.dataset.fallback='1';image.src=remoteThumb(video.id,'mqdefault');return}
+      image.hidden=true;button.classList.add('thumb-unavailable');
     });
-    image.addEventListener('load',()=>image.classList.add('is-loaded'));
-    image.addEventListener('error',()=>image.classList.add('is-loaded'));
+    const thumbLoaded=()=>{image.classList.add('is-loaded');button.classList.add('has-thumb')};
+    image.addEventListener('load',thumbLoaded);
     image.src=thumbUrl(video);
-    if(image.complete&&image.naturalWidth)image.classList.add('is-loaded');
+    if(image.complete&&image.naturalWidth)thumbLoaded();
     button.append(image);
     const play=document.createElement('span');play.className='video-play';play.setAttribute('aria-hidden','true');play.textContent='▶';button.append(play);
 

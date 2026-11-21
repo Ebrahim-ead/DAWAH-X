@@ -25,6 +25,7 @@ jobs:
           node tests/home-sections.cjs
           node tests/prayer-times.cjs
           node tests/fatwa-panel.cjs
+          node tests/responsive-controls.cjs
           node tests/text-date.cjs
           node tests/new-text-import.cjs
           node tests/source-shards.cjs

@@ -1439,3 +1439,7 @@ html[data-theme="light"] .prayer-disclaimer{background:rgba(23,36,44,.025);borde
 .video-play{position:absolute;z-index:2;left:50%;top:50%;display:grid;place-items:center;width:52px;height:52px;padding-left:3px;border:1px solid rgba(255,255,255,.55);border-radius:50%;background:rgba(0,0,0,.72);color:#fff;font:20px/1 system-ui,sans-serif;transform:translate(-50%,-50%);pointer-events:none}
 .video-preview:focus-visible{outline-offset:-4px!important}
 @media(max-width:600px){.video-lightbox-close{width:44px;height:44px}}
+
+#video-grid[data-fade="1"] .video-preview.has-thumb,#video-grid[data-fade="1"] .video-preview.thumb-unavailable{animation:none;background:#0b1a22}
+.video-preview img[hidden]{display:none}
+@media(max-width:600px){.subscribe-btn{white-space:nowrap;font-size:12px;padding:10px 12px;gap:5px}.channel-left{min-width:0}}
