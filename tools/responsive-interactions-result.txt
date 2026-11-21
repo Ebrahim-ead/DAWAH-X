@@ -1,4 +1,0 @@
-interaction checks passed 320
-interaction checks passed 390
-interaction checks passed 768
-interaction checks passed 1366
