@@ -1,0 +1,20 @@
+'use strict';
+const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict');
+const html=fs.readFileSync('index.html','utf8'),js=fs.readFileSync('prayer-times.js','utf8');
+const source='https://www.islamicfinder.org/prayer-widget/1185241/shafi/3/0/18/18/';
+assert(html.includes(`data-src="${source}"`));
+assert(html.includes('ঢাকা · বাংলাদেশ সময়'));assert(html.includes('হানাফী পদ্ধতিতে আসরের সময় ভিন্ন'));
+assert(html.includes('href="https://www.islamicfinder.org/world/bangladesh/1185241/dhaka-prayer-times/"'));
+assert(html.includes('src="prayer-times.js"'));
+let now='2026-12-31T17:59:00Z',value='',writes=0;const events={},docEvents={};
+const frame={dataset:{src:source},getAttribute:()=>value,set src(v){value=v;writes++}};
+class FakeDate extends Date{constructor(...args){super(...(args.length?args:[now]))}}
+const document={hidden:false,getElementById:id=>id==='prayer-frame'?frame:null,addEventListener:(key,fn)=>docEvents[key]=fn};
+const window={addEventListener:(key,fn)=>events[key]=fn,setInterval:(fn,ms)=>{assert.equal(ms,60000);events.tick=fn}};
+vm.runInNewContext(js,{window,document,Intl,Date:FakeDate,URL});
+assert.equal(new URL(value).searchParams.get('dawahx_day'),'2026-12-31');assert.equal(writes,1);
+events.tick();events.pageshow();assert.equal(writes,1,'same day must not reload');
+now='2026-12-31T18:00:00Z';events.tick();assert.equal(new URL(value).searchParams.get('dawahx_day'),'2027-01-01');assert.equal(writes,2);
+now='2027-01-01T18:00:00Z';document.hidden=true;docEvents.visibilitychange();assert.equal(writes,2);document.hidden=false;docEvents.visibilitychange();assert.equal(new URL(value).searchParams.get('dawahx_day'),'2027-01-02');assert.equal(writes,3);
+assert(!fs.readFileSync('policy.html','utf8').includes('নামাজের সময়সূচি আমরা দিই না'));
+console.log('prayer widget: source, Dhaka day rollover, restore and policy pass');

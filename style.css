@@ -1355,3 +1355,20 @@ body[data-page="fatwa"] .library-note:not(.catalog-status){margin-top:7px!import
  body[data-page="fatwa"] .library-link{min-height:70px;padding:9px 10px}
  body[data-page="fatwa"] .library-link b{font-size:14px}
 }
+
+/* ঢাকার নামাজের সময়: মূল উৎসের উইজেট, নিজস্ব গণনা নয়। */
+.prayer-section{padding:0 0 34px}
+.prayer-panel{display:grid;grid-template-columns:minmax(0,1fr) minmax(200px,280px);align-items:center;gap:clamp(20px,4vw,48px);padding:clamp(20px,3.5vw,36px);border:1px solid rgba(246,196,83,.23);border-radius:22px;background:radial-gradient(ellipse at 100% 0,rgba(246,196,83,.09),transparent 45%),linear-gradient(135deg,#101f23,#091417);box-shadow:0 14px 36px rgba(0,0,0,.14)}
+.prayer-kicker{display:inline-flex;padding:4px 10px;border:1px solid rgba(246,196,83,.24);border-radius:999px;background:rgba(246,196,83,.08);color:var(--gold2);font-size:12px;font-weight:700}
+.prayer-copy h2{margin:10px 0 6px;font-size:clamp(23px,3vw,30px);line-height:1.3}
+.prayer-copy p{max-width:60ch;color:var(--muted);font-size:14px;line-height:1.65}
+.prayer-copy .prayer-method{margin-top:14px;color:var(--text);font-size:13px}
+.prayer-copy .prayer-note{margin-top:10px;font-size:13px}
+.prayer-source{display:inline-flex;margin-top:16px;color:var(--gold2);font-weight:700;font-size:14px;text-decoration:underline;text-underline-offset:4px}
+.prayer-source:focus-visible{outline:2px solid var(--gold2);outline-offset:4px;border-radius:3px}
+.prayer-copy .prayer-caption{margin-top:9px;font-size:12px}
+.prayer-widget{min-width:0;text-align:center}
+.prayer-widget iframe{display:block;width:100%;height:358px;border:0;border-radius:14px;background:#fff}
+.prayer-widget noscript p{margin-top:8px;color:var(--muted);font-size:13px}
+html[data-theme="light"] .prayer-panel{background:linear-gradient(145deg,#fffdf7,#f6f3e9);border-color:rgba(162,112,10,.24);box-shadow:0 4px 18px rgba(23,36,44,.06)}
+@media(max-width:650px){.prayer-section{padding-bottom:26px}.prayer-panel{grid-template-columns:minmax(0,1fr);gap:18px;padding:20px;border-radius:18px}.prayer-widget{width:min(100%,280px);justify-self:center}.prayer-copy h2{font-size:23px}}
