@@ -89,4 +89,4 @@ const checkOverflow=async(page,label)=>{
   if(page&&process.env.TEST_ARTIFACT_DIR){try{fs.mkdirSync(process.env.TEST_ARTIFACT_DIR,{recursive:true});await page.screenshot({path:path.join(process.env.TEST_ARTIFACT_DIR,'responsive-failure.png'),fullPage:true})}catch{}}
   throw error;
  }finally{await browser?.close();server.close()}
-})().catch(error=>{console.error(error);process.exitCode=1});
+})().catch(error=>{console.error(error);if(process.env.GITHUB_ACTIONS)console.log('::error::'+String(error.stack||error).replace(/%/g,'%25').replace(/\r/g,'%0D').replace(/\n/g,'%0A'));process.exitCode=1});
