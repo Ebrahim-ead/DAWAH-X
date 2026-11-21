@@ -7,10 +7,12 @@ const result={cases:0,issues:[],axe:[],screens:[]};
  browser=await chromium.launch({executablePath:'/usr/bin/google-chrome',args:['--no-sandbox']});
  for(const width of widths){for(const theme of ['dark','light']){
   const ctx=await browser.newContext({viewport:{width,height:900},colorScheme:theme,reducedMotion:'reduce',serviceWorkers:'block'});
+  await ctx.addInitScript(theme=>localStorage.setItem('dawahx-theme',theme),theme);
   await ctx.route('**/*',r=>{let url=new URL(r.request().url());return url.hostname==='127.0.0.1'?r.continue():r.abort()});
   for(const name of pages){const p=await ctx.newPage(),errors=[];p.on('pageerror',e=>errors.push(String(e)));
    try{
     await p.goto('http://127.0.0.1:4173/'+name,{waitUntil:'domcontentloaded',timeout:25000});await p.evaluate(()=>document.fonts.ready);await p.waitForTimeout(200);
+    if(await p.getAttribute('html','data-theme')!==theme)throw new Error('incorrect site theme');
     if(name.startsWith('read.html'))await p.waitForFunction(()=>document.querySelector('#read-body')?.textContent.trim().length>30,null,{timeout:12000});
     if(name==='videos.html')await p.waitForSelector('.video-card',{timeout:15000});
     result.cases++;
@@ -34,5 +36,5 @@ const result={cases:0,issues:[],axe:[],screens:[]};
   }
   await ctx.close();
  }}
- }catch(e){result.error=String(e.stack||e)}finally{await browser?.close();fs.writeFileSync('tools/responsive-audit-result.json',JSON.stringify(result,null,2));console.log('Cases',result.cases,'issues',result.issues.length,'axe',result.axe.length);if(result.error)console.log('::error::'+result.error.replace(/[\r\n]+/g,' ').slice(0,1500))}
+ }catch(e){result.error=String(e.stack||e)}finally{await browser?.close();fs.writeFileSync('tools/responsive-audit-result.json',JSON.stringify(result,null,2));console.log('Cases',result.cases,'issues',result.issues.length,'axe',result.axe.length);if(result.error||result.issues.length||result.axe.length)process.exitCode=1}
 })();

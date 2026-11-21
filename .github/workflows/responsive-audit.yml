@@ -2,7 +2,7 @@ name: Temporary responsive audit
 on:
   push:
     branches: [arena/8a4a3789-dawah-x]
-    paths: ['tools/responsive-audit.cjs', '.github/workflows/responsive-audit.yml']
+    paths: ['tools/responsive-audit.cjs', 'tools/responsive-interactions.cjs', '.github/workflows/responsive-audit.yml']
 permissions:
   contents: write
 jobs:
@@ -17,6 +17,7 @@ jobs:
       - run: npm install --prefix /tmp/responsive playwright-core axe-core
       - run: |
           python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/responsive-http.log 2>&1 &
+          NODE_PATH=/tmp/responsive/node_modules node tools/responsive-interactions.cjs
           NODE_PATH=/tmp/responsive/node_modules node tools/responsive-audit.cjs
       - run: |
           git config user.name 'github-actions[bot]'
