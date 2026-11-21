@@ -34,7 +34,6 @@ const contrast=(a,b)=>{const x=luminance(a),y=luminance(b);return (Math.max(x,y)
     await page.evaluate(n=>{const template=document.getElementById('daily-reading-templates');document.getElementById('daily-reading-card').replaceChildren(template.content.querySelectorAll('.guidance-card')[n].cloneNode(true))},n);
     const card=page.locator('#daily-reading .guidance-card');await card.scrollIntoViewIfNeeded();
     const png=PNG.sync.read(await card.screenshot());
-    if(process.env.GUIDANCE_SCREENSHOTS&&n===2&&(width===390||width===1280))await page.screenshot({path:`tools/guidance-${theme}-${width}.png`});
     // Inner edges are clear of content; sample both ends of the real painted background.
     const backgrounds=[7,png.width-8].map(x=>{const i=(Math.floor(png.height/2)*png.width+x)*4;return [png.data[i],png.data[i+1],png.data[i+2]]});
     for(const selector of ['h3','.guidance-reference','.guidance-mark','.guidance-arabic','.guidance-translation','.guidance-source']){
