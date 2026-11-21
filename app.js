@@ -46,8 +46,16 @@ document.querySelectorAll("[data-copy-link]").forEach(b=>b.addEventListener("cli
 /* ---- read.html: আমদানি করা লেখা দেখানো ---- */
 const READ_TAGS={P:1,BR:1,B:1,I:1,U:1,SUP:1,SUB:1,H2:1,H3:1,H4:1,UL:1,OL:1,LI:1,BLOCKQUOTE:1,TABLE:1,THEAD:1,TBODY:1,TR:1,TD:1,TH:1,A:1,IMG:1};
 /* উৎসের HTML আবার ছেঁকে নেওয়া হয়: শুধু নিরীহ ট্যাগ ও নিরাপদ লিংক থাকে */
-function safeArticle(html,pageUrl){
+function safeArticle(html,pageUrl,source){
  const doc=new DOMParser().parseFromString("<div>"+html+"</div>","text/html"),out=document.createDocumentFragment();
+ // Al-Ikhlas appends source-site subject navigation after the article.
+ // Remove only the known terminal block; retain all other article content.
+ if(source==="ik"){
+  const root=doc.body.firstChild,nav=root?.lastElementChild;
+  if(nav?.matches('div.subjects')&&[...root.childNodes].slice([...root.childNodes].indexOf(nav)+1).every(n=>n.nodeType===3&&!n.nodeValue.trim())&&
+   nav.firstElementChild?.tagName==="SPAN"&&/^প্রসঙ্গসমূহ »:\s*$/.test(nav.firstElementChild.textContent||'')&&
+   [...nav.children].slice(1).every(a=>a.tagName==="A"&&/^https:\/\/ikhlasbd\.com\/subject_archive\/\d+$/.test(a.getAttribute("href")||"")))nav.remove();
+ }
  const copy=(src,dst)=>{src.childNodes.forEach(n=>{
   if(n.nodeType===3){dst.appendChild(document.createTextNode(n.nodeValue));return}
   if(n.nodeType!==1)return;
@@ -136,7 +144,7 @@ if(readTitle){
   readTitle.textContent=toLatinDigits(x.t);document.title=toLatinDigits(x.t)+" — DAWAH X";
   const cat=$("read-cat");if(cat&&x.c){cat.textContent=x.c;cat.hidden=false}
   $("read-meta").innerHTML=[srcName,x.a,bnDate(x.d)].filter(Boolean).map(v=>`<span>${escHTML(v)}</span>`).join('<span aria-hidden="true">·</span>');
-  body.textContent="";body.appendChild(safeArticle(x.h,/^https?:\/\//i.test(x.u||"")?x.u:""));
+  body.textContent="";body.appendChild(safeArticle(x.h,/^https?:\/\//i.test(x.u||"")?x.u:"",x.s));
   $("read-credit").innerHTML=`এই লেখাটি <b>${escHTML(srcName)}</b>-এর (${escHTML(hostOf(x.u))})। প্রকাশকের অনুমতিক্রমে এখানে হুবহু তুলে ধরা হয়েছে; লেখার স্বত্ব মূল প্রকাশকের।`+(/^\d{8}/.test(x.w||"")?` এই কপিটি Internet Archive-এ সংরক্ষিত ${x.w.slice(0,4)}-${x.w.slice(4,6)}-${x.w.slice(6,8)} তারিখের সংস্করণ থেকে নেওয়া; মূল পেজে এরপর পরিবর্তন হয়ে থাকতে পারে।`:"");
   $("read-original").href=x.u;$("read-source").hidden=false;
   shareLinks(x.t,key);
@@ -1483,7 +1491,7 @@ if(statStrip){
    if(typeof v!=="number"||v<=0)return;
    if(calm||v<20){el.textContent=formatCount(v);return}
    const dur=1000,t0=performance.now();
-   const step=now=>{const t=Math.min(1,(now-t0)/dur),eased=1-Math.pow(1-t,3);
+   const step=now=>{const t=Math.max(0,Math.min(1,(now-t0)/dur)),eased=1-Math.pow(1-t,3);
     el.textContent=formatCount(Math.round(v*eased));
     if(t<1)requestAnimationFrame(step);else el.textContent=formatCount(v)};
    requestAnimationFrame(step);

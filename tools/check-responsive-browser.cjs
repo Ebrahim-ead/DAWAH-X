@@ -48,6 +48,8 @@ const checkOverflow=async(page,label)=>{
    for(const name of ['questions.html','fatwa.html'])await visit(name);
    await visit('videos.html');await page.waitForSelector('.video-card');await page.waitForFunction(()=>document.querySelectorAll('.video-chips[data-kind="topic"] .chip').length>3);
    await checkOverflow(page,`${theme} ${width} videos loaded`);
+   const dateLabel=await page.locator('.video-card time').first().textContent();
+   assert(/[০-৯]/.test(dateLabel)===false&&/[0-9]/.test(dateLabel)&&/[\u0980-\u09ff]/.test(dateLabel),`video date should use Bengali month and Latin digits: ${dateLabel}`);
    if(width<=560){const box=page.locator('.video-chips[data-kind="topic"]');assert(await box.evaluate(e=>e.scrollWidth>e.clientWidth));for(const button of await box.locator('.chip').all())assert((await button.boundingBox()).height>=44)}
    const topic=page.locator('.video-chips[data-kind="topic"] .chip').nth(1);await topic.click();assert.equal(await topic.getAttribute('aria-pressed'),'true');
    await page.fill('#video-search','zzzznotavideo123');await page.waitForFunction(()=>document.querySelector('#video-grid').dataset.count==='0');await page.fill('#video-search','');await page.locator('.video-chips[data-kind="topic"] .chip').first().click();await page.waitForSelector('.video-card');
@@ -57,6 +59,10 @@ const checkOverflow=async(page,label)=>{
    const size=await page.locator('#read-body').evaluate(e=>parseFloat(getComputedStyle(e).fontSize));await page.click('#read-font-up');await page.waitForFunction(before=>parseFloat(getComputedStyle(document.querySelector('#read-body')).fontSize)>before,size);
    if(width<=560)assert((await page.locator('#read-font-up').boundingBox()).height>=44);
    await page.click('#read-save');assert.equal(await page.getAttribute('#read-save','aria-pressed'),'true');await page.reload();assert.equal(await page.getAttribute('#read-save','aria-pressed'),'true');
+   await visit('read.html?k=0007877b4d24f5');await page.waitForFunction(()=>document.querySelector('#read-body')?.textContent.includes('লুক্বমান'));
+   const articleText=await page.locator('#read-body').textContent();assert(!articleText.includes('প্রসঙ্গসমূহ')&&!articleText.includes('-->'));assert(articleText.includes('রাশেদুল ইসলাম'));
+   const preserved=await page.evaluate(()=>{const html='<p>মূল লেখা</p><div class="subjects"><span>প্রসঙ্গসমূহ »: </span><a href="https://ikhlasbd.com/subject_archive/100">বিষয়</a></div><p>আরও লেখা</p>';return safeArticle(html,'','ik').textContent});
+   assert(preserved.includes('প্রসঙ্গসমূহ')&&preserved.includes('আরও লেখা'));
    await visit('ask.html');await page.click('#askbtn');assert.equal(await page.getAttribute('#an','aria-invalid'),'true');assert.equal(submissions.length,0);
    if(width===390){
     await page.fill('#an','পরীক্ষার নাম');await page.click('#askbtn');assert.equal(await page.getAttribute('#ac','aria-invalid'),'true');

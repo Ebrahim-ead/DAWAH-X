@@ -12,7 +12,7 @@
   const pageSize=20;
   const scriptUrl=document.currentScript?.src||location.href;
   const numberFormat=new Intl.NumberFormat('en-US');
-  const dateFormat=new Intl.DateTimeFormat('en-US',{month:'long',day:'numeric',year:'numeric',timeZone:'Asia/Dhaka'});
+  const dateFormat=new Intl.DateTimeFormat('bn-BD-u-nu-latn',{month:'long',day:'numeric',year:'numeric',timeZone:'Asia/Dhaka'});
   /* প্রকাশের পর কত দিন «নতুন» ব্যাজ থাকবে — মানটি app.js-এ লেখা (window.DAWAHX_NEW_DAYS)। */
   const NEW_DAYS=window.DAWAHX_NEW_DAYS||3;
   let videos=[];

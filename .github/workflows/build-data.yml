@@ -19,6 +19,7 @@ on:
       - 'texts/**'
       - 'youtube-videos.json'
       - 'tools/build-site-data.cjs'
+      - 'tools/article-excerpt.cjs'
       - 'tools/build-feed.cjs'
       - 'tools/build-series.cjs'
       - 'tools/build-topics.cjs'
