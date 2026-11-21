@@ -4,6 +4,7 @@ const html=fs.readFileSync('index.html','utf8'),js=fs.readFileSync('prayer-times
 const vendor=fs.readFileSync('adhan.min.js','utf8');
 const source='https://www.islamicfinder.org/prayer-widget/1185241/shafi/3/0/18/18/';
 const keys=['fajr','sunrise','dhuhr','asr','maghrib','isha'];
+assert.equal((html.match(/class="prayer-icon" aria-hidden="true"/g)||[]).length,6,'each time card needs an accessible decorative icon');
 assert(html.includes(`data-src="${source}"`));assert(html.includes('এই সময় IslamicFinder থেকে সরাসরি নেওয়া নয়'));
 assert(html.includes('হানাফী আসরের সময় ভিন্ন'));assert(html.indexOf('src="adhan.min.js"')<html.indexOf('src="prayer-times.js"'));
 let now='2026-11-15T05:00:00Z',frameSrc='',frameWrites=0;const events={},docEvents={};
