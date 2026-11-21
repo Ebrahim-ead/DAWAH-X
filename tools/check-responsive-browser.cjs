@@ -53,6 +53,9 @@ const checkOverflow=async(page,label)=>{
    if(width<=560){const box=page.locator('.video-chips[data-kind="topic"]');assert(await box.evaluate(e=>e.scrollWidth>e.clientWidth));for(const button of await box.locator('.chip').all())assert((await button.boundingBox()).height>=44)}
    const topic=page.locator('.video-chips[data-kind="topic"] .chip').nth(1);await topic.click();assert.equal(await topic.getAttribute('aria-pressed'),'true');
    await page.fill('#video-search','zzzznotavideo123');await page.waitForFunction(()=>document.querySelector('#video-grid').dataset.count==='0');await page.fill('#video-search','');await page.locator('.video-chips[data-kind="topic"] .chip').first().click();await page.waitForSelector('.video-card');
+   // Let the search input's 140ms debounce finish before opening the player;
+   // otherwise its pending render replaces the button while the dialog is open.
+   await page.waitForTimeout(200);
    const videoButton=page.locator('.video-preview').first();await videoButton.click();
    const dialog=page.locator('.video-lightbox'),frame=dialog.locator('iframe');assert.equal(await dialog.getAttribute('open'),'');assert.equal(await frame.count(),1);
    const frameSrc=await frame.getAttribute('src');
