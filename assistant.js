@@ -45,7 +45,7 @@
    if(data.needs_sources===true){
     status.textContent='সাইটে প্রাসঙ্গিক তথ্য খোঁজা হচ্ছে…';let texts=[],videos=null;
     const previous=history.filter(m=>m.role==='user').at(-1),searchQ=previous&&isFollowUp(q)?previous.content+' '+q:q,pages=pageMatches(searchQ);
-    try{let result=await window.dawahxAssistantSearch(searchQ);if(!result)throw Error('search unavailable');if(!result.texts.length&&searchQ!==q){result=await window.dawahxAssistantSearch(q);if(!result)throw Error('search unavailable')}texts=[...result.texts.filter(x=>x.side==='q').slice(0,2),...result.texts.filter(x=>x.side==='f').slice(0,2)];videos=result.videos}catch(_){if(!pages.length)throw Error('search')}
+    try{let result=await window.dawahxAssistantSearch(searchQ);if(!result)throw Error('search unavailable');if(!result.texts.length&&searchQ!==q){result=await window.dawahxAssistantSearch(q);if(!result)throw Error('search unavailable')}texts=result.texts.slice(0,4);videos=result.videos}catch(_){if(!pages.length)throw Error('search')}
     sources(texts,videos);status.textContent='সাইটের উৎস থেকে উত্তর তৈরি হচ্ছে…';
     data=await requestAnswer({message:q,ids:texts.map(x=>x.k),pages,history,lookupComplete:true});
    }

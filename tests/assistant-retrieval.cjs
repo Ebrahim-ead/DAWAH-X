@@ -12,5 +12,26 @@ vm.runInNewContext('const toLatinDigits=s=>String(s).replace(/[০-৯]/g,d=>Str
  assert(full.texts.length>titles.texts.length,'body matching should find additional articles');
  assert(full.texts.some(x=>x.title.includes('মাহে রামাযান')),'real body-only match should be discoverable');
  const found=await sandbox.suggest.find('পাইথন প্রোগ্রামিং কি হালাল?',{includeVideos:false,includeBodyMatches:true});assert.equal(found.texts.length,0);
- console.log('assistant retrieval: real body-only matches and unavailable-topic handling pass');
+ // Real title shards contain সালাত even though the body index treats it as a stopword.
+ // The general article must be the first source actually sent to the Worker, not
+ // displaced by questions about individual types or times of prayer.
+ for(const question of ['সালাতের গুরুত্ব কী?','নামাজের গুরুত্ব কী?','ছালাতের গুরুত্ব কী?']){
+  const result=await sandbox.suggest.find(question,{includeVideos:false,includeBodyMatches:true});
+  assert(result&&result.texts.length,question);
+  assert.equal(result.texts[0].k,'1f047bd96535e5',question);
+  assert.match(result.texts[0].title,/ছালাতের গুরুত্ব/);
+ }
+ for(const question of ['নামাজ','সালাত','ইসলাম কী','আল্লাহ কে']){
+  const result=await sandbox.suggest.find(question,{includeVideos:false,includeBodyMatches:true});
+  assert(result&&result.texts.length,question);
+ }
+ const injection=await sandbox.suggest.find('রোজা রেখে ইনজেকশন নিলে কি রোজা ভেঙে যায়?',{includeVideos:false,includeBodyMatches:true});
+ assert(injection.texts.slice(0,4).some(x=>x.title.includes('ইনজেকশন')),'specific fasting question');
+ const unknown=await sandbox.suggest.find('কোয়ান্টামফটোনিক্স নামাজ হালাল?',{includeVideos:false,includeBodyMatches:true});
+ assert.equal(unknown.texts.length,0,'unknown topic should not be discarded in favour of generic prayer');
+ const ordinary=await sandbox.suggest.find('নামাজ',{includeVideos:false});
+ assert.equal(ordinary.texts.length,0,'assistant-only stopword exception must not change normal suggestions');
+ const assistant=fs.readFileSync(path.join(root,'assistant.js'),'utf8');
+ assert(assistant.includes('texts=result.texts.slice(0,4)'), 'Worker receives results in relevance order');
+ console.log('assistant retrieval: real indexes, prayer synonyms, generic topics, body matches and unavailable topics pass');
 })().catch(e=>{console.error(e);process.exitCode=1});
