@@ -209,6 +209,9 @@ const DEEP={meta:null,stop:null,keys:"",shards:new Map(),ready:null,
 const ASK_SUFFIXES=["গুলোকে","গুলোর","গুলোতে","গুলো","গুলি","দেরকে","দের","টির","টিকে","টি","টা","কে","তে","েরা","ের","রা","\u09dfের","সিলেন","সিল","লেন","লাম","লে","বেন","বে","সেন","সে","তেন","েন","\u09df","ে","র","ই","ও"];
 /* প্রশ্নে প্রায়ই থাকে কিন্তু বিষয় বোঝায় না এমন শব্দ (foldBn-এর পরের রূপে) */
 const ASK_SKIP=new Set("কি কেন কিভাবে কোন কোথা\u09df কখন কত ক\u09df কিনা নাকি জদি তাহলে আমি আমার আমাদের আমরা আপনি আপনার আপনারা জানতে জানাবেন চাই বলুন বলবেন দ\u09dfা প্রস্ন উত্তর সম্পর্কে বিস\u09dfে ব্জাপারে একটি একটা একজন এটা এটি সেটা হবে হ\u09df করা করে করলে করতে জাবে জা\u09df আসে নি\u09dfে থেকে জন্জ এবং অথবা বা ও না ভাই আসসালামু আলাইকুম সালাম ধন্জবাদ প্লিজ অনুগ্রহ কিসু খুব অনেক তো এর এত এতো এতগুলো কেমন হচ্সে হচ্সেন হ\u09dfেসিল করেসিলেন করেসিল করেসেন সিলেন আসেন থাকবে পারি পারব পারবে পারবো জাবেন দিতে নিতে হলো গেলে গেসে দিলে নিলে the an is are was do does did can how what why when who which you your my me we of to in on for and or it this that hello hi please".split(" "));
+/* লেখার ভেতরের সূচিতে অতিসাধারণ হওয়ায় বাদ পড়লেও শিরোনামের সূচিতে
+   এগুলো গুরুত্বপূর্ণ বিষয়শব্দ। শুধু সহকারীর অনুসন্ধানে সেগুলো বাদ দিই না। */
+const ASSISTANT_TITLE_TOPICS=new Set(["সালাত","ইসলাম","আল্লাহ","নবি","রাসুল","ইবাদত"]);
 const ASK_LEN="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"; /* tools/build-site-data.cjs-এর LEN_CHARS */
 const askCp=t=>[...t].length,askMinPrefix=t=>[...t][1]==="\u09cd"?5:3;
 /* একটি শব্দ → খোঁজার রূপগুলো [[রূপ, শুরু মিললেই চলবে?]]; শব্দটি (বা তার মূল রূপ) খুব সাধারণ হলে null।
@@ -254,7 +257,7 @@ const SUGGEST={tm:null,side:null,ready:null,tsh:new Map(),relc:new Map(),bodyc:n
     ভিডিওর তালিকা বড় (প্রথমবার আনতে সময় লাগে), তাই লেখার ফল আগে ফেরে আর ভিডিও আলাদা Promise-এ আসে */
  async find(q,{includeVideos=true,includeBodyMatches=false}={}){try{
    if(!(await this.init()))return null;
-   const vp=includeVideos?this.videos():Promise.resolve(null),stop=DEEP.stop,seen=new Set(),same=new Set(),G=[];
+   const vp=includeVideos?this.videos():Promise.resolve(null),stop=includeBodyMatches?new Set([...DEEP.stop].filter(t=>!ASSISTANT_TITLE_TOPICS.has(t))):DEEP.stop,seen=new Set(),same=new Set(),G=[];
    for(const t of searchTokens(q)){if(/^\d+$/.test(t)||seen.has(t))continue;seen.add(t);const f=askForms(t,stop);if(!f)continue;
     const id=f.map(x=>x[0]).sort().join("|");if(same.has(id))continue;same.add(id);G.push(f);if(G.length>=12)break}
    if(!G.length)return {texts:[],videos:Promise.resolve([])};
@@ -266,11 +269,18 @@ const SUGGEST={tm:null,side:null,ready:null,tsh:new Map(),relc:new Map(),bodyc:n
     B[g]=b;T[g]=t}));
    /* raw = শব্দটি কত কম লেখায় আছে (বেশি = বেশি নির্দিষ্ট); কোনো লেখায় না থাকা শব্দ (বানান ভুল, নাম) কম ওজন পায় */
    const raw=B.map(s=>s.size?Math.log(N/(1+s.size)):0),w=raw.map(v=>v?Math.min(5,Math.max(1,v)):1.2),L=this.tm.len;
-   const ranked=this.score(N,T,B,w,raw,id=>Math.max(1,ASK_LEN.indexOf(L[id])));
+   let ranked=this.score(N,T,B,w,raw,id=>Math.max(1,ASK_LEN.indexOf(L[id])));
+   /* একক সাধারণ বিষয়ও শিরোনামে খোঁজা যায়, কিন্তু লেখার ভেতরে মেলে
+      বলে একা কোনো সাধারণ শব্দকে প্রাসঙ্গিক উত্তর ধরে নেওয়া হয় না। */
+   if(includeBodyMatches&&G.length===1&&!ranked.length&&G[0].some(([t])=>ASSISTANT_TITLE_TOPICS.has(t))){
+    ranked=[...T[0]].map(id=>[id,1/Math.max(1,ASK_LEN.indexOf(L[id]))]).sort((a,b)=>b[1]-a[1]||a[0]-b[0]);
+   }
+   /* অজানা বিষয়শব্দকে অবহেলা করে সাধারণ শব্দে উত্তর দেওয়া নিরাপদ নয়। */
+   if(includeBodyMatches&&G.length>1&&B.some((b,i)=>!b.size&&!T[i].size))ranked=[];
    /* এআই সহকারীর জন্য লেখার ভেতরে মেলা ফলও খুঁজি। অন্তত দুটি বিষয়সূচক শব্দ
       এবং মোট ওজনের প্রায় সব মিলতে হবে।
       শিরোনামের ফল আগে, লেখার ফল পরে: এগুলো সম্ভাব্য উৎস, নিশ্চিত উত্তর নয়। */
-   if(includeBodyMatches&&["q","f"].some(side=>ranked.filter(([id])=>this.side(id)===side).length<3)){
+   if(includeBodyMatches&&!B.some((b,i)=>!b.size&&!T[i].size)&&["q","f"].some(side=>ranked.filter(([id])=>this.side(id)===side).length<3)){
     const total=w.reduce((a,b)=>a+b,0),sum=new Float32Array(N),counts=new Uint8Array(N);
     B.forEach((set,i)=>{for(const id of set){sum[id]+=w[i];counts[id]++}});
     const seen=new Set(ranked.map(row=>row[0])),body=[];
@@ -283,6 +293,7 @@ const SUGGEST={tm:null,side:null,ready:null,tsh:new Map(),relc:new Map(),bodyc:n
    const bare=v=>v.replace(/^\s*প্রশ্ন\s*[:ঃ]?\s*\([^)]{0,14}\)\s*[:ঃ]?\s*/,"").trim(),texts=[],seenT=new Set();
    for(const s of ["q","f"]){const rows=await Promise.all(pick[s].map(id=>{const k=DEEP.keys.substr(id*14,14);return this.rel(k).then(r=>r&&r[0]?{k,side:s,title:bare(r[0])||r[0],cat:r[1]||""}:null)}));
     let n=0;for(const r of rows){if(!r)continue;const ft=foldBn(r.title);if(seenT.has(ft))continue;seenT.add(ft);texts.push(r);if(++n>=3)break}}
+   if(includeBodyMatches){const rank=new Map(ranked.map(([id],i)=>[DEEP.keys.substr(id*14,14),i]));texts.sort((a,b)=>rank.get(a.k)-rank.get(b.k))}
    const videos=vp.then(V=>{const videos=[];
    if(V){const TV=G.map(forms=>{const s=new Set();for(const [p,pre] of forms){if(pre){for(const tok of V.vocab)if(tok.startsWith(p))for(const i of V.map.get(tok))s.add(i)}else{const l=V.map.get(p);if(l)for(const i of l)s.add(i)}}return s});
     const seenV=new Set();for(const [i] of this.score(V.list.length,TV,null,w,raw,i=>V.len[i])){const v=V.list[i],ft=foldBn(v.title);if(seenV.has(ft))continue;seenV.add(ft);videos.push({id:v.id,title:v.title,channel:v.channelTitle||""});if(videos.length>=2)break}}
