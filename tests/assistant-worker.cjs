@@ -30,6 +30,18 @@ const assert=require('node:assert/strict');
   res=await worker.fetch(req({message:'x',ids:[],history:[]}),{...env,RATE_LIMITER:{limit:async()=>({success:false})}});assert.equal(res.status,429);
   res=await worker.fetch(req({message:'x',ids:[],history:[]}),{...env,RATE_LIMITER:null});assert.equal(res.status,503);
   res=await worker.fetch(req({message:'x',ids:[],history:[],extra:'a'.repeat(17000)}),env);assert.equal(res.status,413);
+  let routeCalls=[],chatFetches=0;
+  const chatEnv={...env,AI:{run:async(model,args)=>{routeCalls.push({model,args});return {response:model.includes('8b')?'CHAT':'আমি ভালো আছি। আপনি কেমন আছেন?'}}}};
+  global.fetch=async()=>{chatFetches++;throw Error('chat must not retrieve site sources')};
+  const phase=(message,history=[])=>({message,ids:[],pages:[],history,lookupComplete:false});
+  res=await worker.fetch(req(phase('আজ মনটা ভালো নেই')),chatEnv);data=await res.json();assert.equal(data.mode,'chat');assert.equal(data.grounded,false);assert.equal(data.answer,'আমি ভালো আছি। আপনি কেমন আছেন?');assert.equal(chatFetches,0);assert.equal(routeCalls.length,2);assert.match(routeCalls[1].args.messages[0].content,/Do not answer questions about Islam/);
+  for(const text of ['নামাজের নিয়ম কী?', 'Is this halal?', 'রোজা ভাঙলে কী হবে?', 'DAWAH X কী?', 'namaz ki?']){
+   routeCalls=[];res=await worker.fetch(req(phase(text)),chatEnv);data=await res.json();assert.equal(data.needs_sources,true,`religious/site question must request sources: ${text}`);assert.equal(routeCalls.length,0,'hard guard must not run chat model');
+  }
+  routeCalls=[];res=await worker.fetch(req(phase('কেন?', [{role:'user',content:'নামাজের নিয়ম কী?'},{role:'assistant',content:'আগের উত্তর'}])),chatEnv);data=await res.json();assert.equal(data.needs_sources,true);assert.equal(routeCalls.length,0);
+  const failEnv={...env,AI:{run:async()=>{throw Error('classifier unavailable')}}};res=await worker.fetch(req(phase('একটি অস্পষ্ট প্রশ্ন')),failEnv);data=await res.json();assert.equal(data.needs_sources,true,'classification errors must fail closed');
+  const invalidEnv={...env,AI:{run:async()=>({response:'CHAT and more'})}};res=await worker.fetch(req(phase('আরও বলুন')),invalidEnv);data=await res.json();assert.equal(data.needs_sources,true,'unrecognized classification must fail closed');
+  res=await worker.fetch(req({...phase('hello'),lookupComplete:'false'}),chatEnv);assert.equal(res.status,400);
   res=await worker.fetch(new Request('https://worker.example/',{method:'OPTIONS',headers:{Origin:origin}}),env);assert.equal(res.status,204);
   console.log('Assistant Worker grounding tests passed.');
  } finally {global.fetch=oldFetch}
