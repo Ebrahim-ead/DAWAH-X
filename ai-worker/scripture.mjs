@@ -37,6 +37,23 @@ export function parseScripture(message){
  if(/^\s*(?:[:/\-–—,،]|থেকে|পর্যন্ত)\s*\d/u.test(tail))return {kind:'unsupported'};
  return {kind:'hadith',book:h.book,number:h.number};
 }
+// Simple factual chapter-metadata questions, including common Banglish forms.
+// A closed vocabulary prevents a question about a chapter's meaning or a
+// particular verse from being silently answered as if it only asked its name.
+export function parseSurah(message){
+ const normalized=digits(String(message).normalize('NFC')).toLowerCase();
+ if(/\d\s*[:/\-–—]\s*\d/.test(normalized))return null;
+ const words=normalized.match(/[\p{L}\p{M}\p{N}]+/gu)||[];
+ if(!words.some(w=>/^(?:সূরা|সুরা|সূরার|সুরার|surah|sura|surah?r)$/.test(w)))return null;
+ const ordinals={'প্রথম':1,'দ্বিতীয়':2,'দ্বিতীয়':2,'তৃতীয়':3,'তৃতীয়':3,'চতুর্থ':4,'পঞ্চম':5,first:1,second:2,third:3,fourth:4,fifth:5};
+ const allowed=new Set('কুরআন কুরআনের কোরআন কোরআনের কুরানের কোরানের সূরা সুরা সূরার সুরার এর নম্বর নাম্বার নং তম নাম নামটি কী কি কোন কোনটি কোনটা কত কয়টি কয়টি কয়টি আয়াত আয়াত আয়াতের আয়াতের সংখ্যা আছে বলুন বলো বলবেন জানাবেন জানতে চাই please quran quraner koran koraner surah sura er number num no name named ki konti konta koto koyti ayat ayah ayahs verse verses many how what which is the of in tell me please th st nd rd'.split(' '));
+ const numbers=[];for(const w of words){if(/^\d{1,3}(?:st|nd|rd|th|তম)?$/.test(w))numbers.push(Number(w.match(/^\d+/)[0]));else if(Object.hasOwn(ordinals,w))numbers.push(ordinals[w]);else if(!allowed.has(w))return null}
+ if(numbers.length!==1)return null;
+ // If the user mentions a verse, only count questions are chapter metadata.
+ if(words.some(w=>/^(?:আয়াত|আয়াত|আয়াতের|আয়াতের|ayat|ayah|ayahs|verse|verses)$/.test(w))&&!words.some(w=>/^(?:কত|কয়টি|কয়টি|সংখ্যা|koto|koyti|many)$/.test(w)))return null;
+ if(!words.some(w=>/^(?:কী|কি|কোন|কোনটি|কোনটা|নাম|নামটি|কত|কয়টি|কয়টি|সংখ্যা|ki|what|which|name|koto|koyti|many|বলুন|বলো|বলবেন|জানাবেন)$/.test(w)))return null;
+ return {kind:'surah',surah:numbers[0]};
+}
 async function getJSON(path){
  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),10000);
  try{
@@ -49,6 +66,18 @@ async function getJSON(path){
 }
 export async function lookupScripture(ref){
  if(ref.kind==='unsupported')return null;
+ if(ref.kind==='surah'){
+  if(!Number.isInteger(ref.surah)||ref.surah<1||ref.surah>114)return null;
+  const index=await getJSON('assets/quran/data/index.json');
+  if(!Array.isArray(index.suras))throw Error('Invalid Quran index');
+  const rows=index.suras.filter(row=>row.n===ref.surah);
+  if(rows.length!==1)throw Error('Invalid Quran index');
+  const row=rows[0];
+  if(typeof row.bn!=='string'||!row.bn.trim()||row.bn.length>100||!Number.isInteger(row.count)||row.count<1||row.count>286||!['makki','madani'].includes(row.type))throw Error('Invalid Quran metadata');
+  const title='সূরা '+row.bn+' · সূরা নম্বর '+ref.surah;
+  const answer='কুরআনের '+ref.surah+' নম্বর সূরা হলো '+row.bn+'। [1]\n\nএই সূরায় '+row.count+'টি আয়াত আছে; উৎসের তালিকা অনুযায়ী এটি '+(row.type==='makki'?'মাক্কী':'মাদানী')+' সূরা।';
+  return {answer,source:{number:1,title,type:'quran-surah',surah:ref.surah}};
+ }
  if(ref.kind==='quran'){
   if(!Number.isInteger(ref.surah)||ref.surah<1||ref.surah>114||!Number.isInteger(ref.verse)||ref.verse<1||ref.verse>286)return null;
   const data=await getJSON('assets/quran/data/suras/'+ref.surah+'.json');

@@ -93,8 +93,9 @@ const checkOverflow=async(page,label)=>{
      sent=route.request().postDataJSON();requests.push(sent);
      if(sent.message==='ব্যর্থ পরীক্ষা')return route.fulfill({status:500,headers:{'Access-Control-Allow-Origin':'*'}});
      let data;if(!sent.lookupComplete&&sent.message==='হ্যালো')data={answer:'হ্যালো! কেমন আছেন?',grounded:false,mode:'chat',sources:[]};
-     else if(!sent.lookupComplete&&['কুরআন ২:২৫৫','বুখারী ৮'].includes(sent.message))data={needs_sources:true,direct_lookup:true};
+     else if(!sent.lookupComplete&&['কুরআন ২:২৫৫','বুখারী ৮','quran er 2 number surah ki'].includes(sent.message))data={needs_sources:true,direct_lookup:true};
      else if(!sent.lookupComplete)data={needs_sources:true};
+     else if(sent.message==='quran er 2 number surah ki')data={answer:'কুরআনের 2 নম্বর সূরা হলো আল-বাকারা। [1]',grounded:true,sources:[{number:1,type:'quran-surah',surah:2,title:'সূরা আল-বাকারা · সূরা নম্বর 2'}]};
      else if(sent.message==='কুরআন ২:২৫৫')data={answer:'আয়াত 2:255 [1]',grounded:true,sources:[{number:1,type:'quran',surah:2,verse:255,title:'সূরা আল-বাকারা · 2:255'}]};
      else if(sent.message==='বুখারী ৮')data={answer:'বুখারী 8 [1]',grounded:true,sources:[{number:1,type:'hadith',book:'bukhari',chapter:2,hadith:8,title:'সহীহ বুখারী · হাদিস 8'}]};
      else {const sources=sent.pages.includes('about.html')?[{number:1,path:'about.html',title:'আমাদের সম্পর্কে'}]:[{number:1,key:'034d218703d000',title:'উৎস লেখা'}];data={answer:'পরীক্ষিত উত্তর [1]',grounded:true,sources}}
@@ -117,7 +118,9 @@ const checkOverflow=async(page,label)=>{
     assert.equal(await page.locator('.dxa-sources a').nth(-2).getAttribute('href'),'https://ebrahim-ead.github.io/ead/quran.html#2:255');assert.equal(await page.locator('.dxa-sources a').last().getAttribute('href'),'https://quran.com/2/255');
     await page.locator('#dxa-input').fill('বুখারী ৮');await page.locator('.dxa-form button').click();await page.waitForFunction(()=>document.querySelectorAll('.dxa-message.assistant').length===8);
     assert.equal(await page.locator('.dxa-sources a').nth(-2).getAttribute('href'),'https://ebrahim-ead.github.io/ead/hadith.html#bukhari:2:8');assert((await page.locator('.dxa-sources a').last().getAttribute('href')).startsWith('https://www.hadithbd.com/search/?q='));
-    await page.locator('#dxa-input').fill('ব্যর্থ পরীক্ষা');await page.locator('.dxa-form button').click();await page.waitForFunction(()=>document.querySelectorAll('.dxa-message.assistant').length===9);assert.equal(await page.locator('#dxa-input').inputValue(),'ব্যর্থ পরীক্ষা','failed question should remain available for retry');
+    await page.locator('#dxa-input').fill('quran er 2 number surah ki');await page.locator('.dxa-form button').click();await page.waitForFunction(()=>document.querySelectorAll('.dxa-message.assistant').length===9);
+    assert((await page.locator('.dxa-message.assistant').last().textContent()).includes('আল-বাকারা'));assert.equal(await page.locator('.dxa-sources a').nth(-2).getAttribute('href'),'https://ebrahim-ead.github.io/ead/quran.html#2');assert.equal(await page.locator('.dxa-sources a').last().getAttribute('href'),'https://quran.com/2');
+    await page.locator('#dxa-input').fill('ব্যর্থ পরীক্ষা');await page.locator('.dxa-form button').click();await page.waitForFunction(()=>document.querySelectorAll('.dxa-message.assistant').length===10);assert.equal(await page.locator('#dxa-input').inputValue(),'ব্যর্থ পরীক্ষা','failed question should remain available for retry');
     await page.locator('.dxa-close').click();assert.equal(await page.locator('#dxa-panel').isVisible(),false);
    }
    if(width===390){
