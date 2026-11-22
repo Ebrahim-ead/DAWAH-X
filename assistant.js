@@ -1,7 +1,7 @@
 /* DAWAH X assistant. Set the deployed HTTPS Worker URL here; leave blank until deployment. */
 (()=>{
  'use strict';
- const API_URL='';
+ const API_URL='https://dawahx-assistant.www-mdrazu55555.workers.dev';
  const assetBase=new URL('.',document.currentScript.src);
  const url=path=>new URL(path,assetBase).href;
  const css=document.createElement('link');css.rel='stylesheet';css.href=url('assistant.css');document.head.appendChild(css);
