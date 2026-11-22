@@ -25,7 +25,8 @@
   chat.scrollTop=chat.scrollHeight;
  }
  const sitePages=new Set(['about.html','services.html','contact.html','policy.html']);
- function isFollowUp(q){const t=q.trim();return /^(?:এটা|এটি|এগুলো|ওটা|সেটা|সেটি|সেগুলো|এর|এদের|তার|তাদের|এ বিষয়ে|এ বিষয়ে|ওই বিষয়ে|ওই বিষয়ে)(?:\s|[?？।!,:ঃ]|$)/u.test(t)||/^(?:কেন|কীভাবে|কিভাবে|কখন|কোথায়|কোথায়|আরও|আরো|বিস্তারিত|ব্যাখ্যা)(?:\s*(?:বলুন|বলেন|বলবেন|জানান|করুন|চাই|দিন))?\s*[?？।!]*$/u.test(t)||/^(?:why|how|what about (?:it|that|this)|explain|tell me more)[?.!\s]*$/i.test(t)}
+ function isFollowUp(q){const t=q.trim();return /^(?:এটা|এটি|এগুলো|ওটা|সেটা|সেটি|সেগুলো|এর|এদের|তার|তাদের|তাহলে|আর|আরও|আরো|তারপর|এ বিষয়ে|এ বিষয়ে|ওই বিষয়ে|ওই বিষয়ে)(?:\s|[?？।!,:ঃ]|$)/u.test(t)||/^(?:কেন|কীভাবে|কিভাবে|কখন|কোথায়|কোথায়|বিস্তারিত|ব্যাখ্যা)(?:\s*(?:বলুন|বলেন|বলবেন|জানান|করুন|চাই|দিন))?\s*[?？।!]*$/u.test(t)||/^(?:why|how|what about (?:it|that|this)|explain|tell me more)[?.!\s]*$/i.test(t)}
+ function searchContext(q){if(!isFollowUp(q))return q;const parts=[q],users=history.filter(m=>m.role==='user');for(let i=users.length-1;i>=0;i--){parts.push(users[i].content);if(!isFollowUp(users[i].content))break}return parts.join(' ')}
  function pageMatches(q){const site=/(?:dawah\s*x|দা[ওউ]য়?া?হ|দাওয়াহ|দাওয়াহ|ওয়েবসাইট|ওয়েবসাইট|ওয়েবসাইট|সাইট|আপনাদের|তোমাদের)/i.test(q);if(!site)return [];const pages=['about.html'];if(/সেবা|কার্যক্রম|কাজ|উদ্দেশ্য|service/i.test(q))pages.push('services.html');if(/যোগাযোগ|ফোন|নম্বর|whatsapp|হোয়াটসঅ্যাপ|হোয়াটসঅ্যাপ/i.test(q))pages.push('contact.html');if(/নীতি|তথ্যসূত্র|উৎস|রেফারেন্স|সংশোধন/i.test(q))pages.push('policy.html');return pages}
  function citations(items){if(!items.length)return;const box=document.createElement('div');box.className='dxa-sources';const title=document.createElement('strong');title.textContent='উত্তরে উল্লেখিত সাইটের উৎস — মূল লেখা যাচাই করুন';box.append(title);for(const item of items){if(!item||!Number.isInteger(item.number)||item.number<1||typeof item.title!=='string'||(!/^[a-f0-9]{14}$/.test(item.key||'')&&!sitePages.has(item.path)))continue;const a=document.createElement('a');a.textContent='['+item.number+'] '+item.title;a.href=item.path&&sitePages.has(item.path)?url(item.path):url('read.html?k='+encodeURIComponent(item.key));a.target='_blank';a.rel='noopener noreferrer';box.append(a)}chat.append(box);chat.scrollTop=chat.scrollHeight}
  async function requestAnswer(payload){
@@ -44,8 +45,8 @@
    let data=await requestAnswer({message:q,ids:[],pages:[],history,lookupComplete:false});
    if(data.needs_sources===true){
     status.textContent='সাইটে প্রাসঙ্গিক তথ্য খোঁজা হচ্ছে…';let texts=[],videos=null;
-    const previous=history.filter(m=>m.role==='user').at(-1),searchQ=previous&&isFollowUp(q)?previous.content+' '+q:q,pages=pageMatches(searchQ);
-    try{let result=await window.dawahxAssistantSearch(searchQ);if(!result)throw Error('search unavailable');if(!result.texts.length&&searchQ!==q){result=await window.dawahxAssistantSearch(q);if(!result)throw Error('search unavailable')}texts=result.texts.slice(0,4);videos=result.videos}catch(_){if(!pages.length)throw Error('search')}
+    const searchQ=searchContext(q),pages=pageMatches(searchQ);
+    try{let result=await window.dawahxAssistantSearch(searchQ);if(!result)throw Error('search unavailable');texts=result.texts.slice(0,4);videos=result.videos}catch(_){if(!pages.length)throw Error('search')}
     sources(texts,videos);status.textContent='সাইটের উৎস থেকে উত্তর তৈরি হচ্ছে…';
     data=await requestAnswer({message:q,ids:texts.map(x=>x.k),pages,history,lookupComplete:true});
    }
