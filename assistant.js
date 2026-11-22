@@ -32,6 +32,10 @@
   function link(label,href){const a=document.createElement('a');a.textContent=label;a.href=href;a.target='_blank';a.rel='noopener noreferrer';box.append(a)}
   const books={bukhari:'বুখারী',muslim:'মুসলিম','abu-dawud':'আবু দাউদ',tirmidhi:'তিরমিজি',nasai:'নাসাঈ','ibn-majah':'ইবনে মাজাহ',mishkat:'মিশকাত'};
   for(const item of items){if(!item||!Number.isInteger(item.number)||item.number<1||typeof item.title!=='string')continue;
+   if(item.type==='quran-surah'&&Number.isInteger(item.surah)&&item.surah>=1&&item.surah<=114){
+    link('['+item.number+'] '+item.title+' · Ebrahim Ead','https://ebrahim-ead.github.io/ead/quran.html#'+item.surah);
+    link('একই সূরা Quran.com-এ দেখুন','https://quran.com/'+item.surah);continue;
+   }
    if(item.type==='quran'&&Number.isInteger(item.surah)&&item.surah>=1&&item.surah<=114&&Number.isInteger(item.verse)&&item.verse>=1&&item.verse<=286){
     link('['+item.number+'] '+item.title+' · Ebrahim Ead', 'https://ebrahim-ead.github.io/ead/quran.html#'+item.surah+':'+item.verse);
     link('একই আয়াত Quran.com-এ দেখুন (ভিন্ন অনুবাদ হতে পারে)','https://quran.com/'+item.surah+'/'+item.verse);continue;

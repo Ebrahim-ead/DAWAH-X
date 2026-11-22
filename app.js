@@ -211,6 +211,10 @@ const ASK_SUFFIXES=["গুলোকে","গুলোর","গুলোতে",
 const ASK_SKIP=new Set("কি কেন কিভাবে কোন কোথা\u09df কখন কত ক\u09df কিনা নাকি জদি তাহলে আমি আমার আমাদের আমরা আপনি আপনার আপনারা জানতে জানাবেন চাই বলুন বলবেন দ\u09dfা প্রস্ন উত্তর সম্পর্কে বিস\u09dfে ব্জাপারে একটি একটা একজন এটা এটি সেটা হবে হ\u09df করা করে করলে করতে জাবে জা\u09df আসে নি\u09dfে থেকে জন্জ এবং অথবা বা ও না ভাই আসসালামু আলাইকুম সালাম ধন্জবাদ প্লিজ অনুগ্রহ কিসু খুব অনেক তো এর এত এতো এতগুলো কেমন হচ্সে হচ্সেন হ\u09dfেসিল করেসিলেন করেসিল করেসেন সিলেন আসেন থাকবে পারি পারব পারবে পারবো জাবেন দিতে নিতে হলো গেলে গেসে দিলে নিলে the an is are was do does did can how what why when who which you your my me we of to in on for and or it this that hello hi please".split(" "));
 /* লেখার ভেতরের সূচিতে অতিসাধারণ হওয়ায় বাদ পড়লেও শিরোনামের সূচিতে
    এগুলো গুরুত্বপূর্ণ বিষয়শব্দ। শুধু সহকারীর অনুসন্ধানে সেগুলো বাদ দিই না। */
+// Small, explicit Banglish vocabulary used only for source search; unknown
+// words remain intact so they are not silently dropped as if understood.
+const ROMAN_BN={namaj:'নামাজ',namaz:'নামাজ',namajer:'নামাজের',namazer:'নামাজের',namaje:'নামাজে',namaze:'নামাজে',salat:'সালাত',salah:'সালাত',salater:'সালাতের',roja:'রোজা',roza:'রোজা',rojar:'রোজার',rozar:'রোজার',siyam:'সিয়াম',quran:'কুরআন',quraner:'কুরআনের',koran:'কুরআন',hadis:'হাদিস',hadith:'হাদিস',hadiser:'হাদিসের',hadither:'হাদিসের',allah:'আল্লাহ',allaher:'আল্লাহর',islam:'ইসলাম',islamer:'ইসলামের',nabi:'নবি',rasul:'রাসুল',fazr:'ফজর',fajr:'ফজর',ramadan:'রমজান',ramzan:'রমজান',doa:'দোয়া',dua:'দোয়া',oju:'অজু',wudu:'অজু',gurutto:'গুরুত্ব',gurutwo:'গুরুত্ব',importance:'গুরুত্ব',rekhe:'রেখে',injection:'ইনজেকশন',nile:'নিলে',venge:'ভেঙে',vange:'ভাঙে',jay:'যায়',ki:'কি',keno:'কেন',kivabe:'কিভাবে',kibhabe:'কিভাবে'};
+function normalizeRoman(q){return String(q).replace(/[A-Za-z]+/g,w=>ROMAN_BN[w.toLowerCase()]||w)}
 const ASSISTANT_TITLE_TOPICS=new Set(["সালাত","ইসলাম","আল্লাহ","নবি","রাসুল","ইবাদত"]);
 const ASK_LEN="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"; /* tools/build-site-data.cjs-এর LEN_CHARS */
 const askCp=t=>[...t].length,askMinPrefix=t=>[...t][1]==="\u09cd"?5:3;
@@ -258,7 +262,7 @@ const SUGGEST={tm:null,side:null,ready:null,tsh:new Map(),relc:new Map(),bodyc:n
  async find(q,{includeVideos=true,includeBodyMatches=false}={}){try{
    if(!(await this.init()))return null;
    const vp=includeVideos?this.videos():Promise.resolve(null),stop=includeBodyMatches?new Set([...DEEP.stop].filter(t=>!ASSISTANT_TITLE_TOPICS.has(t))):DEEP.stop,seen=new Set(),same=new Set(),G=[];
-   for(const t of searchTokens(q)){if(/^\d+$/.test(t)||seen.has(t))continue;seen.add(t);const f=askForms(t,stop);if(!f)continue;
+   for(const t of searchTokens(includeBodyMatches?normalizeRoman(q):q)){if(/^\d+$/.test(t)||seen.has(t))continue;seen.add(t);const f=askForms(t,stop);if(!f)continue;
     const id=f.map(x=>x[0]).sort().join("|");if(same.has(id))continue;same.add(id);G.push(f);if(G.length>=12)break}
    if(!G.length)return {texts:[],videos:Promise.resolve([])};
    const N=DEEP.meta.n,nb=DEEP.meta.shards,nt=this.tm.shards,B=[],T=[];

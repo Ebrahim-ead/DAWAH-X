@@ -15,7 +15,7 @@ vm.runInNewContext('const toLatinDigits=s=>String(s).replace(/[০-৯]/g,d=>Str
  // Real title shards contain সালাত even though the body index treats it as a stopword.
  // The general article must be the first source actually sent to the Worker, not
  // displaced by questions about individual types or times of prayer.
- for(const question of ['সালাতের গুরুত্ব কী?','নামাজের গুরুত্ব কী?','ছালাতের গুরুত্ব কী?']){
+ for(const question of ['সালাতের গুরুত্ব কী?','নামাজের গুরুত্ব কী?','ছালাতের গুরুত্ব কী?','namajer gurutto ki','salater gurutto ki']){
   const result=await sandbox.suggest.find(question,{includeVideos:false,includeBodyMatches:true});
   assert(result&&result.texts.length,question);
   assert.equal(result.texts[0].k,'1f047bd96535e5',question);
@@ -27,6 +27,9 @@ vm.runInNewContext('const toLatinDigits=s=>String(s).replace(/[০-৯]/g,d=>Str
  }
  const injection=await sandbox.suggest.find('রোজা রেখে ইনজেকশন নিলে কি রোজা ভেঙে যায়?',{includeVideos:false,includeBodyMatches:true});
  assert(injection.texts.slice(0,4).some(x=>x.title.includes('ইনজেকশন')),'specific fasting question');
+ const romanInjection=await sandbox.suggest.find('roja rekhe injection nile ki roja venge jay',{includeVideos:false,includeBodyMatches:true});
+ assert(romanInjection.texts.slice(0,4).some(x=>x.title.includes('ইনজেকশন')),'common Banglish should preserve the specific fasting question');
+ const unknownRoman=await sandbox.suggest.find('namaj quantumflux ki',{includeVideos:false,includeBodyMatches:true});assert.equal(unknownRoman.texts.length,0,'unknown Banglish terms must not be dropped');
  const unknown=await sandbox.suggest.find('কোয়ান্টামফটোনিক্স নামাজ হালাল?',{includeVideos:false,includeBodyMatches:true});
  assert.equal(unknown.texts.length,0,'unknown topic should not be discarded in favour of generic prayer');
  const ordinary=await sandbox.suggest.find('নামাজ',{includeVideos:false});

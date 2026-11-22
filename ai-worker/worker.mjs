@@ -1,4 +1,4 @@
-import {parseScripture,lookupScripture} from './scripture.mjs';
+import {parseScripture,parseSurah,lookupScripture} from './scripture.mjs';
 // Cloudflare Worker: the browser sends article IDs, never source text or credentials.
 const SITE = 'https://ebrahim-ead.github.io/DAWAH-X/';
 const MODEL = '@cf/meta/llama-3.3-70b-instruct-fp8-fast';
@@ -17,11 +17,15 @@ function reply(body, status, origin, allowed) {
 function origins(env) { return (env.ALLOWED_ORIGINS || '').split(',').map(x=>x.trim()).filter(Boolean); }
 // Keep paragraph boundaries so long articles can be searched for useful passages.
 function plain(html) { return String(html || '').replace(/<!--[\s\S]*?-->/g,' ').replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,' ').replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi,' ').replace(/<\s*(?:br\s*\/?|\/\s*(?:p|div|li|h[1-6]|blockquote|tr))\s*>/gi,'\n').replace(/<[^>]*>/g,' ').replace(/&nbsp;|&#160;/gi,' ').replace(/&amp;/gi,'&').replace(/&lt;/gi,'<').replace(/&gt;/gi,'>').replace(/&quot;/gi,'"').replace(/&#39;/gi,"'").replace(/[ \t\r]+/g,' ').replace(/\n\s*\n+/g,'\n').trim(); }
+// Small, explicit Banglish vocabulary used only for source search; unknown
+// words remain intact so they are not silently dropped as if understood.
+const ROMAN_BN={namaj:'নামাজ',namaz:'নামাজ',namajer:'নামাজের',namazer:'নামাজের',namaje:'নামাজে',namaze:'নামাজে',salat:'সালাত',salah:'সালাত',salater:'সালাতের',roja:'রোজা',roza:'রোজা',rojar:'রোজার',rozar:'রোজার',siyam:'সিয়াম',quran:'কুরআন',quraner:'কুরআনের',koran:'কুরআন',hadis:'হাদিস',hadith:'হাদিস',hadiser:'হাদিসের',hadither:'হাদিসের',allah:'আল্লাহ',allaher:'আল্লাহর',islam:'ইসলাম',islamer:'ইসলামের',nabi:'নবি',rasul:'রাসুল',fazr:'ফজর',fajr:'ফজর',ramadan:'রমজান',ramzan:'রমজান',doa:'দোয়া',dua:'দোয়া',oju:'অজু',wudu:'অজু',gurutto:'গুরুত্ব',gurutwo:'গুরুত্ব',importance:'গুরুত্ব',rekhe:'রেখে',injection:'ইনজেকশন',nile:'নিলে',venge:'ভেঙে',vange:'ভাঙে',jay:'যায়',ki:'কি',keno:'কেন',kivabe:'কিভাবে',kibhabe:'কিভাবে'};
+function normalizeRoman(q){return String(q).replace(/[A-Za-z]+/g,w=>ROMAN_BN[w.toLowerCase()]||w)}
 const MATCH_FOLD={'ী':'ি','ূ':'ু','ঈ':'ই','ঊ':'উ','ছ':'স','শ':'স','ষ':'স','য':'জ','ণ':'ন','ৎ':'ত'};
 function fold(text){return String(text||'').normalize('NFC').toLowerCase().replace(/[০-৯]/g,c=>String(c.charCodeAt(0)-0x09e6)).replace(/[\u200b-\u200d\u00ad\ufeff\u0981]/g,'').replace(/([\p{L}\p{M}])[‘’'ʼ](?=\p{L})/gu,'$1').replace(/\u09af\u09bc/g,'\u09df').replace(/\u09a1\u09bc/g,'\u09dc').replace(/\u09a2\u09bc/g,'\u09dd').replace(/([কত])\u09cd\u09ac/g,'$1').replace(/[ীূঈঊছশষযণৎ]/g,c=>MATCH_FOLD[c]);}
 const SKIP=new Set('কি কেন কিভাবে কোথায় কেমন কোন কখন আমার আমি আমাদের আপনি আপনার জানতে জানাবেন চাই সম্পর্কে বিষয় প্রস্ন উত্তর একটি একটা বলে বলা করা করবে করে গেলে হতে হবে আছে নাই থেকে মধ্যে সাথে তার এই এবং অথবা the what how when why who where for the and'.split(' ').map(fold));
 const SYNONYMS=[['নামাজ','সালাত'],['রোজা','সিয়াম','সাওম'],['কোরআন','কুরআন','কুরান'],['অজু','ওজু','উজু'],['হাদিস','হাদীস','হাদীছ'],['দোয়া','দোআ','দুআ'],['বিয়ে','বিবাহ']].map(g=>g.map(fold));
-function queryTerms(q){const words=fold(q).match(/[\p{L}\p{M}\p{N}]+/gu)||[],seen=new Set(),out=[];for(const word of words){const numeric=/^\d{1,6}$/.test(word);if((!numeric&&[...word].length<3)||[...word].length>30||SKIP.has(word)||seen.has(word))continue;seen.add(word);const group=SYNONYMS.find(g=>g.some(x=>word.startsWith(x)));out.push(group||[word]);if(out.length===12)break}return out;}
+function queryTerms(q){const words=fold(normalizeRoman(q)).match(/[\p{L}\p{M}\p{N}]+/gu)||[],seen=new Set(),out=[];for(const word of words){const numeric=/^\d{1,6}$/.test(word);if((!numeric&&[...word].length<3)||[...word].length>30||SKIP.has(word)||seen.has(word))continue;seen.add(word);const group=SYNONYMS.find(g=>g.some(x=>word.startsWith(x)));out.push(group||[word]);if(out.length===12)break}return out;}
 function excerpt(html,query){
  // Link the article's own footnotes to the excerpts that refer to them. They
  // are not model citation numbers, and must never be confused with [1], [2].
@@ -76,9 +80,18 @@ function questionContext(message,history){
  for(let i=users.length-1;i>=0;i--){questions.push(users[i].content);if(!isFollowUp(users[i].content))break}
  return questions;
 }
+// Resolve only an explicit verse-count follow-up to the nearest standalone
+// surah lookup; never reuse an older topic across a new independent question.
+function specificLookup(message,history){
+ const direct=parseScripture(message)||parseSurah(message);if(direct)return direct;
+ const m=message.trim().normalize('NFC');
+ if(!/^(?:এর|এটার|এটির|সেটির|সেটার)\s+(?:আয়াত|আয়াত|আয়াতের|আয়াতের)\s*(?:সংখ্যা\s*)?(?:কত|কয়টি|কয়টি|কটা|কি|কী)(?:\s*(?:বলুন|বলবেন))?[?？।!\s]*$/u.test(m))return null;
+ const chain=questionContext(message,history);if(chain.length<2)return null;
+ return parseSurah(chain[chain.length-1]);
+}
 function hardGrounded(message,history){
- if(parseScripture(message))return true;
- return questionContext(message,history).some(q=>RELIGIOUS_OR_SITE.test(q.normalize('NFC')));
+ if(specificLookup(message,history))return true;
+ return questionContext(message,history).some(q=>RELIGIOUS_OR_SITE.test(normalizeRoman(q).normalize('NFC')));
 }
 async function routeMessage(message,history,ai){
  if(hardGrounded(message,history))return 'GROUNDED';
@@ -120,7 +133,7 @@ export default {
    // Older clients omit lookupComplete and retain their original grounded behaviour.
    if(body.lookupComplete===false){
     const mode=await routeMessage(body.message.trim(),history,env.AI);
-    if(mode!=='CHAT')return reply({needs_sources:true,...(parseScripture(body.message.trim())?{direct_lookup:true}:{})},200,origin,allowed);
+    if(mode!=='CHAT')return reply({needs_sources:true,...(specificLookup(body.message.trim(),history)?{direct_lookup:true}:{})},200,origin,allowed);
     const messages=[{role:'system',content:CHAT_SYSTEM},...history,{role:'user',content:body.message.trim()}];
     const result=await env.AI.run(MODEL,{messages,max_tokens:500});
     if(!result||typeof result.response!=='string'||!result.response.trim())throw Error('Empty chat response');
@@ -128,10 +141,10 @@ export default {
    }
    // Explicit single numbered lookups return the source's original text rather
    // than letting a model reconstruct sacred text or assign a reference number.
-   const specific=parseScripture(body.message.trim());
+   const specific=specificLookup(body.message.trim(),history);
    if(specific){
     const record=await lookupScripture(specific);
-    if(!record)return reply({answer:'উল্লেখিত একটি নির্দিষ্ট আয়াত বা হাদিস নিশ্চিতভাবে পাওয়া যায়নি। অনুগ্রহ করে সূরা ও আয়াত নম্বর অথবা কিতাব ও হাদিস নম্বর আলাদাভাবে দিন।',sources:[],grounded:false},200,origin,allowed);
+    if(!record)return reply({answer:specific.kind==='surah'?'সূরা নম্বর ১ থেকে ১১৪-এর মধ্যে দিন।':'উল্লেখিত একটি নির্দিষ্ট আয়াত বা হাদিস নিশ্চিতভাবে পাওয়া যায়নি। অনুগ্রহ করে সূরা ও আয়াত নম্বর অথবা কিতাব ও হাদিস নম্বর আলাদাভাবে দিন।',sources:[],grounded:false},200,origin,allowed);
     return reply({answer:record.answer,sources:[record.source],grounded:true,mode:'grounded'},200,origin,allowed);
    }
    const query=questionContext(body.message.trim(),history).join(' ');
