@@ -98,6 +98,7 @@ const checkOverflow=async(page,label)=>{
      else if(sent.message==='quran er 2 number surah ki')data={answer:'কুরআনের 2 নম্বর সূরা হলো আল-বাকারা। [1]',grounded:true,sources:[{number:1,type:'quran-surah',surah:2,title:'সূরা আল-বাকারা · সূরা নম্বর 2'}]};
      else if(sent.message==='কুরআন ২:২৫৫')data={answer:'আয়াত 2:255 [1]',grounded:true,sources:[{number:1,type:'quran',surah:2,verse:255,title:'সূরা আল-বাকারা · 2:255'}]};
      else if(sent.message==='বুখারী ৮')data={answer:'বুখারী 8 [1]',grounded:true,sources:[{number:1,type:'hadith',book:'bukhari',chapter:2,hadith:8,title:'সহীহ বুখারী · হাদিস 8'}]};
+     else if(sent.message==='দীর্ঘ উত্তর পরীক্ষা')data={answer:'শুরু '+('বিস্তারিত কথা। '.repeat(250))+'শেষ [1]',grounded:true,incomplete:true,sources:[{number:1,key:'034d218703d000',title:'উৎস লেখা'}]};
      else if(sent.message==='নামাজের গুরুত্ব কী?')data={answer:'কুরআন ও হাদিস [1] [2]',grounded:true,partial:true,sources:[{number:1,type:'quran',surah:2,verse:43,title:'সূরা আল-বাকারা · 2:43'},{number:2,type:'hadith',book:'bukhari',chapter:8,hadith:350,title:'সহীহ বুখারী · হাদিস 350'}]};
      else {const sources=sent.pages.includes('about.html')?[{number:1,path:'about.html',title:'আমাদের সম্পর্কে'}]:[{number:1,key:'034d218703d000',title:'উৎস লেখা'}];data={answer:'পরীক্ষিত উত্তর [1]',grounded:true,sources}}
      await route.fulfill({status:200,contentType:'application/json',headers:{'Access-Control-Allow-Origin':'*'},body:JSON.stringify(data)});
@@ -128,6 +129,11 @@ const checkOverflow=async(page,label)=>{
     assert.equal(await page.locator('.dxa-sources a').nth(-4).getAttribute('href'),'https://ebrahim-ead.github.io/ead/quran.html#2:43');
     assert.equal(await page.locator('.dxa-sources a').nth(-2).getAttribute('href'),'https://ebrahim-ead.github.io/ead/hadith.html#bukhari:8:350');
     assert((await page.locator('.dxa-message.status').last().textContent()).includes('অসম্পূর্ণ'));
+    await page.locator('#dxa-input').fill('দীর্ঘ উত্তর পরীক্ষা');await page.locator('.dxa-form button').click();await page.waitForFunction(()=>document.querySelectorAll('.dxa-message.assistant').length===12);
+    const longResult=await page.evaluate(()=>{const c=document.querySelector('.dxa-chat'),a=Array.from(c.querySelectorAll('.dxa-message.assistant')).at(-1);return {text:a.textContent,top:a.getBoundingClientRect().top-c.getBoundingClientRect().top,height:a.offsetHeight,viewport:c.clientHeight}});
+    assert(longResult.text.startsWith('শুরু ')&&longResult.text.endsWith('শেষ [1]'),'long response must not be clipped');
+    assert(longResult.height>longResult.viewport&&longResult.top>=0&&longResult.top<25,'long answer must start in view');
+    assert((await page.locator('.dxa-message.status').last().textContent()).includes('সম্পূর্ণ করা যায়নি'),'incomplete answer must be clearly flagged');
     await page.locator('.dxa-close').click();assert.equal(await page.locator('#dxa-panel').isVisible(),false);
    }
    if(width===390){

@@ -51,7 +51,7 @@
   // Keep the most recent complete turns while respecting the Worker's byte limit.
   payload={...payload,history:payload.history.slice()};let encoded=JSON.stringify(payload);
   while(payload.history.length&&new TextEncoder().encode(encoded).length>15000){payload.history.splice(0,2);encoded=JSON.stringify(payload)}
-  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),45000);let res;
+  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),120000);let res;
   try{res=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:encoded,signal:controller.signal})}finally{clearTimeout(timer)}
   if(!res.ok)throw Error(String(res.status));return res.json();
  }
@@ -69,7 +69,9 @@
     data=await requestAnswer({message:q,ids:texts.map(x=>x.k),pages,history,lookupComplete:true,scriptureSearch:data.direct_lookup!==true,siteSearchFailed});
    }
    if(typeof data.answer!=='string'||!data.answer.trim()||!Array.isArray(data.sources)||typeof data.grounded!=='boolean'||(data.grounded&&!data.sources.length))throw Error('unsupported');
-   status.remove();modeLabel(data.mode==='chat'?'chat':data.grounded?'grounded':'no-source');bubble(data.answer,'assistant');citations(data.sources);if(data.partial===true)bubble('কিছু উৎস এই মুহূর্তে পাওয়া যায়নি; উত্তরটি অসম্পূর্ণ হতে পারে।','status');
+   status.remove();modeLabel(data.mode==='chat'?'chat':data.grounded?'grounded':'no-source');const answerBubble=bubble(data.answer,'assistant');citations(data.sources);if(data.partial===true)bubble('কিছু উৎস এই মুহূর্তে পাওয়া যায়নি; উত্তরটি অসম্পূর্ণ হতে পারে।','status');if(data.incomplete===true)bubble('উত্তর সম্পূর্ণ করা যায়নি। প্রশ্নটি ছোট অংশে ভাগ করে আবার করুন।','status');
+   // Start a long answer at its beginning instead of jumping past it to citations.
+   if(answerBubble.offsetHeight>chat.clientHeight*0.7)chat.scrollTop+=answerBubble.getBoundingClientRect().top-chat.getBoundingClientRect().top-8;
    history.push({role:'user',content:q},{role:'assistant',content:data.answer.slice(0,2000)});history=history.slice(-6);
   }catch(e){status.remove();if(!input.value)input.value=q;bubble(e.message==='429'?'অনেকগুলো অনুরোধ এসেছে। একটু পরে আবার চেষ্টা করুন।':e.message==='search'?'সাইটের লেখা এখন খোঁজা যাচ্ছে না। সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।':e.message==='unsupported'?'এআই সেবা এখনো হালনাগাদ হয়নি। পরে আবার চেষ্টা করুন, অথবা টিমকে প্রশ্ন পাঠান।':'এখন উত্তর পাওয়া যাচ্ছে না। সংযোগ পরীক্ষা করে আবার চেষ্টা করুন, অথবা টিমকে প্রশ্ন পাঠান।','assistant')}
   finally{busy=false;send.disabled=false;if(!panel.hidden)input.focus()}
