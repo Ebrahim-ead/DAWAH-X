@@ -98,6 +98,7 @@ const checkOverflow=async(page,label)=>{
      else if(sent.message==='quran er 2 number surah ki')data={answer:'কুরআনের 2 নম্বর সূরা হলো আল-বাকারা। [1]',grounded:true,sources:[{number:1,type:'quran-surah',surah:2,title:'সূরা আল-বাকারা · সূরা নম্বর 2'}]};
      else if(sent.message==='কুরআন ২:২৫৫')data={answer:'আয়াত 2:255 [1]',grounded:true,sources:[{number:1,type:'quran',surah:2,verse:255,title:'সূরা আল-বাকারা · 2:255'}]};
      else if(sent.message==='বুখারী ৮')data={answer:'বুখারী 8 [1]',grounded:true,sources:[{number:1,type:'hadith',book:'bukhari',chapter:2,hadith:8,title:'সহীহ বুখারী · হাদিস 8'}]};
+     else if(sent.message==='নামাজের গুরুত্ব কী?')data={answer:'কুরআন ও হাদিস [1] [2]',grounded:true,partial:true,sources:[{number:1,type:'quran',surah:2,verse:43,title:'সূরা আল-বাকারা · 2:43'},{number:2,type:'hadith',book:'bukhari',chapter:8,hadith:350,title:'সহীহ বুখারী · হাদিস 350'}]};
      else {const sources=sent.pages.includes('about.html')?[{number:1,path:'about.html',title:'আমাদের সম্পর্কে'}]:[{number:1,key:'034d218703d000',title:'উৎস লেখা'}];data={answer:'পরীক্ষিত উত্তর [1]',grounded:true,sources}}
      await route.fulfill({status:200,contentType:'application/json',headers:{'Access-Control-Allow-Origin':'*'},body:JSON.stringify(data)});
     });
@@ -107,7 +108,7 @@ const checkOverflow=async(page,label)=>{
     assert.equal(requests.length,1);assert.equal(requests[0].lookupComplete,false);assert.equal(await page.evaluate(()=>window.assistantSearchCalls),0);assert((await page.locator('.dxa-mode').first().textContent()).includes('সাধারণ আলাপ'));
     await page.locator('#dxa-input').fill('একটি প্রশ্ন');await page.locator('.dxa-form button').click();
     await page.waitForFunction(()=>document.querySelectorAll('.dxa-message.assistant').length===2);
-    assert.equal(sent.message,'একটি প্রশ্ন');assert.equal(sent.lookupComplete,true);assert.deepEqual(sent.ids,[]);assert.deepEqual(sent.pages,[]);assert.equal(sent.history.length,2);assert.equal(await page.locator('.dxa-sources a').first().getAttribute('href'),base+'read.html?k=034d218703d000');
+    assert.equal(sent.message,'একটি প্রশ্ন');assert.equal(sent.lookupComplete,true);assert.deepEqual(sent.ids,[]);assert.deepEqual(sent.pages,[]);assert.equal(sent.scriptureSearch,true);assert.equal(sent.history.length,2);assert.equal(await page.locator('.dxa-sources a').first().getAttribute('href'),base+'read.html?k=034d218703d000');
     await page.locator('#dxa-input').fill('DAWAH X কে পরিচালনা করেন?');await page.locator('.dxa-form button').click();await page.waitForFunction(()=>document.querySelectorAll('.dxa-message.assistant').length===3);assert(sent.pages.includes('about.html'));assert.equal(await page.locator('.dxa-sources a').last().getAttribute('href'),base+'about.html');
     await page.locator('#dxa-input').fill('এর দলিল কী?');await page.locator('.dxa-form button').click();await page.waitForFunction(()=>document.querySelectorAll('.dxa-message.assistant').length===4);assert(await page.evaluate(()=>window.assistantQueries.some(q=>q.includes('DAWAH X কে পরিচালনা করেন?')&&q.includes('এর দলিল কী?'))));assert.equal(await page.locator('.dxa-video-pending').count()>0,true,'answer must not wait for slow videos');
     await page.locator('#dxa-input').fill('আরও বলুন');await page.locator('.dxa-form button').click();await page.waitForFunction(()=>document.querySelectorAll('.dxa-message.assistant').length===5);assert(await page.evaluate(()=>window.assistantQueries.some(q=>q.includes('DAWAH X কে পরিচালনা করেন?')&&q.includes('এর দলিল কী?')&&q.includes('আরও বলুন'))));assert(sent.pages.includes('about.html'),'follow-up chain keeps site context');
@@ -121,6 +122,12 @@ const checkOverflow=async(page,label)=>{
     await page.locator('#dxa-input').fill('quran er 2 number surah ki');await page.locator('.dxa-form button').click();await page.waitForFunction(()=>document.querySelectorAll('.dxa-message.assistant').length===9);
     assert((await page.locator('.dxa-message.assistant').last().textContent()).includes('আল-বাকারা'));assert.equal(await page.locator('.dxa-sources a').nth(-2).getAttribute('href'),'https://ebrahim-ead.github.io/ead/quran.html#2');assert.equal(await page.locator('.dxa-sources a').last().getAttribute('href'),'https://quran.com/2');
     await page.locator('#dxa-input').fill('ব্যর্থ পরীক্ষা');await page.locator('.dxa-form button').click();await page.waitForFunction(()=>document.querySelectorAll('.dxa-message.assistant').length===10);assert.equal(await page.locator('#dxa-input').inputValue(),'ব্যর্থ পরীক্ষা','failed question should remain available for retry');
+    await page.evaluate(()=>{window.dawahxAssistantSearch=async()=>{throw Error('offline')}});
+    await page.locator('#dxa-input').fill('নামাজের গুরুত্ব কী?');await page.locator('.dxa-form button').click();await page.waitForFunction(()=>document.querySelectorAll('.dxa-message.assistant').length===11);
+    assert.equal(sent.scriptureSearch,true);assert.equal(sent.siteSearchFailed,true,'site search failure should not prevent scripture search');
+    assert.equal(await page.locator('.dxa-sources a').nth(-4).getAttribute('href'),'https://ebrahim-ead.github.io/ead/quran.html#2:43');
+    assert.equal(await page.locator('.dxa-sources a').nth(-2).getAttribute('href'),'https://ebrahim-ead.github.io/ead/hadith.html#bukhari:8:350');
+    assert((await page.locator('.dxa-message.status').last().textContent()).includes('অসম্পূর্ণ'));
     await page.locator('.dxa-close').click();assert.equal(await page.locator('#dxa-panel').isVisible(),false);
    }
    if(width===390){

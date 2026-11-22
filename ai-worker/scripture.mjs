@@ -54,7 +54,7 @@ export function parseSurah(message){
  if(!words.some(w=>/^(?:কী|কি|কোন|কোনটি|কোনটা|নাম|নামটি|কত|কয়টি|কয়টি|সংখ্যা|ki|what|which|name|koto|koyti|many|বলুন|বলো|বলবেন|জানাবেন)$/.test(w)))return null;
  return {kind:'surah',surah:numbers[0]};
 }
-async function getJSON(path){
+export async function scriptureJSON(path){
  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),10000);
  try{
   const res=await fetch(BASE+path,{signal:controller.signal,redirect:'error'});if(!res.ok)throw Error('Source unavailable');
@@ -68,7 +68,7 @@ export async function lookupScripture(ref){
  if(ref.kind==='unsupported')return null;
  if(ref.kind==='surah'){
   if(!Number.isInteger(ref.surah)||ref.surah<1||ref.surah>114)return null;
-  const index=await getJSON('assets/quran/data/index.json');
+  const index=await scriptureJSON('assets/quran/data/index.json');
   if(!Array.isArray(index.suras))throw Error('Invalid Quran index');
   const rows=index.suras.filter(row=>row.n===ref.surah);
   if(rows.length!==1)throw Error('Invalid Quran index');
@@ -80,7 +80,7 @@ export async function lookupScripture(ref){
  }
  if(ref.kind==='quran'){
   if(!Number.isInteger(ref.surah)||ref.surah<1||ref.surah>114||!Number.isInteger(ref.verse)||ref.verse<1||ref.verse>286)return null;
-  const data=await getJSON('assets/quran/data/suras/'+ref.surah+'.json');
+  const data=await scriptureJSON('assets/quran/data/suras/'+ref.surah+'.json');
   if(data.n!==ref.surah||!Array.isArray(data.verses))throw Error('Invalid Quran source');
   const rows=data.verses.filter(x=>x.a===ref.verse&&typeof x.bn==='string'&&x.bn.trim());if(rows.length!==1)return null;
   const v=rows[0],title='সূরা '+String(data.bnName||data.translit||ref.surah).slice(0,100)+' · '+ref.surah+':'+ref.verse;
@@ -90,11 +90,11 @@ export async function lookupScripture(ref){
   return {answer,source:{number:1,title,type:'quran',surah:ref.surah,verse:ref.verse}};
  }
  if(ref.kind!=='hadith'||!BOOKS.some(b=>b.slug===ref.book)||!Number.isInteger(ref.number)||ref.number<1||ref.number>20000)return null;
- const idx=await getJSON('assets/hadith/data/index.json');
+ const idx=await scriptureJSON('assets/hadith/data/index.json');
  const book=Array.isArray(idx.books)&&idx.books.find(b=>b.slug===ref.book);if(!book||!Array.isArray(book.chapters))throw Error('Invalid hadith index');
  const chapters=book.chapters.filter(c=>Number.isInteger(c.id)&&c.id>=0&&c.id<=200&&Number.isInteger(c.from)&&Number.isInteger(c.to)&&ref.number>=c.from&&ref.number<=c.to);
  if(!chapters.length)return null;if(chapters.length>2)throw Error('Ambiguous hadith index');
- const data=await Promise.all(chapters.map(c=>getJSON('assets/hadith/data/'+ref.book+'/'+c.id+'.json')));
+ const data=await Promise.all(chapters.map(c=>scriptureJSON('assets/hadith/data/'+ref.book+'/'+c.id+'.json')));
  const found=[];data.forEach((d,i)=>{if(d.book!==ref.book||d.chapter!==chapters[i].id||!Array.isArray(d.verses))throw Error('Invalid hadith source');for(const v of d.verses)if(v.i===ref.number&&typeof v.b==='string'&&v.b.trim()&&!/^(?:অনুবাদ পাওয়া যায়নি।?|\(\.\.\.\)|—|-)$/.test(v.b.trim()))found.push({v,chapter:chapters[i].id})});
  // Multiple variants or numbering overlaps must not be silently conflated.
  if(found.length!==1||found[0].v.b.length>8000)return null;
