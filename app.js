@@ -1548,3 +1548,7 @@ if(ANALYTICS.provider==="goatcounter"&&ANALYTICS.code){
 if(navigator.serviceWorker&&(location.protocol==="https:"||location.hostname==="localhost"||location.hostname==="127.0.0.1")){
  window.addEventListener("load",()=>{navigator.serviceWorker.register("sw.js").catch(()=>{})});
 }
+
+/* এআই সহকারী — অনুসন্ধান সূচি প্রয়োজন হলে তবেই লোড হয়। */
+window.dawahxAssistantSearch=q=>SUGGEST.find(q);
+{const script=document.createElement('script');script.src=new URL('assistant.js',document.currentScript.src).href;script.defer=true;document.body.appendChild(script)}
