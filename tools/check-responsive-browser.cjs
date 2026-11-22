@@ -91,12 +91,13 @@ const checkOverflow=async(page,label)=>{
     let sent,requests=[];await context.route('https://dawahx-assistant.www-mdrazu55555.workers.dev/**',async route=>{
      if(route.request().method()==='OPTIONS')return route.fulfill({status:204,headers:{'Access-Control-Allow-Origin':'*','Access-Control-Allow-Methods':'POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type'}});
      sent=route.request().postDataJSON();requests.push(sent);
+     if(sent.message==='ব্যর্থ পরীক্ষা')return route.fulfill({status:500,headers:{'Access-Control-Allow-Origin':'*'}});
      let data;if(!sent.lookupComplete&&sent.message==='হ্যালো')data={answer:'হ্যালো! কেমন আছেন?',grounded:false,mode:'chat',sources:[]};
      else if(!sent.lookupComplete)data={needs_sources:true};
      else {const sources=sent.pages.includes('about.html')?[{number:1,path:'about.html',title:'আমাদের সম্পর্কে'}]:[{number:1,key:'034d218703d000',title:'উৎস লেখা'}];data={answer:'পরীক্ষিত উত্তর [1]',grounded:true,sources}}
      await route.fulfill({status:200,contentType:'application/json',headers:{'Access-Control-Allow-Origin':'*'},body:JSON.stringify(data)});
     });
-    await page.evaluate(()=>{window.assistantSearchCalls=0;window.dawahxAssistantSearch=async()=>{window.assistantSearchCalls++;return {texts:[],videos:Promise.resolve([])}}});
+    await page.evaluate(()=>{window.assistantSearchCalls=0;window.assistantQueries=[];window.dawahxAssistantSearch=async q=>{window.assistantSearchCalls++;window.assistantQueries.push(q);return {texts:[],videos:new Promise(()=>{})}}});
     await page.locator('.dxa-trigger').click();await page.locator('#dxa-input').fill('হ্যালো');await page.locator('.dxa-form button').click();
     await page.waitForFunction(()=>document.querySelector('.dxa-message.assistant')?.textContent==='হ্যালো! কেমন আছেন?');
     assert.equal(requests.length,1);assert.equal(requests[0].lookupComplete,false);assert.equal(await page.evaluate(()=>window.assistantSearchCalls),0);assert((await page.locator('.dxa-mode').first().textContent()).includes('সাধারণ আলাপ'));
@@ -104,6 +105,8 @@ const checkOverflow=async(page,label)=>{
     await page.waitForFunction(()=>document.querySelectorAll('.dxa-message.assistant').length===2);
     assert.equal(sent.message,'একটি প্রশ্ন');assert.equal(sent.lookupComplete,true);assert.deepEqual(sent.ids,[]);assert.deepEqual(sent.pages,[]);assert.equal(sent.history.length,2);assert.equal(await page.locator('.dxa-sources a').first().getAttribute('href'),base+'read.html?k=034d218703d000');
     await page.locator('#dxa-input').fill('DAWAH X কে পরিচালনা করেন?');await page.locator('.dxa-form button').click();await page.waitForFunction(()=>document.querySelectorAll('.dxa-message.assistant').length===3);assert(sent.pages.includes('about.html'));assert.equal(await page.locator('.dxa-sources a').last().getAttribute('href'),base+'about.html');
+    await page.locator('#dxa-input').fill('এর দলিল কী?');await page.locator('.dxa-form button').click();await page.waitForFunction(()=>document.querySelectorAll('.dxa-message.assistant').length===4);assert(await page.evaluate(()=>window.assistantQueries.some(q=>q.includes('DAWAH X কে পরিচালনা করেন?')&&q.includes('এর দলিল কী?'))));assert.equal(await page.locator('.dxa-video-pending').count()>0,true,'answer must not wait for slow videos');
+    await page.locator('#dxa-input').fill('ব্যর্থ পরীক্ষা');await page.locator('.dxa-form button').click();await page.waitForFunction(()=>document.querySelectorAll('.dxa-message.assistant').length===5);assert.equal(await page.locator('#dxa-input').inputValue(),'ব্যর্থ পরীক্ষা','failed question should remain available for retry');
     await page.locator('.dxa-close').click();assert.equal(await page.locator('#dxa-panel').isVisible(),false);
    }
    if(width===390){
