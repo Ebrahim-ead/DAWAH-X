@@ -1446,3 +1446,9 @@ html[data-theme="light"] .prayer-disclaimer{background:rgba(23,36,44,.025);borde
 #video-grid[data-fade="1"] .video-preview.has-thumb,#video-grid[data-fade="1"] .video-preview.thumb-unavailable{animation:none;background:#0b1a22}
 .video-preview img[hidden]{display:none}
 @media(max-width:600px){.subscribe-btn{white-space:nowrap;font-size:12px;padding:10px 12px;gap:5px}.channel-left{min-width:0}}
+
+/* প্রশ্ন পৃষ্ঠায় কেবল সাইটের মূল লেখাভিত্তিক খোঁজ */
+.source-answer-box{margin-bottom:24px}.source-answer-box h2{margin:0 0 8px;font-size:1.3rem}.source-answer-box>p{color:var(--muted);margin:0;line-height:1.7}
+.source-answer-box textarea{min-height:90px}.source-answer-box .askbtn{min-height:48px}.source-answer-box [role=status]{margin-top:14px;color:var(--text)}
+.source-answer-box h3{font-size:1.05rem;margin:18px 0 8px}.source-answer-meta{color:var(--muted);font-size:.9rem}.source-answer-body{max-height:420px;overflow:auto;border:1px solid var(--line);border-radius:10px;padding:14px;margin:10px 0}
+.source-answer-links{padding-inline-start:22px}.source-answer-links li{margin:10px 0}.source-answer-links small{display:block;color:var(--muted)}
