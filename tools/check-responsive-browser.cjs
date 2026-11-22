@@ -89,12 +89,12 @@ const checkOverflow=async(page,label)=>{
    await visit('ask.html');await checkAssistant();
    if(width===390&&theme==='light'){
     let sent;await context.route('https://dawahx-assistant.www-mdrazu55555.workers.dev/**',async route=>{
-     sent=route.request().postDataJSON();await route.fulfill({status:200,contentType:'application/json',headers:{'Access-Control-Allow-Origin':'*'},body:JSON.stringify({answer:'পরীক্ষিত উত্তর'})});
+     sent=route.request().postDataJSON();await route.fulfill({status:200,contentType:'application/json',headers:{'Access-Control-Allow-Origin':'*'},body:JSON.stringify({answer:'পরীক্ষিত উত্তর [1]',grounded:true,sources:[{number:1,key:'034d218703d000',title:'উৎস লেখা'}]})});
     });
     await page.evaluate(()=>{window.dawahxAssistantSearch=async()=>({texts:[],videos:Promise.resolve([])})});
     await page.locator('.dxa-trigger').click();await page.locator('#dxa-input').fill('একটি প্রশ্ন');await page.locator('.dxa-form button').click();
-    await page.waitForFunction(()=>document.querySelector('.dxa-message.assistant')?.textContent==='পরীক্ষিত উত্তর');
-    assert.equal(sent.message,'একটি প্রশ্ন');assert.deepEqual(sent.ids,[]);assert.deepEqual(sent.history,[]);
+    await page.waitForFunction(()=>document.querySelector('.dxa-message.assistant')?.textContent==='পরীক্ষিত উত্তর [1]');
+    assert.equal(sent.message,'একটি প্রশ্ন');assert.deepEqual(sent.ids,[]);assert.deepEqual(sent.history,[]);assert.equal(await page.locator('.dxa-sources a').getAttribute('href'),base+'read.html?k=034d218703d000');
     await page.locator('.dxa-close').click();assert.equal(await page.locator('#dxa-panel').isVisible(),false);
    }
    if(width===390){
