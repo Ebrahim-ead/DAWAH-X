@@ -76,7 +76,19 @@ const checkOverflow=async(page,label)=>{
    const articleText=await page.locator('#read-body').textContent();assert(!articleText.includes('প্রসঙ্গসমূহ')&&!articleText.includes('-->'));assert(articleText.includes('রাশেদুল ইসলাম'));
    const preserved=await page.evaluate(()=>{const html='<p>মূল লেখা</p><div class="subjects"><span>প্রসঙ্গসমূহ »: </span><a href="https://ikhlasbd.com/subject_archive/100">বিষয়</a></div><p>আরও লেখা</p>';return safeArticle(html,'','ik').textContent});
    assert(preserved.includes('প্রসঙ্গসমূহ')&&preserved.includes('আরও লেখা'));
-   await visit('ask.html');await page.click('#askbtn');assert.equal(await page.getAttribute('#an','aria-invalid'),'true');assert.equal(submissions.length,0);
+   await visit('ask.html');
+   if(width===390){
+    const q=page.locator('#source-answer-question'),submit=page.locator('#source-answer-submit'),status=page.locator('#source-answer-status');
+    await q.fill('লুক্বমান (আলাইহিস সালাম) কি নবী ছিলেন, না-কি ছালিহ ব্যক্তিদের অন্তর্ভুক্ত ছিলেন?');await submit.click();
+    await page.waitForFunction(()=>document.querySelector('#source-answer-status').textContent.includes('একই শিরোনামের'));
+    assert((await page.locator('#source-answer-results').textContent()).includes('রাশেদুল ইসলাম'));
+    assert(await page.locator('#source-answer-results a[href^="read.html?k=0007877b4d24f5"]').count());
+    await q.fill('মঙ্গলে নামাজ পড়া যাবে কি?');await submit.click();await page.waitForFunction(()=>document.querySelector('#source-answer-status').textContent.includes('পাওয়া যায়নি'));
+    assert.equal(await page.locator('#source-answer-results .source-answer-body').count(),0);
+    await q.fill('রোজা রেখে ইনজেকশন নিলে কি রোজা ভেঙে যায়?');await submit.click();await page.waitForFunction(()=>document.querySelector('#source-answer-status').textContent.includes('নিশ্চিত উত্তর শনাক্ত করা যায়নি'));
+    assert((await page.locator('#source-answer-results .source-answer-links a').count())>0);assert.equal(await page.locator('#source-answer-results .source-answer-body').count(),0);
+   }
+   await page.click('#askbtn');assert.equal(await page.getAttribute('#an','aria-invalid'),'true');assert.equal(submissions.length,0);
    if(width===390){
     await page.fill('#an','পরীক্ষার নাম');await page.click('#askbtn');assert.equal(await page.getAttribute('#ac','aria-invalid'),'true');
     await page.fill('#ac','invalid');await page.click('#askbtn');assert.equal(await page.getAttribute('#ac','aria-invalid'),'true');
