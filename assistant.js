@@ -7,7 +7,7 @@
  const css=document.createElement('link');css.rel='stylesheet';css.href=url('assistant.css');document.head.appendChild(css);
  const trigger=document.createElement('button');trigger.type='button';trigger.className='dxa-trigger';trigger.setAttribute('aria-expanded','false');trigger.setAttribute('aria-controls','dxa-panel');trigger.innerHTML='<span aria-hidden="true">✦</span> এআই সহকারী';
  const panel=document.createElement('aside');panel.id='dxa-panel';panel.className='dxa-panel';panel.hidden=true;panel.setAttribute('aria-label','DAWAH X এআই সহকারী');
- panel.innerHTML='<header class="dxa-head"><div><span class="dxa-mark" aria-hidden="true">✦</span><div><strong>DAWAH X সহকারী</strong><small>জানুন, বুঝুন, উৎস খুঁজুন</small></div></div><button class="dxa-close" type="button" aria-label="চ্যাট বন্ধ করুন">×</button></header><div class="dxa-chat" role="log" aria-live="polite" aria-relevant="additions"><div class="dxa-welcome"><span>আসসালামু আলাইকুম</span><h2>কী জানতে চান?</h2><p>দৈনন্দিন বিষয়ে গল্প করুন। ইসলাম ও DAWAH X নিয়ে প্রশ্ন করলে সাইটের লেখা থেকে উত্তর খুঁজব। এআই ভুল করতে পারে—মূল উৎস যাচাই করুন; ব্যক্তিগত ফতোয়ার জন্য যোগ্য আলেমের পরামর্শ নিন।</p><div class="dxa-prompts"><button type="button">সালাতের গুরুত্ব কী?</button><button type="button">রোজা সম্পর্কে জানতে চাই</button></div></div></div><div class="dxa-bottom"><p class="dxa-privacy">প্রশ্ন ও সাম্প্রতিক কথোপকথন Cloudflare-এর এআই সেবায় পাঠানো হয়। সংবেদনশীল তথ্য দেবেন না।</p><form class="dxa-form"><label class="dxa-sr" for="dxa-input">আপনার প্রশ্ন</label><textarea id="dxa-input" rows="1" maxlength="2000" placeholder="আপনার প্রশ্ন লিখুন…" required></textarea><button type="submit" aria-label="প্রশ্ন পাঠান">➜</button></form><div class="dxa-footer"><span>এআই-এর উত্তর যাচাই করুন</span><a href="'+url('ask.html')+'">টিমকে প্রশ্ন করুন ↗</a></div></div>';
+ panel.innerHTML='<header class="dxa-head"><div><span class="dxa-mark" aria-hidden="true">✦</span><div><strong>DAWAH X সহকারী</strong><small>জানুন, বুঝুন, উৎস খুঁজুন</small></div></div><button class="dxa-close" type="button" aria-label="চ্যাট বন্ধ করুন">×</button></header><div class="dxa-chat" role="log" aria-live="polite" aria-relevant="additions"><div class="dxa-welcome"><span>আসসালামু আলাইকুম</span><h2>কী জানতে চান?</h2><p>দৈনন্দিন বিষয়ে গল্প করুন। ইসলাম নিয়ে প্রশ্ন করলে সাইটের লেখা থেকে উত্তর খুঁজব। নির্দিষ্ট আয়াত বা হাদিস জানতে সূরা ও আয়াত নম্বর, অথবা কিতাব ও হাদিস নম্বর লিখুন। এআই ভুল করতে পারে—মূল উৎস যাচাই করুন; ব্যক্তিগত ফতোয়ার জন্য যোগ্য আলেমের পরামর্শ নিন।</p><div class="dxa-prompts"><button type="button">সালাতের গুরুত্ব কী?</button><button type="button">রোজা সম্পর্কে জানতে চাই</button></div></div></div><div class="dxa-bottom"><p class="dxa-privacy">প্রশ্ন ও সাম্প্রতিক কথোপকথন Cloudflare-এর এআই সেবায় পাঠানো হয়। সংবেদনশীল তথ্য দেবেন না।</p><form class="dxa-form"><label class="dxa-sr" for="dxa-input">আপনার প্রশ্ন</label><textarea id="dxa-input" rows="1" maxlength="2000" placeholder="আপনার প্রশ্ন লিখুন…" required></textarea><button type="submit" aria-label="প্রশ্ন পাঠান">➜</button></form><div class="dxa-footer"><span>এআই-এর উত্তর যাচাই করুন</span><a href="'+url('ask.html')+'">টিমকে প্রশ্ন করুন ↗</a></div></div>';
  document.body.append(trigger,panel);
  const chat=panel.querySelector('.dxa-chat'),form=panel.querySelector('form'),input=panel.querySelector('textarea'),send=form.querySelector('button'),close=panel.querySelector('.dxa-close');
  let history=[],busy=false;
@@ -28,7 +28,21 @@
  function isFollowUp(q){const t=q.trim();return /^(?:এটা|এটি|এগুলো|ওটা|সেটা|সেটি|সেগুলো|এর|এদের|তার|তাদের|তাহলে|আর|আরও|আরো|তারপর|এ বিষয়ে|এ বিষয়ে|ওই বিষয়ে|ওই বিষয়ে)(?:\s|[?？।!,:ঃ]|$)/u.test(t)||/^(?:কেন|কীভাবে|কিভাবে|কখন|কোথায়|কোথায়|বিস্তারিত|ব্যাখ্যা)(?:\s*(?:বলুন|বলেন|বলবেন|জানান|করুন|চাই|দিন))?\s*[?？।!]*$/u.test(t)||/^(?:why|how|what about (?:it|that|this)|explain|tell me more)[?.!\s]*$/i.test(t)}
  function searchContext(q){if(!isFollowUp(q))return q;const parts=[q],users=history.filter(m=>m.role==='user');for(let i=users.length-1;i>=0;i--){parts.push(users[i].content);if(!isFollowUp(users[i].content))break}return parts.join(' ')}
  function pageMatches(q){const site=/(?:dawah\s*x|দা[ওউ]য়?া?হ|দাওয়াহ|দাওয়াহ|ওয়েবসাইট|ওয়েবসাইট|ওয়েবসাইট|সাইট|আপনাদের|তোমাদের)/i.test(q);if(!site)return [];const pages=['about.html'];if(/সেবা|কার্যক্রম|কাজ|উদ্দেশ্য|service/i.test(q))pages.push('services.html');if(/যোগাযোগ|ফোন|নম্বর|whatsapp|হোয়াটসঅ্যাপ|হোয়াটসঅ্যাপ/i.test(q))pages.push('contact.html');if(/নীতি|তথ্যসূত্র|উৎস|রেফারেন্স|সংশোধন/i.test(q))pages.push('policy.html');return pages}
- function citations(items){if(!items.length)return;const box=document.createElement('div');box.className='dxa-sources';const title=document.createElement('strong');title.textContent='উত্তরে উল্লেখিত সাইটের উৎস — মূল লেখা যাচাই করুন';box.append(title);for(const item of items){if(!item||!Number.isInteger(item.number)||item.number<1||typeof item.title!=='string'||(!/^[a-f0-9]{14}$/.test(item.key||'')&&!sitePages.has(item.path)))continue;const a=document.createElement('a');a.textContent='['+item.number+'] '+item.title;a.href=item.path&&sitePages.has(item.path)?url(item.path):url('read.html?k='+encodeURIComponent(item.key));a.target='_blank';a.rel='noopener noreferrer';box.append(a)}chat.append(box);chat.scrollTop=chat.scrollHeight}
+ function citations(items){if(!items.length)return;const box=document.createElement('div');box.className='dxa-sources';const title=document.createElement('strong');title.textContent='উত্তরে উল্লেখিত উৎস — মূল লেখা যাচাই করুন';box.append(title);
+  function link(label,href){const a=document.createElement('a');a.textContent=label;a.href=href;a.target='_blank';a.rel='noopener noreferrer';box.append(a)}
+  const books={bukhari:'বুখারী',muslim:'মুসলিম','abu-dawud':'আবু দাউদ',tirmidhi:'তিরমিজি',nasai:'নাসাঈ','ibn-majah':'ইবনে মাজাহ',mishkat:'মিশকাত'};
+  for(const item of items){if(!item||!Number.isInteger(item.number)||item.number<1||typeof item.title!=='string')continue;
+   if(item.type==='quran'&&Number.isInteger(item.surah)&&item.surah>=1&&item.surah<=114&&Number.isInteger(item.verse)&&item.verse>=1&&item.verse<=286){
+    link('['+item.number+'] '+item.title+' · Ebrahim Ead', 'https://ebrahim-ead.github.io/ead/quran.html#'+item.surah+':'+item.verse);
+    link('একই আয়াত Quran.com-এ দেখুন (ভিন্ন অনুবাদ হতে পারে)','https://quran.com/'+item.surah+'/'+item.verse);continue;
+   }
+   if(item.type==='hadith'&&Object.prototype.hasOwnProperty.call(books,item.book)&&Number.isInteger(item.chapter)&&item.chapter>=0&&item.chapter<=200&&Number.isInteger(item.hadith)&&item.hadith>=1&&item.hadith<=20000){
+    link('['+item.number+'] '+item.title+' · Ebrahim Ead','https://ebrahim-ead.github.io/ead/hadith.html#'+item.book+':'+item.chapter+':'+item.hadith);
+    link('HadithBD-তে খুঁজুন (সংস্করণ ও নম্বর মিলিয়ে দেখুন)','https://www.hadithbd.com/search/?q='+encodeURIComponent(books[item.book]+' '+item.hadith));continue;
+   }
+   if(!/^[a-f0-9]{14}$/.test(item.key||'')&&!sitePages.has(item.path))continue;
+   link('['+item.number+'] '+item.title,item.path&&sitePages.has(item.path)?url(item.path):url('read.html?k='+encodeURIComponent(item.key)));
+  }chat.append(box);chat.scrollTop=chat.scrollHeight}
  async function requestAnswer(payload){
   // Keep the most recent complete turns while respecting the Worker's byte limit.
   payload={...payload,history:payload.history.slice()};let encoded=JSON.stringify(payload);
@@ -45,8 +59,8 @@
    let data=await requestAnswer({message:q,ids:[],pages:[],history,lookupComplete:false});
    if(data.needs_sources===true){
     status.textContent='সাইটে প্রাসঙ্গিক তথ্য খোঁজা হচ্ছে…';let texts=[],videos=null;
-    const searchQ=searchContext(q),pages=pageMatches(searchQ);
-    try{let result=await window.dawahxAssistantSearch(searchQ);if(!result)throw Error('search unavailable');texts=result.texts.slice(0,4);videos=result.videos}catch(_){if(!pages.length)throw Error('search')}
+    const searchQ=searchContext(q),pages=data.direct_lookup===true?[]:pageMatches(searchQ);
+    if(data.direct_lookup!==true){try{let result=await window.dawahxAssistantSearch(searchQ);if(!result)throw Error('search unavailable');texts=result.texts.slice(0,4);videos=result.videos}catch(_){if(!pages.length)throw Error('search')}}
     sources(texts,videos);status.textContent='সাইটের উৎস থেকে উত্তর তৈরি হচ্ছে…';
     data=await requestAnswer({message:q,ids:texts.map(x=>x.k),pages,history,lookupComplete:true});
    }

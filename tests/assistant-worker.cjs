@@ -27,6 +27,14 @@ const assert=require('node:assert/strict');
   // A match far beyond the opening of an article must reach the model.
   fixtures['034d218703d000'].h='<p>ভূমিকা</p>'+('<p>অন্য প্রসঙ্গের দীর্ঘ আলোচনা।</p>'.repeat(350))+'<p>দুর্লভপদ ঘূর্ণিঝড় সম্পর্কে বিশেষ প্রমাণ ও তথ্য</p>';
   modelResponse='উত্তর [1]';res=await worker.fetch(req({...body,message:'দুর্লভপদ ঘূর্ণিঝড় কী?'}),env);assert.equal(res.status,200);assert.match(captured.args.messages[1].content,/দুর্লভপদ ঘূর্ণিঝড় সম্পর্কে বিশেষ প্রমাণ/);assert(captured.args.messages[1].content.length<7500);
+  // This real article puts hadith identifiers in footnotes at the end of a long
+  // article. The relevant footnote must accompany the matching opening passage.
+  const real=require('../texts/5e5.json')['1f047bd96535e5'];
+  fixtures['034d218703d000'].h=real.h;
+  modelResponse='পরীক্ষা [1]';res=await worker.fetch(req({...body,message:'সালাতের গুরুত্ব কী?'}),env);assert.equal(res.status,200);
+  assert.match(captured.args.messages[1].content,/পাদটীকা x_ftn2/);
+  assert.match(captured.args.messages[1].content,/x_ftn2:.*বুখারী, হা\/৮/,'matched article footnote must include the book and hadith number');
+  assert.match(captured.args.messages[1].content,/উৎস-নম্বর নয়/);
   // A specific number must not be ignored or matched inside a different number.
   // The relevant passage is far from both the opening and the misleading ১০ passage.
   fixtures['034d218703d000'].h='<p>ভূমিকা</p><p>রোজার ১০ নম্বর বিষয়ে পুরনো আলোচনা</p>'+('<p>অন্য আলোচনার দীর্ঘ বিবরণ।</p>'.repeat(350))+'<p>রোজার ১ নম্বর বিষয়ে নির্দিষ্ট তথ্য অনন্যপ্রমাণ</p>'+('<p>সমাপ্তির পর আরও দীর্ঘ লেখা।</p>'.repeat(350));
