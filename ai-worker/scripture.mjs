@@ -11,6 +11,18 @@ const BOOKS=[
  {slug:'mishkat',match:/(?:মিশকাত|mishkat)/iu}
 ];
 const digits=s=>String(s).replace(/[০-৯]/g,c=>String(c.charCodeAt(0)-0x09e6));
+
+// Detect common book-first references in generated prose. This conservative
+// check is not a complete parser for every edition or citation notation.
+export function hadithMentions(message){
+ const q=digits(String(message).normalize('NFC')),out=[];
+ for(const book of BOOKS){
+  const re=new RegExp(book.match.source+'[\\s,،:：()–-]*(?:(?:হাদিস|হাদীস|হাদীছ|হাদীথ|হা|hadith)\\s*[:ঃ/.-]?\\s*)?(?:(?:নং|নম্বর|নাম্বার|number|no\\.?)\\s*[:ঃ/.-]?\\s*)?(\\d{1,5})(?!\\d)','giu');
+  for(const m of q.matchAll(re))out.push({book:book.slug,number:Number(m[1])});
+ }
+ return out;
+}
+
 // Ranges and multiple references are rejected rather than silently showing a
 // single verse/hadith as an answer to a request for several.
 export function parseScripture(message){
