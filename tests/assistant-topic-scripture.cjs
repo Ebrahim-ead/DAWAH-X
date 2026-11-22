@@ -33,6 +33,9 @@ const assert=require('node:assert/strict');
   env.AI.run=async()=>({response:'সূরা 2:3 [2]'});
   response=await worker.fetch(req('নামাজের গুরুত্ব কী?'),env);data=await response.json();assert.equal(data.grounded,false,'a Quran number must cite that direct verse, not a different source');
   assert(!seen.some(u=>u.includes('evil.test')));
+  // Common framing words must not prevent direct sources from being found.
+  env.AI.run=async()=>({response:'তথ্য [1]'});
+  response=await worker.fetch(req('কুরআন ও হাদিসের আলোকে সালাত কেন গুরুত্বপূর্ণ?'),env);data=await response.json();assert.equal(data.grounded,true);assert.equal(data.sources[0].type,'quran');
   // No model-derived text, no number or source fabricated from the user.
   const emptyEnv={...env,AI:{run:async()=>{throw Error('must not run without sources')}}};
   response=await worker.fetch(req('নামাজ ও অদেখাপ্রসঙ্গ সম্পর্কে জানতে চাই',{ids:[]}),emptyEnv);data=await response.json();assert.equal(data.grounded,false);assert.deepEqual(data.sources,[]);
