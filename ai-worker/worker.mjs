@@ -10,6 +10,35 @@ const SYSTEM = `You are DAWAH X's Bengali assistant. Answer the latest user ques
 const SITE_PAGES = {'about.html':'আমাদের সম্পর্কে','services.html':'আমাদের সেবাসমূহ','contact.html':'যোগাযোগ','policy.html':'উৎস ও সংশোধন নীতি'};
 const NO_ANSWER = 'দুঃখিত, আপনার প্রশ্নের নির্ভরযোগ্য উত্তর দেওয়ার মতো তথ্য এই মুহূর্তে খুঁজে পাওয়া উৎসগুলোতে নেই। প্রশ্নটি অন্যভাবে লিখে চেষ্টা করুন অথবা DAWAH X টিমকে প্রশ্ন পাঠান।';
 
+// Bengali text can use many model tokens per word. A small generation cap may
+// cut an answer mid-sentence. Continue at most once when the provider signals
+// a length stop or its documented usage reaches our limit. No signal does not
+// guarantee completeness, so this is a best-effort safeguard, not a detector.
+const ANSWER_TOKENS=2048, CHAT_TOKENS=1536, CONTINUATION_TOKENS=1536;
+function lengthLimited(result,limit){
+ const reason=result?.finish_reason||result?.stop_reason||result?.choices?.[0]?.finish_reason;
+ const used=result?.usage?.completion_tokens;
+ return /^(?:length|max_tokens|max_token)$/i.test(String(reason||'')) || (typeof used==='number'&&Number.isFinite(used)&&used>=limit);
+}
+async function generateAnswer(ai,messages,limit,grounded){
+ const first=await ai.run(MODEL,{messages,max_tokens:limit});
+ if(!first||typeof first.response!=='string'||!first.response.trim())throw Error('Empty model response');
+ let text=first.response;
+ if(!lengthLimited(first,limit))return {text,incomplete:false};
+ // Keep costs and context bounded; do not continue an abstention or oversized text.
+ if(text.includes('NOT_ENOUGH_INFORMATION')||text.length>12000)return {text,incomplete:true};
+ try{
+  const prompt=grounded?'Continue the immediately preceding answer exactly where it stopped, completing any unfinished sentence. Do not repeat earlier text. Use only the same supplied evidence and numbered citations; cite each substantive claim, and do not invent sources or references. If you cannot safely continue, reply only NOT_ENOUGH_INFORMATION.':'Continue the immediately preceding answer exactly where it stopped, completing any unfinished sentence. Do not repeat earlier text. Follow the same safety rules.';
+  const next=await ai.run(MODEL,{messages:[...messages,{role:'assistant',content:text},{role:'user',content:prompt}],max_tokens:CONTINUATION_TOKENS});
+  if(!next||typeof next.response!=='string'||!next.response.trim()||next.response.includes('NOT_ENOUGH_INFORMATION'))return {text,incomplete:true};
+  // Models sometimes restart rather than continue. Do not append a duplicate.
+  if(next.response.trim().startsWith(text.trim())||text.trim().endsWith(next.response.trim()))return {text,incomplete:true};
+  text+=next.response;
+  return {text,incomplete:lengthLimited(next,CONTINUATION_TOKENS)};
+ }catch(_){return {text,incomplete:true}}
+}
+
+
 function reply(body, status, origin, allowed) {
   const headers = {'Content-Type':'application/json; charset=utf-8', 'Cache-Control':'no-store', 'Vary':'Origin'};
   if (origin && allowed.includes(origin)) headers['Access-Control-Allow-Origin'] = origin;
@@ -138,9 +167,8 @@ export default {
     const mode=await routeMessage(body.message.trim(),history,env.AI);
     if(mode!=='CHAT')return reply({needs_sources:true,...(specificLookup(body.message.trim(),history)?{direct_lookup:true}:{})},200,origin,allowed);
     const messages=[{role:'system',content:CHAT_SYSTEM},...history,{role:'user',content:body.message.trim()}];
-    const result=await env.AI.run(MODEL,{messages,max_tokens:500});
-    if(!result||typeof result.response!=='string'||!result.response.trim())throw Error('Empty chat response');
-    return reply({answer:result.response.trim(),sources:[],grounded:false,mode:'chat'},200,origin,allowed);
+    const result=await generateAnswer(env.AI,messages,CHAT_TOKENS,false);
+    return reply({answer:result.text.trim(),sources:[],grounded:false,mode:'chat',...(result.incomplete?{incomplete:true}:{})},200,origin,allowed);
    }
    // Explicit single numbered lookups return the source's original text rather
    // than letting a model reconstruct sacred text or assign a reference number.
@@ -159,15 +187,15 @@ export default {
    // Previous user turns are context for follow-up questions, never evidence.
    // Do not pass earlier assistant answers: they may contain unsupported claims.
    const prior=questionContext(body.message.trim(),history).slice(1).reverse().join('\n');
-   const result=await env.AI.run(MODEL,{messages:[{role:'system',content:SYSTEM},{role:'user',content:context+'\n\nEarlier questions (context only):\n'+prior+'\n\nLatest question: '+body.message.trim()}],max_tokens:700});
-   if (!result || typeof result.response!=='string' || !result.response.trim()) throw Error('Empty model response');
-   const answer=result.response.trim().replace(/\[\s*([0-9০-৯]+(?:\s*[,،]\s*[0-9০-৯]+)+)\s*\]/g,(_,nums)=>nums.split(/\s*[,،]\s*/).map(n=>'['+n+']').join(' '));
+   const messages=[{role:'system',content:SYSTEM},{role:'user',content:context+'\n\nEarlier questions (context only):\n'+prior+'\n\nLatest question: '+body.message.trim()}];
+   const result=await generateAnswer(env.AI,messages,ANSWER_TOKENS,true);
+   const answer=result.text.trim().replace(/\[\s*([0-9০-৯]+(?:\s*[,،]\s*[0-9০-৯]+)+)\s*\]/g,(_,nums)=>nums.split(/\s*[,،]\s*/).map(n=>'['+n+']').join(' '));
    if (answer.includes('NOT_ENOUGH_INFORMATION')) return reply({answer:NO_ANSWER,sources:[],grounded:false,partial},200,origin,allowed);
    const marks=[...answer.matchAll(/\[([0-9০-৯]+)\]/g)].map(m=>Number(m[1].replace(/[০-৯]/g,c=>String(c.charCodeAt(0)-0x09e6))));
    // Citations are necessary, not proof that the generated claim is actually supported.
    if (!marks.length || marks.some(n=>!Number.isInteger(n)||n<1||n>refs.length)) return reply({answer:NO_ANSWER,sources:[],grounded:false,partial},200,origin,allowed);
    const cited=[...new Set(marks)].map(n=>{const r=refs[n-1];return {number:n,title:r.title,...(r.type==='quran'?{type:r.type,surah:r.surah,verse:r.verse}:r.type==='hadith'?{type:r.type,book:r.book,chapter:r.chapter,hadith:r.hadith}:r.path?{path:r.path}:{key:r.key})}});
-   return reply({answer,sources:cited,grounded:true,partial},200,origin,allowed);
+   return reply({answer,sources:cited,grounded:true,partial,...(result.incomplete?{incomplete:true}:{})},200,origin,allowed);
   } catch (_) { return reply({error:'Assistant unavailable'},502,origin,allowed); }
  }
 };
