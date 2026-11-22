@@ -27,6 +27,11 @@ const assert=require('node:assert/strict');
   // A match far beyond the opening of an article must reach the model.
   fixtures['034d218703d000'].h='<p>ভূমিকা</p>'+('<p>অন্য প্রসঙ্গের দীর্ঘ আলোচনা।</p>'.repeat(350))+'<p>দুর্লভপদ ঘূর্ণিঝড় সম্পর্কে বিশেষ প্রমাণ ও তথ্য</p>';
   modelResponse='উত্তর [1]';res=await worker.fetch(req({...body,message:'দুর্লভপদ ঘূর্ণিঝড় কী?'}),env);assert.equal(res.status,200);assert.match(captured.args.messages[1].content,/দুর্লভপদ ঘূর্ণিঝড় সম্পর্কে বিশেষ প্রমাণ/);assert(captured.args.messages[1].content.length<7500);
+  // A specific number must not be ignored or matched inside a different number.
+  // The relevant passage is far from both the opening and the misleading ১০ passage.
+  fixtures['034d218703d000'].h='<p>ভূমিকা</p><p>রোজার ১০ নম্বর বিষয়ে পুরনো আলোচনা</p>'+('<p>অন্য আলোচনার দীর্ঘ বিবরণ।</p>'.repeat(350))+'<p>রোজার ১ নম্বর বিষয়ে নির্দিষ্ট তথ্য অনন্যপ্রমাণ</p>'+('<p>সমাপ্তির পর আরও দীর্ঘ লেখা।</p>'.repeat(350));
+  res=await worker.fetch(req({...body,message:'রোজার 1 নম্বর বিষয়ে বলুন'}),env);assert.equal(res.status,200);assert.match(captured.args.messages[1].content,/অনন্যপ্রমাণ/,'Bengali and Latin digits should select the exact numbered passage');
+  assert.match(captured.args.messages[0].content,/negation, number, time/);
   global.fetch=async url=>{fetches.push(url);if(String(url).endsWith('about.html'))return new Response('<header>অপ্রাসঙ্গিক হেডার</header><main><p>DAWAH X পরিচালনা করেন Ebrahim Ead</p></main><footer>অপ্রাসঙ্গিক ফুটার</footer>');throw Error('unexpected request')};
   res=await worker.fetch(req({message:'DAWAH X কে পরিচালনা করেন?',ids:[],pages:['about.html'],history:[]}),env);data=await res.json();assert.equal(data.grounded,true);assert.deepEqual(data.sources,[{number:1,title:'আমাদের সম্পর্কে',path:'about.html'}]);assert.match(captured.args.messages[1].content,/Ebrahim Ead/);assert(!captured.args.messages[1].content.includes('অপ্রাসঙ্গিক ফুটার'));
   res=await worker.fetch(req({message:'x',ids:[],pages:['https://evil.test'],history:[]}),env);assert.equal(res.status,400);
@@ -46,6 +51,13 @@ const assert=require('node:assert/strict');
    routeCalls=[];res=await worker.fetch(req(phase(text)),chatEnv);data=await res.json();assert.equal(data.needs_sources,true,`religious/site question must request sources: ${text}`);assert.equal(routeCalls.length,0,'hard guard must not run chat model');
   }
   routeCalls=[];res=await worker.fetch(req(phase('কেন?', [{role:'user',content:'নামাজের নিয়ম কী?'},{role:'assistant',content:'আগের উত্তর'}])),chatEnv);data=await res.json();assert.equal(data.needs_sources,true);assert.equal(routeCalls.length,0);
+  // Multiple dependent turns stay grounded, but a new independent subject stops the chain.
+  const chain=[{role:'user',content:'নামাজের নিয়ম কী?'},{role:'assistant',content:'উত্তর'},{role:'user',content:'এর দলিল কী?'},{role:'assistant',content:'উত্তর'}];
+  routeCalls=[];res=await worker.fetch(req(phase('আরও বলুন',chain)),chatEnv);data=await res.json();assert.equal(data.needs_sources,true);assert.equal(routeCalls.length,0,'follow-up chain should retain the religious anchor');
+  routeCalls=[];res=await worker.fetch(req(phase('আরও বলুন',[...chain,{role:'user',content:'আজ আবহাওয়া কেমন?'},{role:'assistant',content:'বৃষ্টি'}])),chatEnv);data=await res.json();assert.equal(data.mode,'chat','independent topic change must stop religious context');
+  global.fetch=async()=>new Response(JSON.stringify(fixtures),{status:200});
+  fixtures['034d218703d000'].h='<p>ভূমিকা</p>'+('<p>অন্য প্রসঙ্গের দীর্ঘ আলোচনা।</p>'.repeat(350))+'<p>সালাতের বিশেষ ব্যতিক্রম অনন্যপ্রসঙ্গ</p>'+('<p>বাকি অন্য আলোচনা।</p>'.repeat(350));
+  modelResponse='উত্তর [1]';res=await worker.fetch(req({...body,message:'আরও বলুন',history:[{role:'user',content:'সালাতের বিশেষ ব্যতিক্রম কী?'},{role:'assistant',content:'উত্তর'},{role:'user',content:'এর দলিল কী?'},{role:'assistant',content:'উত্তর'}]}),env);assert.equal(res.status,200);assert.match(captured.args.messages[1].content,/অনন্যপ্রসঙ্গ/,'excerpt search must retain the anchor through follow-up chains');assert.match(captured.args.messages[1].content,/Earlier questions \(context only\):\nসালাতের বিশেষ ব্যতিক্রম কী\?\nএর দলিল কী\?/,'model should receive the anchor and intermediate user question');
   const punctEnv={...env,AI:{run:async(model)=>({response:model.includes('8b')?'\"CHAT\".':'হ্যালো!'})}};res=await worker.fetch(req(phase('হ্যালো')),punctEnv);data=await res.json();assert.equal(data.mode,'chat','a clearly punctuated chat label should work');
   const failEnv={...env,AI:{run:async()=>{throw Error('classifier unavailable')}}};res=await worker.fetch(req(phase('একটি অস্পষ্ট প্রশ্ন')),failEnv);data=await res.json();assert.equal(data.needs_sources,true,'classification errors must fail closed');
   const invalidEnv={...env,AI:{run:async()=>({response:'CHAT and more'})}};res=await worker.fetch(req(phase('আরও বলুন')),invalidEnv);data=await res.json();assert.equal(data.needs_sources,true,'unrecognized classification must fail closed');
