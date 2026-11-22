@@ -41,13 +41,23 @@ const checkOverflow=async(page,label)=>{
    page=await context.newPage();const errors=[];page.on('pageerror',error=>errors.push(error.message));
    await page.goto(base+'index.html',{waitUntil:'domcontentloaded'});await page.evaluate(t=>localStorage.setItem('dawahx-theme',t),theme);
    const visit=async name=>{await page.goto(base+name,{waitUntil:'domcontentloaded'});await page.evaluate(()=>document.fonts.ready);await page.waitForFunction(t=>document.documentElement.dataset.theme===t,theme);await checkOverflow(page,`${theme} ${width} ${name}`)};
-   await visit('index.html');
+   const checkAssistant=async()=>{
+    const trigger=page.locator('.dxa-trigger'),panel=page.locator('#dxa-panel');
+    await trigger.waitFor();assert.equal(await panel.isVisible(),false);
+    await trigger.click();assert.equal(await panel.isVisible(),true,'assistant panel should open');
+    assert.equal(await trigger.getAttribute('aria-expanded'),'true');
+    assert.equal(await panel.evaluate(e=>getComputedStyle(e).position),'fixed');
+    assert.equal(await page.locator('#dxa-input').evaluate(e=>document.activeElement===e),true);
+    await page.keyboard.press('Escape');assert.equal(await panel.isVisible(),false);
+    assert.equal(await trigger.getAttribute('aria-expanded'),'false');
+   };
+   await visit('index.html');await checkAssistant();
    const expectedMenu=['index.html','questions.html','topics.html','fatwa.html','videos.html','ask.html','about.html','services.html','contact.html'];
    assert.deepEqual(await page.locator('#menu a').evaluateAll(links=>links.map(a=>a.getAttribute('href'))),expectedMenu);
    await page.click('#theme-toggle');assert.notEqual(await page.getAttribute('html','data-theme'),theme);await page.reload();assert.notEqual(await page.getAttribute('html','data-theme'),theme);await page.click('#theme-toggle');
    if(width<1100){await page.click('#burger');assert.equal(await page.getAttribute('#burger','aria-expanded'),'true');await page.keyboard.press('Escape');assert.equal(await page.getAttribute('#burger','aria-expanded'),'false')}
    await page.evaluate(()=>scrollTo(0,1200));await page.waitForFunction(()=>document.querySelector('#back-to-top')?.classList.contains('is-visible'));await page.click('#back-to-top');await page.waitForFunction(()=>scrollY===0);
-   for(const name of ['questions.html','fatwa.html'])await visit(name);
+   for(const name of ['questions.html','fatwa.html']){await visit(name);await checkAssistant()}
    await visit('videos.html');await page.waitForSelector('.video-card');await page.waitForFunction(()=>document.querySelectorAll('.video-chips[data-kind="topic"] .chip').length>3);
    await checkOverflow(page,`${theme} ${width} videos loaded`);
    const dateLabel=await page.locator('.video-card time').first().textContent();
@@ -76,7 +86,17 @@ const checkOverflow=async(page,label)=>{
    const articleText=await page.locator('#read-body').textContent();assert(!articleText.includes('প্রসঙ্গসমূহ')&&!articleText.includes('-->'));assert(articleText.includes('রাশেদুল ইসলাম'));
    const preserved=await page.evaluate(()=>{const html='<p>মূল লেখা</p><div class="subjects"><span>প্রসঙ্গসমূহ »: </span><a href="https://ikhlasbd.com/subject_archive/100">বিষয়</a></div><p>আরও লেখা</p>';return safeArticle(html,'','ik').textContent});
    assert(preserved.includes('প্রসঙ্গসমূহ')&&preserved.includes('আরও লেখা'));
-   await visit('ask.html');
+   await visit('ask.html');await checkAssistant();
+   if(width===390&&theme==='light'){
+    let sent;await context.route('https://dawahx-assistant.www-mdrazu55555.workers.dev/**',async route=>{
+     sent=route.request().postDataJSON();await route.fulfill({status:200,contentType:'application/json',headers:{'Access-Control-Allow-Origin':'*'},body:JSON.stringify({answer:'পরীক্ষিত উত্তর'})});
+    });
+    await page.evaluate(()=>{window.dawahxAssistantSearch=async()=>({texts:[],videos:Promise.resolve([])})});
+    await page.locator('.dxa-trigger').click();await page.locator('#dxa-input').fill('একটি প্রশ্ন');await page.locator('.dxa-form button').click();
+    await page.waitForFunction(()=>document.querySelector('.dxa-message.assistant')?.textContent==='পরীক্ষিত উত্তর');
+    assert.equal(sent.message,'একটি প্রশ্ন');assert.deepEqual(sent.ids,[]);assert.deepEqual(sent.history,[]);
+    await page.locator('.dxa-close').click();assert.equal(await page.locator('#dxa-panel').isVisible(),false);
+   }
    if(width===390){
     const q=page.locator('#source-answer-question'),submit=page.locator('#source-answer-submit'),status=page.locator('#source-answer-status');
     await q.fill('লুক্বমান (আলাইহিস সালাম) কি নবী ছিলেন, না-কি ছালিহ ব্যক্তিদের অন্তর্ভুক্ত ছিলেন?');await submit.click();
