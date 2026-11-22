@@ -220,11 +220,18 @@ function askForms(tok,stop){const out=new Map();
    if(stop.has(r)||ASK_SKIP.has(r))return null;
    const pre=n>=4&&n>=askMinPrefix(r);if(pre||!out.has(r))out.set(r,pre)}}
  return [...out]}
-const SUGGEST={tm:null,side:null,ready:null,tsh:new Map(),relc:new Map(),vid:null,
+const SUGGEST={tm:null,side:null,ready:null,tsh:new Map(),relc:new Map(),bodyc:new Map(),vid:null,
  init(){return this.ready||(this.ready=Promise.all([DEEP.init(),fetch("search/titles.json").then(r=>{if(!r.ok)throw 0;return r.json()})])
   .then(([ok,t])=>{if(!ok||!t||!t.len||!t.side)throw 0;const s=atob(t.side);this.tm=t;this.side=i=>(s.charCodeAt(i>>3)>>(i&7))&1?"f":"q";return true}).catch(()=>{this.ready=null;return false}))},
  tshard(i){let p=this.tsh.get(i);if(!p){p=fetch("search/t"+String(i).padStart(2,"0")+".json").then(r=>{if(!r.ok)throw 0;return r.json()});this.tsh.set(i,p);p.catch(()=>this.tsh.delete(i))}return p},
  rel(k){const f=k.slice(-2);let p=this.relc.get(f);if(!p){p=fetch("rel/"+f+".json").then(r=>r.ok?r.json():{}).catch(()=>({}));this.relc.set(f,p)}return p.then(o=>o[k]||null)},
+ /* লেখার ফলের বিষয়সূচক শব্দ কাছাকাছি আছে কি না: শব্দ দুটি আলাদা প্রসঙ্গে
+    থাকা দীর্ঘ লেখা যেন সম্ভাব্য উত্তর হিসেবে অকারণে না উঠে আসে। */
+ async bodyNear(k,groups){try{const f=k.slice(-3);let p=this.bodyc.get(f);if(!p){p=fetch("texts/"+f+".json").then(r=>{if(!r.ok)throw 0;return r.json()});this.bodyc.set(f,p);p.catch(()=>this.bodyc.delete(f))}
+  const row=(await p)[k];if(!row||!row.h)return false;const words=searchTokens(String(row.h).replace(/<!--[\s\S]*?-->|<[^>]*>/g," "));
+  const hits=groups.map(forms=>{const a=[];for(let i=0;i<words.length;i++)if(forms.some(([x,pre])=>pre?words[i].startsWith(x):words[i]===x))a.push(i);return a});
+  if(hits.some(x=>!x.length))return false;for(const i of hits[0])if(hits.every(h=>h.some(j=>Math.abs(j-i)<=70)))return true;return false;
+ }catch(_){return false}},
  /* ভিডিওর তালিকা একবারই আনা হয়; শিরোনামের শব্দ → ভিডিও। ৮%-এর বেশি শিরোনামে থাকা শব্দ (বক্তার নাম ইত্যাদি) বাদ */
  videos(){return this.vid||(this.vid=fetch("youtube-videos.json").then(r=>{if(!r.ok)throw 0;return r.json()}).then(all=>{
    const list=all.filter(v=>v&&/^[\w-]{11}$/.test(v.id||"")&&typeof v.title==="string"),map=new Map();
@@ -245,7 +252,7 @@ const SUGGEST={tm:null,side:null,ready:null,tsh:new Map(),relc:new Map(),vid:nul
   return out.sort((x,y)=>y[1]-x[1]||x[0]-y[0])},
  /* ফল: {texts:[{k,side,title,cat}], videos:Promise<[{id,title,channel}]>}; সূচি না পাওয়া গেলে null।
     ভিডিওর তালিকা বড় (প্রথমবার আনতে সময় লাগে), তাই লেখার ফল আগে ফেরে আর ভিডিও আলাদা Promise-এ আসে */
- async find(q,{includeVideos=true}={}){try{
+ async find(q,{includeVideos=true,includeBodyMatches=false}={}){try{
    if(!(await this.init()))return null;
    const vp=includeVideos?this.videos():Promise.resolve(null),stop=DEEP.stop,seen=new Set(),same=new Set(),G=[];
    for(const t of searchTokens(q)){if(/^\d+$/.test(t)||seen.has(t))continue;seen.add(t);const f=askForms(t,stop);if(!f)continue;
@@ -260,6 +267,18 @@ const SUGGEST={tm:null,side:null,ready:null,tsh:new Map(),relc:new Map(),vid:nul
    /* raw = শব্দটি কত কম লেখায় আছে (বেশি = বেশি নির্দিষ্ট); কোনো লেখায় না থাকা শব্দ (বানান ভুল, নাম) কম ওজন পায় */
    const raw=B.map(s=>s.size?Math.log(N/(1+s.size)):0),w=raw.map(v=>v?Math.min(5,Math.max(1,v)):1.2),L=this.tm.len;
    const ranked=this.score(N,T,B,w,raw,id=>Math.max(1,ASK_LEN.indexOf(L[id])));
+   /* এআই সহকারীর জন্য লেখার ভেতরে মেলা ফলও খুঁজি। অন্তত দুটি বিষয়সূচক শব্দ
+      এবং মোট ওজনের প্রায় সব মিলতে হবে।
+      শিরোনামের ফল আগে, লেখার ফল পরে: এগুলো সম্ভাব্য উৎস, নিশ্চিত উত্তর নয়। */
+   if(includeBodyMatches&&["q","f"].some(side=>ranked.filter(([id])=>this.side(id)===side).length<3)){
+    const total=w.reduce((a,b)=>a+b,0),sum=new Float32Array(N),counts=new Uint8Array(N);
+    B.forEach((set,i)=>{for(const id of set){sum[id]+=w[i];counts[id]++}});
+    const seen=new Set(ranked.map(row=>row[0])),body=[];
+    for(let id=0;id<N;id++)if(!seen.has(id)&&sum[id]>=total*.98&&G.length>=2&&counts[id]>=2)body.push([id,sum[id]/total]);
+    body.sort((a,b)=>b[1]-a[1]||a[0]-b[0]);
+    const candidates=body.slice(0,20),near=await Promise.all(candidates.map(([id])=>this.bodyNear(DEEP.keys.substr(id*14,14),G)));
+    ranked.push(...candidates.filter((_,i)=>near[i]));
+   }
    const pick={q:[],f:[]};for(const [id] of ranked){const s=this.side(id);if(pick[s].length<6)pick[s].push(id)}
    const bare=v=>v.replace(/^\s*প্রশ্ন\s*[:ঃ]?\s*\([^)]{0,14}\)\s*[:ঃ]?\s*/,"").trim(),texts=[],seenT=new Set();
    for(const s of ["q","f"]){const rows=await Promise.all(pick[s].map(id=>{const k=DEEP.keys.substr(id*14,14);return this.rel(k).then(r=>r&&r[0]?{k,side:s,title:bare(r[0])||r[0],cat:r[1]||""}:null)}));
@@ -1550,5 +1569,5 @@ if(navigator.serviceWorker&&(location.protocol==="https:"||location.hostname==="
 }
 
 /* এআই সহকারী — অনুসন্ধান সূচি প্রয়োজন হলে তবেই লোড হয়। */
-window.dawahxAssistantSearch=q=>SUGGEST.find(q);
+window.dawahxAssistantSearch=q=>SUGGEST.find(q,{includeBodyMatches:true});
 {const script=document.createElement('script');script.src=new URL('assistant.js',document.currentScript.src).href;script.defer=true;document.body.appendChild(script)}
