@@ -7,7 +7,7 @@
  const css=document.createElement('link');css.rel='stylesheet';css.href=url('assistant.css');document.head.appendChild(css);
  const trigger=document.createElement('button');trigger.type='button';trigger.className='dxa-trigger';trigger.setAttribute('aria-expanded','false');trigger.setAttribute('aria-controls','dxa-panel');trigger.innerHTML='<span aria-hidden="true">✦</span> এআই সহকারী';
  const panel=document.createElement('aside');panel.id='dxa-panel';panel.className='dxa-panel';panel.hidden=true;panel.setAttribute('aria-label','DAWAH X এআই সহকারী');
- panel.innerHTML='<header class="dxa-head"><div><span class="dxa-mark" aria-hidden="true">✦</span><div><strong>DAWAH X সহকারী</strong><small>জানুন, বুঝুন, উৎস খুঁজুন</small></div></div><button class="dxa-close" type="button" aria-label="চ্যাট বন্ধ করুন">×</button></header><div class="dxa-chat" role="log" aria-live="polite" aria-relevant="additions"><div class="dxa-welcome"><span>আসসালামু আলাইকুম</span><h2>কী জানতে চান?</h2><p>দৈনন্দিন বিষয়ে গল্প করুন। ইসলাম নিয়ে প্রশ্ন করলে সাইটের লেখা থেকে উত্তর খুঁজব। নির্দিষ্ট আয়াত বা হাদিস জানতে সূরা ও আয়াত নম্বর, অথবা কিতাব ও হাদিস নম্বর লিখুন। এআই ভুল করতে পারে—মূল উৎস যাচাই করুন; ব্যক্তিগত ফতোয়ার জন্য যোগ্য আলেমের পরামর্শ নিন।</p><div class="dxa-prompts"><button type="button">সালাতের গুরুত্ব কী?</button><button type="button">রোজা সম্পর্কে জানতে চাই</button></div></div></div><div class="dxa-bottom"><p class="dxa-privacy">প্রশ্ন ও সাম্প্রতিক কথোপকথন Cloudflare-এর এআই সেবায় পাঠানো হয়। সংবেদনশীল তথ্য দেবেন না।</p><form class="dxa-form"><label class="dxa-sr" for="dxa-input">আপনার প্রশ্ন</label><textarea id="dxa-input" rows="1" maxlength="2000" placeholder="আপনার প্রশ্ন লিখুন…" required></textarea><button type="submit" aria-label="প্রশ্ন পাঠান">➜</button></form><div class="dxa-footer"><span>এআই-এর উত্তর যাচাই করুন</span><a href="'+url('ask.html')+'">টিমকে প্রশ্ন করুন ↗</a></div></div>';
+ panel.innerHTML='<header class="dxa-head"><div><span class="dxa-mark" aria-hidden="true">✦</span><div><strong>DAWAH X সহকারী</strong><small>জানুন, বুঝুন, উৎস খুঁজুন</small></div></div><button class="dxa-close" type="button" aria-label="চ্যাট বন্ধ করুন">×</button></header><div class="dxa-chat" role="log" aria-live="polite" aria-relevant="additions"><div class="dxa-welcome"><span>আসসালামু আলাইকুম</span><h2>কী জানতে চান?</h2><p>দৈনন্দিন বিষয়ে গল্প করুন। ইসলাম নিয়ে প্রশ্ন করলে কুরআন, হাদিস ও সাইটের লেখা থেকে প্রাসঙ্গিক তথ্য খুঁজব। নির্দিষ্ট আয়াত বা হাদিস জানতে সূরা ও আয়াত নম্বর, অথবা কিতাব ও হাদিস নম্বর লিখুন। এআই ভুল করতে পারে—মূল উৎস যাচাই করুন; ব্যক্তিগত ফতোয়ার জন্য যোগ্য আলেমের পরামর্শ নিন।</p><div class="dxa-prompts"><button type="button">সালাতের গুরুত্ব কী?</button><button type="button">রোজা সম্পর্কে জানতে চাই</button></div></div></div><div class="dxa-bottom"><p class="dxa-privacy">প্রশ্ন ও সাম্প্রতিক কথোপকথন Cloudflare-এর এআই সেবায় পাঠানো হয়। সংবেদনশীল তথ্য দেবেন না।</p><form class="dxa-form"><label class="dxa-sr" for="dxa-input">আপনার প্রশ্ন</label><textarea id="dxa-input" rows="1" maxlength="2000" placeholder="আপনার প্রশ্ন লিখুন…" required></textarea><button type="submit" aria-label="প্রশ্ন পাঠান">➜</button></form><div class="dxa-footer"><span>এআই-এর উত্তর যাচাই করুন</span><a href="'+url('ask.html')+'">টিমকে প্রশ্ন করুন ↗</a></div></div>';
  document.body.append(trigger,panel);
  const chat=panel.querySelector('.dxa-chat'),form=panel.querySelector('form'),input=panel.querySelector('textarea'),send=form.querySelector('button'),close=panel.querySelector('.dxa-close');
  let history=[],busy=false;
@@ -55,18 +55,18 @@
   try{res=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:encoded,signal:controller.signal})}finally{clearTimeout(timer)}
   if(!res.ok)throw Error(String(res.status));return res.json();
  }
- function modeLabel(mode){const el=document.createElement('div');el.className='dxa-mode';el.textContent=mode==='chat'?'সাধারণ আলাপ · সাইটের উৎসভিত্তিক নয়':mode==='no-source'?'সাইটে পর্যাপ্ত তথ্য পাওয়া যায়নি':'সাইটের উৎসভিত্তিক উত্তর';chat.append(el)}
+ function modeLabel(mode){const el=document.createElement('div');el.className='dxa-mode';el.textContent=mode==='chat'?'সাধারণ আলাপ · সাইটের উৎসভিত্তিক নয়':mode==='no-source'?'খুঁজে পাওয়া উৎসে পর্যাপ্ত তথ্য নেই':'প্রাপ্ত উৎসভিত্তিক উত্তর';chat.append(el)}
  async function submit(q){q=q.trim();if(!q||busy)return;busy=true;send.disabled=true;input.value='';bubble(q,'user');const status=bubble('উত্তর তৈরি হচ্ছে…','status');
   try{
    if(!API_URL)throw Error('unsupported');
    // The Worker makes the routing decision. Search only if it asks for sources.
    let data=await requestAnswer({message:q,ids:[],pages:[],history,lookupComplete:false});
    if(data.needs_sources===true){
-    status.textContent='সাইটে প্রাসঙ্গিক তথ্য খোঁজা হচ্ছে…';let texts=[],videos=null;
+    status.textContent='প্রাসঙ্গিক উৎস খোঁজা হচ্ছে…';let texts=[],videos=null,siteSearchFailed=false;
     const searchQ=searchContext(q),pages=data.direct_lookup===true?[]:pageMatches(searchQ);
-    if(data.direct_lookup!==true){try{let result=await window.dawahxAssistantSearch(searchQ);if(!result)throw Error('search unavailable');texts=result.texts.slice(0,4);videos=result.videos}catch(_){if(!pages.length)throw Error('search')}}
-    sources(texts,videos);status.textContent='সাইটের উৎস থেকে উত্তর তৈরি হচ্ছে…';
-    data=await requestAnswer({message:q,ids:texts.map(x=>x.k),pages,history,lookupComplete:true});
+    if(data.direct_lookup!==true){try{let result=await window.dawahxAssistantSearch(searchQ);if(!result)throw Error('search unavailable');texts=result.texts.slice(0,4);videos=result.videos}catch(_){siteSearchFailed=true}}
+    sources(texts,videos);status.textContent='প্রাপ্ত উৎস থেকে উত্তর তৈরি হচ্ছে…';
+    data=await requestAnswer({message:q,ids:texts.map(x=>x.k),pages,history,lookupComplete:true,scriptureSearch:data.direct_lookup!==true,siteSearchFailed});
    }
    if(typeof data.answer!=='string'||!data.answer.trim()||!Array.isArray(data.sources)||typeof data.grounded!=='boolean'||(data.grounded&&!data.sources.length))throw Error('unsupported');
    status.remove();modeLabel(data.mode==='chat'?'chat':data.grounded?'grounded':'no-source');bubble(data.answer,'assistant');citations(data.sources);if(data.partial===true)bubble('কিছু উৎস এই মুহূর্তে পাওয়া যায়নি; উত্তরটি অসম্পূর্ণ হতে পারে।','status');
