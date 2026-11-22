@@ -99,7 +99,7 @@ async function hadith(terms){
 // question has fewer than three meaningful groups; website pages remain separate.
 export function articleCandidate(text,termGroups){const t=topics(termGroups);const body=text.split('\nলেখার প্রাসঙ্গিক পাদটীকা')[0].replace(/\([^()]{0,500}\)/gu,' ');return t.length<3||(score(body,t)===t.length&&near(body,t,300));}
 export async function searchScripture(termGroups){
- const terms=topics(termGroups);if(!terms.length||terms.every(group=>group.every(x=>/^\d+$/.test(x))))return {items:[],failed:false};
+ const terms=topics(termGroups);if(!terms.length||terms.every(group=>group.every(x=>/^\d+$/.test(x))))return {items:[],failed:false,skipped:true};
  const results=await Promise.allSettled([quran(terms),hadith(terms)]);
  return {items:results.flatMap(r=>r.status==='fulfilled'?r.value.items:[]),failed:results.some(r=>r.status==='rejected'||r.value.failed)};
 }

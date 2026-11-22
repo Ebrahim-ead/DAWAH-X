@@ -34,6 +34,16 @@ vm.runInNewContext('const toLatinDigits=s=>String(s).replace(/[০-৯]/g,d=>Str
  assert.equal(unknown.texts.length,0,'unknown topic should not be discarded in favour of generic prayer');
  const ordinary=await sandbox.suggest.find('নামাজ',{includeVideos:false});
  assert.equal(ordinary.texts.length,0,'assistant-only stopword exception must not change normal suggestions');
+ // Broken candidate lookups must be visible to the assistant, not treated as no match.
+ sandbox.suggest.relc.clear();const previousFetch=sandbox.fetch;sandbox.fetch=async url=>String(url).startsWith('rel/')?{ok:false}:previousFetch(url);
+ assert.equal(await sandbox.suggest.find('সালাতের গুরুত্ব কী?',{includeVideos:false,includeBodyMatches:true}),null,'candidate metadata outage must fail assistant search');
+ sandbox.fetch=previousFetch;sandbox.suggest.relc.clear();
+ assert((await sandbox.suggest.find('সালাতের গুরুত্ব কী?',{includeVideos:false,includeBodyMatches:true})).texts.length,'failed candidate fetch must be retried');
+ sandbox.suggest.bodyc.clear();sandbox.fetch=async url=>String(url).startsWith('texts/')?{ok:false}:previousFetch(url);
+ await assert.rejects(()=>sandbox.suggest.bodyNear('034d218703d000',[[['সালাত',true]]],true));
+ assert.equal(await sandbox.suggest.bodyNear('034d218703d000',[[['সালাত',true]]],false),false);
+ sandbox.fetch=previousFetch;
+ const noTerms=await sandbox.suggest.find('কি?',{includeVideos:false,includeBodyMatches:true});assert.equal(noTerms.limited,true);
  const assistant=fs.readFileSync(path.join(root,'assistant.js'),'utf8');
  assert(assistant.includes('texts=result.texts.slice(0,4)'), 'Worker receives results in relevance order');
  console.log('assistant retrieval: real indexes, prayer synonyms, generic topics, body matches and unavailable topics pass');
