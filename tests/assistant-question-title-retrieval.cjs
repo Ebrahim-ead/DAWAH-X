@@ -26,6 +26,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
  try{
   let data=await ask(q);assert.equal(data.grounded,true,JSON.stringify(data));assert.equal(data.sources[0].key,key);assert.match(prompt,/নিকটাত্মীয়দের মধ্যে/);assert.match(prompt,/অভাবী হন/);assert(prompt.includes('Latest question: '+q));assert.match(system,/titles may be questions/);assert.match(system,/Do not generalize/);
   const before=calls;data=await ask('যাকাত কাদেরকে ৫ টাকা দেওয়া যাবে');assert.equal(data.grounded,false);assert.equal(calls,before,'unmet constraint must not reach model as evidence');
+  env.AI.run=async()=>{throw Error('private provider details')};data=await ask(q);assert.equal(data.error_code,'model_unavailable');assert(!JSON.stringify(data).includes('private provider details'),'provider errors must not expose sensitive details');
  }finally{global.fetch=old}
  console.log('question-title retrieval: real Q&A candidate and safeguards pass');
 })().catch(e=>{console.error(e);process.exitCode=1});

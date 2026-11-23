@@ -277,7 +277,9 @@ export default {
    // Do not pass earlier assistant answers: they may contain unsupported claims.
    const prior=questionContext(body.message.trim(),history).slice(1).reverse().join('\n');
    const messages=[{role:'system',content:GROUNDED_SAFETY},{role:'user',content:context+'\n\nEarlier questions (context only):\n'+prior+'\n\nLatest question: '+body.message.trim()}];
-   let result=await generateAnswer(env.AI,messages,ANSWER_TOKENS,true),checked=verifyAnswer(result.text,refs);
+   let result;
+   try{result=await generateAnswer(env.AI,messages,ANSWER_TOKENS,true)}catch(_){return reply({error:'Assistant unavailable',error_code:'model_unavailable'},502,origin,allowed)}
+   let checked=verifyAnswer(result.text,refs);
    if(!checked.valid&&!checked.abstained&&!result.incomplete){
     // One fresh attempt with the same evidence, never the rejected output.
     // Reference validation still runs in full; this does not verify semantics.
@@ -297,6 +299,6 @@ export default {
    }:null;
    const cited=[...new Set(marks)].map(n=>{const r=refs[n-1];return {number:n,title:r.title,...(r.snapshot?{snapshot:r.snapshot}:{}),...(r.type==='quran'?{type:r.type,surah:r.surah,verse:r.verse}:r.type==='hadith'?{type:r.type,book:r.book,chapter:r.chapter,hadith:r.hadith}:r.path?{path:r.path}:{key:r.key})}});
    return reply({answer:answer+(camelUrine(query)?'\n\n'+CAMEL_URINE_WARNING:''),sources:cited,grounded:true,partial,...(mirrors.size?{snapshot_search:true}:{}),...(partial?{search_failures:failures}:{}),...(sourceCoverage?{source_coverage:sourceCoverage}:{}),...(limited?{search_limited:true}:{}),...(result.incomplete?{incomplete:true}:{})},200,origin,allowed);
-  } catch (_) { return reply({error:'Assistant unavailable'},502,origin,allowed); }
+  } catch (_) { return reply({error:'Assistant unavailable',error_code:'processing_failed'},502,origin,allowed); }
  }
 };
