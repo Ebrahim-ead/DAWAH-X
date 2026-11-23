@@ -1,0 +1,19 @@
+name: Prayer calendar live check
+on:
+  workflow_dispatch:
+  push:
+    branches: ['arena/**']
+permissions:
+  contents: read
+jobs:
+  smoke:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[prayer-live-check]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Check public AlAdhan API and browser CORS
+        run: node tools/check-prayer-live.cjs

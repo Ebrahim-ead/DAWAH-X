@@ -27,10 +27,18 @@ const checkOverflow=async(page,label)=>{
   browser=await chromium.launch({executablePath:process.env.CHROME_PATH||'/usr/bin/google-chrome',args:['--no-sandbox']});
   for(const width of [320,390,768,1280])for(const theme of ['light','dark']){
    const context=await browser.newContext({viewport:{width,height:900},reducedMotion:'reduce',serviceWorkers:'block'});
-   let response='true',submissions=[],assistantRequests=[];
+   let response='true',submissions=[],assistantRequests=[],prayerAvailable=true;
    await context.route('**/*',async route=>{
     const url=new URL(route.request().url());
     if(url.hostname==='127.0.0.1')return route.continue();
+    if(url.hostname==='api.aladhan.com'){
+     assert.equal(url.searchParams.get('latitude'),'23.7104');assert.equal(url.searchParams.get('longitude'),'90.40744');assert.equal(url.searchParams.get('method'),'1');assert.equal(url.searchParams.get('school'),'0');
+     const headers={'Access-Control-Allow-Origin':'*'};if(!prayerAvailable)return route.fulfill({status:503,headers});
+     const match=/\/calendar\/(\d{4})\/(\d+)$/.exec(url.pathname);assert(match);const year=+match[1],month=+match[2];
+     const names=['Fajr','Sunrise','Dhuhr','Asr','Maghrib','Isha'],values=['05:10','06:25','11:50','15:00','17:20','18:40'];
+     const data=Array.from({length:new Date(Date.UTC(year,month,0)).getUTCDate()},(_,i)=>({date:{gregorian:{date:String(i+1).padStart(2,'0')+'-'+String(month).padStart(2,'0')+'-'+year}},timings:Object.fromEntries(names.map((name,j)=>[name,values[j]+' (+06)'])),meta:{timezone:'Asia/Dhaka',latitude:23.7104,longitude:90.40744,method:{id:1,params:{Fajr:18,Isha:18}},school:'STANDARD',offset:Object.fromEntries(names.map(name=>[name,0]))}}));
+     return route.fulfill({status:200,contentType:'application/json',headers,body:JSON.stringify({code:200,data})});
+    }
     if(url.hostname==='dawahx-assistant.www-mdrazu55555.workers.dev'){
      const headers={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Methods':'POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type'};
      if(route.request().method()==='OPTIONS')return route.fulfill({status:204,headers});
@@ -59,7 +67,12 @@ const checkOverflow=async(page,label)=>{
     assert.equal(await trigger.getAttribute('aria-expanded'),'false');
    };
    await visit('index.html');await checkAssistant();
+   await page.waitForFunction(()=>document.querySelector('[data-prayer="fajr"] time')?.textContent.includes('05:10'));
+   assert.equal(await page.locator('.prayer-card time[datetime]').count(),6,'all prayer times load in browser');
    if(width===390&&theme==='light'){
+    prayerAvailable=false;await page.reload({waitUntil:'domcontentloaded'});await page.waitForFunction(()=>document.querySelector('#prayer-next')?.textContent.includes('পাওয়া যাচ্ছে না'));
+    assert.equal(await page.locator('.prayer-card time[datetime]').count(),0,'outage does not display old times');
+    prayerAvailable=true;await visit('index.html');await page.waitForFunction(()=>document.querySelector('[data-prayer="fajr"] time')?.textContent.includes('05:10'));
     await page.evaluate(()=>{window.testSearchCalls=0;window.dawahxAssistantSearch=async()=>{if(++window.testSearchCalls===1)throw Error('temporary');return {texts:[],videos:Promise.resolve([])}}});
     await page.click('.dxa-trigger');await page.fill('#dxa-input','নামাজের সময় কী?');await page.locator('.dxa-form button').click();
     await page.waitForFunction(()=>document.querySelector('.dxa-chat').textContent.includes('হাদিস, সাইটের লেখা খোঁজা'));
