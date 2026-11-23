@@ -19,4 +19,6 @@ jobs:
         with:
           node-version: 20
       - name: Test deployed site search and Worker
+        env:
+          ASSISTANT_LIVE_FOCUS: ${{ contains(github.event.head_commit.message, '[assistant-focus-check]') && 'camel' || '' }}
         run: node tools/check-assistant-live.cjs
