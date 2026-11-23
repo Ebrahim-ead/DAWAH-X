@@ -30,8 +30,11 @@ async function readSource(url,maxBytes,attempts){
   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),10000);
   try{
    let response;
-   try{response=await fetch(url,{signal:controller.signal,redirect:'error',headers:{'User-Agent':'DAWAH-X-Assistant/1.0 (+https://ebrahim-ead.github.io/DAWAH-X/)'}})}
+   try{response=await fetch(url,{signal:controller.signal,redirect:'manual',headers:{'User-Agent':'DAWAH-X-Assistant/1.0 (+https://ebrahim-ead.github.io/DAWAH-X/)'}})}
    catch(error){if(attempt+1<attempts)continue;throw sourceError(controller.signal.aborted?'timeout':'network')}
+   // Workers do not implement redirect: 'error'. Manual mode plus explicit
+   // rejection keeps the fixed-source allowlist from following redirects.
+   if(response.redirected)throw sourceError('redirect');
    if(!response.ok){
     const transient=response.status===408||response.status>=500;
     if(transient&&attempt+1<attempts){try{await response.body?.cancel()}catch(_){}continue}
