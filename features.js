@@ -31,7 +31,7 @@
  }).catch(()=>{});
  const findVideos=document.getElementById('read-find-videos'),suggested=document.getElementById('read-suggested-videos');
  findVideos?.addEventListener('click',async()=>{
-  const title=(document.getElementById('read-title')?.textContent||'').trim();if(!title||title.includes('লোড হচ্ছে'))return;
+  const title=(document.getElementById('read-title')?.textContent||'').trim();if(body.dataset.loaded!=='true'||!title||title.includes('লোড হচ্ছে'))return;
   findVideos.disabled=true;suggested.textContent='খোঁজা হচ্ছে…';
   try{const result=await SUGGEST.find(title.slice(0,200));if(!result)throw Error();const videos=await result.videos;suggested.replaceChildren();
    if(!videos.length)suggested.textContent='শিরোনামের শব্দে কোনো ভিডিও পাওয়া যায়নি।';
@@ -44,9 +44,9 @@
  const load=()=>{try{const d=JSON.parse(localStorage.getItem(KEY)||'{}');return d&&typeof d==='object'?d:{}}catch(_){return {}}};
  const store=d=>{try{localStorage.setItem(KEY,JSON.stringify(d));return true}catch(_){return false}};
  const paint=()=>{const x=load()[key]||{},done=!!x.done;button.setAttribute('aria-pressed',String(done));button.textContent=done?'পড়া হয়েছে ✓ — চিহ্ন সরান':'পড়া হয়েছে চিহ্নিত করুন';display.textContent=done?'পড়া হয়েছে':(x.p?'পড়ার অগ্রগতি: '+Math.round(x.p)+'%':'পড়ার অগ্রগতি এই ব্রাউজারে সংরক্ষিত থাকবে।')};
- button.addEventListener('click',()=>{const d=load(),x=d[key]||{};x.done=!x.done;x.t=Date.now();if(x.done)x.p=100;else if(x.p===100)x.p=0;d[key]=x;if(store(d))paint();else display.textContent='ব্রাউজারে সংরক্ষণ করা যায়নি।'});
+ button.addEventListener('click',()=>{if(body.dataset.loaded!=='true')return;const d=load(),x=d[key]||{};x.done=!x.done;x.t=Date.now();if(x.done)x.p=100;else if(x.p===100)x.p=0;d[key]=x;if(store(d))paint();else display.textContent='ব্রাউজারে সংরক্ষণ করা যায়নি।'});
  let scheduled=false;
- const update=()=>{scheduled=false;if(!body.textContent.trim()||body.textContent.includes('লোড হচ্ছে'))return;
+ const update=()=>{scheduled=false;if(body.dataset.loaded!=='true'||!body.textContent.trim()||body.textContent.includes('লোড হচ্ছে'))return;
   const rect=body.getBoundingClientRect(),height=rect.height;if(height<20)return;
   const p=Math.max(0,Math.min(100,Math.round((innerHeight-rect.top)/height*100)));
   if(p<2)return;const d=load(),x=d[key]||{};if(x.done||p<=(x.p||0))return;x.p=p;x.t=Date.now();d[key]=x;

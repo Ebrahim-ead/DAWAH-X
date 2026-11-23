@@ -4,7 +4,7 @@
          আনা না গেলে তবেই জমানো কপি দেওয়া হয়। শুধু নিজের সাইটের ফাইল ও Google Fonts জমানো হয়।
    কোনো ফাইলের তালিকা বদলালে VERSION বাড়ান — পুরোনো জমা মুছে যায়। */
 'use strict';
-const VERSION='v36';
+const VERSION='v37';
 const SHELL='dawahx-shell-'+VERSION;   /* পাতার কাঠামো: HTML, CSS, JS, লোগো (ইনস্টলের সময় আনা হয়) */
 const PAGES='dawahx-pages-'+VERSION;   /* ব্যবহারের সময় আনা অন্য ফাইল */
 const TEXTS='dawahx-texts-'+VERSION;   /* পড়া লেখা (texts/, rel/) */
@@ -38,11 +38,14 @@ const trim=name=>caches.open(name).then(cache=>cache.keys().then(keys=>{const ex
  return extra>0?Promise.all(keys.slice(0,extra).map(k=>cache.delete(k))):null})).catch(()=>{});
 const store=(name,request,response)=>caches.open(name).then(cache=>cache.put(request,response)).then(()=>trim(name)).catch(()=>{});
 
-const fromCache=async(request,isPage)=>{
- let hit=await caches.match(request);
- /* read.html?k=… এর মতো ঠিকানা: প্রশ্নচিহ্নের পরের অংশ বাদ দিয়ে পাতার কাঠামোটি দেওয়া হয় */
- if(!hit&&isPage)hit=await caches.match(request,{ignoreSearch:true});
- if(!hit&&isPage&&new URL(request.url).pathname.endsWith('/'))hit=await caches.match('index.html');
+const fromCache=async(request,isPage,name)=>{
+ // The network-first runtime cache may contain a newer version of a precached
+ // file. Search it before the install-time shell and never use unrelated caches.
+ const runtime=await caches.open(name),shell=await caches.open(SHELL);
+ let hit=await runtime.match(request)||await shell.match(request);
+ /* read.html?k=…: fall back to the cached page shell without its query. */
+ if(!hit&&isPage)hit=await runtime.match(request,{ignoreSearch:true})||await shell.match(request,{ignoreSearch:true});
+ if(!hit&&isPage&&new URL(request.url).pathname.endsWith('/'))hit=await runtime.match('index.html')||await shell.match('index.html');
  return hit;
 };
 
@@ -51,10 +54,11 @@ self.addEventListener('fetch',event=>{
  if(request.method!=='GET')return;
  let url;try{url=new URL(request.url)}catch(_){return}
  if(url.protocol!=='https:'&&url.protocol!=='http:')return;
+ if(request.headers.has('range'))return;
 
  /* ফন্ট (নিজের সাইটের fonts/ ফোল্ডার): জমানো থাকলে সেটিই, সাথে পেছনে নতুনটি আনা */
- if(/\/fonts\/[^/]+\.woff2$/.test(url.pathname.toString())){
-  event.respondWith(caches.match(request).then(hit=>{
+ if(url.origin===self.location.origin&&/\/fonts\/[^/]+\.woff2$/.test(url.pathname.toString())){
+  event.respondWith(caches.open(FONTS).then(cache=>cache.match(request)).catch(()=>null).then(hit=>{
    const fresh=fetch(request).then(res=>{if(res&&res.ok)event.waitUntil(store(FONTS,request,res.clone()));return res});
    if(hit){event.waitUntil(fresh.catch(()=>{}));return hit}
    return fresh;
@@ -64,7 +68,7 @@ self.addEventListener('fetch',event=>{
 
  /* Google Fonts (পুরোনো জমানো কপি থাকলে): জমানো থাকলে সেটিই, সাথে পেছনে নতুনটি আনা */
  if(FONT_HOSTS.includes(url.hostname)){
-  event.respondWith(caches.match(request).then(hit=>{
+  event.respondWith(caches.open(FONTS).then(cache=>cache.match(request)).catch(()=>null).then(hit=>{
    const fresh=fetch(request).then(res=>{if(res&&(res.ok||res.type==='opaque'))event.waitUntil(store(FONTS,request,res.clone()));return res});
    if(hit){event.waitUntil(fresh.catch(()=>{}));return hit}
    return fresh;
@@ -72,7 +76,6 @@ self.addEventListener('fetch',event=>{
   return;
  }
  if(url.origin!==self.location.origin)return;          /* YouTube ইত্যাদি: হাত দেওয়া হয় না */
- if(request.headers.has('range'))return;
 
  const isPage=request.mode==='navigate';
  const path=url.pathname;
@@ -84,7 +87,7 @@ self.addEventListener('fetch',event=>{
    if(res&&res.ok&&res.type==='basic')event.waitUntil(store(name,request,res.clone()));
    return res;
   }).catch(async()=>{
-   const hit=await fromCache(request,isPage);
+   const hit=await fromCache(request,isPage,name).catch(()=>null);
    if(hit)return hit;
    if(isPage)return new Response(OFFLINE,{status:503,headers:{'Content-Type':'text/html; charset=utf-8'}});
    return Response.error();

@@ -21,7 +21,7 @@
   message.textContent='';canvas.toBlob(b=>{if(turn===seq)blob=b},'image/png');
  }
  text.addEventListener('input',draw);
- open.addEventListener('click',()=>{const sel=window.getSelection(),selection=sel&&sel.anchorNode&&body.contains(sel.anchorNode)?String(sel).trim():'';text.value=(selection||'').slice(0,220);blob=null;draw();if(dialog.showModal)dialog.showModal();else dialog.setAttribute('open','');text.focus()});
+ open.addEventListener('click',()=>{if(body.dataset.loaded!=='true')return;const sel=window.getSelection(),selection=sel&&sel.anchorNode&&body.contains(sel.anchorNode)?String(sel).trim():'';text.value=(selection||'').slice(0,220);blob=null;draw();if(dialog.showModal)dialog.showModal();else dialog.setAttribute('open','');text.focus()});
  dialog.querySelector('#quote-download').addEventListener('click',()=>{if(!blob){message.textContent='উদ্ধৃতি তৈরি হচ্ছে বা খুব বড় হয়েছে।';return}const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='dawahx-quote.png';a.click();setTimeout(()=>URL.revokeObjectURL(url),30000)});
  dialog.querySelector('#quote-share').addEventListener('click',async()=>{if(!blob){message.textContent='উদ্ধৃতি তৈরি হচ্ছে বা খুব বড় হয়েছে।';return}const file=new File([blob],'dawahx-quote.png',{type:'image/png'});if(!navigator.canShare?.({files:[file]})){message.textContent='এই ব্রাউজারে সরাসরি ছবি শেয়ার করা যায় না। ছবি ডাউনলোড করে শেয়ার করুন।';return}try{await navigator.share({files:[file],title:'DAWAH X'});}catch(e){if(e.name!=='AbortError')message.textContent='শেয়ার করা যায়নি। ছবি ডাউনলোড করে শেয়ার করুন।'}});
 })();

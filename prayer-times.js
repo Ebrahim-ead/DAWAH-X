@@ -6,7 +6,15 @@
  const keys=['fajr','sunrise','dhuhr','asr','maghrib','isha'];
  const names={fajr:'ফজর',sunrise:'সূর্যোদয়',dhuhr:'যোহর',asr:'আসর',maghrib:'মাগরিব',isha:'এশা'};
  const cards=keys.map(key=>document.querySelector('.prayer-card[data-prayer="'+key+'"]'));
- let widgetDay='';
+ let widgetDay='', midnightTimer;
+ // Dhaka stays at UTC+06:00; schedule an update for its next calendar day.
+ // A suspended tab is refreshed again on visibilitychange/pageshow/focus.
+ const scheduleMidnight=now=>{
+  window.clearTimeout(midnightTimer);
+  const dhakaOffset=6*60*60*1000,dayMs=24*60*60*1000;
+  const remaining=dayMs-((now.getTime()+dhakaOffset)%dayMs+dayMs)%dayMs;
+  midnightTimer=window.setTimeout(render,remaining+50);
+ };
  const dayParts=now=>{
   const parts=new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Dhaka',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(now);
   const values=Object.fromEntries(parts.map(part=>[part.type,part.value]));
@@ -46,10 +54,11 @@
   }catch(_){
    cards.forEach(card=>{if(!card)return;card.classList.remove('is-current','is-next');card.querySelector('time').textContent='—';card.querySelector('time').removeAttribute('datetime');card.querySelector('.prayer-state').textContent=''});
    dateNode.textContent='ঢাকা · বাংলাদেশ সময়';nextNode.textContent='সময় গণনা করা যাচ্ছে না। IslamicFinder-এর লিংক বা স্থানীয় সময়সূচি দেখুন।';
-  }
+  }finally{scheduleMidnight(new Date())}
  };
  render();window.setInterval(render,60000);
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)render()});
  window.addEventListener('pageshow',render);
+ window.addEventListener('focus',render);
  details?.addEventListener('toggle',render);
 })();
