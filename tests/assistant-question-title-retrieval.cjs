@@ -8,7 +8,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
  const {articleCandidate,topics}=await import('../ai-worker/topic-search.mjs');
  const q='যাকাত কাদেরকে দেওয়া যাবে',key='0fdc4a2fc82cd4';
  const article=JSON.parse(fs.readFileSync(path.join(root,'texts',key.slice(-3)+'.json')))[key];
- const start=app.indexOf('const FOLD_MAP='),end=app.indexOf('/* সাইটে সংরক্ষিত প্রশ্নোত্তর খোঁজ:',start);assert(start>=0&&end>start);
+ const start=app.indexOf('const FOLD_MAP='),end=app.indexOf('/* ===== /মিলে-যাওয়া লেখা ও ভিডিও ===== */',start);assert(start>=0&&end>start);
  const sandbox={atob,Float32Array,Uint8Array,Promise,Set,Map,fetch:async u=>new Response(fs.readFileSync(path.join(root,String(u))))};
  vm.runInNewContext('const toLatinDigits=s=>String(s).replace(/[০-৯]/g,d=>String("০১২৩৪৫৬৭৮৯".indexOf(d)));\n'+app.slice(start,end)+'\nglobalThis.suggest=SUGGEST;',sandbox);
  const found=await sandbox.suggest.find(q,{includeVideos:false,includeBodyMatches:true});assert(found.texts.slice(0,6).some(x=>x.k===key));

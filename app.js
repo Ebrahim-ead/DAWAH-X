@@ -337,41 +337,6 @@ const SUGGEST={tm:null,side:null,ready:null,tsh:new Map(),relc:new Map(),bodyc:n
     const seenV=new Set();for(const [i] of this.score(V.list.length,TV,null,w,raw,i=>V.len[i])){const v=V.list[i],ft=foldBn(v.title);if(seenV.has(ft))continue;seenV.add(ft);videos.push({id:v.id,title:v.title,channel:v.channelTitle||""});if(videos.length>=2)break}}
     return videos}).catch(()=>[]);
    return {texts,videos,...(includeBodyMatches?{limited:true}:{}),...(correction?{correction}:{})}}catch(e){return null}}};
-/* সাইটে সংরক্ষিত প্রশ্নোত্তর খোঁজ: কোনো ভাষা-মডেল বা বাইরের তথ্য ব্যবহার করে না।
-   অপর্যাপ্ত মিলকে সরাসরি উত্তর বলা হয় না; শুধু হুবহু শিরোনাম মিললে মূল লেখা দেখাই। */
-const answerForm=$("source-answer-form");
-if(answerForm){
- const input=$("source-answer-question"),status=$("source-answer-status"),results=$("source-answer-results"),button=$("source-answer-submit");
- let sequence=0;
- const comparable=s=>toLatinDigits(String(s||"").normalize("NFC").toLowerCase())
-  .replace(/^\s*প্রশ্ন\s*(?:\([^)]{0,20}\))?\s*[:ঃ]?\s*/,"").replace(/[?!।]+$/g,"").replace(/\s+/g," ").trim();
- input.addEventListener("input",()=>{sequence++;button.disabled=false;results.replaceChildren();status.textContent=""});
- answerForm.addEventListener("submit",async event=>{
-  event.preventDefault();const question=input.value.trim(),current=++sequence;results.replaceChildren();
-  if([...question].length<6){status.textContent="অনুগ্রহ করে অন্তত 6 অক্ষরের একটি প্রশ্ন লিখুন।";input.focus();return}
-  button.disabled=true;status.textContent="সাইটের লেখায় খোঁজা হচ্ছে…";
-  try{
-   const match=await SUGGEST.find(question,{includeVideos:false});if(current!==sequence)return;
-   if(!match)throw new Error("index unavailable");
-   if(!match.texts.length){status.textContent="প্রাসঙ্গিক লেখা পাওয়া যায়নি। নিচের ফর্মে DAWAH X টিমকে প্রশ্ন পাঠাতে পারেন।";return}
-   const exact=match.texts.find(row=>comparable(row.title)===comparable(question));
-   if(exact){
-    const response=await fetch("texts/"+textBucket(exact.k)+".json");if(!response.ok)throw new Error("text unavailable");
-    const data=await response.json();if(current!==sequence)return;const article=data[exact.k];if(!article||!article.h)throw new Error("text missing");
-    const heading=document.createElement("h3");heading.textContent="একই শিরোনামের মূল লেখা";results.appendChild(heading);
-    const source=document.createElement("p");source.className="source-answer-meta";source.textContent=(article.c||TEXT_SOURCES[article.s]||"DAWAH X")+(article.a?" · "+toLatinDigits(article.a):"");results.appendChild(source);
-    const body=document.createElement("div");body.className="article-body source-answer-body";body.appendChild(safeArticle(article.h,/^https?:\/\//i.test(article.u||"")?article.u:"",article.s));results.appendChild(body);
-    const full=document.createElement("a");full.href="read.html?k="+encodeURIComponent(exact.k)+"&from="+exact.side;full.textContent="মূল লেখাটি পাঠকের পাতায় খুলুন →";results.appendChild(full);
-    status.textContent="একই শিরোনামের লেখা পাওয়া গেছে। মূল সূত্র ও সম্পূর্ণ প্রসঙ্গ যাচাই করুন।";
-   }else status.textContent="নিশ্চিত উত্তর শনাক্ত করা যায়নি। নিচের সম্ভাব্য লেখাগুলো মিলিয়ে দেখুন।";
-   const list=document.createElement("ul");list.className="source-answer-links";
-   for(const row of match.texts){const li=document.createElement("li"),link=document.createElement("a"),cat=document.createElement("small");
-    link.href="read.html?k="+encodeURIComponent(row.k)+"&from="+row.side;link.textContent=toLatinDigits(row.title);cat.textContent=row.cat||"লেখা";li.append(link,cat);list.appendChild(li)}
-   const label=document.createElement("h3");label.textContent="সম্ভাব্য সম্পর্কিত লেখা";results.append(label,list);
-  }catch(error){if(current===sequence)status.textContent="লেখার তথ্য এখন লোড করা যাচ্ছে না। সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।"}
-  finally{if(current===sequence)button.disabled=false}
- });
-}
 /* ===== /মিলে-যাওয়া লেখা ও ভিডিও ===== */
 const hostOf=u=>{try{return new URL(u).hostname.replace(/^www\./,"")}catch(e){return""}};
 const formatCount=n=>new Intl.NumberFormat("en-US").format(n);

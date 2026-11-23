@@ -158,17 +158,7 @@ const checkOverflow=async(page,label)=>{
     assert((await page.locator('.dxa-message.status').last().textContent()).includes('সম্পূর্ণ করা যায়নি'),'incomplete answer must be clearly flagged');
     await page.locator('.dxa-close').click();assert.equal(await page.locator('#dxa-panel').isVisible(),false);
    }
-   if(width===390){
-    const q=page.locator('#source-answer-question'),submit=page.locator('#source-answer-submit'),status=page.locator('#source-answer-status');
-    await q.fill('লুক্বমান (আলাইহিস সালাম) কি নবী ছিলেন, না-কি ছালিহ ব্যক্তিদের অন্তর্ভুক্ত ছিলেন?');await submit.click();
-    await page.waitForFunction(()=>document.querySelector('#source-answer-status').textContent.includes('একই শিরোনামের'));
-    assert((await page.locator('#source-answer-results').textContent()).includes('রাশেদুল ইসলাম'));
-    assert(await page.locator('#source-answer-results a[href^="read.html?k=0007877b4d24f5"]').count());
-    await q.fill('মঙ্গলে নামাজ পড়া যাবে কি?');await submit.click();await page.waitForFunction(()=>document.querySelector('#source-answer-status').textContent.includes('পাওয়া যায়নি'));
-    assert.equal(await page.locator('#source-answer-results .source-answer-body').count(),0);
-    await q.fill('রোজা রেখে ইনজেকশন নিলে কি রোজা ভেঙে যায়?');await submit.click();await page.waitForFunction(()=>document.querySelector('#source-answer-status').textContent.includes('নিশ্চিত উত্তর শনাক্ত করা যায়নি'));
-    assert((await page.locator('#source-answer-results .source-answer-links a').count())>0);assert.equal(await page.locator('#source-answer-results .source-answer-body').count(),0);
-   }
+   assert.equal(await page.locator('#source-answer-form').count(),0,'removed search panel must not be shown');
    await page.click('#askbtn');assert.equal(await page.getAttribute('#an','aria-invalid'),'true');assert.equal(submissions.length,0);
    if(width===390){
     await page.fill('#an','পরীক্ষার নাম');await page.click('#askbtn');assert.equal(await page.getAttribute('#ac','aria-invalid'),'true');

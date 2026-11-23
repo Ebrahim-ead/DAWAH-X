@@ -17,7 +17,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
  assert(!articleCandidate('উটের প্রস্রাব পানি দিয়ে ধৌত করা হয়েছে।',queryTerms(q)));
  assert(!articleCandidate('উটের পান ও চিকিৎসা।',queryTerms(q)),'the substance is required');
  assert(!articleCandidate('উটের প্রস্রাব। '+('অন্য প্রসঙ্গ '.repeat(55))+'পান করা।',queryTerms(q)),'distant unrelated terms are not enough');
- const start=app.indexOf('const FOLD_MAP='),end=app.indexOf('/* সাইটে সংরক্ষিত প্রশ্নোত্তর খোঁজ:',start);assert(start>=0&&end>start);
+ const start=app.indexOf('const FOLD_MAP='),end=app.indexOf('/* ===== /মিলে-যাওয়া লেখা ও ভিডিও ===== */',start);assert(start>=0&&end>start);
  const sandbox={atob,Float32Array,Uint8Array,Promise,Set,Map,fetch:async u=>new Response(fs.readFileSync(path.join(root,String(u))))};
  vm.runInNewContext('const toLatinDigits=s=>String(s).replace(/[০-৯]/g,d=>String("০১২৩৪৫৬৭৮৯".indexOf(d)));\n'+app.slice(start,end)+'\nglobalThis.suggest=SUGGEST;',sandbox);
  const found=await sandbox.suggest.find(q,{includeVideos:false,includeBodyMatches:true}),ids=Array.from(found.texts.slice(0,6),x=>x.k);

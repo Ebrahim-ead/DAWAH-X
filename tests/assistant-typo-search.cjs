@@ -11,7 +11,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
  const titleMeta=JSON.parse(fs.readFileSync(path.join(root,'search/titles.json')));
  assert.equal(vocab.n,titleMeta.n);assert.equal(vocab.hash,titleMeta.typoHash);assert.equal(vocab.hash,crypto.createHash('sha256').update(JSON.stringify(vocab.words)).digest('hex'));
  assert.deepEqual(vocab.words.slice().sort(),expected.sort(),'spelling vocabulary must match the current title index');
- const start=app.indexOf('const FOLD_MAP='),end=app.indexOf('/* সাইটে সংরক্ষিত প্রশ্নোত্তর খোঁজ:',start);assert(start>=0&&end>start);
+ const start=app.indexOf('const FOLD_MAP='),end=app.indexOf('/* ===== /মিলে-যাওয়া লেখা ও ভিডিও ===== */',start);assert(start>=0&&end>start);
  const sandbox={atob,Float32Array,Uint8Array,Promise,Set,Map,fetch:async u=>new Response(fs.readFileSync(path.join(root,String(u))))};
  vm.runInNewContext('const toLatinDigits=s=>String(s).replace(/[০-৯]/g,d=>String("০১২৩৪৫৬৭৮৯".indexOf(d)));\n'+app.slice(start,end)+'\nglobalThis.suggest=SUGGEST;',sandbox);
  const samples=[

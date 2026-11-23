@@ -15,7 +15,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
  for(const phrase of ['নামাজে পানি মিলানো','নামাজে পাপ মিলানো','নামাজে পায়েস মিলানো','নামাজে পাড় মিলানো'])
   assert.equal(articleCandidate(phrase,queryTerms(q)),false,'unrelated word must not match পা: '+phrase);
  assert.equal(articleCandidate('ছালাতে পায়ে পানি। '+('অন্য ঘটনা '.repeat(55))+'পরে নামাজ মিলানো',queryTerms(q)),false,'distant words must not suffice');
- const start=app.indexOf('const FOLD_MAP='),end=app.indexOf('/* সাইটে সংরক্ষিত প্রশ্নোত্তর খোঁজ:',start);assert(start>=0&&end>start);
+ const start=app.indexOf('const FOLD_MAP='),end=app.indexOf('/* ===== /মিলে-যাওয়া লেখা ও ভিডিও ===== */',start);assert(start>=0&&end>start);
  const sandbox={atob,Float32Array,Uint8Array,Promise,Set,Map,fetch:async u=>new Response(fs.readFileSync(path.join(root,String(u))))};
  vm.runInNewContext('const toLatinDigits=s=>String(s).replace(/[০-৯]/g,d=>String("০১২৩৪৫৬৭৮৯".indexOf(d)));\n'+app.slice(start,end)+'\nglobalThis.suggest=SUGGEST;',sandbox);
  const found=await sandbox.suggest.find(q,{includeVideos:false,includeBodyMatches:true});
