@@ -30,6 +30,8 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
  const env={ALLOWED_ORIGINS:origin,RATE_LIMITER:{limit:async()=>({success:true})},AI:{run:async(_model,args)=>{calls++;questionContext=args.messages[1].content;return {response:modelAnswer}}}};
  const req=()=>new Request('https://worker.test/',{method:'POST',headers:{Origin:origin,'CF-Connecting-IP':'192.0.2.1','Content-Type':'application/json'},body:JSON.stringify({message:q,ids:['11df79032aec67'],history:[],lookupComplete:true,scriptureSearch:true})});
  try{
+  assert.equal((await findHadithCandidates([['হাত']])).limited,true,'short-only search must disclose limited index coverage');
+  assert.equal((await findHadithCandidates(Array.from({length:100},(_,i)=>['t'+i.toString().padStart(3,'0')]))).limited,true,'shard-budget skip must disclose limited coverage');
   const terms=queryTerms(q);assert.equal(topics(terms).length,3);
   assert.deepEqual(topics(queryTerms('protyek shishu muslim hisebe jonmogrohon kore')),topics(terms),'common Banglish form must preserve the same topic groups');
   assert(!topics(queryTerms('মাগরিব কখন হয়')).some(g=>g.includes('মাতাপিতা')),'short মা must not turn unrelated words into a parent topic');

@@ -29,6 +29,18 @@ vm.runInNewContext('const toLatinDigits=s=>String(s).replace(/[০-৯]/g,d=>Str
  assert(injection.texts.slice(0,4).some(x=>x.title.includes('ইনজেকশন')),'specific fasting question');
  const romanInjection=await sandbox.suggest.find('roja rekhe injection nile ki roja venge jay',{includeVideos:false,includeBodyMatches:true});
  assert(romanInjection.texts.slice(0,4).some(x=>x.title.includes('ইনজেকশন')),'common Banglish should preserve the specific fasting question');
+ // User's real question has a colloquial verb; source titles use বাঁধা/বেঁধে.
+ for(const question of ['নামাজে হাত কোথায় বাঁধবো বুকে নাকি নাভির নিচে','নামাজে হাত বেঁধে বুকে নাকি নাভির নিচে']){
+  const result=await sandbox.suggest.find(question,{includeVideos:false,includeBodyMatches:true});
+  assert(result.texts.slice(0,4).some(x=>['1baadfbb8e91fa','1cdcea4ead1cbb','1592fe54154eac'].includes(x.k)),'hand-placement candidate should be retrieved: '+question);
+ }
+ const wrongTopic=await sandbox.suggest.find('নামাজে হাত কোথায় বাঁধবো কোয়ান্টামফটোনিক্স?',{includeVideos:false,includeBodyMatches:true});
+ assert.equal(wrongTopic.texts.length,0,'unknown conditions must not be silently discarded');
+ const tawhid='কুরআন ও সুন্নাহর আলোকে তাওহীদের গুরুত্ব কী?';
+ const tawhidResult=await sandbox.suggest.find(tawhid,{includeVideos:false,includeBodyMatches:true});
+ assert(tawhidResult.texts.slice(0,4).some(x=>x.k==='0c11409ae22b68'),'source-preface should not hide the actual tawhid topic');
+ const unknownWithPreface=await sandbox.suggest.find('কুরআন ও সুন্নাহর আলোকে কোয়ান্টামফটোনিক্স কী?',{includeVideos:false,includeBodyMatches:true});
+ assert.equal(unknownWithPreface.texts.length,0,'do not invent answers when the topic itself is unknown');
  const unknownRoman=await sandbox.suggest.find('namaj quantumflux ki',{includeVideos:false,includeBodyMatches:true});assert.equal(unknownRoman.texts.length,0,'unknown Banglish terms must not be dropped');
  const unknown=await sandbox.suggest.find('কোয়ান্টামফটোনিক্স নামাজ হালাল?',{includeVideos:false,includeBodyMatches:true});
  assert.equal(unknown.texts.length,0,'unknown topic should not be discarded in favour of generic prayer');

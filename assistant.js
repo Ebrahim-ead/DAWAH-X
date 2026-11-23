@@ -55,7 +55,7 @@
   try{res=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:encoded,signal:controller.signal})}finally{clearTimeout(timer)}
   if(!res.ok)throw Error(String(res.status));return res.json();
  }
- function modeLabel(mode){const el=document.createElement('div');el.className='dxa-mode';el.textContent=mode==='chat'?'সাধারণ আলাপ · সাইটের উৎসভিত্তিক নয়':mode==='failed'?'উৎস অনুসন্ধান সম্পূর্ণ হয়নি':mode==='no-source'?'খুঁজে পাওয়া উৎসে পর্যাপ্ত তথ্য নেই':'প্রাপ্ত উৎসভিত্তিক উত্তর';chat.append(el)}
+ function modeLabel(mode){const el=document.createElement('div');el.className='dxa-mode';el.textContent=mode==='chat'?'সাধারণ আলাপ · সাইটের উৎসভিত্তিক নয়':mode==='failed'?'উৎস অনুসন্ধান সম্পূর্ণ হয়নি':mode==='verification'?'উত্তর যাচাই করা যায়নি':mode==='no-source'?'খুঁজে পাওয়া উৎসে পর্যাপ্ত তথ্য নেই':'প্রাপ্ত উৎসভিত্তিক উত্তর';chat.append(el)}
  async function submit(q){q=q.trim();if(!q||busy)return;busy=true;send.disabled=true;input.value='';bubble(q,'user');const status=bubble('উত্তর তৈরি হচ্ছে…','status');
   try{
    if(!API_URL)throw Error('unsupported');
@@ -65,13 +65,19 @@
    if(data.needs_sources===true){
     status.textContent='প্রাসঙ্গিক উৎস খোঁজা হচ্ছে…';let texts=[],videos=null,siteSearchFailed=false,siteSearchLimited=false;
     const searchQ=searchContext(q),pages=pageMatches(searchQ);
-    try{let result=await window.dawahxAssistantSearch(searchQ);if(!result)throw Error('search unavailable');texts=result.texts.slice(0,4);videos=result.videos;siteSearchLimited=result.limited===true}catch(_){siteSearchFailed=true}
+    try{let result;try{result=await window.dawahxAssistantSearch(searchQ)}catch(_){}if(!result)result=await window.dawahxAssistantSearch(searchQ);if(!result)throw Error('search unavailable');texts=result.texts.slice(0,4);videos=result.videos;siteSearchLimited=result.limited===true}catch(_){siteSearchFailed=true}
     status.textContent='প্রাপ্ত উৎস থেকে উত্তর তৈরি হচ্ছে…';
     data=await requestAnswer({message:q,ids:texts.map(x=>x.k),pages,history,lookupComplete:true,scriptureSearch:true,siteSearchFailed,siteSearchLimited,allSources:true});
     if(data.grounded===true)sources(texts,videos);
    }
    if(typeof data.answer!=='string'||!data.answer.trim()||!Array.isArray(data.sources)||typeof data.grounded!=='boolean'||(data.grounded&&!data.sources.length))throw Error('unsupported');
-   status.remove();modeLabel(data.mode==='chat'?'chat':data.grounded?'grounded':data.partial?'failed':'no-source');const answerBubble=bubble(data.answer,'assistant');citations(data.sources);if(data.partial===true)bubble('কিছু উৎস এই মুহূর্তে পাওয়া যায়নি; অনুসন্ধান সম্পূর্ণ হয়নি।','status');if(data.search_limited===true)bubble('প্রশ্নে বিষয়সূচক শব্দ কম বা শুধু নির্দিষ্ট নম্বর থাকায় উৎসগুলোতে বিষয়ভিত্তিক অনুসন্ধান সীমিত হতে পারে; প্রয়োজনে বিষয়টি লিখে আবার চেষ্টা করুন।','status');if(data.incomplete===true)bubble('উত্তর সম্পূর্ণ করা যায়নি। প্রশ্নটি ছোট অংশে ভাগ করে আবার করুন।','status');
+   status.remove();modeLabel(data.mode==='chat'?'chat':data.grounded?'grounded':data.partial?'failed':data.verification_failed?'verification':'no-source');const answerBubble=bubble(data.answer,'assistant');citations(data.sources);if(data.partial===true){const labels={quran:'কুরআন',hadith:'হাদিস',site_search:'সাইটের লেখা খোঁজা',site_pages:'সাইটের তথ্য',articles:'বাছাই করা লেখা',direct_lookup:'নির্দিষ্ট আয়াত বা হাদিস'};
+    const failed=Array.isArray(data.search_failures)?[...new Set(data.search_failures.filter(x=>Object.prototype.hasOwnProperty.call(labels,x)).map(x=>labels[x]))]:[];
+    bubble(failed.length?'এই অংশগুলোতে সমস্যা হয়েছে: '+failed.join(', ')+'। অনুসন্ধান সম্পূর্ণ হয়নি।':'কিছু উৎস এই মুহূর্তে পাওয়া যায়নি; অনুসন্ধান সম্পূর্ণ হয়নি।','status')}if(data.search_limited===true)bubble(data.mode==='chat'?'এই সাধারণ কথায় বিষয়ভিত্তিক উৎস অনুসন্ধান সীমিত ছিল।':'উৎসগুলোতে বিষয়ভিত্তিক অনুসন্ধান সীমিত ছিল; প্রয়োজন হলে বিষয় ও প্রাসঙ্গিক শর্ত স্পষ্ট করে আবার চেষ্টা করুন।','status');if(data.grounded===true&&data.source_coverage){const c=data.source_coverage,names={quran:'কুরআন',hadith:'হাদিস'};
+    const missing=Object.keys(names).filter(k=>c[k]==='no_match').map(k=>names[k]),skipped=Object.keys(names).filter(k=>c[k]==='skipped').map(k=>names[k]);
+    if(missing.length)bubble('সীমিত অনুসন্ধানে সরাসরি '+missing.join(' ও ')+'ের পাঠ মেলেনি; এর মানে এই নয় যে সেখানে কোনো দলিল নেই।','status');
+    if(skipped.length)bubble(skipped.join(' ও ')+'-এ বিষয়ভিত্তিক অনুসন্ধান করা যায়নি।','status')}
+   if(data.incomplete===true)bubble('উত্তর সম্পূর্ণ করা যায়নি। প্রশ্নটি ছোট অংশে ভাগ করে আবার করুন।','status');
    // Start a long answer at its beginning instead of jumping past it to citations.
    if(answerBubble.offsetHeight>chat.clientHeight*0.7)chat.scrollTop+=answerBubble.getBoundingClientRect().top-chat.getBoundingClientRect().top-8;
    history.push({role:'user',content:q},{role:'assistant',content:data.answer.slice(0,2000)});history=history.slice(-6);

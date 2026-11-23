@@ -1,3 +1,4 @@
+import {sourceText} from './source-fetch.mjs';
 // Direct numbered lookups use only the user's own Ebrahim Ead site. No URL or
 // text supplied by the browser is fetched, and no model supplies a reference.
 const BASE='https://ebrahim-ead.github.io/ead/';
@@ -82,14 +83,7 @@ export function parseSurah(message){
  return {kind:'surah',surah:numbers[0]};
 }
 export async function scriptureJSON(path){
- const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),10000);
- try{
-  const res=await fetch(BASE+path,{signal:controller.signal,redirect:'error'});if(!res.ok)throw Error('Source unavailable');
-  // Limit decoded input even when Content-Length is missing or false.
-  const reader=res.body?.getReader();if(!reader)throw Error('Source unavailable');
-  let size=0;const parts=[];for(;;){const {value,done}=await reader.read();if(done)break;size+=value.byteLength;if(size>3*1024*1024){await reader.cancel();throw Error('Source too large')}parts.push(value)}
-  const bytes=new Uint8Array(size);let pos=0;for(const p of parts){bytes.set(p,pos);pos+=p.length}return JSON.parse(new TextDecoder().decode(bytes));
- }finally{clearTimeout(timer)}
+ return JSON.parse(await sourceText(BASE+path,3*1024*1024));
 }
 export async function lookupScripture(ref){
  if(ref.kind==='unsupported')return null;

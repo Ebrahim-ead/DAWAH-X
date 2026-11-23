@@ -20,13 +20,14 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
   allBroken=true;r=await worker.fetch(req('সালাত কী?'),env);data=await r.json();assert.equal(data.grounded,false);assert.equal(data.partial,true);assert(!events.some(x=>x.startsWith('AI:')),'outage must not call the model');allBroken=false;events.length=0;
   r=await worker.fetch(req('সালাত কী?'),env);data=await r.json();assert.equal(data.grounded,true);assert.deepEqual(data.sources.map(x=>x.type||'article'),['quran','hadith','article']);let ai=events.findIndex(x=>x.startsWith('AI:'));for(const suffix of ['search-ayahs.js','hadith/data/index.json','bukhari/8.json','texts/000.json'])assert(events.findIndex(x=>x.endsWith(suffix))<ai,'must search '+suffix+' before generating');
   // A failed source must not produce a partial answer presented as if checked.
-  events.length=0;siteBroken=true;r=await worker.fetch(req('সালাত কী?'),env);data=await r.json();assert.equal(data.grounded,false);assert.equal(data.partial,true);assert(!events.some(x=>x.startsWith('AI:')));
-  siteBroken=false;events.length=0;r=await worker.fetch(req('সালাত কী?',{siteSearchFailed:true}),env);data=await r.json();assert.equal(data.partial,true);assert(!events.some(x=>x.startsWith('AI:')));
+  events.length=0;siteBroken=true;r=await worker.fetch(req('সালাত কী?'),env);data=await r.json();assert.equal(data.grounded,false);assert.equal(data.partial,true);assert.deepEqual(data.search_failures,['articles']);assert(!events.some(x=>x.startsWith('AI:')));
+  siteBroken=false;events.length=0;r=await worker.fetch(req('সালাত কী?',{siteSearchFailed:true}),env);data=await r.json();assert.equal(data.partial,true);assert.deepEqual(data.search_failures,['site_search']);assert(!events.some(x=>x.startsWith('AI:')));
   events.length=0;r=await worker.fetch(req('কুরআন ২:২৫৫',{ids:[]}),env);data=await r.json();assert.equal(data.grounded,true);assert.equal(data.sources[0].verse,255);assert.equal(data.search_limited,true);assert(!events.some(x=>x.startsWith('AI:')),'literal direct text remains unchanged');
   // General chat is routed and generated only after searches finish.
   events.length=0;const chatEnv={...env,AI:{run:async(model)=>{events.push('AI:'+model);return {response:model.includes('8b')?'CHAT':'আমি ভালো আছি।'}}}};
   r=await worker.fetch(req('হ্যালো',{ids:['034d218703d000']}),chatEnv);data=await r.json();assert.equal(data.mode,'chat');assert(events.findIndex(x=>x.endsWith('texts/000.json'))<events.findIndex(x=>x.startsWith('AI:')));
   r=await worker.fetch(req('হ্যালো',{siteSearchLimited:true}),chatEnv);data=await r.json();assert.equal(data.search_limited,true);
+  events.length=0;r=await worker.fetch(req('hm',{ids:[]}),chatEnv);data=await r.json();assert.equal(data.mode,'chat');assert.match(data.answer,/আর কী জানতে চান/);assert.equal(data.search_limited,true);assert(!events.some(x=>x.startsWith('AI:')),'bare acknowledgement does not need model inference');
   r=await worker.fetch(req('হ্যালো',{allSources:'true'}),chatEnv);assert.equal(r.status,400);
   const client=fs.readFileSync(path.join(__dirname,'../assistant.js'),'utf8');assert.match(client,/allSources:true/);assert.match(client,/data\.all_sources!==true/);assert(!client.includes('data.direct_lookup===true?[]'));
   console.log('assistant all-source search: sequencing, failures, direct lookup and chat pass');

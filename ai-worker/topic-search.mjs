@@ -1,6 +1,7 @@
 // Candidate discovery is keyword-based, not a religious verdict. Every selected
 // record is reloaded from Ebrahim Ead's structured data before model use.
 import {scriptureJSON} from './scripture.mjs';
+import {sourceText} from './source-fetch.mjs';
 import {findHadithCandidates} from './hadith-index.mjs';
 const BASE='https://ebrahim-ead.github.io/ead/';
 const BOOKS=new Set(['bukhari','muslim','abu-dawud','tirmidhi','nasai','ibn-majah','mishkat']);
@@ -10,12 +11,12 @@ export function fold(text){return String(text||'').normalize('NFC').toLowerCase(
 const generic=new Set([...GENERIC].map(fold));
 // Small, explicit topic vocabulary, used for candidate discovery only. The
 // original question and the full source always go to the model for context.
-const CONCEPTS=[['শিশু','বাচ্চা','সন্তান','নবজাতক'],['জন্ম','প্রসব'],['মুসলিম','মুসলমান','ইসলাম','ফিতরাত','ফিত্রাত','স্বভাবজাত'],['মা','মায়ের','মাতা','মাতাপিতা','পিতামাতা'],['বাবা','পিতা','মাতাপিতা','পিতামাতা'],['সদ্ব্যবহার','সদ্ব্যবহার','সদাচরণ','সৎব্যবহার','উত্তম ব্যবহার','ভালো ব্যবহার','ভাল ব্যবহার','সম্মান','ইহসান']].map(g=>g.map(fold));
+const CONCEPTS=[['শিশু','বাচ্চা','সন্তান','নবজাতক'],['জন্ম','প্রসব'],['মুসলিম','মুসলমান','ইসলাম','ফিতরাত','ফিত্রাত','স্বভাবজাত'],['মা','মায়ের','মাতা','মাতাপিতা','পিতামাতা'],['বাবা','পিতা','মাতাপিতা','পিতামাতা'],['সদ্ব্যবহার','সদ্ব্যবহার','সদাচরণ','সৎব্যবহার','উত্তম ব্যবহার','ভালো ব্যবহার','ভাল ব্যবহার','সম্মান','ইহসান'],['তাওহিদ','একমাত্র ইলাহ','এক ইলাহ','ইলাহ এক','আল্লাহ ছাড়া কোনো সত্য ইলাহ','এক আল্লাহ']].map(g=>g.map(fold));
 export function topics(terms){
  const expanded=terms.filter(group=>!group.some(x=>generic.has(x))).map(group=>{const concept=CONCEPTS.find((g,i)=>!(i===2&&group.some(x=>generic.has(x)))&&group.some(x=>g.some(y=>x===y||([...y].length>=3&&x.startsWith(y)))));return concept||group});
  const seen=new Set();const result=expanded.filter(group=>{const key=[...group].sort().join('|');if(seen.has(key))return false;seen.add(key);return true}).map(group=>[...new Set(group.flatMap(x=>{
   // A few common Bengali case suffixes; don't guess arbitrary stems.
-  const stem=x.replace(/(?:ের|দের|তে|কে)$/u,'');return [...stem].length>=4?[x,stem]:[x];
+  const stem=x.replace(/(?:ের|তে|কে)$/u,'');return [...stem].length>=4?[x,stem]:[x];
  }))]);
  const numberWords={1:'এক',2:'দুই',3:'তিন',4:'চার',5:'পাঁচ',6:'ছয়',7:'সাত',8:'আট',9:'নয়',10:'দশ'};
  for(const group of result)if(group.length===1){
@@ -60,15 +61,10 @@ async function cached(slot,loader){
  return value;
 }
 async function ayahIndex(){
- const c=new AbortController(),timer=setTimeout(()=>c.abort(),10000);
- try{
-  const r=await fetch(BASE+'assets/search-ayahs.js',{signal:c.signal,redirect:'error'});if(!r.ok||!r.body)throw Error('Quran search unavailable');
-  const reader=r.body.getReader(),parts=[];let size=0;for(;;){const {done,value}=await reader.read();if(done)break;size+=value.byteLength;if(size>4*1024*1024){await reader.cancel();throw Error('Quran index too large')}parts.push(value)}
-  const bytes=new Uint8Array(size);let pos=0;for(const p of parts){bytes.set(p,pos);pos+=p.length}
-  const s=new TextDecoder().decode(bytes),m=s.match(/window\.SITE_AYAHS\s*=\s*(\[[\s\S]*\])\s*;\s*$/);if(!m)throw Error('Invalid Quran search index');
-  const rows=JSON.parse(m[1]);if(!Array.isArray(rows)||!rows.length||rows.length>7000)throw Error('Invalid Quran search index');
-  return rows.filter(r=>Array.isArray(r)&&Number.isInteger(r[0])&&r[0]>=1&&r[0]<=114&&Number.isInteger(r[1])&&r[1]>=1&&r[1]<=286&&typeof r[2]==='string'&&r[2].length<=8000).map(r=>[r[0],r[1],fold(r[2])]);
- }finally{clearTimeout(timer)}
+ const s=await sourceText(BASE+'assets/search-ayahs.js',4*1024*1024);
+ const m=s.match(/window\.SITE_AYAHS\s*=\s*(\[[\s\S]*\])\s*;\s*$/);if(!m)throw Error('Invalid Quran search index');
+ const rows=JSON.parse(m[1]);if(!Array.isArray(rows)||!rows.length||rows.length>7000)throw Error('Invalid Quran search index');
+ return rows.filter(r=>Array.isArray(r)&&Number.isInteger(r[0])&&r[0]>=1&&r[0]<=114&&Number.isInteger(r[1])&&r[1]>=1&&r[1]<=286&&typeof r[2]==='string'&&r[2].length<=8000).map(r=>[r[0],r[1],fold(r[2])]);
 }
 async function quran(terms){
  const rows=await cached('ayah',ayahIndex), needed=terms.length;
@@ -89,10 +85,11 @@ async function quran(terms){
 async function hadith(terms){
  const idx=await cached('index',()=>scriptureJSON('assets/hadith/data/index.json'));
  if(!Array.isArray(idx.books))throw Error('Invalid hadith search index');
- let candidatesFromIndex=[],indexFailed=false;
- try{candidatesFromIndex=await findHadithCandidates(terms)}catch(_){indexFailed=true}
+ let candidatesFromIndex=[],indexFailed=false,indexLimited=false;
+ try{candidatesFromIndex=await findHadithCandidates(terms);indexLimited=!!candidatesFromIndex.limited}catch(_){indexFailed=true}
  const chapters=[];for(const b of idx.books){if(!BOOKS.has(b.slug)||!Array.isArray(b.chapters)||typeof b.bn!=='string')continue;for(const c of b.chapters){if(!Number.isInteger(c.id)||c.id<0||c.id>200||typeof c.bn!=='string')continue;const n=score(c.bn,terms);if(n)chapters.push({book:b.slug,name:b.bn.slice(0,100),id:c.id,score:n})}}
- const picked=[];for(const c of (terms.length===1&&chapters.length?[]:candidatesFromIndex)){const b=idx.books.find(b=>b.slug===c.book),chapter=b?.chapters?.find(x=>x.id===c.id);if(b&&chapter&&typeof b.bn==='string')picked.push({...c,name:b.bn.slice(0,100)})}
+ const titleOnly=terms.length===1&&chapters.length>0;
+ const picked=[];for(const c of (titleOnly?[]:candidatesFromIndex)){const b=idx.books.find(b=>b.slug===c.book),chapter=b?.chapters?.find(x=>x.id===c.id);if(b&&chapter&&typeof b.bn==='string')picked.push({...c,name:b.bn.slice(0,100)})}
  // Fall back to title search if no indexed candidates were found or the
  // candidate index is temporarily unavailable. It is not full-text coverage.
  if(!picked.length){chapters.sort((a,b)=>b.score-a.score);for(const c of chapters){if(picked.filter(x=>x.book===c.book).length<2)picked.push(c);if(picked.length===5)break}}
@@ -108,7 +105,7 @@ async function hadith(terms){
   }
  });
  const counts=new Map();for(const v of candidates){const key=v.book+':'+v.hadith;counts.set(key,(counts.get(key)||0)+1)}
- candidates.sort((a,b)=>b.rank-a.rank);return {items:candidates.filter(v=>counts.get(v.book+':'+v.hadith)===1).slice(0,3).map(({rank,...item})=>item),failed};
+ candidates.sort((a,b)=>b.rank-a.rank);return {items:candidates.filter(v=>counts.get(v.book+':'+v.hadith)===1).slice(0,3).map(({rank,...item})=>item),failed,limited:indexLimited||titleOnly};
 }
 // A lexical pre-filter, not proof of relevance. Do not drop sources when the
 // question has fewer than two meaningful groups; website pages remain separate.
@@ -116,5 +113,6 @@ export function articleCandidate(text,termGroups){const t=topics(termGroups);con
 export async function searchScripture(termGroups){
  const terms=topics(termGroups);if(!terms.length||terms.every(group=>group.every(x=>/^\d+$/.test(x))))return {items:[],failed:false,skipped:true};
  const results=await Promise.allSettled([quran(terms),hadith(terms)]);
- return {items:results.flatMap(r=>r.status==='fulfilled'?r.value.items:[]),failed:results.some(r=>r.status==='rejected'||r.value.failed)};
+ const failedSources=results.flatMap((r,i)=>r.status==='rejected'||r.value.failed?[i===0?'quran':'hadith']:[]);
+ return {items:results.flatMap(r=>r.status==='fulfilled'?r.value.items:[]),failed:failedSources.length>0,failedSources,limited:results.some(r=>r.status==='fulfilled'&&r.value.limited===true)};
 }
