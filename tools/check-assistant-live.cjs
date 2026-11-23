@@ -40,6 +40,14 @@ const watchdog=setTimeout(()=>{console.error('Live smoke failed: overall deadlin
   if(!found)throw Error('Live site search failed for the sample question');
   const data=await request({message:q,ids:found.texts.slice(0,6).map(x=>x.k),pages:[],history:[],lookupComplete:true,scriptureSearch:true,siteSearchFailed:false,siteSearchLimited:found.limited===true,...(found.correction?{searchCorrection:found.correction}:{}),allSources:true},'answer request');
   console.log(JSON.stringify({question:q,candidates:found.texts.slice(0,6).map(x=>x.title),correction:found.correction,response:data}));report(q,data);
+  // Focused runs use fixed public questions. Surface the generated response and
+  // cited identifiers in annotations as well as logs, for review where Actions
+  // log downloads are inaccessible. Never include user-submitted questions.
+  if(process.env.ASSISTANT_LIVE_FOCUS==='camel'&&typeof data.answer==='string'){
+   const answer=Array.from(data.answer).slice(0,1400).join('');
+   for(let i=0;i<answer.length;i+=350)annotation('notice','Answer '+(i/350+1)+': '+answer.slice(i,i+350));
+   annotation('notice','Cited sources: '+JSON.stringify(data.sources||[]));
+  }
   if(data.partial===true){assert(Array.isArray(data.search_failures)&&data.search_failures.length,'partial response must identify failures');console.warn('Some sources failed; inspect search_failures above.');}
   if(q==='hm')assert.equal(data.mode,'chat','acknowledgement should receive a chat response');
   else{assert.equal(data.grounded,true,'no usable cited answer was generated for this sample');assert(Array.isArray(data.sources)&&data.sources.length,'grounded response must cite at least one source')}
@@ -48,7 +56,8 @@ const watchdog=setTimeout(()=>{console.error('Live smoke failed: overall deadlin
    assert.match(data.answer,/স্বাস্থ্য সতর্কতা: প্রাণীর মূত্র পান/,'health warning must be present');
   }
  });
+ // Keep successful stage results visible even when a later stage fails.
+ for(const result of reports)annotation('notice',result);
  if(failures.length)throw Error(failures.join('; '));
  console.log('Live smoke completed. Generated claims still require independent review; searching is bounded.');
- for(const result of reports)annotation('notice',result);
 })().catch(error=>{console.error('Live smoke failed:',error.message);annotation('error','Live smoke failed: '+error.message);process.exitCode=1}).finally(()=>clearTimeout(watchdog));
