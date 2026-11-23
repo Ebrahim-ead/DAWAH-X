@@ -4,7 +4,11 @@
 // This consumes Workers AI inference; it does not train a model or change data.
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const SITE='https://ebrahim-ead.github.io/DAWAH-X/',API='https://dawahx-assistant.www-mdrazu55555.workers.dev',ORIGIN='https://ebrahim-ead.github.io';
-const read=async(url,options={})=>{const response=await fetch(url,{...options,signal:AbortSignal.timeout(120000)});if(!response.ok){let code='';if(url===API){try{const data=await response.json();if(['model_unavailable','processing_failed'].includes(data.error_code))code=' ('+data.error_code+(data.model_reason==='quota'?', quota':'')+')'}catch(_){}}throw Error(`HTTP ${response.status} at ${new URL(url).pathname}`+code)}return response};
+const read=async(url,options={})=>{const response=await fetch(url,{...options,signal:AbortSignal.timeout(120000)});if(!response.ok){let code='';if(url===API){try{const data=await response.json();if(['model_unavailable','processing_failed'].includes(data.error_code))code=' ('+data.error_code+(data.model_reason==='quota'?', quota':'')+')';
+  // An inference outage remains a failed answer test. Separately report only
+  // bounded metadata for the fixed public sample's candidate-link fallback.
+  if(data.error_code==='model_unavailable'&&Array.isArray(data.candidates)){const c=data.candidates;annotation('notice','Unverified candidate links: '+JSON.stringify({count:c.length,hadith:c.filter(x=>x.type==='hadith').length,articles:c.filter(x=>/^[a-f0-9]{14}$/.test(x.key||'')).length,bukhari233:c.some(x=>x.type==='hadith'&&x.book==='bukhari'&&x.hadith===233),partial:data.partial===true}));}
+ }catch(_){}}throw Error(`HTTP ${response.status} at ${new URL(url).pathname}`+code)}return response};
 const request=async(payload,stage='request')=>{try{const r=await read(API,{method:'POST',headers:{'Content-Type':'application/json',Origin:ORIGIN},body:JSON.stringify(payload)});return r.json()}catch(error){throw Error(stage+': '+error.message)}};
 const annotation=(level,text)=>{if(process.env.GITHUB_ACTIONS==='true')console.log('::'+level+'::'+String(text).slice(0,500).replace(/%/g,'%25').replace(/\r/g,'%0D').replace(/\n/g,'%0A'))};
 // One notice at the end avoids GitHub's per-step annotation cap hiding later
