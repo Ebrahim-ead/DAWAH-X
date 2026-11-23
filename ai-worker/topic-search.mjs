@@ -33,7 +33,7 @@ export function topics(terms){
  const expanded=terms.filter(group=>!group.some(x=>generic.has(x))).map(group=>{const inflection=INFLECTIONS.find(g=>group.some(x=>g.forms.has(x)));if(inflection)return inflection.match;const concept=CONCEPTS.find((g,i)=>!(i===2&&group.some(x=>generic.has(x)))&&group.some(x=>g.some(y=>x===y||([...y].length>=3&&x.startsWith(y)))));return concept||group});
  const seen=new Set();const result=expanded.filter(group=>{const key=[...group].sort().join('|');if(seen.has(key))return false;seen.add(key);return true}).map(group=>[...new Set(group.flatMap(x=>{
   // A few common Bengali case suffixes; don't guess arbitrary stems.
-  const stem=x.replace(/(?:ের|তে|কে)$/u,'');return [...stem].length>=4?[x,stem]:[x];
+  const stem=x.replace(/(?:ের|তে|কে)$/u,'').replace(/ার$/u,'া');return [...stem].length>=4?[x,stem]:[x];
  }))]);
  const numberWords={1:'এক',2:'দুই',3:'তিন',4:'চার',5:'পাঁচ',6:'ছয়',7:'সাত',8:'আট',9:'নয়',10:'দশ'};
  for(const group of result)if(group.length===1){
@@ -58,7 +58,7 @@ function locations(value,form){
 export function score(text,terms,normalized=false){const value=normalized?text:fold(text);let n=0;for(const forms of terms)if(forms.numeric?forms.numeric.test(value):forms.some(x=>[...x].length<=3?locations(value,x).length>0:value.includes(x)))n++;return n;}
 // Co-occurrence across a long narration/verse can describe unrelated events.
 // Require all meaningful groups near one another; this still is not semantic proof.
-function near(text,terms,window=240,normalized=false){
+export function near(text,terms,window=240,normalized=false){
  if(terms.length<2)return true;const value=normalized?text:fold(text),hits=[];
  for(let g=0;g<terms.length;g++){
   const forms=terms[g];if(forms.numeric){const r=new RegExp(forms.numeric.source,'gu');for(const m of value.matchAll(r))hits.push([m.index,g]);continue}

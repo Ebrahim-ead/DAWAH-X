@@ -308,10 +308,23 @@ const SUGGEST={tm:null,side:null,ready:null,tsh:new Map(),relc:new Map(),bodyc:n
    /* raw = শব্দটি কত কম লেখায় আছে (বেশি = বেশি নির্দিষ্ট); কোনো লেখায় না থাকা শব্দ (বানান ভুল, নাম) কম ওজন পায় */
    const raw=B.map(s=>s.size?Math.log(N/(1+s.size)):0),w=raw.map(v=>v?Math.min(5,Math.max(1,v)):1.2),L=this.tm.len;
    let ranked=this.score(N,T,B,w,raw,id=>Math.max(1,ASK_LEN.indexOf(L[id])));
-   /* একক সাধারণ বিষয়ও শিরোনামে খোঁজা যায়, কিন্তু লেখার ভেতরে মেলে
-      বলে একা কোনো সাধারণ শব্দকে প্রাসঙ্গিক উত্তর ধরে নেওয়া হয় না। */
-   if(includeBodyMatches&&G.length===1&&!ranked.length&&G[0].some(([t])=>ASSISTANT_TITLE_TOPICS.has(t))){
+   /* A one-word subject can be common yet meaningful (e.g. রোজা). Use
+      matching titles as candidates, not answers; the Worker still checks the
+      body and the model must establish relevance. Avoid broad short stems. */
+   if(includeBodyMatches&&G.length===1&&!ranked.length&&G[0].some(([t])=>askCp(t)>=4||ASSISTANT_TITLE_TOPICS.has(t))){
     ranked=[...T[0]].map(id=>[id,1/Math.max(1,ASK_LEN.indexOf(L[id]))]).sort((a,b)=>b[1]-a[1]||a[0]-b[0]);
+   }
+   // A general importance question should also consider subject titles even
+   // when they do not contain the word "importance". This broadens candidate
+   // discovery only; the Worker still receives the complete question and
+   // requires the subject in the source before allowing it as evidence.
+   if(includeBodyMatches&&G.length>1&&!B.some((b,i)=>!b.size&&!T[i].size)){
+    const generic=t=>t.startsWith(foldBn('গুরুত্ব'))||t.startsWith(foldBn('ফজিলত'))||t.startsWith(foldBn('ফযীলত'));
+    const subjects=original.map((t,i)=>generic(t)?-1:i).filter(i=>i>=0);
+    if(subjects.length===1){const existing=new Set(ranked.map(([id])=>id));
+     const extra=[...T[subjects[0]]].filter(id=>!existing.has(id)).map(id=>[id,1/Math.max(1,ASK_LEN.indexOf(L[id]))]);
+     extra.sort((a,b)=>b[1]-a[1]||a[0]-b[0]);ranked.push(...extra);
+    }
    }
    /* অজানা বিষয়শব্দকে অবহেলা করে সাধারণ শব্দে উত্তর দেওয়া নিরাপদ নয়। */
    if(includeBodyMatches&&G.length>1&&B.some((b,i)=>!b.size&&!T[i].size))ranked=[];
@@ -324,14 +337,24 @@ const SUGGEST={tm:null,side:null,ready:null,tsh:new Map(),relc:new Map(),bodyc:n
     const seen=new Set(ranked.map(row=>row[0])),body=[];
     for(let id=0;id<N;id++)if(!seen.has(id)&&sum[id]>=total*.98&&G.length>=2&&counts[id]>=2)body.push([id,sum[id]/total]);
     body.sort((a,b)=>b[1]-a[1]||a[0]-b[0]);
-    const candidates=body.slice(0,20),near=await Promise.all(candidates.map(([id])=>this.bodyNear(DEEP.keys.substr(id*14,14),G,includeBodyMatches)));
-    ranked.push(...candidates.filter((_,i)=>near[i]));
+    // Many tied body-only candidates have the same index score. Checking only
+    // the first 20 keys can miss a nearby passage later in the corpus. Scan in
+    // small bounded batches until both categories have enough candidates.
+    const candidates=body.slice(0,48),countsBySide=side=>ranked.filter(([id])=>this.side(id)===side).length;
+    for(let i=0;i<candidates.length;i+=6){
+     if(countsBySide('q')>=3&&countsBySide('f')>=3)break;
+     const batch=candidates.slice(i,i+6),near=await Promise.all(batch.map(([id])=>this.bodyNear(DEEP.keys.substr(id*14,14),G,includeBodyMatches)));
+     ranked.push(...batch.filter((_,j)=>near[j]));
+    }
    }
    const pick={q:[],f:[]};for(const [id] of ranked){const s=this.side(id);if(pick[s].length<6)pick[s].push(id)}
-   const bare=v=>v.replace(/^\s*প্রশ্ন\s*[:ঃ]?\s*\([^)]{0,14}\)\s*[:ঃ]?\s*/,"").trim(),texts=[],seenT=new Set();
+   const bare=v=>v.replace(/^\s*প্রশ্ন\s*[:ঃ]?\s*\([^)]{0,14}\)\s*[:ঃ]?\s*/,"").trim(),texts=[],seenT=new Set(),remaining=[];
    for(const s of ["q","f"]){const rows=await Promise.all(pick[s].map(id=>{const k=DEEP.keys.substr(id*14,14);return this.rel(k,includeBodyMatches).then(r=>r&&r[0]?{k,side:s,title:bare(r[0])||r[0],cat:r[1]||""}:null)}));
-    let n=0;for(const r of rows){if(!r)continue;const ft=foldBn(r.title);if(seenT.has(ft))continue;seenT.add(ft);texts.push(r);if(++n>=3)break}}
-   if(includeBodyMatches){const rank=new Map(ranked.map(([id],i)=>[DEEP.keys.substr(id*14,14),i]));texts.sort((a,b)=>rank.get(a.k)-rank.get(b.k))}
+    let n=0;for(const r of rows){if(!r)continue;const ft=foldBn(r.title);if(seenT.has(ft))continue;seenT.add(ft);if(n++<3)texts.push(r);else if(includeBodyMatches)remaining.push(r)}}
+   if(includeBodyMatches){const rank=new Map(ranked.map(([id],i)=>[DEEP.keys.substr(id*14,14),i]));
+    // Use all six evidence slots even when only one category has matches.
+    remaining.sort((a,b)=>rank.get(a.k)-rank.get(b.k));texts.push(...remaining.slice(0,Math.max(0,6-texts.length)));
+    texts.sort((a,b)=>rank.get(a.k)-rank.get(b.k))}
    const videos=vp.then(V=>{const videos=[];
    if(V){const TV=G.map(forms=>{const s=new Set();for(const [p,pre] of forms){if(pre){for(const tok of V.vocab)if(tok.startsWith(p))for(const i of V.map.get(tok))s.add(i)}else{const l=V.map.get(p);if(l)for(const i of l)s.add(i)}}return s});
     const seenV=new Set();for(const [i] of this.score(V.list.length,TV,null,w,raw,i=>V.len[i])){const v=V.list[i],ft=foldBn(v.title);if(seenV.has(ft))continue;seenV.add(ft);videos.push({id:v.id,title:v.title,channel:v.channelTitle||""});if(videos.length>=2)break}}
