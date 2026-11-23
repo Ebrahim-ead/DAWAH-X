@@ -1,6 +1,6 @@
 import {sourceText,SITE_SNAPSHOT} from './source-fetch.mjs';
 import {parseScripture,parseSurah,lookupScripture,hadithMentions,isPlainScriptureRequest} from './scripture.mjs';
-import {searchScripture,articleCandidate,topics,score} from './topic-search.mjs';
+import {searchScripture,articleCandidate,topics,score,near} from './topic-search.mjs';
 // Cloudflare Worker: the browser sends article IDs, never source text or credentials.
 const SITE = 'https://ebrahim-ead.github.io/DAWAH-X/';
 const MODEL = '@cf/meta/llama-3.3-70b-instruct-fp8-fast';
@@ -108,7 +108,7 @@ export function queryTerms(q){let normalized=stripSourcePreface(fold(normalizeRo
  // for the model; only remove this narrow retrieval phrase.
  if(normalized.includes('হাত')&&/(?:বাধ|বেধ)/u.test(normalized))normalized=normalized.replace(/(?:নামাজের|সালাতের|সালাত)\s+সময়/gu,'নামাজ');
  const words=normalized.match(/[\p{L}\p{M}\p{N}]+/gu)||[],seen=new Set(),out=[];for(const word of words){const numeric=/^\d{1,6}$/.test(word);if((!numeric&&[...word].length<3&&word!=='মা'&&word!=='পা')||[...word].length>30||SKIP.has(word)||seen.has(word))continue;seen.add(word);const group=/^(?:বাধবো|বাধবে|বাধব|বাধেন|বাধুন|বেধে|বেধেসে|বেধেসেন|বাধার|বাধা)$/u.test(word)?['বাধা','বেধে','বাধবে']:SYNONYMS.find(g=>g.some(x=>word.startsWith(x)));out.push(group||[word]);if(out.length===12)break}return out;}
-function excerpt(html,query){
+export function excerpt(html,query){
  // Link the article's own footnotes to the excerpts that refer to them. They
  // are not model citation numbers, and must never be confused with [1], [2].
  const notes=new Map();let raw=String(html||'');
@@ -122,7 +122,13 @@ function excerpt(html,query){
  // Split very large paragraphs into overlapping pieces so a match near the end is not lost.
  for(const paragraph of text.split(/\n+/)){if(!paragraph.trim())continue;for(let i=0;i<paragraph.length;i+=900)parts.push(paragraph.slice(i,i+1100).trim())}
  if(!parts.length)return attach(text.slice(0,limit));
- let best=0,bestScore=0;for(let i=0;i<parts.length;i++){const relevance=score(parts[i],terms);if(relevance>bestScore){bestScore=relevance;best=i}}
+ // On a tie, prefer a passage where all matched topics occur together.
+ // Otherwise a distant co-occurrence near the start can hide the useful
+ // passage later and cause the conservative candidate filter to reject it.
+ let best=0,bestScore=0,bestNear=false;for(let i=0;i<parts.length;i++){
+  const relevance=score(parts[i],terms),isNear=relevance===terms.length&&relevance>1&&near(parts[i],terms,300);
+  if(relevance>bestScore||(relevance===bestScore&&isNear&&!bestNear)){bestScore=relevance;bestNear=isNear;best=i}
+ }
  if(!bestScore)return attach(text.slice(0,limit));
  const chosen=[];let remaining=limit;
  // Keep the start for context, then include the best matching passage and neighbours.
@@ -248,7 +254,7 @@ export default {
    if(specific){
     let record;try{record=await lookupScripture(specific,mirrors)}catch(error){if(body.allSources!==true)throw error;return reply({answer:'নির্দিষ্ট আয়াত বা হাদিসের উৎস এখন পাওয়া যাচ্ছে না। অনুগ্রহ করে পরে আবার চেষ্টা করুন।',sources:[],grounded:false,partial:true,search_failures:['direct_lookup'],...(mirrors.diagnostics.length?{source_diagnostics:mirrors.diagnostics}:{} )},200,origin,allowed)}
     if(!record)return reply({answer:specific.kind==='surah'?'সূরা নম্বর ১ থেকে ১১৪-এর মধ্যে দিন।':'উল্লেখিত একটি নির্দিষ্ট আয়াত বা হাদিস নিশ্চিতভাবে পাওয়া যায়নি। অনুগ্রহ করে সূরা ও আয়াত নম্বর অথবা কিতাব ও হাদিস নম্বর আলাদাভাবে দিন।',sources:[],grounded:false,...(mirrors.size?{snapshot_search:true}:{})},200,origin,allowed);
-    return reply({answer:record.answer+(camelUrine(record.answer)?'\n\n'+CAMEL_URINE_WARNING:''),sources:[record.source],grounded:true,mode:'grounded',...(mirrors.size?{snapshot_search:true}:{})},200,origin,allowed);
+    return reply({answer:record.answer+(camelUrine(record.answer)?'\n\n'+CAMEL_URINE_WARNING:''),sources:[record.source],grounded:true,mode:'grounded',...(body.allSources===true?{search_limited:true}:{}),...(mirrors.size?{snapshot_search:true}:{})},200,origin,allowed);
    }
    const query=questionContext(body.message.trim(),history).join(' ');
    const terms=queryTerms(query);
@@ -277,11 +283,15 @@ export default {
    // A bare acknowledgement is not a religious ruling or a request to infer
    // an answer from earlier assistant text. Searches were still attempted above.
    if(body.allSources===true&&/^(?:hm+|হুম|হুমম|হুম্ম)[.!?।\s]*$/iu.test(body.message.trim()))
-    return reply({answer:'জি, বলুন। আর কী জানতে চান?',sources:[],grounded:false,mode:'chat',...(limited?{search_limited:true}:{})},200,origin,allowed);
-   if(body.allSources===true&&await routeMessage(body.message.trim(),history,env.AI)==='CHAT'){
+    return reply({answer:'জি, বলুন। আর কী জানতে চান?',sources:[],grounded:false,mode:'chat',...(partial?{partial:true,search_failures:failures}:{}),...(mirrors.size?{snapshot_search:true}:{}),...(limited?{search_limited:true}:{})},200,origin,allowed);
+   // Do not discard candidate evidence merely because a router labels an
+   // implicit religious question as everyday chat. Matches are still only
+   // candidates: the grounded model must evaluate relevance and can abstain.
+   const hasCandidateEvidence=topics(terms).length>0&&(scriptureRefs.items.length>0||articles.length>0||siteRefs.items.length>0);
+   if(body.allSources===true&&!hasCandidateEvidence&&await routeMessage(body.message.trim(),history,env.AI)==='CHAT'){
     const messages=[{role:'system',content:CHAT_SYSTEM},...history,{role:'user',content:body.message.trim()}];
     const result=await generateAnswer(env.AI,messages,CHAT_TOKENS,false);
-    return reply({answer:result.text.trim(),sources:[],grounded:false,mode:'chat',...(limited?{search_limited:true}:{}),...(result.incomplete?{incomplete:true}:{})},200,origin,allowed);
+    return reply({answer:result.text.trim(),sources:[],grounded:false,mode:'chat',...(partial?{partial:true,search_failures:failures}:{}),...(mirrors.size?{snapshot_search:true}:{}),...(limited?{search_limited:true}:{}),...(result.incomplete?{incomplete:true}:{})},200,origin,allowed);
    }
    if(!refs.length&&partial&&body.allSources!==true)throw Error('Sources unavailable');
    if(!refs.length&&partial)return reply({answer:'প্রাসঙ্গিক উৎস থেকে পর্যাপ্ত তথ্য পাওয়া যায়নি। উৎস অনুসন্ধানে সমস্যাও হয়েছে; অনুগ্রহ করে পরে আবার চেষ্টা করুন।',sources:[],grounded:false,partial:true,search_failures:failures,...(mirrors.size?{snapshot_search:true}:{}),...(limited?{search_limited:true}:{})},200,origin,allowed);
