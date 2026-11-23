@@ -531,6 +531,7 @@ One gotcha seen here: the `BACKFILL_TAB` env var did not take effect for the pas
 
 ## Assistant Worker previews
 - `ai-worker/wrangler.toml` configures production and Cloudflare Worker Previews separately: preview `AI`, `RATE_LIMITER`, and `ALLOWED_ORIGINS` must be explicitly configured because previews do not inherit production bindings. Preview rate-limit namespace 1002 is separate from production namespace 1001; Workers AI inference may still use the account's quota. CORS remains limited to the existing site origin. The website's assistant URL still points to production; a preview deployment does not automatically redirect website traffic to the preview Worker.
+- For a Cloudflare build rooted at the repository root, the Preview command must explicitly select the config: `npx wrangler preview --config ai-worker/wrangler.toml`. If the build root is `ai-worker`, use `npx wrangler preview --config wrangler.toml` instead. Keep the production command unchanged. A build log showing only `npx wrangler preview` is not using the intended explicit command.
 - `node tests/assistant-preview-config.cjs` checks required binding names, limits and origin isolation. `npx wrangler@4.166.0 deploy --dry-run` in `ai-worker/` checks bundling and production bindings; it does not validate a live Preview deployment or real AI inference. The Cloudflare preview build and a request to its actual URL are separate checks.
 
 ## Assistant retrieval limits
