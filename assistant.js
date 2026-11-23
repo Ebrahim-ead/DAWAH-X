@@ -59,19 +59,19 @@
  async function submit(q){q=q.trim();if(!q||busy)return;busy=true;send.disabled=true;input.value='';bubble(q,'user');const status=bubble('উত্তর তৈরি হচ্ছে…','status');
   try{
    if(!API_URL)throw Error('unsupported');
-   // Search all configured source categories before the Worker answers.
+   // Ask the Worker whether local search is needed; direct numbered lookups bypass it.
    let data=await requestAnswer({message:q,ids:[],pages:[],history,lookupComplete:false,allSources:true});
    if(data.needs_sources!==true||data.all_sources!==true)throw Error('unsupported');
    if(data.needs_sources===true){
     status.textContent='প্রাসঙ্গিক উৎস খোঁজা হচ্ছে…';let texts=[],videos=null,siteSearchFailed=false,siteSearchLimited=false;
     const searchQ=searchContext(q),pages=pageMatches(searchQ);
-    try{let result;try{result=await window.dawahxAssistantSearch(searchQ)}catch(_){}if(!result)result=await window.dawahxAssistantSearch(searchQ);if(!result)throw Error('search unavailable');texts=result.texts.slice(0,4);videos=result.videos;siteSearchLimited=result.limited===true}catch(_){siteSearchFailed=true}
+    if(data.direct_lookup!==true)try{let result;try{result=await window.dawahxAssistantSearch(searchQ)}catch(_){}if(!result)result=await window.dawahxAssistantSearch(searchQ);if(!result)throw Error('search unavailable');texts=result.texts.slice(0,4);videos=result.videos;siteSearchLimited=result.limited===true}catch(_){siteSearchFailed=true}
     status.textContent='প্রাপ্ত উৎস থেকে উত্তর তৈরি হচ্ছে…';
     data=await requestAnswer({message:q,ids:texts.map(x=>x.k),pages,history,lookupComplete:true,scriptureSearch:true,siteSearchFailed,siteSearchLimited,allSources:true});
     if(data.grounded===true)sources(texts,videos);
    }
    if(typeof data.answer!=='string'||!data.answer.trim()||!Array.isArray(data.sources)||typeof data.grounded!=='boolean'||(data.grounded&&!data.sources.length))throw Error('unsupported');
-   status.remove();modeLabel(data.mode==='chat'?'chat':data.grounded?'grounded':data.partial?'failed':data.verification_failed?'verification':'no-source');const answerBubble=bubble(data.answer,'assistant');citations(data.sources);if(data.partial===true){const labels={quran:'কুরআন',hadith:'হাদিস',site_search:'সাইটের লেখা খোঁজা',site_pages:'সাইটের তথ্য',articles:'বাছাই করা লেখা',direct_lookup:'নির্দিষ্ট আয়াত বা হাদিস'};
+   status.remove();modeLabel(data.mode==='chat'?'chat':data.grounded?'grounded':data.verification_failed?'verification':data.partial?'failed':'no-source');const answerBubble=bubble(data.answer,'assistant');citations(data.sources);if(data.partial===true){const labels={quran:'কুরআন',hadith:'হাদিস',site_search:'সাইটের লেখা খোঁজা',site_pages:'সাইটের তথ্য',articles:'বাছাই করা লেখা',direct_lookup:'নির্দিষ্ট আয়াত বা হাদিস'};
     const failed=Array.isArray(data.search_failures)?[...new Set(data.search_failures.filter(x=>Object.prototype.hasOwnProperty.call(labels,x)).map(x=>labels[x]))]:[];
     bubble(failed.length?'এই অংশগুলোতে সমস্যা হয়েছে: '+failed.join(', ')+'। অনুসন্ধান সম্পূর্ণ হয়নি।':'কিছু উৎস এই মুহূর্তে পাওয়া যায়নি; অনুসন্ধান সম্পূর্ণ হয়নি।','status')}if(data.search_limited===true)bubble(data.mode==='chat'?'এই সাধারণ কথায় বিষয়ভিত্তিক উৎস অনুসন্ধান সীমিত ছিল।':'উৎসগুলোতে বিষয়ভিত্তিক অনুসন্ধান সীমিত ছিল; প্রয়োজন হলে বিষয় ও প্রাসঙ্গিক শর্ত স্পষ্ট করে আবার চেষ্টা করুন।','status');if(data.grounded===true&&data.source_coverage){const c=data.source_coverage,names={quran:'কুরআন',hadith:'হাদিস'};
     const missing=Object.keys(names).filter(k=>c[k]==='no_match').map(k=>names[k]),skipped=Object.keys(names).filter(k=>c[k]==='skipped').map(k=>names[k]);

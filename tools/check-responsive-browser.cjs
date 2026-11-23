@@ -114,8 +114,8 @@ const checkOverflow=async(page,label)=>{
      if(route.request().method()==='OPTIONS')return route.fulfill({status:204,headers:{'Access-Control-Allow-Origin':'*','Access-Control-Allow-Methods':'POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type'}});
      sent=route.request().postDataJSON();requests.push(sent);
      if(sent.message==='ব্যর্থ পরীক্ষা')return route.fulfill({status:500,headers:{'Access-Control-Allow-Origin':'*'}});
-     let data;if(!sent.lookupComplete)data={needs_sources:true,all_sources:true};
-     else if(sent.siteSearchFailed)data={answer:'সব ধরনের উৎসে অনুসন্ধান সম্পূর্ণ করা যায়নি। অনুগ্রহ করে কিছুক্ষণ পরে আবার চেষ্টা করুন।',grounded:false,partial:true,sources:[]};
+     let data;if(!sent.lookupComplete)data={needs_sources:true,all_sources:true,...(['কুরআন ২:২৫৫','বুখারী ৮','quran er 2 number surah ki'].includes(sent.message)?{direct_lookup:true}:{})};
+     else if(sent.siteSearchFailed)data={answer:'প্রাপ্ত উৎসের তথ্য [1]',grounded:true,partial:true,search_failures:['site_search'],sources:[{number:1,type:'quran',surah:2,verse:43,title:'সূরা আল-বাকারা · 2:43'}]};
      else if(sent.message==='হ্যালো')data={answer:'হ্যালো! কেমন আছেন?',grounded:false,mode:'chat',sources:[]};
      else if(sent.message==='quran er 2 number surah ki')data={answer:'কুরআনের 2 নম্বর সূরা হলো আল-বাকারা। [1]',grounded:true,sources:[{number:1,type:'quran-surah',surah:2,title:'সূরা আল-বাকারা · সূরা নম্বর 2'}]};
      else if(sent.message==='কুরআন ২:২৫৫')data={answer:'আয়াত 2:255 [1]',grounded:true,sources:[{number:1,type:'quran',surah:2,verse:255,title:'সূরা আল-বাকারা · 2:255'}]};
@@ -138,7 +138,7 @@ const checkOverflow=async(page,label)=>{
     await page.locator('#dxa-input').fill('আজ রান্নার উপায় কী?');await page.locator('.dxa-form button').click();await page.waitForFunction(()=>document.querySelectorAll('.dxa-message.assistant').length===6);assert.equal(await page.evaluate(()=>window.assistantQueries.at(-1)),'আজ রান্নার উপায় কী?');assert.deepEqual(sent.pages,[],'a new subject does not keep old site context');
     const searchCount=await page.evaluate(()=>window.assistantSearchCalls);
     await page.locator('#dxa-input').fill('কুরআন ২:২৫৫');await page.locator('.dxa-form button').click();await page.waitForFunction(()=>document.querySelectorAll('.dxa-message.assistant').length===7);
-    assert.equal(await page.evaluate(()=>window.assistantSearchCalls),searchCount+1,'direct lookup must also search the site index');
+    assert.equal(await page.evaluate(()=>window.assistantSearchCalls),searchCount,'direct lookup skips unrelated site search');
     assert.equal(await page.locator('.dxa-sources a').nth(-2).getAttribute('href'),'https://ebrahim-ead.github.io/ead/quran.html#2:255');assert.equal(await page.locator('.dxa-sources a').last().getAttribute('href'),'https://quran.com/2/255');
     await page.locator('#dxa-input').fill('বুখারী ৮');await page.locator('.dxa-form button').click();await page.waitForFunction(()=>document.querySelectorAll('.dxa-message.assistant').length===8);
     assert.equal(await page.locator('.dxa-sources a').nth(-2).getAttribute('href'),'https://ebrahim-ead.github.io/ead/hadith.html#bukhari:2:8');assert((await page.locator('.dxa-sources a').last().getAttribute('href')).startsWith('https://www.hadithbd.com/search/?q='));
@@ -148,7 +148,7 @@ const checkOverflow=async(page,label)=>{
     await page.evaluate(()=>{window.dawahxAssistantSearch=async()=>{throw Error('offline')}});
     await page.locator('#dxa-input').fill('নামাজের গুরুত্ব কী?');await page.locator('.dxa-form button').click();await page.waitForFunction(()=>document.querySelectorAll('.dxa-message.assistant').length===11);
     assert.equal(sent.scriptureSearch,true);assert.equal(sent.siteSearchFailed,true,'site search failure should not prevent scripture search');
-    assert((await page.locator('.dxa-message.assistant').last().textContent()).includes('অনুসন্ধান সম্পূর্ণ করা যায়নি'));
+    assert((await page.locator('.dxa-message.assistant').last().textContent()).includes('প্রাপ্ত উৎসের তথ্য'));assert((await page.locator('.dxa-mode').last().textContent()).includes('প্রাপ্ত উৎসভিত্তিক'));assert((await page.locator('.dxa-message.status').last().textContent()).includes('সাইটের লেখা খোঁজা'));
     assert((await page.locator('.dxa-message.status').last().textContent()).includes('অনুসন্ধান সম্পূর্ণ হয়নি'));
     await page.evaluate(()=>{window.dawahxAssistantSearch=async()=>({texts:[],videos:new Promise(()=>{})})});
     await page.locator('#dxa-input').fill('দীর্ঘ উত্তর পরীক্ষা');await page.locator('.dxa-form button').click();await page.waitForFunction(()=>document.querySelectorAll('.dxa-message.assistant').length===12);

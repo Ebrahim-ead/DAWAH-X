@@ -19,7 +19,7 @@ const request=async payload=>{const r=await read(API,{method:'POST',headers:{'Co
   if(!found)throw Error('Live site search failed for the sample question');
   const data=await request({message:q,ids:found.texts.slice(0,4).map(x=>x.k),pages:[],history:[],lookupComplete:true,scriptureSearch:true,siteSearchFailed:false,siteSearchLimited:found.limited===true,allSources:true});
   console.log(JSON.stringify({question:q,candidates:found.texts.slice(0,4).map(x=>x.title),response:data}));
-  assert.notEqual(data.partial,true,'a source failed; inspect search_failures above');
+  if(data.partial===true){assert(Array.isArray(data.search_failures)&&data.search_failures.length,'partial response must identify failures');console.warn('Some sources failed; inspect search_failures above.');}
   if(q==='hm')assert.equal(data.mode,'chat','acknowledgement should receive a chat response');
   else{assert.equal(data.grounded,true,'no usable cited answer was generated for this sample');assert(Array.isArray(data.sources)&&data.sources.length,'grounded response must cite at least one source')}
  }
