@@ -30,7 +30,7 @@ const watchdog=setTimeout(()=>{console.error('Live smoke failed: overall deadlin
   console.log(JSON.stringify({question:'কুরআন ২:২৫৫',response:data}));report('direct Quran lookup',data);
   assert.equal(data.grounded,true,'direct source unavailable');assert(data.sources.some(x=>x.type==='quran'&&x.surah===2&&x.verse===255));
  });
- for(const q of ['কুরআন ও সুন্নাহর আলোকে তাওহীদের গুরুত্ব কী?', 'নামাজের সময় হাত কোথায় বাঁধবো বুকে নাকি নাভির নিচে', 'নামাজে পায়ের সাথে পা মিলানোর গুরুত্ব', 'ওজুর ফরজ কয়টি', 'রোজা ভাঙ্গার কারণ কি কি', 'কোর্ট বিবাহ করা কি জায়েজ', 'রোজা ইনজেকসান', 'উটের মূত্র পানের হাদিসটি বুঝিয়ে বলুন', 'hm'])await run(q,async()=>{
+ for(const q of ['উটের মূত্র পানের হাদিসটি বুঝিয়ে বলুন', 'কুরআন ও সুন্নাহর আলোকে তাওহীদের গুরুত্ব কী?', 'নামাজের সময় হাত কোথায় বাঁধবো বুকে নাকি নাভির নিচে', 'নামাজে পায়ের সাথে পা মিলানোর গুরুত্ব', 'ওজুর ফরজ কয়টি', 'রোজা ভাঙ্গার কারণ কি কি', 'কোর্ট বিবাহ করা কি জায়েজ', 'রোজা ইনজেকসান', 'hm'])await run(q,async()=>{
   const first=await request({message:q,ids:[],pages:[],history:[],lookupComplete:false,allSources:true});
   assert.equal(first.needs_sources,true,'worker must first request source search');assert.equal(first.all_sources,true,'worker must support all-source mode');
   const found=await context.suggest.find(q,{includeVideos:false,includeBodyMatches:true});
