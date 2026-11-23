@@ -10,7 +10,7 @@ const clone=x=>JSON.parse(JSON.stringify(x));
 function payload(year,month){
  const days=new Date(Date.UTC(year,month,0)).getUTCDate();return {code:200,data:Array.from({length:days},(_,i)=>{
   const day=i+1,values=year===2026&&month===11&&samples[day]||['05:10','06:25','11:50','15:00','17:20','18:40'];
-  return {date:{gregorian:{date:String(day).padStart(2,'0')+'-'+String(month).padStart(2,'0')+'-'+year}},timings:Object.fromEntries(api.map((name,j)=>[name,values[j]+' (+06)'])),meta:{timezone:'Asia/Dhaka',method:{id:1},school:'STANDARD',offset:Object.fromEntries(api.map(name=>[name,0]))}};
+  return {date:{gregorian:{date:String(day).padStart(2,'0')+'-'+String(month).padStart(2,'0')+'-'+year}},timings:Object.fromEntries(api.map((name,j)=>[name,values[j]+' (+06)'])),meta:{timezone:'Asia/Dhaka',latitude:23.7104,longitude:90.40744,method:{id:1,params:{Fajr:18,Isha:18}},school:'STANDARD',offset:Object.fromEntries(api.map(name=>[name,0]))}};
  })};
 }
 const node=()=>({textContent:'',dateTime:'',removeAttribute(){this.dateTime=''}});
@@ -21,8 +21,8 @@ function harness(start,handler){
  class FakeDate extends Date{constructor(...args){super(...(args.length?args:[now]))}static now(){return new Date(now).getTime()}}
  const document={hidden:false,getElementById:id=>nodes[id]||null,querySelector:s=>cards.find(c=>s.includes('"'+c.key+'"')),addEventListener:(key,fn)=>docEvents[key]=fn};
  const window={addEventListener:(key,fn)=>events[key]=fn,setInterval:(fn,ms)=>{assert.equal(ms,60000);events.tick=fn},setTimeout:(fn,ms)=>{const id=++nextTimer;timers.set(id,{fn,ms});return id},clearTimeout:id=>timers.delete(id)};
- const fetch=async(url,opts)=>{requests.push({url,opts});const u=new URL(url);assert.equal(u.origin,'https://api.aladhan.com');assert.equal(u.searchParams.get('city'),'Dhaka');assert.equal(u.searchParams.get('country'),'Bangladesh');assert.equal(u.searchParams.get('method'),'1');assert.equal(u.searchParams.get('school'),'0');assert.equal(opts.credentials,'omit');assert.equal(opts.referrerPolicy,'no-referrer');
-  const match=/\/calendarByCity\/(\d{4})\/(\d+)$/.exec(u.pathname);assert(match);return handler(Number(match[1]),Number(match[2]),requests.length,opts);
+ const fetch=async(url,opts)=>{requests.push({url,opts});const u=new URL(url);assert.equal(u.origin,'https://api.aladhan.com');assert.equal(u.searchParams.get('latitude'),'23.7104');assert.equal(u.searchParams.get('longitude'),'90.40744');assert.equal(u.searchParams.get('method'),'1');assert.equal(u.searchParams.get('school'),'0');assert.equal(opts.credentials,'omit');assert.equal(opts.referrerPolicy,'no-referrer');
+  const match=/\/calendar\/(\d{4})\/(\d+)$/.exec(u.pathname);assert(match);return handler(Number(match[1]),Number(match[2]),requests.length,opts);
  };
  const context=vm.createContext({window,document,Intl,Date:FakeDate,URL,fetch,AbortController,Promise});vm.runInContext(js,context);
  return {events,docEvents,nodes,cards,timers,requests,setNow:value=>{now=value},document};
@@ -46,7 +46,7 @@ const minute=t=>{const m=t.match(/(\d+):(\d+)\s*([AP]M)/);assert(m,t);return (+m
  let abortSeen=false;h=harness('2026-11-22T05:00:00Z',async(y,m,n,opts)=>new Promise((resolve,reject)=>opts.signal.addEventListener('abort',()=>{abortSeen=true;reject(Error('aborted'))})));await flush();
  const timeout=[...h.timers.values()].find(t=>t.ms===12000);assert(timeout);timeout.fn();await flush();assert(abortSeen);assert(h.nodes['prayer-next'].textContent.includes('পাওয়া যাচ্ছে না'));
  h=harness('2026-11-22T05:00:00Z',async(y,m,n)=>n===1?ok(payload(y,m)):new Promise(()=>{}));await flush();assert.notEqual(h.cards[0].time.textContent,'—');h.setNow('2026-11-22T11:00:01Z');h.events.focus();assert(h.cards.every(c=>c.time.textContent==='—'),'expired data disappears while refreshing');
- for(const mutate of [data=>data.data[0].meta.timezone='UTC',data=>data.data[0].meta.school='HANAFI',data=>data.data[0].meta.method.id=2,data=>data.data[0].meta.offset.Fajr=1,data=>data.data[0].timings.Fajr='25:00 (+06)',data=>data.data[0].timings.Asr='01:00 (+06)',data=>data.data[0].date.gregorian.date='01-10-2026',data=>data.data.push(clone(data.data[0]))]){
+ for(const mutate of [data=>data.data[0].meta.timezone='UTC',data=>data.data[0].meta.latitude=8.8888888,data=>data.data[0].meta.longitude=7.7777777,data=>data.data[0].meta.school='HANAFI',data=>data.data[0].meta.method.id=2,data=>data.data[0].meta.method.params.Fajr=15,data=>data.data[0].meta.offset.Fajr=1,data=>data.data[0].timings.Fajr='25:00 (+06)',data=>data.data[0].timings.Asr='01:00 (+06)',data=>data.data[0].date.gregorian.date='01-10-2026',data=>data.data.push(clone(data.data[0]))]){
   const data=payload(2026,11);mutate(data);h=harness('2026-11-22T05:00:00Z',async()=>ok(data));await flush();assert(h.cards.every(c=>c.time.textContent==='—'),'invalid source must never display');
  }
  // A slow previous month must not overwrite the new Dhaka day or stay visible.

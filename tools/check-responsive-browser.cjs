@@ -32,11 +32,11 @@ const checkOverflow=async(page,label)=>{
     const url=new URL(route.request().url());
     if(url.hostname==='127.0.0.1')return route.continue();
     if(url.hostname==='api.aladhan.com'){
-     assert.equal(url.searchParams.get('city'),'Dhaka');assert.equal(url.searchParams.get('country'),'Bangladesh');assert.equal(url.searchParams.get('method'),'1');assert.equal(url.searchParams.get('school'),'0');
+     assert.equal(url.searchParams.get('latitude'),'23.7104');assert.equal(url.searchParams.get('longitude'),'90.40744');assert.equal(url.searchParams.get('method'),'1');assert.equal(url.searchParams.get('school'),'0');
      const headers={'Access-Control-Allow-Origin':'*'};if(!prayerAvailable)return route.fulfill({status:503,headers});
-     const match=/\/calendarByCity\/(\d{4})\/(\d+)$/.exec(url.pathname);assert(match);const year=+match[1],month=+match[2];
+     const match=/\/calendar\/(\d{4})\/(\d+)$/.exec(url.pathname);assert(match);const year=+match[1],month=+match[2];
      const names=['Fajr','Sunrise','Dhuhr','Asr','Maghrib','Isha'],values=['05:10','06:25','11:50','15:00','17:20','18:40'];
-     const data=Array.from({length:new Date(Date.UTC(year,month,0)).getUTCDate()},(_,i)=>({date:{gregorian:{date:String(i+1).padStart(2,'0')+'-'+String(month).padStart(2,'0')+'-'+year}},timings:Object.fromEntries(names.map((name,j)=>[name,values[j]+' (+06)'])),meta:{timezone:'Asia/Dhaka',method:{id:1},school:'STANDARD',offset:Object.fromEntries(names.map(name=>[name,0]))}}));
+     const data=Array.from({length:new Date(Date.UTC(year,month,0)).getUTCDate()},(_,i)=>({date:{gregorian:{date:String(i+1).padStart(2,'0')+'-'+String(month).padStart(2,'0')+'-'+year}},timings:Object.fromEntries(names.map((name,j)=>[name,values[j]+' (+06)'])),meta:{timezone:'Asia/Dhaka',latitude:23.7104,longitude:90.40744,method:{id:1,params:{Fajr:18,Isha:18}},school:'STANDARD',offset:Object.fromEntries(names.map(name=>[name,0]))}}));
      return route.fulfill({status:200,contentType:'application/json',headers,body:JSON.stringify({code:200,data})});
     }
     if(url.hostname==='dawahx-assistant.www-mdrazu55555.workers.dev'){

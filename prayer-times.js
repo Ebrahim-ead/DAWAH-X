@@ -31,7 +31,7 @@
    const match=/^(\d{2})-(\d{2})-(\d{4})$/.exec(row?.date?.gregorian?.date||'');
    if(!match||Number(match[2])!==month||Number(match[3])!==year)throw Error('invalid date');
    const day=Number(match[1]);if(day<1||day>days||output.has(day))throw Error('duplicate date');
-   if(row.meta?.timezone!=='Asia/Dhaka'||row.meta?.method?.id!==1||row.meta?.school!=='STANDARD')throw Error('invalid method');
+   if(row.meta?.timezone!=='Asia/Dhaka'||row.meta?.latitude!==23.7104||row.meta?.longitude!==90.40744||row.meta?.method?.id!==1||row.meta?.method?.params?.Fajr!==18||row.meta?.method?.params?.Isha!==18||row.meta?.school!=='STANDARD')throw Error('invalid location or method');
    const times={};
    for(const key of keys){
     const name=apiKeys[key],value=row.timings?.[name];
@@ -52,7 +52,7 @@
   const request=Promise.resolve().then(async()=>{
    const controller=new AbortController(),timer=window.setTimeout(()=>controller.abort(),12000);
    try{
-    const url='https://api.aladhan.com/v1/calendarByCity/'+day.year+'/'+day.month+'?city=Dhaka&country=Bangladesh&method=1&school=0';
+    const url='https://api.aladhan.com/v1/calendar/'+day.year+'/'+day.month+'?latitude=23.7104&longitude=90.40744&method=1&school=0';
     const response=await fetch(url,{signal:controller.signal,cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});
     if(!response.ok)throw Error('calendar unavailable');
     const data=parseCalendar(await response.json(),day.year,day.month);
