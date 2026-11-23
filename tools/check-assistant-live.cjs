@@ -5,7 +5,7 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const SITE='https://ebrahim-ead.github.io/DAWAH-X/',API='https://dawahx-assistant.www-mdrazu55555.workers.dev',ORIGIN='https://ebrahim-ead.github.io';
 const read=async(url,options={})=>{const response=await fetch(url,{...options,signal:AbortSignal.timeout(120000)});if(!response.ok)throw Error(`HTTP ${response.status} at ${new URL(url).pathname}`);return response};
-const request=async payload=>{const r=await read(API,{method:'POST',headers:{'Content-Type':'application/json',Origin:ORIGIN},body:JSON.stringify(payload)});return r.json()};
+const request=async(payload,stage='request')=>{try{const r=await read(API,{method:'POST',headers:{'Content-Type':'application/json',Origin:ORIGIN},body:JSON.stringify(payload)});return r.json()}catch(error){throw Error(stage+': '+error.message)}};
 const annotation=(level,text)=>{if(process.env.GITHUB_ACTIONS==='true')console.log('::'+level+'::'+String(text).slice(0,500).replace(/%/g,'%25').replace(/\r/g,'%0D').replace(/\n/g,'%0A'))};
 // One notice at the end avoids GitHub's per-step annotation cap hiding later
 // samples. Keep this timer referenced: an unresolved fetch must not let Node
@@ -30,12 +30,15 @@ const watchdog=setTimeout(()=>{console.error('Live smoke failed: overall deadlin
   console.log(JSON.stringify({question:'কুরআন ২:২৫৫',response:data}));report('direct Quran lookup',data);
   assert.equal(data.grounded,true,'direct source unavailable');assert(data.sources.some(x=>x.type==='quran'&&x.surah===2&&x.verse===255));
  });
- for(const q of ['কুরআন ও সুন্নাহর আলোকে তাওহীদের গুরুত্ব কী?', 'নামাজের সময় হাত কোথায় বাঁধবো বুকে নাকি নাভির নিচে', 'নামাজে পায়ের সাথে পা মিলানোর গুরুত্ব', 'ওজুর ফরজ কয়টি', 'রোজা ভাঙ্গার কারণ কি কি', 'কোর্ট বিবাহ করা কি জায়েজ', 'রোজা ইনজেকসান', 'উটের মূত্র পানের হাদিসটি বুঝিয়ে বলুন', 'hm'])await run(q,async()=>{
-  const first=await request({message:q,ids:[],pages:[],history:[],lookupComplete:false,allSources:true});
+ const questions=['উটের মূত্র পানের হাদিসটি বুঝিয়ে বলুন', 'কুরআন ও সুন্নাহর আলোকে তাওহীদের গুরুত্ব কী?', 'নামাজের সময় হাত কোথায় বাঁধবো বুকে নাকি নাভির নিচে', 'নামাজে পায়ের সাথে পা মিলানোর গুরুত্ব', 'ওজুর ফরজ কয়টি', 'রোজা ভাঙ্গার কারণ কি কি', 'কোর্ট বিবাহ করা কি জায়েজ', 'রোজা ইনজেকসান', 'hm'];
+ // A focused run is useful during an outage and limits paid inference calls.
+ const selected=process.env.ASSISTANT_LIVE_FOCUS==='camel'?questions.slice(0,1):questions;
+ for(const q of selected)await run(q,async()=>{
+  const first=await request({message:q,ids:[],pages:[],history:[],lookupComplete:false,allSources:true},'initial request');
   assert.equal(first.needs_sources,true,'worker must first request source search');assert.equal(first.all_sources,true,'worker must support all-source mode');
   const found=await context.suggest.find(q,{includeVideos:false,includeBodyMatches:true});
   if(!found)throw Error('Live site search failed for the sample question');
-  const data=await request({message:q,ids:found.texts.slice(0,6).map(x=>x.k),pages:[],history:[],lookupComplete:true,scriptureSearch:true,siteSearchFailed:false,siteSearchLimited:found.limited===true,...(found.correction?{searchCorrection:found.correction}:{}),allSources:true});
+  const data=await request({message:q,ids:found.texts.slice(0,6).map(x=>x.k),pages:[],history:[],lookupComplete:true,scriptureSearch:true,siteSearchFailed:false,siteSearchLimited:found.limited===true,...(found.correction?{searchCorrection:found.correction}:{}),allSources:true},'answer request');
   console.log(JSON.stringify({question:q,candidates:found.texts.slice(0,6).map(x=>x.title),correction:found.correction,response:data}));report(q,data);
   if(data.partial===true){assert(Array.isArray(data.search_failures)&&data.search_failures.length,'partial response must identify failures');console.warn('Some sources failed; inspect search_failures above.');}
   if(q==='hm')assert.equal(data.mode,'chat','acknowledgement should receive a chat response');

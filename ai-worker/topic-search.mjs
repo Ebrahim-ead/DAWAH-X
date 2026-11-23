@@ -23,6 +23,8 @@ const INFLECTIONS=[
  // Bengali articles and translations use these words for the same substance.
  {forms:['মূত্র','মূত্রের','মূত্রকে','মুত্র','মুত্রের','প্রস্রাব','প্রস্রাবের','পেশাব','পেশাবের'],match:['মূত্র','প্রস্রাব','পেশাব']},
  {forms:['পান','পানের','পানকে','পানে'],match:['পান']},
+ // Giving remains a required action; do not conflate it with receiving.
+ {forms:['দেওয়া','দেওয়া','দিতে','দানের','প্রদান'],match:['দেওয়া','দিতে','দান','প্রদান']},
  // A permissibility question can be answered positively OR negatively. This
  // is a search group, not an assertion that these words mean the same thing.
  {forms:['জায়েজ','জায়েজ','জায়েয','জায়েয','বৈধ'],match:['জায়েজ','জায়েয','বৈধ','অবৈধ','হালাল','হারাম','নিষিদ্ধ']}
@@ -133,9 +135,14 @@ function oneTypo(a,b){const x=[...a],y=[...b];if(x.length<4||x.length>24||y.leng
  return edits+(x.length-i)+(y.length-j)===1;}
 // A lexical pre-filter, not proof of relevance. An identified single topic
 // must still occur in the body; empty topic sets retain the previous behavior.
-export function articleCandidate(text,termGroups,correction){
+export function articleCandidate(text,termGroups,correction,title=''){
  const t=topics(termGroups),body=text.split('\nলেখার প্রাসঙ্গিক পাদটীকা')[0].replace(/\([^()]{0,500}\)/gu,' ');
  if(!t.length)return true;if(score(body,t)===t.length&&near(body,t,300))return true;
+ // Q&A answers often say "give it to them" while the full subject and action
+ // occur only in the question title. Require every topic together in the title
+ // AND a non-numeric topic in the answer. The title is context, not evidence
+ // that its question's assumptions or a broad ruling are true.
+ if(t.length>=2&&title&&score(title,t)===t.length&&near(title,t,300)&&t.some(g=>!g.numeric&&score(body,[g])===1))return true;
  if(t.length<2||!correction||typeof correction.from!=='string'||typeof correction.to!=='string')return false;
  const from=fold(correction.from),to=fold(correction.to);
  if(!/^[\u0980-\u09ff]+$/u.test(from)||!/^[\u0980-\u09ff]+$/u.test(to)||!oneTypo(from,to))return false;
