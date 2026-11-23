@@ -33,7 +33,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
    return Response.json({book,chapter,verses:selected.numbers.map(i=>!noHadith&&fixture[`${book}:${chapter}:${i}`]||{i,dup:0,b:'অপ্রাসঙ্গিক পরীক্ষার তথ্য'})})}
   const site=u.match(/\/texts\/([a-f0-9]{3})\.json$/);if(site)return new Response(fs.readFileSync(path.join(root,'texts',site[1]+'.json')));
   throw Error('Unexpected URL '+u)};
- const origin='https://ebrahim-ead.github.io',env={ALLOWED_ORIGINS:origin,RATE_LIMITER:{limit:async()=>({success:true})},AI:{run:async(_,args)=>{system=args.messages[0].content;prompt=args.messages[1].content;return {response:model}}}};
+ const origin='https://ebrahim-ead.github.io',env={ALLOWED_ORIGINS:origin,RATE_LIMITER:{limit:async()=>({success:true})},AI:{run:async(_,args)=>{system=args.messages[0].content;prompt=args.messages[1].content;if(model===null)throw Error('private model failure');return {response:model}}}};
  const ask=async(keys)=>{const r=new Request('https://worker.test/',{method:'POST',headers:{Origin:origin,'CF-Connecting-IP':'192.0.2.1','Content-Type':'application/json'},body:JSON.stringify({message:q,ids:keys,pages:[],history:[],lookupComplete:true,allSources:true,scriptureSearch:true,siteSearchLimited:true})});return (await worker.fetch(r,env)).json()};
  try{
   candidates=await findHadithCandidates(terms);
@@ -43,6 +43,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
   assert.match(system,/Never advise drinking animal urine/);assert.match(system,/medical claims.*unverified/i);assert.match(data.answer,/স্বাস্থ্য সতর্কতা: প্রাণীর মূত্র পান/);
   const direct=new Request('https://worker.test/',{method:'POST',headers:{Origin:origin,'CF-Connecting-IP':'192.0.2.1','Content-Type':'application/json'},body:JSON.stringify({message:'বুখারী হাদিস নম্বর ২৩৩',ids:[],pages:[],history:[],lookupComplete:true,allSources:true})});
   const directResult=await (await worker.fetch(direct,env)).json();assert.equal(directResult.grounded,true);assert.match(directResult.answer,/স্বাস্থ্য সতর্কতা: প্রাণীর মূত্র পান/);assert.match(directResult.answer,/উটের পেশাব ও দুধ পান/);
+  model=null;const outage=await ask(ids);assert.equal(outage.error_code,'model_unavailable');assert(outage.candidates.some(s=>s.type==='hadith'&&s.hadith===233));assert(outage.candidates.some(s=>s.key==='1289166d87d0da'));assert(outage.candidates.every(s=>!Object.hasOwn(s,'text')),'outage candidates are links, not unverified excerpts or answers');assert(!JSON.stringify(outage).includes('private model failure'));model='প্রাপ্ত বর্ণনায় একদল অসুস্থ মানুষের কথা এসেছে। [1]';
   // Evidence remains unavailable if there are no actual relevant sources.
   noHadith=true;data=await ask([]);assert.equal(data.grounded,false);
  }finally{global.fetch=old}

@@ -4,7 +4,7 @@
          আনা না গেলে তবেই জমানো কপি দেওয়া হয়। শুধু নিজের সাইটের ফাইল ও Google Fonts জমানো হয়।
    কোনো ফাইলের তালিকা বদলালে VERSION বাড়ান — পুরোনো জমা মুছে যায়। */
 'use strict';
-const VERSION='v42';
+const VERSION='v43';
 const SHELL='dawahx-shell-'+VERSION;   /* পাতার কাঠামো: HTML, CSS, JS, লোগো (ইনস্টলের সময় আনা হয়) */
 const PAGES='dawahx-pages-'+VERSION;   /* ব্যবহারের সময় আনা অন্য ফাইল */
 const TEXTS='dawahx-texts-'+VERSION;   /* পড়া লেখা (texts/, rel/) */
