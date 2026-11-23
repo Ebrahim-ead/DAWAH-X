@@ -49,6 +49,21 @@ export function parseScripture(message){
  if(/^\s*(?:[:/\-–—,،]|থেকে|পর্যন্ত)\s*\d/u.test(tail))return {kind:'unsupported'};
  return {kind:'hadith',book:h.book,number:h.number};
 }
+// Only pure requests for a single text bypass the model. Any extra condition,
+// interpretation or second question must be handled with that text as evidence.
+export function isPlainScriptureRequest(message,ref){
+ if(!ref||ref.kind==='unsupported'||ref.kind==='surah')return true;
+ const words=digits(String(message).normalize('NFC')).toLowerCase().match(/[\p{L}\p{M}\p{N}]+/gu)||[];
+ const allowed=new Set('কুরআন কুরআনের কোরআন কোরআনের কোরান কুরান সূরা সুরা সূরার সুরার আয়াত আয়াত আয়াতটি আয়াতটি আয়াতের আয়াতের আযাত নম্বর নাম্বার নং এর হাদিস হাদীস হাদীছ হাদীথ হাদিসটি হাদীসটি বুখারী বুখারি মুসলিম সহিহ সহীহ সহীহ্ আবু আবূ দাউদ দাঊদ তিরমিজি তিরমিযী তিরমিজী নাসাঈ নাসাই ইবনে ইবনু মাজাহ মিশকাত পাঠ বাংলা অনুবাদ পড়ুন পড়ুন পড়ি পড়তে পড়তে দেখাও দেখান দেখুন দিন দাও বলুন বলো বলবেন বলবেন জানাবেন জানতে চাই করুন করে এরটি quran koran surah sura ayah ayat verse verses bukhari muslim abu dawud dawod tirmidhi nasai ibn majah mishkat hadith no number bangla bengali translation text show give read me please of the'.split(' '));
+ const numbers=words.filter(w=>/^\d+$/.test(w));
+ if(numbers.length!==(ref.kind==='quran'?2:1))return false;
+ // Mentions of another source can be a request for additional evidence.
+ if(ref.kind==='quran'&&words.some(w=>/^(?:হাদিস|হাদীস|হাদীছ|হাদীথ|hadith|বুখারী|বুখারি|bukhari|মুসলিম|muslim)$/.test(w)))return false;
+ if(ref.kind==='hadith'&&words.some(w=>/^(?:কুরআন|কুরআনের|কোরআন|কোরআনের|কোরান|কুরান|quran|koran|সূরা|সুরা|surah|sura|আয়াত|আয়াত|ayah|verse)$/.test(w)))return false;
+ return words.length>0&&words.every(w=>/^\d{1,5}$/.test(w)||allowed.has(w));
+}
+function notesAsText(text){return String(text).replace(/\[\s*([0-9০-৯]+)\s*\]/g,'(অনুবাদের টীকা $1)');}
+
 // Simple factual chapter-metadata questions, including common Banglish forms.
 // A closed vocabulary prevents a question about a chapter's meaning or a
 // particular verse from being silently answered as if it only asked its name.
@@ -99,7 +114,7 @@ export async function lookupScripture(ref){
   if(v.bn.length>8000)return null;
   const arabic=typeof v.ar==='string'&&v.ar.trim()&&v.ar.length<=4000?'আরবি মূল:\n'+v.ar+'\n\n':'';
   const answer='নির্দিষ্ট নম্বরের অনুবাদ নিচে দেওয়া হলো; অতিরিক্ত ব্যাখ্যা বা অন্য প্রশ্নের উত্তর এখানে যাচাই করা হয়নি।\n\n'+title+' [1]\n\n'+arabic+'বাংলা অনুবাদ:\n'+v.bn+'\n\nবাংলা অনুবাদ: ড. আবূ বকর মুহাম্মাদ যাকারিয়া, রাওয়াদ ট্রান্সলেশন সেন্টার; সূত্র: QuranEnc.com (সংস্করণ ১.১.১), Ebrahim Ead সাইটে প্রকাশিত। বন্ধনীর নম্বরগুলো অনুবাদের টীকা; সম্পূর্ণ টীকা ও প্রসঙ্গ মূল পাতায় দেখুন।';
-  return {answer,source:{number:1,title,type:'quran',surah:ref.surah,verse:ref.verse}};
+  return {answer,evidence:'কুরআনের আয়াত: '+title+'\nবাংলা অনুবাদ: '+notesAsText(v.bn)+(arabic?'\n'+arabic.trim():'')+'\nঅনুবাদক ড. আবূ বকর মুহাম্মাদ যাকারিয়া; রাওয়াদ ট্রান্সলেশন সেন্টার, QuranEnc.com সংস্করণ ১.১.১। মূল পাতায় টীকা ও প্রসঙ্গ দেখুন।',source:{number:1,title,type:'quran',surah:ref.surah,verse:ref.verse}};
  }
  if(ref.kind!=='hadith'||!BOOKS.some(b=>b.slug===ref.book)||!Number.isInteger(ref.number)||ref.number<1||ref.number>20000)return null;
  const idx=await scriptureJSON('assets/hadith/data/index.json');
@@ -115,5 +130,5 @@ export async function lookupScripture(ref){
  const attribution=ref.book==='mishkat'?'মুসলিম বাংলা (muslimbangla.com)':'আল-হাদিস / IRD Foundation (ihadis.com)';
  const arabic=typeof v.a==='string'&&v.a.trim()&&v.a.length<=4000?'\n\nআরবি পাঠ:\n'+v.a:'';
  const answer='নির্দিষ্ট নম্বরের বাংলা পাঠ নিচে দেওয়া হলো; অতিরিক্ত ব্যাখ্যা বা অন্য প্রশ্নের উত্তর এখানে যাচাই করা হয়নি।\n\n'+title+' [1]\n\n'+v.b+arabic+grade+'\n\nউৎস: '+attribution+'; Ebrahim Ead সাইটে প্রকাশিত। হাদিসের নম্বর প্রকাশনী ও সংস্করণভেদে ভিন্ন হতে পারে; মূল উৎসে যাচাই করুন।';
- return {answer,source:{number:1,title,type:'hadith',book:ref.book,chapter,hadith:ref.number}};
+ return {answer,evidence:'হাদিস: '+title+'\nবাংলা পাঠ: '+notesAsText(v.b)+arabic+grade+'\nমূল তথ্য: '+attribution+'; Ebrahim Ead-এ প্রকাশিত। সংস্করণভেদে নম্বর ভিন্ন হতে পারে।',source:{number:1,title,type:'hadith',book:ref.book,chapter,hadith:ref.number}};
 }

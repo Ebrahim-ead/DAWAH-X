@@ -1,0 +1,47 @@
+name: Assistant review
+# Runs on the default branch after this workflow is merged. No user chats,
+# live inference, repository writes, automatic merges or deployments.
+on:
+  schedule:
+    - cron: '24 3 * * 1'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Regression and site checks (mock inference)
+        id: tests
+        run: |
+          set -o pipefail
+          (node tools/run-tests.cjs && node tools/check-site.cjs) 2>&1 | tee "$RUNNER_TEMP/assistant-regression.log"
+      - name: Compare upstream source versions
+        id: sources
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node tools/check-assistant-sources.cjs "$RUNNER_TEMP/assistant-source-review.md"
+      - name: Add source report to run summary
+        if: always()
+        env:
+          TEST_RESULT: ${{ steps.tests.outcome }}
+          SOURCE_RESULT: ${{ steps.sources.outcome }}
+        run: |
+          printf "Regression checks: **%s**. Source review: **%s**.\n\n" "$TEST_RESULT" "$SOURCE_RESULT" >> "$GITHUB_STEP_SUMMARY"
+          if [ -f "$RUNNER_TEMP/assistant-source-review.md" ]; then cat "$RUNNER_TEMP/assistant-source-review.md" >> "$GITHUB_STEP_SUMMARY"; fi
+      - name: Save review reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: assistant-review
+          path: |
+            ${{ runner.temp }}/assistant-source-review.md
+            ${{ runner.temp }}/assistant-regression.log
+          if-no-files-found: warn
+          retention-days: 14

@@ -25,7 +25,7 @@
   chat.scrollTop=chat.scrollHeight;
  }
  const sitePages=new Set(['about.html','services.html','contact.html','policy.html']);
- function isFollowUp(q){const t=q.trim();return /^(?:এটা|এটি|এগুলো|ওটা|সেটা|সেটি|সেগুলো|এর|এদের|তার|তাদের|তাহলে|আর|আরও|আরো|তারপর|এ বিষয়ে|এ বিষয়ে|ওই বিষয়ে|ওই বিষয়ে)(?:\s|[?？।!,:ঃ]|$)/u.test(t)||/^(?:কেন|কীভাবে|কিভাবে|কখন|কোথায়|কোথায়|বিস্তারিত|ব্যাখ্যা)(?:\s*(?:বলুন|বলেন|বলবেন|জানান|করুন|চাই|দিন))?\s*[?？।!]*$/u.test(t)||/^(?:why|how|what about (?:it|that|this)|explain|tell me more)[?.!\s]*$/i.test(t)}
+ function isFollowUp(q){const t=q.trim();return /^(?:এটা|এটি|এগুলো|ওটা|সেটা|সেটি|সেগুলো|এর|এদের|তার|তাদের|তাহলে|আর|আরও|আরো|তারপর|এ বিষয়ে|এ বিষয়ে|ওই বিষয়ে|ওই বিষয়ে|এই আয়াতের|এই আয়াতের|এই হাদিসের|এই হাদীসের|এ আয়াতের|এ আয়াতের|এ হাদিসের|এ হাদীসের)(?:\s|[?？।!,:ঃ]|$)/u.test(t)||/^(?:কেন|কীভাবে|কিভাবে|কখন|কোথায়|কোথায়|বিস্তারিত|ব্যাখ্যা)(?:\s*(?:বলুন|বলেন|বলবেন|জানান|করুন|চাই|দিন))?\s*[?？।!]*$/u.test(t)||/^(?:why|how|what about (?:it|that|this)|explain|tell me more)[?.!\s]*$/i.test(t)}
  function searchContext(q){if(!isFollowUp(q))return q;const parts=[q],users=history.filter(m=>m.role==='user');for(let i=users.length-1;i>=0;i--){parts.push(users[i].content);if(!isFollowUp(users[i].content))break}return parts.join(' ')}
  function pageMatches(q){const site=/(?:dawah\s*x|দা[ওউ]য়?া?হ|দাওয়াহ|দাওয়াহ|ওয়েবসাইট|ওয়েবসাইট|ওয়েবসাইট|সাইট|আপনাদের|তোমাদের)/i.test(q);if(!site)return [];const pages=['about.html'];if(/সেবা|কার্যক্রম|কাজ|উদ্দেশ্য|service/i.test(q))pages.push('services.html');if(/যোগাযোগ|ফোন|নম্বর|whatsapp|হোয়াটসঅ্যাপ|হোয়াটসঅ্যাপ/i.test(q))pages.push('contact.html');if(/নীতি|তথ্যসূত্র|উৎস|রেফারেন্স|সংশোধন/i.test(q))pages.push('policy.html');return pages}
  function citations(items){if(!items.length)return;const box=document.createElement('div');box.className='dxa-sources';const title=document.createElement('strong');title.textContent='উত্তরে উল্লেখিত উৎস — মূল লেখা যাচাই করুন';box.append(title);
@@ -55,21 +55,23 @@
   try{res=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:encoded,signal:controller.signal})}finally{clearTimeout(timer)}
   if(!res.ok)throw Error(String(res.status));return res.json();
  }
- function modeLabel(mode){const el=document.createElement('div');el.className='dxa-mode';el.textContent=mode==='chat'?'সাধারণ আলাপ · সাইটের উৎসভিত্তিক নয়':mode==='no-source'?'খুঁজে পাওয়া উৎসে পর্যাপ্ত তথ্য নেই':'প্রাপ্ত উৎসভিত্তিক উত্তর';chat.append(el)}
+ function modeLabel(mode){const el=document.createElement('div');el.className='dxa-mode';el.textContent=mode==='chat'?'সাধারণ আলাপ · সাইটের উৎসভিত্তিক নয়':mode==='failed'?'উৎস অনুসন্ধান সম্পূর্ণ হয়নি':mode==='no-source'?'খুঁজে পাওয়া উৎসে পর্যাপ্ত তথ্য নেই':'প্রাপ্ত উৎসভিত্তিক উত্তর';chat.append(el)}
  async function submit(q){q=q.trim();if(!q||busy)return;busy=true;send.disabled=true;input.value='';bubble(q,'user');const status=bubble('উত্তর তৈরি হচ্ছে…','status');
   try{
    if(!API_URL)throw Error('unsupported');
-   // The Worker makes the routing decision. Search only if it asks for sources.
-   let data=await requestAnswer({message:q,ids:[],pages:[],history,lookupComplete:false});
+   // Search all configured source categories before the Worker answers.
+   let data=await requestAnswer({message:q,ids:[],pages:[],history,lookupComplete:false,allSources:true});
+   if(data.needs_sources!==true||data.all_sources!==true)throw Error('unsupported');
    if(data.needs_sources===true){
-    status.textContent='প্রাসঙ্গিক উৎস খোঁজা হচ্ছে…';let texts=[],videos=null,siteSearchFailed=false;
-    const searchQ=searchContext(q),pages=data.direct_lookup===true?[]:pageMatches(searchQ);
-    if(data.direct_lookup!==true){try{let result=await window.dawahxAssistantSearch(searchQ);if(!result)throw Error('search unavailable');texts=result.texts.slice(0,4);videos=result.videos}catch(_){siteSearchFailed=true}}
-    sources(texts,videos);status.textContent='প্রাপ্ত উৎস থেকে উত্তর তৈরি হচ্ছে…';
-    data=await requestAnswer({message:q,ids:texts.map(x=>x.k),pages,history,lookupComplete:true,scriptureSearch:data.direct_lookup!==true,siteSearchFailed});
+    status.textContent='প্রাসঙ্গিক উৎস খোঁজা হচ্ছে…';let texts=[],videos=null,siteSearchFailed=false,siteSearchLimited=false;
+    const searchQ=searchContext(q),pages=pageMatches(searchQ);
+    try{let result=await window.dawahxAssistantSearch(searchQ);if(!result)throw Error('search unavailable');texts=result.texts.slice(0,4);videos=result.videos;siteSearchLimited=result.limited===true}catch(_){siteSearchFailed=true}
+    status.textContent='প্রাপ্ত উৎস থেকে উত্তর তৈরি হচ্ছে…';
+    data=await requestAnswer({message:q,ids:texts.map(x=>x.k),pages,history,lookupComplete:true,scriptureSearch:true,siteSearchFailed,siteSearchLimited,allSources:true});
+    if(data.grounded===true)sources(texts,videos);
    }
    if(typeof data.answer!=='string'||!data.answer.trim()||!Array.isArray(data.sources)||typeof data.grounded!=='boolean'||(data.grounded&&!data.sources.length))throw Error('unsupported');
-   status.remove();modeLabel(data.mode==='chat'?'chat':data.grounded?'grounded':'no-source');const answerBubble=bubble(data.answer,'assistant');citations(data.sources);if(data.partial===true)bubble('কিছু উৎস এই মুহূর্তে পাওয়া যায়নি; উত্তরটি অসম্পূর্ণ হতে পারে।','status');if(data.incomplete===true)bubble('উত্তর সম্পূর্ণ করা যায়নি। প্রশ্নটি ছোট অংশে ভাগ করে আবার করুন।','status');
+   status.remove();modeLabel(data.mode==='chat'?'chat':data.grounded?'grounded':data.partial?'failed':'no-source');const answerBubble=bubble(data.answer,'assistant');citations(data.sources);if(data.partial===true)bubble('কিছু উৎস এই মুহূর্তে পাওয়া যায়নি; অনুসন্ধান সম্পূর্ণ হয়নি।','status');if(data.search_limited===true)bubble('প্রশ্নে বিষয়সূচক শব্দ কম বা শুধু নির্দিষ্ট নম্বর থাকায় উৎসগুলোতে বিষয়ভিত্তিক অনুসন্ধান সীমিত হতে পারে; প্রয়োজনে বিষয়টি লিখে আবার চেষ্টা করুন।','status');if(data.incomplete===true)bubble('উত্তর সম্পূর্ণ করা যায়নি। প্রশ্নটি ছোট অংশে ভাগ করে আবার করুন।','status');
    // Start a long answer at its beginning instead of jumping past it to citations.
    if(answerBubble.offsetHeight>chat.clientHeight*0.7)chat.scrollTop+=answerBubble.getBoundingClientRect().top-chat.getBoundingClientRect().top-8;
    history.push({role:'user',content:q},{role:'assistant',content:data.answer.slice(0,2000)});history=history.slice(-6);

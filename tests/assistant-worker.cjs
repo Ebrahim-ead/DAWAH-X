@@ -39,6 +39,9 @@ const assert=require('node:assert/strict');
   // The relevant passage is far from both the opening and the misleading ১০ passage.
   fixtures['034d218703d000'].h='<p>ভূমিকা</p><p>রোজার ১০ নম্বর বিষয়ে পুরনো আলোচনা</p>'+('<p>অন্য আলোচনার দীর্ঘ বিবরণ।</p>'.repeat(350))+'<p>রোজার ১ নম্বর বিষয়ে নির্দিষ্ট তথ্য অনন্যপ্রমাণ</p>'+('<p>সমাপ্তির পর আরও দীর্ঘ লেখা।</p>'.repeat(350));
   res=await worker.fetch(req({...body,message:'রোজার 1 নম্বর বিষয়ে বলুন'}),env);assert.equal(res.status,200);assert.match(captured.args.messages[1].content,/অনন্যপ্রমাণ/,'Bengali and Latin digits should select the exact numbered passage');
+  // Spelled Bengali counts must be usable for excerpt selection, without matching a different count.
+  fixtures['034d218703d000'].h='<p>ভূমিকা</p><p>দশ ওয়াক্ত সালাত ফরজ পুরনো আলোচনা</p>'+('<p>অন্য প্রসঙ্গের দীর্ঘ বিবরণ।</p>'.repeat(350))+'<p>পাঁচ ওয়াক্ত সালাত ফরজ বিষয়ে বিশেষপ্রমাণ</p>'+('<p>বাকি দীর্ঘ লেখা।</p>'.repeat(350));
+  res=await worker.fetch(req({...body,message:'নামাজ 5 ওয়াক্ত ফরজ কী?'}),env);assert.equal(res.status,200);assert.match(captured.args.messages[1].content,/বিশেষপ্রমাণ/);
   assert.match(captured.args.messages[0].content,/negation, number, time/);
   global.fetch=async url=>{fetches.push(url);if(String(url).endsWith('about.html'))return new Response('<header>অপ্রাসঙ্গিক হেডার</header><main><p>DAWAH X পরিচালনা করেন Ebrahim Ead</p></main><footer>অপ্রাসঙ্গিক ফুটার</footer>');throw Error('unexpected request')};
   res=await worker.fetch(req({message:'DAWAH X কে পরিচালনা করেন?',ids:[],pages:['about.html'],history:[]}),env);data=await res.json();assert.equal(data.grounded,true);assert.deepEqual(data.sources,[{number:1,title:'আমাদের সম্পর্কে',path:'about.html'}]);assert.match(captured.args.messages[1].content,/Ebrahim Ead/);assert(!captured.args.messages[1].content.includes('অপ্রাসঙ্গিক ফুটার'));

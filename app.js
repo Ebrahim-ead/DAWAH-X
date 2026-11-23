@@ -231,14 +231,14 @@ const SUGGEST={tm:null,side:null,ready:null,tsh:new Map(),relc:new Map(),bodyc:n
  init(){return this.ready||(this.ready=Promise.all([DEEP.init(),fetch("search/titles.json").then(r=>{if(!r.ok)throw 0;return r.json()})])
   .then(([ok,t])=>{if(!ok||!t||!t.len||!t.side)throw 0;const s=atob(t.side);this.tm=t;this.side=i=>(s.charCodeAt(i>>3)>>(i&7))&1?"f":"q";return true}).catch(()=>{this.ready=null;return false}))},
  tshard(i){let p=this.tsh.get(i);if(!p){p=fetch("search/t"+String(i).padStart(2,"0")+".json").then(r=>{if(!r.ok)throw 0;return r.json()});this.tsh.set(i,p);p.catch(()=>this.tsh.delete(i))}return p},
- rel(k){const f=k.slice(-2);let p=this.relc.get(f);if(!p){p=fetch("rel/"+f+".json").then(r=>r.ok?r.json():{}).catch(()=>({}));this.relc.set(f,p)}return p.then(o=>o[k]||null)},
+ rel(k,strict=false){const f=k.slice(-2);let p=this.relc.get(f);if(!p){p=fetch("rel/"+f+".json").then(r=>{if(!r.ok)throw Error("Source unavailable");return r.json()});this.relc.set(f,p);p.catch(()=>this.relc.delete(f))}return p.then(o=>{if(strict&&!o[k])throw Error("Search record missing");return o[k]||null},e=>{if(strict)throw e;return null})},
  /* লেখার ফলের বিষয়সূচক শব্দ কাছাকাছি আছে কি না: শব্দ দুটি আলাদা প্রসঙ্গে
     থাকা দীর্ঘ লেখা যেন সম্ভাব্য উত্তর হিসেবে অকারণে না উঠে আসে। */
- async bodyNear(k,groups){try{const f=k.slice(-3);let p=this.bodyc.get(f);if(!p){p=fetch("texts/"+f+".json").then(r=>{if(!r.ok)throw 0;return r.json()});this.bodyc.set(f,p);p.catch(()=>this.bodyc.delete(f))}
-  const row=(await p)[k];if(!row||!row.h)return false;const words=searchTokens(String(row.h).replace(/<!--[\s\S]*?-->|<[^>]*>/g," "));
+ async bodyNear(k,groups,strict=false){try{const f=k.slice(-3);let p=this.bodyc.get(f);if(!p){p=fetch("texts/"+f+".json").then(r=>{if(!r.ok)throw 0;return r.json()});this.bodyc.set(f,p);p.catch(()=>this.bodyc.delete(f))}
+  const row=(await p)[k];if(!row||!row.h){if(strict)throw Error("Search record missing");return false}const words=searchTokens(String(row.h).replace(/<!--[\s\S]*?-->|<[^>]*>/g," "));
   const hits=groups.map(forms=>{const a=[];for(let i=0;i<words.length;i++)if(forms.some(([x,pre])=>pre?words[i].startsWith(x):words[i]===x))a.push(i);return a});
   if(hits.some(x=>!x.length))return false;for(const i of hits[0])if(hits.every(h=>h.some(j=>Math.abs(j-i)<=70)))return true;return false;
- }catch(_){return false}},
+ }catch(e){if(strict)throw e;return false}},
  /* ভিডিওর তালিকা একবারই আনা হয়; শিরোনামের শব্দ → ভিডিও। ৮%-এর বেশি শিরোনামে থাকা শব্দ (বক্তার নাম ইত্যাদি) বাদ */
  videos(){return this.vid||(this.vid=fetch("youtube-videos.json").then(r=>{if(!r.ok)throw 0;return r.json()}).then(all=>{
    const list=all.filter(v=>v&&/^[\w-]{11}$/.test(v.id||"")&&typeof v.title==="string"),map=new Map();
@@ -264,7 +264,7 @@ const SUGGEST={tm:null,side:null,ready:null,tsh:new Map(),relc:new Map(),bodyc:n
    const vp=includeVideos?this.videos():Promise.resolve(null),stop=includeBodyMatches?new Set([...DEEP.stop].filter(t=>!ASSISTANT_TITLE_TOPICS.has(t))):DEEP.stop,seen=new Set(),same=new Set(),G=[];
    for(const t of searchTokens(includeBodyMatches?normalizeRoman(q):q)){if(/^\d+$/.test(t)||seen.has(t))continue;seen.add(t);const f=askForms(t,stop);if(!f)continue;
     const id=f.map(x=>x[0]).sort().join("|");if(same.has(id))continue;same.add(id);G.push(f);if(G.length>=12)break}
-   if(!G.length)return {texts:[],videos:Promise.resolve([])};
+   if(!G.length)return {texts:[],videos:Promise.resolve([]),limited:true};
    const N=DEEP.meta.n,nb=DEEP.meta.shards,nt=this.tm.shards,B=[],T=[];
    await Promise.all(G.map(async(forms,g)=>{const b=new Set(),t=new Set();
     await Promise.all(forms.map(async([p,pre])=>{const i=searchShard(p,nb),[bs,ts]=await Promise.all([DEEP.shard(i),this.tshard(i%nt)]);
@@ -290,12 +290,12 @@ const SUGGEST={tm:null,side:null,ready:null,tsh:new Map(),relc:new Map(),bodyc:n
     const seen=new Set(ranked.map(row=>row[0])),body=[];
     for(let id=0;id<N;id++)if(!seen.has(id)&&sum[id]>=total*.98&&G.length>=2&&counts[id]>=2)body.push([id,sum[id]/total]);
     body.sort((a,b)=>b[1]-a[1]||a[0]-b[0]);
-    const candidates=body.slice(0,20),near=await Promise.all(candidates.map(([id])=>this.bodyNear(DEEP.keys.substr(id*14,14),G)));
+    const candidates=body.slice(0,20),near=await Promise.all(candidates.map(([id])=>this.bodyNear(DEEP.keys.substr(id*14,14),G,includeBodyMatches)));
     ranked.push(...candidates.filter((_,i)=>near[i]));
    }
    const pick={q:[],f:[]};for(const [id] of ranked){const s=this.side(id);if(pick[s].length<6)pick[s].push(id)}
    const bare=v=>v.replace(/^\s*প্রশ্ন\s*[:ঃ]?\s*\([^)]{0,14}\)\s*[:ঃ]?\s*/,"").trim(),texts=[],seenT=new Set();
-   for(const s of ["q","f"]){const rows=await Promise.all(pick[s].map(id=>{const k=DEEP.keys.substr(id*14,14);return this.rel(k).then(r=>r&&r[0]?{k,side:s,title:bare(r[0])||r[0],cat:r[1]||""}:null)}));
+   for(const s of ["q","f"]){const rows=await Promise.all(pick[s].map(id=>{const k=DEEP.keys.substr(id*14,14);return this.rel(k,includeBodyMatches).then(r=>r&&r[0]?{k,side:s,title:bare(r[0])||r[0],cat:r[1]||""}:null)}));
     let n=0;for(const r of rows){if(!r)continue;const ft=foldBn(r.title);if(seenT.has(ft))continue;seenT.add(ft);texts.push(r);if(++n>=3)break}}
    if(includeBodyMatches){const rank=new Map(ranked.map(([id],i)=>[DEEP.keys.substr(id*14,14),i]));texts.sort((a,b)=>rank.get(a.k)-rank.get(b.k))}
    const videos=vp.then(V=>{const videos=[];
