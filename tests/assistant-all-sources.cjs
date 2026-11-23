@@ -13,7 +13,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
   if(u.endsWith('/texts/000.json'))return siteBroken?new Response('',{status:503}):Response.json({'034d218703d000':{t:'সাইটের লেখা',h:'<p>সালাত প্রসঙ্গে লেখা</p>'}});
   throw Error('unexpected '+u);
  };
- const env={ALLOWED_ORIGINS:origin,RATE_LIMITER:{limit:async()=>({success:true})},AI:{run:async(model,args)=>{events.push('AI:'+model);if(model.includes('8b'))return {response:'CHAT'};assert(args.messages[1].content.includes('সালাত কায়েম'));assert(args.messages[1].content.includes('সালাত বিষয়ে পাঠ'));if(!siteBroken)assert(args.messages[1].content.includes('সালাত প্রসঙ্গে লেখা'));return {response:modelAnswer}}}};
+ const env={ALLOWED_ORIGINS:origin,RATE_LIMITER:{limit:async()=>({success:true})},AI:{run:async(model,args)=>{events.push('AI:'+model);if(model==='@cf/openai/gpt-oss-20b')return {response:'CHAT'};assert(args.messages[1].content.includes('সালাত কায়েম'));assert(args.messages[1].content.includes('সালাত বিষয়ে পাঠ'));if(!siteBroken)assert(args.messages[1].content.includes('সালাত প্রসঙ্গে লেখা'));return {response:modelAnswer}}}};
  const req=(message,extra={})=>new Request('https://worker.test/',{method:'POST',headers:{Origin:origin,'CF-Connecting-IP':'192.0.2.1','Content-Type':'application/json'},body:JSON.stringify({message,ids:['034d218703d000'],pages:[],history:[],lookupComplete:true,allSources:true,...extra})});
  try{
   let r=await worker.fetch(req('সালাত কী?',{lookupComplete:false}),env),data=await r.json();assert.deepEqual(data,{needs_sources:true,all_sources:true});assert.equal(events.length,0,'no answer before site search');
@@ -27,7 +27,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
   events.length=0;r=await worker.fetch(req('কুরআন ২:২৫৫',{ids:[]}),env);data=await r.json();assert.equal(data.grounded,true);assert.equal(data.sources[0].verse,255);assert(!events.some(x=>x.startsWith('AI:')),'literal direct text remains unchanged');assert(!events.some(x=>x.endsWith('search-ayahs.js')),'direct lookup avoids unrelated search');
   allBroken=true;events.length=0;r=await worker.fetch(req('কুরআন ২:২৫৫',{ids:[]}),env);data=await r.json();assert.equal(data.grounded,false);assert.equal(data.partial,true);assert.deepEqual(data.search_failures,['direct_lookup']);assert(!events.some(x=>x.startsWith('AI:')));allBroken=false;
   // General chat is routed and generated only after searches finish.
-  events.length=0;const chatEnv={...env,AI:{run:async(model)=>{events.push('AI:'+model);return {response:model.includes('8b')?'CHAT':'আমি ভালো আছি।'}}}};
+  events.length=0;const chatEnv={...env,AI:{run:async(model)=>{events.push('AI:'+model);return {response:model==='@cf/openai/gpt-oss-20b'?'CHAT':'আমি ভালো আছি।'}}}};
   r=await worker.fetch(req('হ্যালো',{ids:['034d218703d000']}),chatEnv);data=await r.json();assert.equal(data.mode,'chat');assert(events.findIndex(x=>x.endsWith('texts/000.json'))<events.findIndex(x=>x.startsWith('AI:')));
   r=await worker.fetch(req('হ্যালো',{siteSearchLimited:true}),chatEnv);data=await r.json();assert.equal(data.search_limited,true);
   events.length=0;r=await worker.fetch(req('hm',{ids:[]}),chatEnv);data=await r.json();assert.equal(data.mode,'chat');assert.match(data.answer,/আর কী জানতে চান/);assert.equal(data.search_limited,true);assert(!events.some(x=>x.startsWith('AI:')),'bare acknowledgement does not need model inference');
