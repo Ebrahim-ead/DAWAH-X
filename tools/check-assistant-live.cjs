@@ -56,7 +56,8 @@ const watchdog=setTimeout(()=>{console.error('Live smoke failed: overall deadlin
    assert.match(data.answer,/স্বাস্থ্য সতর্কতা: প্রাণীর মূত্র পান/,'health warning must be present');
   }
  });
+ // Keep successful stage results visible even when a later stage fails.
+ for(const result of reports)annotation('notice',result);
  if(failures.length)throw Error(failures.join('; '));
  console.log('Live smoke completed. Generated claims still require independent review; searching is bounded.');
- for(const result of reports)annotation('notice',result);
 })().catch(error=>{console.error('Live smoke failed:',error.message);annotation('error','Live smoke failed: '+error.message);process.exitCode=1}).finally(()=>clearTimeout(watchdog));
