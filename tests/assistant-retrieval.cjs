@@ -57,6 +57,6 @@ vm.runInNewContext('const toLatinDigits=s=>String(s).replace(/[০-৯]/g,d=>Str
  sandbox.fetch=previousFetch;
  const noTerms=await sandbox.suggest.find('কি?',{includeVideos:false,includeBodyMatches:true});assert.equal(noTerms.limited,true);
  const assistant=fs.readFileSync(path.join(root,'assistant.js'),'utf8');
- assert(assistant.includes('texts=result.texts.slice(0,4)'), 'Worker receives results in relevance order');
+ assert(assistant.includes('texts=result.texts.slice(0,6)'), 'Worker receives results in relevance order');
  console.log('assistant retrieval: real indexes, prayer synonyms, generic topics, body matches and unavailable topics pass');
 })().catch(e=>{console.error(e);process.exitCode=1});
