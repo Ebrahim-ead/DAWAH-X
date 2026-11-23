@@ -110,14 +110,21 @@ if(!ONLY||ONLY==='search'||ONLY==='titles'){
  const TSHARDS=64,post=new Map(),LEN_CHARS='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';let len='';
  docs.forEach((d,i)=>{const seen=new Set(searchTokens(d.t).filter(t=>!/[\u0600-\u06ff]/.test(t)&&!/^\d+$/.test(t)));len+=LEN_CHARS[Math.min(63,seen.size)];
   for(const t of seen){let a=post.get(t);if(!a)post.set(t,a=[]);a.push(i)}});
- const cap=Math.floor(N*0.12),files=Array.from({length:TSHARDS},()=>({}));let kept=0,dropped=0;
+ const cap=Math.floor(N*0.12),files=Array.from({length:TSHARDS},()=>({})),typoWords=[];let kept=0,dropped=0;
  for(const[tok,a]of[...post].sort((x,y)=>x[0]<y[0]?-1:1)){if(a.length>cap){dropped++;continue}
   const bytes=[];let prev=-1;for(const id of a){let v=id-prev;prev=id;while(v>127){bytes.push((v&127)|128);v>>>=7}bytes.push(v)}
-  files[shardOf(tok)%TSHARDS][tok]=Buffer.from(bytes).toString('base64').replace(/=+$/,'');kept++}
+  files[shardOf(tok)%TSHARDS][tok]=Buffer.from(bytes).toString('base64').replace(/=+$/,'');
+  if(/^[\u0980-\u09ff]+$/u.test(tok)&&[...tok].length>=4&&[...tok].length<=24)typoWords.push(tok);kept++}
  const bits=Buffer.alloc(Math.ceil(N/8));docs.forEach((d,i)=>{if(sideOf(d.s)==='f')bits[i>>3]|=1<<(i&7)});
  const out=path.join(ROOT,'search');fs.mkdirSync(out,{recursive:true});let size=0,max=0;
  files.forEach((o,i)=>{const s=JSON.stringify(o);size+=Buffer.byteLength(s);max=Math.max(max,Buffer.byteLength(s));fs.writeFileSync(path.join(out,'t'+String(i).padStart(2,'0')+'.json'),s)});
- fs.writeFileSync(path.join(out,'titles.json'),JSON.stringify({v:1,n:N,shards:TSHARDS,side:bits.toString('base64'),len}));
+ // Bind the lazily loaded vocabulary to its title index so a stale cached
+ // vocabulary cannot be silently paired with a different set of articles.
+ const typoHash=crypto.createHash('sha256').update(JSON.stringify(typoWords)).digest('hex');
+ fs.writeFileSync(path.join(out,'titles.json'),JSON.stringify({v:1,n:N,shards:TSHARDS,side:bits.toString('base64'),len,typoHash}));
+ // Loaded only for a single unmatched assistant query word. Candidate discovery
+ // remains bounded and the original question is never silently rewritten.
+ fs.writeFileSync(path.join(out,'typo-vocab.json'),JSON.stringify({v:1,n:N,hash:typoHash,words:typoWords}));
  console.log('titles: tokens',kept,'dropped (too common)',dropped,'KB',Math.round(size/1e3),'largest shard KB',Math.round(max/1e3));
 }
 

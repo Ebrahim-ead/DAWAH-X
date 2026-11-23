@@ -19,7 +19,10 @@ const INFLECTIONS=[
  {forms:['মিলানো','মিলানোর','মিলানোয়','মিলিয়ে','মিলিয়ে','মিলানোকে','মিলান'],match:['মিলানো','মিলিয়ে','মিলান']},
  // Nominal forms such as ভাঙার/ভঙ্গের describe the same candidate topic;
  // keep the subject and other conditions required, and do not guess rulings.
- {forms:['ভাঙা','ভাঙ্গা','ভাঙার','ভাঙ্গার','ভঙ্গ','ভঙ্গের'],match:['ভাঙা','ভাঙ্গা','ভঙ্গ']}
+ {forms:['ভাঙা','ভাঙ্গা','ভাঙার','ভাঙ্গার','ভঙ্গ','ভঙ্গের'],match:['ভাঙা','ভাঙ্গা','ভঙ্গ']},
+ // A permissibility question can be answered positively OR negatively. This
+ // is a search group, not an assertion that these words mean the same thing.
+ {forms:['জায়েজ','জায়েজ','জায়েয','জায়েয','বৈধ'],match:['জায়েজ','জায়েয','বৈধ','অবৈধ','হালাল','হারাম','নিষিদ্ধ']}
 ].map(({forms,match})=>({forms:new Set(forms.map(fold)),match:match.map(fold)}));
 export function topics(terms){
  const expanded=terms.filter(group=>!group.some(x=>generic.has(x))).map(group=>{const inflection=INFLECTIONS.find(g=>group.some(x=>g.forms.has(x)));if(inflection)return inflection.match;const concept=CONCEPTS.find((g,i)=>!(i===2&&group.some(x=>generic.has(x)))&&group.some(x=>g.some(y=>x===y||([...y].length>=3&&x.startsWith(y)))));return concept||group});
@@ -118,9 +121,25 @@ async function hadith(terms,mirrors){
  const counts=new Map();for(const v of candidates){const key=v.book+':'+v.hadith;counts.set(key,(counts.get(key)||0)+1)}
  candidates.sort((a,b)=>b.rank-a.rank);return {items:candidates.filter(v=>counts.get(v.book+':'+v.hadith)===1).slice(0,3).map(({rank,...item})=>item),failed,limited:indexLimited||titleOnly};
 }
+// Conservative one-code-point typo tolerance for article candidates only.
+// No numbers, short terms, first-character edits, or multiple missing groups.
+// The model still sees the original question and must not assume its meaning.
+function oneTypo(a,b){const x=[...a],y=[...b];if(x.length<4||x.length>24||y.length<4||y.length>24||x[0]!==y[0]||Math.abs(x.length-y.length)>1||a===b)return false;
+ let i=0,j=0,edits=0;while(i<x.length&&j<y.length){if(x[i]===y[j]){i++;j++;continue}if(++edits>1)return false;
+  if(x.length===y.length&&x[i]===y[j+1]&&x[i+1]===y[j]){i+=2;j+=2}else if(x.length>y.length)i++;else if(x.length<y.length)j++;else{i++;j++}}
+ return edits+(x.length-i)+(y.length-j)===1;}
 // A lexical pre-filter, not proof of relevance. An identified single topic
 // must still occur in the body; empty topic sets retain the previous behavior.
-export function articleCandidate(text,termGroups){const t=topics(termGroups);const body=text.split('\nলেখার প্রাসঙ্গিক পাদটীকা')[0].replace(/\([^()]{0,500}\)/gu,' ');return !t.length||(score(body,t)===t.length&&near(body,t,300));}
+export function articleCandidate(text,termGroups,correction){
+ const t=topics(termGroups),body=text.split('\nলেখার প্রাসঙ্গিক পাদটীকা')[0].replace(/\([^()]{0,500}\)/gu,' ');
+ if(!t.length)return true;if(score(body,t)===t.length&&near(body,t,300))return true;
+ if(t.length<2||!correction||typeof correction.from!=='string'||typeof correction.to!=='string')return false;
+ const from=fold(correction.from),to=fold(correction.to);
+ if(!/^[\u0980-\u09ff]+$/u.test(from)||!/^[\u0980-\u09ff]+$/u.test(to)||!oneTypo(from,to))return false;
+ const missing=t.map((g,i)=>score(body,[g])? -1:i).filter(i=>i>=0);if(missing.length!==1)return false;
+ const i=missing[0],group=t[i];if(group.numeric||!group.includes(from))return false;
+ const expanded=t.map((g,n)=>n===i?[to]:g);return score(body,expanded)===t.length&&near(body,expanded,300);
+}
 export async function searchScripture(termGroups,mirrors){
  const terms=topics(termGroups);if(!terms.length||terms.every(group=>group.every(x=>/^\d+$/.test(x))))return {items:[],failed:false,skipped:true};
  const results=await Promise.allSettled([quran(terms,mirrors),hadith(terms,mirrors)]);

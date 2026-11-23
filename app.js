@@ -227,6 +227,12 @@ const ASK_LEN="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
 const askCp=t=>[...t].length,askMinPrefix=t=>[...t][1]==="\u09cd"?5:3;
 /* একটি শব্দ → খোঁজার রূপগুলো [[রূপ, শুরু মিললেই চলবে?]]; শব্দটি (বা তার মূল রূপ) খুব সাধারণ হলে null।
    ছোট মূল রূপ (৩ অক্ষর) হুবহু মিলতে হয় — নইলে "বানর" থেকে "বান" হয়ে "বান্দা"-ও ধরা পড়ত */
+// One code-point edit (including an adjacent transposition), same initial
+// character. Used only for a unique vocabulary match, never as a verdict.
+function oneTypo(a,b){const x=[...a],y=[...b];if(x.length<4||x.length>24||y.length<4||y.length>24||x[0]!==y[0]||Math.abs(x.length-y.length)>1||a===b)return false;
+ let i=0,j=0,edits=0;while(i<x.length&&j<y.length){if(x[i]===y[j]){i++;j++;continue}if(++edits>1)return false;
+  if(x.length===y.length&&x[i]===y[j+1]&&x[i+1]===y[j]){i+=2;j+=2}else if(x.length>y.length)i++;else if(x.length<y.length)j++;else{i++;j++}}
+ return edits+(x.length-i)+(y.length-j)===1;}
 function askForms(tok,stop,assistant=false){const out=new Map();
  // Common conjugations of tying/binding differ from article-headword forms.
  // Keep this mapping narrow: it finds candidates, not an answer or a ruling.
@@ -239,7 +245,8 @@ function askForms(tok,stop,assistant=false){const out=new Map();
    if(stop.has(r)||ASK_SKIP.has(r))return null;
    const pre=n>=4&&n>=askMinPrefix(r);if(pre||!out.has(r))out.set(r,pre)}}
  return [...out]}
-const SUGGEST={tm:null,side:null,ready:null,tsh:new Map(),relc:new Map(),bodyc:new Map(),vid:null,
+const SUGGEST={tm:null,side:null,ready:null,tsh:new Map(),relc:new Map(),bodyc:new Map(),vid:null,typo:null,
+ typoVocab(){if(!this.typo){this.typo=fetch('search/typo-vocab.json').then(r=>{if(!r.ok)throw Error('Spelling index unavailable');return r.json()}).then(v=>{if(v?.v!==1||v.n!==DEEP.meta.n||!/^[a-f0-9]{64}$/.test(v.hash||'')||v.hash!==this.tm.typoHash||!Array.isArray(v.words)||v.words.length>50000||v.words.some(w=>typeof w!=='string'||[...w].length>24))throw Error('Invalid spelling index');return v.words});this.typo.catch(()=>{this.typo=null})}return this.typo},
  init(){return this.ready||(this.ready=Promise.all([DEEP.init(),fetch("search/titles.json").then(r=>{if(!r.ok)throw 0;return r.json()})])
   .then(([ok,t])=>{if(!ok||!t||!t.len||!t.side)throw 0;const s=atob(t.side);this.tm=t;this.side=i=>(s.charCodeAt(i>>3)>>(i&7))&1?"f":"q";return true}).catch(()=>{this.ready=null;return false}))},
  tshard(i){let p=this.tsh.get(i);if(!p){p=fetch("search/t"+String(i).padStart(2,"0")+".json").then(r=>{if(!r.ok)throw 0;return r.json()});this.tsh.set(i,p);p.catch(()=>this.tsh.delete(i))}return p},
@@ -273,9 +280,9 @@ const SUGGEST={tm:null,side:null,ready:null,tsh:new Map(),relc:new Map(),bodyc:n
     ভিডিওর তালিকা বড় (প্রথমবার আনতে সময় লাগে), তাই লেখার ফল আগে ফেরে আর ভিডিও আলাদা Promise-এ আসে */
  async find(q,{includeVideos=true,includeBodyMatches=false}={}){try{
    if(!(await this.init()))return null;
-   const vp=includeVideos?this.videos():Promise.resolve(null),stop=includeBodyMatches?new Set([...DEEP.stop].filter(t=>!ASSISTANT_TITLE_TOPICS.has(t))):DEEP.stop,seen=new Set(),same=new Set(),G=[];
+   const vp=includeVideos?this.videos():Promise.resolve(null),stop=includeBodyMatches?new Set([...DEEP.stop].filter(t=>!ASSISTANT_TITLE_TOPICS.has(t))):DEEP.stop,seen=new Set(),same=new Set(),G=[],original=[];
    for(const t of searchTokens(includeBodyMatches?stripSourcePreface(foldBn(normalizeRoman(q))):q)){if(/^\d+$/.test(t)||seen.has(t))continue;seen.add(t);const f=askForms(t,stop,includeBodyMatches);if(!f)continue;
-    const id=f.map(x=>x[0]).sort().join("|");if(same.has(id))continue;same.add(id);G.push(f);if(G.length>=12)break}
+    const id=f.map(x=>x[0]).sort().join("|");if(same.has(id))continue;same.add(id);G.push(f);original.push(t);if(G.length>=12)break}
    if(!G.length)return {texts:[],videos:Promise.resolve([]),limited:true};
    const N=DEEP.meta.n,nb=DEEP.meta.shards,nt=this.tm.shards,B=[],T=[];
    await Promise.all(G.map(async(forms,g)=>{const b=new Set(),t=new Set();
@@ -283,6 +290,21 @@ const SUGGEST={tm:null,side:null,ready:null,tsh:new Map(),relc:new Map(),bodyc:n
      const take=(sh,set)=>{if(pre){for(const tok in sh)if(tok.startsWith(p))for(const x of DEEP.ids(sh[tok]))set.add(x)}else if(Object.prototype.hasOwnProperty.call(sh,p))for(const x of DEEP.ids(sh[p]))set.add(x)};
      take(bs,b);take(ts,t)}));
     B[g]=b;T[g]=t}));
+   // Only one completely unmatched word with another topic may be tried.
+   // If several words are one edit away, require exactly one to co-occur in
+   // a title with the rarest available topic. Do not guess among ties.
+   let correction=null;
+   const missing=G.map((_,i)=>!B[i].size&&!T[i].size?i:-1).filter(i=>i>=0);
+   if(includeBodyMatches&&G.length>=2&&missing.length===1&&/^[\u0980-\u09ff]+$/u.test(original[missing[0]])&&[...original[missing[0]]].length>=4){
+    const i=missing[0],matches=[];for(const word of await this.typoVocab())if(oneTypo(original[i],word)){matches.push(word);if(matches.length>6)break}
+    const sets=async word=>{const form=askForms(word,stop,true),b=new Set(),t=new Set();if(!form)return {form,b,t};
+     for(const [p,pre] of form){const shard=searchShard(p,nb),[bs,ts]=await Promise.all([DEEP.shard(shard),this.tshard(shard%nt)]);
+      const take=(obj,set)=>{if(pre){for(const tok in obj)if(tok.startsWith(p))for(const id of DEEP.ids(obj[tok]))set.add(id)}else if(Object.prototype.hasOwnProperty.call(obj,p))for(const id of DEEP.ids(obj[p]))set.add(id)};take(bs,b);take(ts,t)}return {form,b,t}};
+    if(matches.length&&matches.length<=6){const options=await Promise.all(matches.map(async word=>({word,...await sets(word)})));let picks=options;
+     if(options.length>1){const anchors=T.filter((s,n)=>n!==i&&s.size).sort((a,b)=>a.size-b.size),anchor=anchors[0];picks=anchor?options.filter(o=>[...o.t].some(id=>anchor.has(id))):[]}
+     if(picks.length===1&&picks[0].form&&(picks[0].b.size||picks[0].t.size)){const p=picks[0];G[i]=p.form;B[i]=p.b;T[i]=p.t;correction={from:original[i],to:p.word}}
+    }
+   }
    /* raw = শব্দটি কত কম লেখায় আছে (বেশি = বেশি নির্দিষ্ট); কোনো লেখায় না থাকা শব্দ (বানান ভুল, নাম) কম ওজন পায় */
    const raw=B.map(s=>s.size?Math.log(N/(1+s.size)):0),w=raw.map(v=>v?Math.min(5,Math.max(1,v)):1.2),L=this.tm.len;
    let ranked=this.score(N,T,B,w,raw,id=>Math.max(1,ASK_LEN.indexOf(L[id])));
@@ -314,7 +336,7 @@ const SUGGEST={tm:null,side:null,ready:null,tsh:new Map(),relc:new Map(),bodyc:n
    if(V){const TV=G.map(forms=>{const s=new Set();for(const [p,pre] of forms){if(pre){for(const tok of V.vocab)if(tok.startsWith(p))for(const i of V.map.get(tok))s.add(i)}else{const l=V.map.get(p);if(l)for(const i of l)s.add(i)}}return s});
     const seenV=new Set();for(const [i] of this.score(V.list.length,TV,null,w,raw,i=>V.len[i])){const v=V.list[i],ft=foldBn(v.title);if(seenV.has(ft))continue;seenV.add(ft);videos.push({id:v.id,title:v.title,channel:v.channelTitle||""});if(videos.length>=2)break}}
     return videos}).catch(()=>[]);
-   return {texts,videos}}catch(e){return null}}};
+   return {texts,videos,...(includeBodyMatches?{limited:true}:{}),...(correction?{correction}:{})}}catch(e){return null}}};
 /* সাইটে সংরক্ষিত প্রশ্নোত্তর খোঁজ: কোনো ভাষা-মডেল বা বাইরের তথ্য ব্যবহার করে না।
    অপর্যাপ্ত মিলকে সরাসরি উত্তর বলা হয় না; শুধু হুবহু শিরোনাম মিললে মূল লেখা দেখাই। */
 const answerForm=$("source-answer-form");
