@@ -4,6 +4,9 @@
 // required binding is missing, rather than silently sharing production limits.
 const assert=require('node:assert/strict'),fs=require('node:fs');
 const config=fs.readFileSync('ai-worker/wrangler.toml','utf8');
+const rootConfig=fs.readFileSync('wrangler.toml','utf8');
+assert.equal(rootConfig.replace('main = "ai-worker/worker.mjs"','main = "worker.mjs"'),config,'root and Worker settings must stay identical; only their entrypoint paths differ');
+assert.match(rootConfig,/^main = "ai-worker\/worker\.mjs"$/m);
 function block(name,array=false){
  const header=(array?'[[':'[')+name+(array?']]':']');
  const lines=config.split(/\r?\n/);const indices=lines.flatMap((line,i)=>line.trim()===header?[i]:[]);
