@@ -1,5 +1,5 @@
 import {parseScripture,parseSurah,lookupScripture,hadithMentions,isPlainScriptureRequest} from './scripture.mjs';
-import {searchScripture,articleCandidate} from './topic-search.mjs';
+import {searchScripture,articleCandidate,topics,score} from './topic-search.mjs';
 // Cloudflare Worker: the browser sends article IDs, never source text or credentials.
 const SITE = 'https://ebrahim-ead.github.io/DAWAH-X/';
 const MODEL = '@cf/meta/llama-3.3-70b-instruct-fp8-fast';
@@ -66,11 +66,11 @@ function excerpt(html,query){
   for(const id of [...new Set(selected)]){const n=notes.get(id);if(!n||n.length+id.length+4>budget)continue;const line=id+': '+n;items.push(line);budget-=line.length+1}
   value=value.replace(/⟦note:(x_ftn\d+)⟧/g,'(পাদটীকা $1)');return value+(items.length?'\nলেখার প্রাসঙ্গিক পাদটীকা (উৎস-নম্বর নয়):\n'+items.join('\n'):'')};
  const text=plain(raw),limit=4500;if(text.length<=limit)return attach(text);
- const terms=queryTerms(query),parts=[];
+ const terms=topics(queryTerms(query)),parts=[];
  // Split very large paragraphs into overlapping pieces so a match near the end is not lost.
  for(const paragraph of text.split(/\n+/)){if(!paragraph.trim())continue;for(let i=0;i<paragraph.length;i+=900)parts.push(paragraph.slice(i,i+1100).trim())}
  if(!parts.length)return attach(text.slice(0,limit));
- let best=0,bestScore=0;for(let i=0;i<parts.length;i++){const p=fold(parts[i]),numbers=new Set(p.match(/(?<![\p{L}\p{M}\p{N}])\d+(?![\p{L}\p{M}\p{N}])/gu)||[]);let score=0;for(const forms of terms)if(forms.some(t=>/^\d+$/.test(t)?numbers.has(t):p.includes(t)))score++;if(score>bestScore){bestScore=score;best=i}}
+ let best=0,bestScore=0;for(let i=0;i<parts.length;i++){const relevance=score(parts[i],terms);if(relevance>bestScore){bestScore=relevance;best=i}}
  if(!bestScore)return attach(text.slice(0,limit));
  const chosen=[];let remaining=limit;
  // Keep the start for context, then include the best matching passage and neighbours.
@@ -79,20 +79,30 @@ function excerpt(html,query){
  for(const i of [best-1,best,best+1,best+2])if(i>0&&i<parts.length)add(parts[i]);
  return attach(chosen.join('\n').slice(0,limit));
 }
+// Limit source I/O even when a response omits Content-Length. Never follow a
+// redirect from the fixed site origin to a user-controlled host.
+async function siteText(path){
+ const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),10000);
+ try{
+  const r=await fetch(SITE+path,{signal:controller.signal,redirect:'error'});if(!r.ok||!r.body)throw Error('Site source unavailable');
+  const reader=r.body.getReader(),chunks=[];let size=0;
+  for(;;){const {done,value}=await reader.read();if(done)break;size+=value.byteLength;if(size>2*1024*1024){await reader.cancel();throw Error('Site source too large')}chunks.push(value)}
+  const bytes=new Uint8Array(size);let pos=0;for(const c of chunks){bytes.set(c,pos);pos+=c.length}return new TextDecoder().decode(bytes);
+ }finally{clearTimeout(timer)}
+}
 async function references(ids,query) {
   const keys=[...new Set(ids.filter(x=>typeof x==='string'&&/^[a-f0-9]{14}$/.test(x)))].slice(0,4);
   const shards=new Map(),files=[...new Set(keys.map(k=>k.slice(-3)))];
   const results=await Promise.allSettled(files.map(async shard=>{
-    const r=await fetch(SITE+'texts/'+shard+'.json');if(!r.ok)throw Error('Source unavailable');return r.json();
+    return JSON.parse(await siteText('texts/'+shard+'.json'));
   }));
   results.forEach((result,i)=>{if(result.status==='fulfilled')shards.set(files[i],result.value)});
-  const items=keys.map(k=>{const x=shards.get(k.slice(-3))?.[k];return x&&x.h?{key:k,title:String(x.t||'').slice(0,250),text:excerpt(x.h,query)}:null}).filter(Boolean);
-  return {items,failed:results.some(result=>result.status==='rejected')};
+  const items=keys.map(k=>{const x=shards.get(k.slice(-3))?.[k];return x&&typeof x.h==='string'&&x.h.trim()?{key:k,title:String(x.t||'').slice(0,250),text:excerpt(x.h,query)}:null}).filter(Boolean);
+  return {items,failed:items.length!==keys.length||results.some(result=>result.status==='rejected')};
 }
 async function sitePages(paths,query){
  const results=await Promise.allSettled([...new Set(paths)].map(async path=>{
-  const response=await fetch(SITE+path);if(!response.ok)throw Error('Site page unavailable');
-  const html=await response.text(),main=html.match(/<main\b[^>]*>([\s\S]*?)<\/main>/i);
+  const html=await siteText(path),main=html.match(/<main\b[^>]*>([\s\S]*?)<\/main>/i);
   if(!main)throw Error('Site page content missing');
   return {path,title:SITE_PAGES[path],text:excerpt(main[1],query)};
  }));

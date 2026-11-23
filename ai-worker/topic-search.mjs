@@ -4,7 +4,7 @@ import {scriptureJSON} from './scripture.mjs';
 import {findHadithCandidates} from './hadith-index.mjs';
 const BASE='https://ebrahim-ead.github.io/ead/';
 const BOOKS=new Set(['bukhari','muslim','abu-dawud','tirmidhi','nasai','ibn-majah','mishkat']);
-const GENERIC=new Set('কুরআন কুরআনের কোরআন কোরআনের কুরানের হাদিস হাদিসের হাদীস হাদীসের ইসলাম ইসলামি ইসলামের আল্লাহ আল্লাহর বিষয়ে বিষয়ে সম্পরকে গুরুত্ব গুরুতব গুরুত্বপূর্ণ গুরুতবপূর্ণ আলোকে দলিল প্রমান প্রমাণ নিয়ম নিয়ম বিধান বলে বলুন ব্যাখ্যা বযাখযা জানতে জানাবেন চাই কেন কিভাবে কিভাবে সম্পর্কে আলোচনা উল্লেখ শুনতে শুনছি শুনেছি শুনেছি নাকি সঙ্গে সহিত প্রত্যেক প্রতিটি প্রতিটা প্রতিটিই প্রত্যেকটি হিসেবে রূপে হয়েছে কি কী হুকুম করনীয় করণীয় অনুসারে অনুযায়ী quran hadith islam according evidence ruling'.split(' '));
+const GENERIC=new Set('কুরআন কুরআনের কোরআন কোরআনের কুরানের হাদিস হাদিসের হাদীস হাদীসের ইসলাম ইসলামি ইসলামের আল্লাহ আল্লাহর বিষয়ে বিষয়ে সম্পরকে গুরুত্ব গুরুতব গুরুত্বপূর্ণ গুরুতবপূর্ণ আলোকে দলিল প্রমান প্রমাণ নিয়ম নিয়ম বিধান বলে বলুন ব্যাখ্যা বযাখযা জানতে জানাবেন চাই কেন কিভাবে কিভাবে সম্পর্কে আলোচনা উল্লেখ শুনতে শুনছি শুনেছি শুনেছি নাকি সঙ্গে সহিত প্রত্যেক প্রতিটি প্রতিটা প্রতিটিই প্রত্যেকটি হিসেবে রূপে হয়েছে কি কী হুকুম করনীয় করণীয় রেখে নিলে নিয়েছে নিয়েছে ভেঙে ভাঙে ভাঙ্গে যায় যায় হলো হলে করতে করলে অনুসারে অনুযায়ী quran hadith islam according evidence ruling'.split(' '));
 const FOLD={'ী':'ি','ূ':'ু','ঈ':'ই','ঊ':'উ','ছ':'স','শ':'স','ষ':'স','য':'জ','ণ':'ন','ৎ':'ত'};
 export function fold(text){return String(text||'').normalize('NFC').toLowerCase().replace(/[০-৯]/g,c=>String(c.charCodeAt(0)-0x09e6)).replace(/[\u200b-\u200d\u00ad\ufeff\u0981]/g,'').replace(/([\p{L}\p{M}])[‘’'ʼ](?=\p{L})/gu,'$1').replace(/\u09af\u09bc/g,'\u09df').replace(/\u09a1\u09bc/g,'\u09dc').replace(/\u09a2\u09bc/g,'\u09dd').replace(/([কত])\u09cd\u09ac/g,'$1').replace(/[ীূঈঊছশষযণৎ]/g,c=>FOLD[c]);}
 const generic=new Set([...GENERIC].map(fold));
@@ -17,11 +17,26 @@ export function topics(terms){
   // A few common Bengali case suffixes; don't guess arbitrary stems.
   const stem=x.replace(/(?:ের|দের|তে|কে)$/u,'');return [...stem].length>=4?[x,stem]:[x];
  }))]);
- for(const group of result)if(group.length===1&&/^\d+$/.test(group[0]))group.numeric=new RegExp('(?<![\\p{L}\\p{M}\\p{N}])'+group[0]+'(?![\\p{L}\\p{M}\\p{N}])','u');
+ const numberWords={1:'এক',2:'দুই',3:'তিন',4:'চার',5:'পাঁচ',6:'ছয়',7:'সাত',8:'আট',9:'নয়',10:'দশ'};
+ for(const group of result)if(group.length===1){
+  const token=group[0];let number=/^\d+$/.test(token)?token:null;
+  if(number===null)for(const [n,word] of Object.entries(numberWords))if(new RegExp('^'+fold(word)+'(?:টি|টিই|টা|বার|জন)?$','u').test(token)){number=n;break}
+  if(number===null)continue;
+  const word=numberWords[Number(number)],alternate=word?'|'+fold(word)+'(?:টি|টিই|টা|বার|জন)?':'';
+  group.numeric=new RegExp('(?<![\\p{L}\\p{M}\\p{N}])(?:'+number+alternate+')(?![\\p{L}\\p{M}\\p{N}])','u');
+ }
  return result;
 }
-function locations(value,form){if([...form].length<3){const r=new RegExp('(?<![\\p{L}\\p{M}])'+form+'(?![\\p{L}\\p{M}])','gu');return [...value.matchAll(r)].map(m=>m.index)}const out=[];let at=-1;while(out.length<100&&(at=value.indexOf(form,at+1))!==-1)out.push(at);return out;}
-export function score(text,terms,normalized=false){const value=normalized?text:fold(text);let n=0;for(const forms of terms)if(forms.numeric?forms.numeric.test(value):forms.some(x=>[...x].length<3?locations(value,x).length>0:value.includes(x)))n++;return n;}
+function locations(value,form){
+ if([...form].length<=3){
+  // Short Bengali stems occur inside unrelated words (সুদ / সুদৃশ্য).
+  // Match whole words and a conservative set of case/derivational suffixes.
+  const r=new RegExp('(?<![\\p{L}\\p{M}\\p{N}])'+form+'(?:ের|দের|তে|কে|টি|টা|রা|গুলো|গুলি|ই|ও|ে|ি|র)?(?![\\p{L}\\p{M}\\p{N}])','gu'),out=[];
+  for(const m of value.matchAll(r)){out.push(m.index);if(out.length===100)break}return out;
+ }
+ const out=[];let at=-1;while(out.length<100&&(at=value.indexOf(form,at+1))!==-1)out.push(at);return out;
+}
+export function score(text,terms,normalized=false){const value=normalized?text:fold(text);let n=0;for(const forms of terms)if(forms.numeric?forms.numeric.test(value):forms.some(x=>[...x].length<=3?locations(value,x).length>0:value.includes(x)))n++;return n;}
 // Co-occurrence across a long narration/verse can describe unrelated events.
 // Require all meaningful groups near one another; this still is not semantic proof.
 function near(text,terms,window=240,normalized=false){
@@ -96,8 +111,8 @@ async function hadith(terms){
  candidates.sort((a,b)=>b.rank-a.rank);return {items:candidates.filter(v=>counts.get(v.book+':'+v.hadith)===1).slice(0,3).map(({rank,...item})=>item),failed};
 }
 // A lexical pre-filter, not proof of relevance. Do not drop sources when the
-// question has fewer than three meaningful groups; website pages remain separate.
-export function articleCandidate(text,termGroups){const t=topics(termGroups);const body=text.split('\nলেখার প্রাসঙ্গিক পাদটীকা')[0].replace(/\([^()]{0,500}\)/gu,' ');return t.length<3||(score(body,t)===t.length&&near(body,t,300));}
+// question has fewer than two meaningful groups; website pages remain separate.
+export function articleCandidate(text,termGroups){const t=topics(termGroups);const body=text.split('\nলেখার প্রাসঙ্গিক পাদটীকা')[0].replace(/\([^()]{0,500}\)/gu,' ');return t.length<2||(score(body,t)===t.length&&near(body,t,300));}
 export async function searchScripture(termGroups){
  const terms=topics(termGroups);if(!terms.length||terms.every(group=>group.every(x=>/^\d+$/.test(x))))return {items:[],failed:false,skipped:true};
  const results=await Promise.allSettled([quran(terms),hadith(terms)]);
