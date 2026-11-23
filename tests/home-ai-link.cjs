@@ -1,0 +1,10 @@
+'use strict';
+const assert=require('node:assert/strict'),fs=require('node:fs');
+const html=fs.readFileSync('index.html','utf8'),css=fs.readFileSync('style.css','utf8');
+const link=html.match(/<div class="home-ai-link"><a href="([^"]+)">([\s\S]*?)<\/a><\/div>/);
+assert(link,'homepage AI link exists without JavaScript');
+assert.equal(link[1],'https://dawah-x.github.io/card/');
+assert.match(link[2],/>DAWAH X AI<\/span>/);
+assert(html.indexOf(link[0])<html.indexOf('</main><footer'));assert(html.indexOf(link[0])>html.indexOf('id="home-discover"'));
+assert.match(css,/\.home-ai-link a\{[^}]*min-height:48px/);assert.match(css,/\.home-ai-link a:focus-visible/);
+console.log('home AI link: destination, placement, accessible name and touch target pass');

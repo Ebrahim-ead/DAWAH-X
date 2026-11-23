@@ -69,7 +69,13 @@ const checkOverflow=async(page,label)=>{
    await visit('index.html');await checkAssistant();
    await page.waitForFunction(()=>document.querySelector('[data-prayer="fajr"] time')?.textContent.includes('05:10'));
    assert.equal(await page.locator('.prayer-card time[datetime]').count(),6,'all prayer times load in browser');
+   const aiLink=page.getByRole('link',{name:'DAWAH X AI',exact:true});
+   assert.equal(await aiLink.getAttribute('href'),'https://dawah-x.github.io/card/');
+   assert((await aiLink.boundingBox()).height>=44,'AI link has a usable touch target');
    if(width===390&&theme==='light'){
+    await context.route('https://dawah-x.github.io/card/',route=>route.fulfill({status:200,contentType:'text/html',body:'<title>Destination</title>'}));
+    await aiLink.click();assert.equal(page.url(),'https://dawah-x.github.io/card/','AI link navigates to the requested site');
+    await visit('index.html');
     prayerAvailable=false;await page.reload({waitUntil:'domcontentloaded'});await page.waitForFunction(()=>document.querySelector('#prayer-next')?.textContent.includes('পাওয়া যাচ্ছে না'));
     assert.equal(await page.locator('.prayer-card time[datetime]').count(),0,'outage does not display old times');
     prayerAvailable=true;await visit('index.html');await page.waitForFunction(()=>document.querySelector('[data-prayer="fajr"] time')?.textContent.includes('05:10'));
