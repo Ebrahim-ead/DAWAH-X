@@ -71,6 +71,12 @@ section{padding:56px 0}
 .about p{color:var(--text);opacity:.9}
 .verse{display:flex;gap:12px;align-items:center;margin-top:16px;border:1px solid var(--gold);border-radius:10px;padding:10px 16px;color:var(--gold2);font-weight:500}
 .verse .i{font-size:28px;color:var(--gold)}
+/* Homepage link to DAWAH X AI */
+.home-ai-link{display:flex;justify-content:center;padding:10px 20px 34px}
+.home-ai-link a{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:48px;padding:10px 24px;border:1px solid #d3b76b;border-radius:999px;background:#123f36;color:#fff;font-size:16px;font-weight:700;text-decoration:none;box-shadow:0 8px 24px rgba(0,29,23,.25);transition:background .2s,transform .2s}
+.home-ai-link a:hover{background:#1b5549;transform:translateY(-2px)}
+.home-ai-link a:focus-visible{outline:3px solid var(--gold2);outline-offset:4px}
+@media(prefers-reduced-motion:reduce){.home-ai-link a{transition:none}}
 /* footer */
 footer{border-top:1px solid var(--line);padding:30px 0 20px;font-size:14px}
 .fg{display:grid;grid-template-columns:1.1fr 1fr 1fr 1.3fr;gap:28px;align-items:start}
