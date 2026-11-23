@@ -19,7 +19,7 @@ const watchdog=setTimeout(()=>{console.error('Live smoke failed: overall deadlin
   assert.equal(live,fs.readFileSync(file,'utf8'),`live ${file} does not match this revision; deployment may still be propagating`);return live;
  }));
  assert(client.includes('snapshot_search'),'live client must support snapshot disclosure');
- const start=app.indexOf('const FOLD_MAP='),end=app.indexOf('/* সাইটে সংরক্ষিত প্রশ্নোত্তর খোঁজ:',start);assert(start>=0&&end>start,'live search implementation');
+ const start=app.indexOf('const FOLD_MAP='),end=app.indexOf('/* ===== /মিলে-যাওয়া লেখা ও ভিডিও ===== */',start);assert(start>=0&&end>start,'live search implementation');
  const context={atob,Float32Array,Uint8Array,Promise,Set,Map,fetch:async url=>read(new URL(String(url),SITE).href)};
  vm.runInNewContext('const toLatinDigits=s=>String(s).replace(/[০-৯]/g,d=>String("০১২৩৪৫৬৭৮৯".indexOf(d)));\n'+app.slice(start,end)+'\nglobalThis.suggest=SUGGEST;',context);
  const failures=[];
