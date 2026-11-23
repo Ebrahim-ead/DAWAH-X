@@ -55,7 +55,7 @@
   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),120000);let res;
   try{res=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:encoded,signal:controller.signal})}finally{clearTimeout(timer)}
   if(!res.ok){
-   if(res.status===502){try{const data=await res.json();if(data.error_code==='model_unavailable'&&Array.isArray(data.candidates)){const error=Error('model_unavailable');error.candidates=data.candidates.slice(0,6);error.partial=data.partial===true;throw error}}catch(error){if(error.message==='model_unavailable')throw error}}
+   if(res.status===502){try{const data=await res.json();if(data.error_code==='model_unavailable'&&Array.isArray(data.candidates)){const error=Error('model_unavailable');error.candidates=data.candidates.slice(0,6);error.partial=data.partial===true;error.quota=data.model_reason==='quota';throw error}}catch(error){if(error.message==='model_unavailable')throw error}}
    throw Error(String(res.status));
   }return res.json();
  }
@@ -89,7 +89,7 @@
    history.push({role:'user',content:q},{role:'assistant',content:data.answer.slice(0,2000)});history=history.slice(-6);
   }catch(e){status.remove();if(!input.value)input.value=q;
    if(e.message==='model_unavailable'){
-    bubble('এআই দিয়ে ব্যাখ্যা তৈরির সেবা এখন কাজ করছে না। নিচে সম্ভাব্য উৎস দেওয়া হলো; এগুলো আপনার প্রশ্নের সঠিক উত্তর কি না যাচাই করা হয়নি। মূল লেখা দেখুন বা পরে আবার চেষ্টা করুন।','assistant');
+    bubble((e.quota?'এআই সেবা দৈনিক ব্যবহারের সীমা শেষ হয়েছে বলে জানিয়েছে।':'এআই দিয়ে ব্যাখ্যা তৈরির সেবা এখন কাজ করছে না।')+' নিচে সম্ভাব্য উৎস দেওয়া হলো; এগুলো আপনার প্রশ্নের সঠিক উত্তর কি না যাচাই করা হয়নি। মূল লেখা দেখুন বা পরে আবার চেষ্টা করুন।','assistant');
     citations(e.candidates||[],true);if(e.partial)bubble('কিছু উৎসে অনুসন্ধান সম্পূর্ণ হয়নি।','status');
    }else bubble(e.message==='429'?'অনেকগুলো অনুরোধ এসেছে। একটু পরে আবার চেষ্টা করুন।':e.message==='search'?'সাইটের লেখা এখন খোঁজা যাচ্ছে না। সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।':e.message==='unsupported'?'এআই সেবা এখনো হালনাগাদ হয়নি। পরে আবার চেষ্টা করুন, অথবা টিমকে প্রশ্ন পাঠান।':'এখন উত্তর পাওয়া যাচ্ছে না। সংযোগ পরীক্ষা করে আবার চেষ্টা করুন, অথবা টিমকে প্রশ্ন পাঠান।','assistant')}
 

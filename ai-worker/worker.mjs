@@ -47,11 +47,16 @@ function lengthLimited(result,limit){
 // occur in Workers AI integrations. A citation is still not semantic proof.
 function modelText(result){if(typeof result?.response==='string'&&result.response.trim())return result.response;const text=result?.choices?.[0]?.message?.content;return typeof text==='string'?text:''}
 async function generateAnswer(ai,messages,limit,grounded){
- let first,model=MODEL,text='';
+ let first,model=MODEL,text='',quotaFailures=0;
  for(const candidate of [MODEL,FALLBACK_MODEL]){
-  try{const result=await ai.run(candidate,{messages,max_tokens:limit});const value=modelText(result);if(!value.trim())continue;first=result;text=value;model=candidate;break}catch(_){}
+  try{const result=await ai.run(candidate,{messages,max_tokens:limit});const value=modelText(result);if(!value.trim())continue;first=result;text=value;model=candidate;break}catch(error){
+   // Disclose only this fixed category, never provider exception text or user
+   // content. Both attempts must explicitly report a daily Neuron quota.
+   const message=typeof error?.message==='string'?error.message:'';
+   if([3036,4006].includes(Number(error?.code))||/you have used up your daily free allocation of [\d,]+ neurons/i.test(message))quotaFailures++;
+  }
  }
- if(!text.trim())throw Error('Model unavailable');
+ if(!text.trim()){const error=Error('Model unavailable');if(quotaFailures===2)error.reason='quota';throw error}
  if(!lengthLimited(first,limit))return {text,incomplete:false,model};
  // Keep costs and context bounded; do not continue an abstention or oversized text.
  if(text.includes('NOT_ENOUGH_INFORMATION')||text.length>12000)return {text,incomplete:true,model};
@@ -289,10 +294,10 @@ export default {
    const prior=questionContext(body.message.trim(),history).slice(1).reverse().join('\n');
    const messages=[{role:'system',content:GROUNDED_SAFETY},{role:'user',content:context+'\n\nEarlier questions (context only):\n'+prior+'\n\nLatest question: '+body.message.trim()}];
    let result;
-   try{result=await generateAnswer(env.AI,messages,ANSWER_TOKENS,true)}catch(_){
+   try{result=await generateAnswer(env.AI,messages,ANSWER_TOKENS,true)}catch(error){
     // Preserve clickable candidates during inference outages, but never label
     // them as verified answers or return source excerpts as a ruling.
-    return reply({error:'Assistant unavailable',error_code:'model_unavailable',candidates:refs.slice(0,6).map((r,i)=>referenceInfo(r,i+1)),partial,search_limited:true,...(partial?{search_failures:failures}:{})},502,origin,allowed);
+    return reply({error:'Assistant unavailable',error_code:'model_unavailable',...(error?.reason==='quota'?{model_reason:'quota'}:{}),candidates:refs.slice(0,6).map((r,i)=>referenceInfo(r,i+1)),partial,search_limited:true,...(partial?{search_failures:failures}:{})},502,origin,allowed);
    }
    let checked=verifyAnswer(result.text,refs);
    if(!checked.valid&&!checked.abstained&&!result.incomplete){
