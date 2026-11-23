@@ -7,7 +7,7 @@ const SITE='https://ebrahim-ead.github.io/DAWAH-X/',API='https://dawahx-assistan
 const read=async(url,options={})=>{const response=await fetch(url,{...options,signal:AbortSignal.timeout(120000)});if(!response.ok)throw Error(`HTTP ${response.status} at ${new URL(url).pathname}`);return response};
 const request=async payload=>{const r=await read(API,{method:'POST',headers:{'Content-Type':'application/json',Origin:ORIGIN},body:JSON.stringify(payload)});return r.json()};
 const annotation=(level,text)=>{if(process.env.GITHUB_ACTIONS==='true')console.log('::'+level+'::'+String(text).slice(0,500).replace(/%/g,'%25').replace(/\r/g,'%0D').replace(/\n/g,'%0A'))};
-const report=(label,data)=>annotation('notice',label+' '+JSON.stringify({grounded:data.grounded,partial:data.partial,failures:Array.isArray(data.search_failures)?data.search_failures.filter(x=>/^(quran|hadith|site_search|site_pages|articles|direct_lookup)$/.test(x)):[],snapshot:data.snapshot_search,verification_failed:data.verification_failed,mode:data.mode,source_count:Array.isArray(data.sources)?data.sources.length:0}));
+const report=(label,data)=>annotation('notice',label+' '+JSON.stringify({grounded:data.grounded,partial:data.partial,failures:Array.isArray(data.search_failures)?data.search_failures.filter(x=>/^(quran|hadith|site_search|site_pages|articles|direct_lookup)$/.test(x)):[],snapshot:data.snapshot_search,diagnostics:Array.isArray(data.source_diagnostics)?data.source_diagnostics:undefined,verification_failed:data.verification_failed,mode:data.mode,source_count:Array.isArray(data.sources)?data.sources.length:0}));
 (async()=>{
  const [app,client]=await Promise.all(['app.js','assistant.js'].map(async file=>{
   const live=await (await read(SITE+file,{cache:'no-store'})).text();

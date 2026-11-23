@@ -33,7 +33,7 @@ const assert=require('node:assert/strict');
   outage=false;data=await (await worker.fetch(req('সালাত কী?'),env)).json();assert.equal(data.snapshot_search,true);assert(data.sources.every(x=>!x.snapshot),'live evidence is not mislabeled when only cached indexes are snapshots');
   outage=true;data=await (await worker.fetch(req('কুরআন ২:২৫৫'),env)).json();assert.equal(data.grounded,true);assert.equal(data.sources[0].snapshot,EAD_SNAPSHOT);assert.equal(data.snapshot_search,true);
   // Failure of both origins never authorizes an answer without evidence.
-  mirrorOutage=true;const before=calls;data=await (await worker.fetch(req('কুরআন ২:২৫৫'),env)).json();assert.equal(data.grounded,false);assert.equal(data.partial,true);assert.deepEqual(data.search_failures,['direct_lookup']);assert.equal(calls,before);
+  mirrorOutage=true;const before=calls;data=await (await worker.fetch(req('কুরআন ২:২৫৫'),env)).json();assert.equal(data.grounded,false);assert.equal(data.partial,true);assert.deepEqual(data.search_failures,['direct_lookup']);assert.deepEqual(data.source_diagnostics,[{category:'quran',origin:'published',reason:'http-403'},{category:'quran',origin:'snapshot',reason:'http-503'}]);assert.equal(calls,before);
   let requested=[];global.fetch=async url=>{requested.push(String(url));return new Response('',{status:404})};
   await assert.rejects(sourceText(site+'texts/000.json',10));assert.equal(requested.length,1,'deleted or missing published content is not silently restored from an old snapshot');
   requested=[];await assert.rejects(sourceText(ead+'../private.json',10));assert.equal(requested.length,1,'unrecognized paths never mirror');

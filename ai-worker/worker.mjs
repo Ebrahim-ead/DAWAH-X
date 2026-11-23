@@ -212,10 +212,10 @@ export default {
    }
    // Explicit single numbered lookups return the source's original text rather
    // than letting a model reconstruct sacred text or assign a reference number.
-   const mirrors=new Set();
+   const mirrors=new Set();mirrors.diagnostics=[];
    const specific=plainSpecific(body.message.trim(),history);
    if(specific){
-    let record;try{record=await lookupScripture(specific,mirrors)}catch(error){if(body.allSources!==true)throw error;return reply({answer:'নির্দিষ্ট আয়াত বা হাদিসের উৎস এখন পাওয়া যাচ্ছে না। অনুগ্রহ করে পরে আবার চেষ্টা করুন।',sources:[],grounded:false,partial:true,search_failures:['direct_lookup']},200,origin,allowed)}
+    let record;try{record=await lookupScripture(specific,mirrors)}catch(error){if(body.allSources!==true)throw error;return reply({answer:'নির্দিষ্ট আয়াত বা হাদিসের উৎস এখন পাওয়া যাচ্ছে না। অনুগ্রহ করে পরে আবার চেষ্টা করুন।',sources:[],grounded:false,partial:true,search_failures:['direct_lookup'],...(mirrors.diagnostics.length?{source_diagnostics:mirrors.diagnostics}:{} )},200,origin,allowed)}
     if(!record)return reply({answer:specific.kind==='surah'?'সূরা নম্বর ১ থেকে ১১৪-এর মধ্যে দিন।':'উল্লেখিত একটি নির্দিষ্ট আয়াত বা হাদিস নিশ্চিতভাবে পাওয়া যায়নি। অনুগ্রহ করে সূরা ও আয়াত নম্বর অথবা কিতাব ও হাদিস নম্বর আলাদাভাবে দিন।',sources:[],grounded:false,...(mirrors.size?{snapshot_search:true}:{})},200,origin,allowed);
     return reply({answer:record.answer,sources:[record.source],grounded:true,mode:'grounded',...(mirrors.size?{snapshot_search:true}:{})},200,origin,allowed);
    }
