@@ -78,7 +78,7 @@ export function queryTerms(q){let normalized=stripSourcePreface(fold(normalizeRo
  // praying, not a separate time-of-day condition. Keep the original question
  // for the model; only remove this narrow retrieval phrase.
  if(normalized.includes('হাত')&&/(?:বাধ|বেধ)/u.test(normalized))normalized=normalized.replace(/(?:নামাজের|সালাতের|সালাত)\s+সময়/gu,'নামাজ');
- const words=normalized.match(/[\p{L}\p{M}\p{N}]+/gu)||[],seen=new Set(),out=[];for(const word of words){const numeric=/^\d{1,6}$/.test(word);if((!numeric&&[...word].length<3&&word!=='মা')||[...word].length>30||SKIP.has(word)||seen.has(word))continue;seen.add(word);const group=/^(?:বাধবো|বাধবে|বাধব|বাধেন|বাধুন|বেধে|বেধেসে|বেধেসেন|বাধার|বাধা)$/u.test(word)?['বাধা','বেধে','বাধবে']:SYNONYMS.find(g=>g.some(x=>word.startsWith(x)));out.push(group||[word]);if(out.length===12)break}return out;}
+ const words=normalized.match(/[\p{L}\p{M}\p{N}]+/gu)||[],seen=new Set(),out=[];for(const word of words){const numeric=/^\d{1,6}$/.test(word);if((!numeric&&[...word].length<3&&word!=='মা'&&word!=='পা')||[...word].length>30||SKIP.has(word)||seen.has(word))continue;seen.add(word);const group=/^(?:বাধবো|বাধবে|বাধব|বাধেন|বাধুন|বেধে|বেধেসে|বেধেসেন|বাধার|বাধা)$/u.test(word)?['বাধা','বেধে','বাধবে']:SYNONYMS.find(g=>g.some(x=>word.startsWith(x)));out.push(group||[word]);if(out.length===12)break}return out;}
 function excerpt(html,query){
  // Link the article's own footnotes to the excerpts that refer to them. They
  // are not model citation numbers, and must never be confused with [1], [2].

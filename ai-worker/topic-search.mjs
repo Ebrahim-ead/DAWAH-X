@@ -12,8 +12,14 @@ const generic=new Set([...GENERIC].map(fold));
 // Small, explicit topic vocabulary, used for candidate discovery only. The
 // original question and the full source always go to the model for context.
 const CONCEPTS=[['শিশু','বাচ্চা','সন্তান','নবজাতক'],['জন্ম','প্রসব'],['মুসলিম','মুসলমান','ইসলাম','ফিতরাত','ফিত্রাত','স্বভাবজাত'],['মা','মায়ের','মাতা','মাতাপিতা','পিতামাতা'],['বাবা','পিতা','মাতাপিতা','পিতামাতা'],['সদ্ব্যবহার','সদ্ব্যবহার','সদাচরণ','সৎব্যবহার','উত্তম ব্যবহার','ভালো ব্যবহার','ভাল ব্যবহার','সম্মান','ইহসান'],['তাওহিদ','একমাত্র ইলাহ','এক ইলাহ','ইলাহ এক','আল্লাহ ছাড়া কোনো সত্য ইলাহ','এক আল্লাহ']].map(g=>g.map(fold));
+// These narrowly defined inflections are candidates, not synonyms for every
+// use of the words. Keep short পা boundary-checked (it must not match পানি).
+const INFLECTIONS=[
+ {forms:['পা','পায়ে','পায়ের','পায়ে','পায়ের'],match:['পা']},
+ {forms:['মিলানো','মিলানোর','মিলানোয়','মিলিয়ে','মিলিয়ে','মিলানোকে','মিলান'],match:['মিলানো','মিলিয়ে','মিলান']}
+].map(({forms,match})=>({forms:new Set(forms.map(fold)),match:match.map(fold)}));
 export function topics(terms){
- const expanded=terms.filter(group=>!group.some(x=>generic.has(x))).map(group=>{const concept=CONCEPTS.find((g,i)=>!(i===2&&group.some(x=>generic.has(x)))&&group.some(x=>g.some(y=>x===y||([...y].length>=3&&x.startsWith(y)))));return concept||group});
+ const expanded=terms.filter(group=>!group.some(x=>generic.has(x))).map(group=>{const inflection=INFLECTIONS.find(g=>group.some(x=>g.forms.has(x)));if(inflection)return inflection.match;const concept=CONCEPTS.find((g,i)=>!(i===2&&group.some(x=>generic.has(x)))&&group.some(x=>g.some(y=>x===y||([...y].length>=3&&x.startsWith(y)))));return concept||group});
  const seen=new Set();const result=expanded.filter(group=>{const key=[...group].sort().join('|');if(seen.has(key))return false;seen.add(key);return true}).map(group=>[...new Set(group.flatMap(x=>{
   // A few common Bengali case suffixes; don't guess arbitrary stems.
   const stem=x.replace(/(?:ের|তে|কে)$/u,'');return [...stem].length>=4?[x,stem]:[x];
@@ -32,7 +38,8 @@ function locations(value,form){
  if([...form].length<=3){
   // Short Bengali stems occur inside unrelated words (সুদ / সুদৃশ্য).
   // Match whole words and a conservative set of case/derivational suffixes.
-  const r=new RegExp('(?<![\\p{L}\\p{M}\\p{N}])'+form+'(?:ের|দের|তে|কে|টি|টা|রা|গুলো|গুলি|ই|ও|ে|ি|র)?(?![\\p{L}\\p{M}\\p{N}])','gu'),out=[];
+  const suffix=form===fold('পা')?'(?:য়ের|য়ে|য়ের|য়ে|ের|তে|কে|টি|টা|গুলো|গুলি|ই|ও|ে|র)?':'(?:ের|দের|তে|কে|টি|টা|রা|গুলো|গুলি|ই|ও|ে|ি|র)?';
+  const r=new RegExp('(?<![\\p{L}\\p{M}\\p{N}])'+form+suffix+'(?![\\p{L}\\p{M}\\p{N}])','gu'),out=[];
   for(const m of value.matchAll(r)){out.push(m.index);if(out.length===100)break}return out;
  }
  const out=[];let at=-1;while(out.length<100&&(at=value.indexOf(form,at+1))!==-1)out.push(at);return out;
