@@ -11,7 +11,7 @@ const assert=require('node:assert/strict');
  const env={ALLOWED_ORIGINS:origin,RATE_LIMITER:{limit:async()=>({success:true})},AI:{run:async()=>{calls++;return {response:'উত্তর [1]'}}}};
  const req=()=>new Request('https://worker.test/',{method:'POST',headers:{Origin:origin,'CF-Connecting-IP':'192.0.2.1','Content-Type':'application/json'},body:JSON.stringify({message:'সালাত কী?',ids:['034d218703d000'],history:[],lookupComplete:true})});
  try{
-  let res=await worker.fetch(req(),env),data=await res.json();assert.equal(data.grounded,true);assert.equal(options.redirect,'error');assert(options.signal instanceof AbortSignal);assert.equal(calls,1);
+  let res=await worker.fetch(req(),env),data=await res.json();assert.equal(data.grounded,true);assert.equal(options.redirect,'manual');assert(options.signal instanceof AbortSignal);assert.equal(calls,1);
   for(mode of ['missing','malformed','large']){res=await worker.fetch(req(),env);assert.equal(res.status,502,mode+' must not be mistaken for an empty successful search');assert.equal(calls,1)}
   mode='valid';res=await worker.fetch(req(),env);data=await res.json();assert.equal(data.grounded,true,'next request must recover');
   console.log('assistant site sources: bounded response, missing records, malformed data and recovery pass');

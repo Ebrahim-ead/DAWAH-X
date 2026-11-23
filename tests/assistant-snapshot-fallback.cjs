@@ -17,7 +17,7 @@ const assert=require('node:assert/strict');
   if(url.endsWith('/texts/000.json'))return JSON.stringify({'034d218703d000':{t:'সাইটের লেখা',h:'সালাত প্রসঙ্গে লেখা'}});
   throw Error('unexpected fixture');
  };
- global.fetch=async (url,options)=>{url=String(url);seen.push(url);assert.match(options.headers['User-Agent'],/^DAWAH-X-Assistant\//);assert.equal(options.redirect,'error');
+ global.fetch=async (url,options)=>{url=String(url);seen.push(url);assert.match(options.headers['User-Agent'],/^DAWAH-X-Assistant\//);assert.equal(options.redirect,'manual');
   if(url.startsWith('https://ebrahim-ead.github.io/')){if(outage)return new Response('',{status:403});return new Response(contents(url))}
   if(url.startsWith('https://raw.githubusercontent.com/')){if(mirrorOutage)return new Response('',{status:503});return new Response(contents(url))}
   throw Error('unexpected host');

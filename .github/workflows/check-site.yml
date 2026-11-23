@@ -22,6 +22,18 @@ jobs:
           node tools/run-tests.cjs
           TZ=Pacific/Honolulu node tests/prayer-times.cjs
           TZ=Pacific/Kiritimati node tests/prayer-times.cjs
+  worker-runtime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install workerd test runtime
+        run: npm install --prefix "$RUNNER_TEMP/worker-runtime" miniflare@3.20250718.3
+      - name: Test actual Worker fetch behavior
+        run: NODE_PATH="$RUNNER_TEMP/worker-runtime/node_modules" node tools/check-worker-runtime.cjs
   guidance-contrast:
     runs-on: ubuntu-latest
     timeout-minutes: 10
