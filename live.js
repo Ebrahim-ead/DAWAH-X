@@ -41,7 +41,8 @@
 
   /* live.json-এ কেবল বৈধ ভিডিও-আইডি রাখা হয়; updated পুরোনো হলে কিছুই দেখানো হয় না */
   var state = { list: [], updated: 0 };
-  var last = null;
+  var last = null, requestId = 0;
+  var MAX_FUTURE_SKEW_MS = 2 * 60 * 1000;
 
   function adopt(data) {
     var when = Date.parse((data && data.updated) || '');
@@ -50,7 +51,7 @@
       return v && /^[A-Za-z0-9_-]{11}$/.test(String(v.id || ''));
     });
   }
-  function isFresh() { return state.updated > 0 && (Date.now() - state.updated) < MAX_AGE_MS; }
+  function isFresh() { var age = Date.now() - state.updated; return state.updated > 0 && age >= -MAX_FUTURE_SKEW_MS && age < MAX_AGE_MS; }
   /* কেউ লাইভ দেখছে (লাইটবক্স খোলা) — তখন বোতামটি সরানো হয় না */
   function watching() { return document.body.classList.contains('video-modal-open'); }
   function apply() {
@@ -63,10 +64,11 @@
   }
 
   function load() {
+    var id = ++requestId;
     fetch(ENDPOINT + '?t=' + Date.now(), { cache: 'no-store', credentials: 'omit' })
       .then(function (r) { return r.ok ? r.json() : null; })
-      .then(function (data) { if (data) adopt(data); apply(); })
-      .catch(function () { apply(); });  /* আনা না গেলেও পুরোনো তথ্য সময় পার হলে সরে যায় */
+      .then(function (data) { if (id !== requestId) return; if (data) adopt(data); apply(); })
+      .catch(function () { if (id === requestId) apply(); });  /* আনা না গেলেও পুরোনো তথ্য সময় পার হলে সরে যায় */
   }
 
   load();

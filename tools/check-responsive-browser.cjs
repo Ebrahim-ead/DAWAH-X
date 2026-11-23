@@ -77,7 +77,10 @@ const checkOverflow=async(page,label)=>{
    await page.keyboard.press('Escape');assert.equal(await dialog.getAttribute('open'),'');assert.equal(await frame.getAttribute('src'),frameSrc);
    await dialog.locator('.video-lightbox-close').focus();await page.keyboard.press('Enter');
    assert.equal(await dialog.getAttribute('open'),null);await page.waitForFunction(()=>!document.querySelector('.video-lightbox iframe'));assert(await videoButton.evaluate(el=>document.activeElement===el));
+   await visit('read.html?k=00000000000000');await page.waitForFunction(()=>document.querySelector('#read-title')?.textContent.includes('পাওয়া যায়নি'));
+   for(const id of ['read-save','quote-open','read-complete','read-find-videos'])assert.equal(await page.locator('#'+id).isDisabled(),true,'missing article must not enable '+id);
    await visit('read.html?k=1505f35ad3d6f0');await page.waitForFunction(()=>document.querySelector('#read-body')?.textContent.trim().length>30);
+   for(const id of ['read-save','quote-open','read-complete','read-find-videos'])assert.equal(await page.locator('#'+id).isEnabled(),true,'loaded article must enable '+id);
    await checkOverflow(page,`${theme} ${width} article loaded`);
    const size=await page.locator('#read-body').evaluate(e=>parseFloat(getComputedStyle(e).fontSize));await page.click('#read-font-up');await page.waitForFunction(before=>parseFloat(getComputedStyle(document.querySelector('#read-body')).fontSize)>before,size);
    if(width<=560)assert((await page.locator('#read-font-up').boundingBox()).height>=44);

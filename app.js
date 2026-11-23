@@ -88,7 +88,7 @@ if(readTitle){
  let backTo=backHref;try{const s=sessionStorage.getItem("dawahx-list-"+from);if(s)backTo+="?"+s}catch(e){}
  if(back){back.href=backTo;back.textContent=backLabel}
  if(nav&&from==="f"){nav.classList.remove("on");const f=document.querySelector('#menu a[href="fatwa.html"]');if(f)f.classList.add("on")}
- const fail=msg=>{readTitle.textContent="লেখাটি পাওয়া যায়নি";body.innerHTML=`<p>${msg}</p><p><a class="askbtn" href="${backHref}">${backLabel} তালিকায় ফিরে যান</a></p>`};
+ const fail=msg=>{delete body.dataset.loaded;for(const id of ["read-save","quote-open","read-complete","read-find-videos"]){const control=$(id);if(control)control.disabled=true}readTitle.textContent="লেখাটি পাওয়া যায়নি";body.innerHTML=`<p>${msg}</p><p><a class="askbtn" href="${backHref}">${backLabel} তালিকায় ফিরে যান</a></p>`};
  /* লেখার শেয়ার-লিংক s/<চাবি>.html — সেখানে লেখার নিজের শিরোনাম থাকে (Facebook/WhatsApp-এর প্রিভিউয়ের জন্য), খুললে এই পাতাতেই আসে */
  const shareLinks=(t,k)=>{const url=k?new URL("s/"+k+".html",location.href).href:location.href.split("#")[0],share=encodeURIComponent(t+"\n"+url);
   const cp=document.querySelector("#read-share [data-copy-link]");if(cp)cp.dataset.copyLink=url;
@@ -140,6 +140,8 @@ if(readTitle){
  else if(!/^[0-9a-f]{14}$/.test(key))fail("ঠিকানাটি সঠিক নয়।");
  else fetch("texts/"+textBucket(key)+".json").then(r=>{if(!r.ok)throw new Error(r.status);return r.json()}).then(all=>{
   const x=all[key];if(!x){fail("এই লেখাটি এখনো সাইটে যোগ হয়নি।");return}
+  if(typeof x.t!=="string"||!x.t.trim()||typeof x.h!=="string"||!x.h.trim()||typeof x.u!=="string"||!/^https?:\/\//i.test(x.u))throw new Error("Invalid article");
+  const sourceUrl=new URL(x.u);if(!["http:","https:"].includes(sourceUrl.protocol))throw new Error("Invalid source URL");
   const srcName=TEXT_SOURCES[x.s]||hostOf(x.u);
   readTitle.textContent=toLatinDigits(x.t);document.title=toLatinDigits(x.t)+" — DAWAH X";
   const cat=$("read-cat");if(cat&&x.c){cat.textContent=x.c;cat.hidden=false}
@@ -150,6 +152,8 @@ if(readTitle){
   shareLinks(x.t,key);
   markHits(body,P.get("q")||"");
   showRelated(key);
+  body.dataset.loaded="true";
+  for(const id of ["read-save","quote-open","read-complete","read-find-videos"]){const control=$(id);if(control)control.disabled=false}
   if(location.hash){const t=document.getElementById(location.hash.slice(1));if(t)t.scrollIntoView()}
  }).catch(()=>fail("লেখাটি লোড করা যায়নি। ইন্টারনেট সংযোগ দেখে আবার চেষ্টা করুন।"))}
 
@@ -1084,32 +1088,30 @@ setupLibrary({id:"f",deep:PAGE==="fatwa",rows:FT,manifest:PAGE==="fatwa"?FATWA_P
   /* Netlify Forms শুধু Netlify-তে চলে; GitHub Pages বা নিজস্ব ডোমেইনে সরাসরি জমার জন্য ASK_ACTION লাগে */
   const netlifyHost=/(^|\.)netlify\.app$/i.test(location.hostname);
   const directPossible=Boolean(ASK_ACTION)||netlifyHost;
-  /* স্প্যাম ঠেকানো: (১) লুকানো ঘর «ab» ভরা থাকলে, (২) ফর্ম খোলার ২ সেকেন্ডের মধ্যে পাঠালে —
-     কোনো স্ক্রিপ্ট ধরা পড়বে; ব্যবহারকারীকে আগের মতোই «ধন্যবাদ» দেখানো হয়, শুধু কিছু পাঠানো হয় না */
-  const formBorn=Date.now();
-  const looksAutomated=()=>{const trap=$("ab");return (trap&&trap.value.trim().length>0)||(Date.now()-formBorn<1500)};
+  /* স্প্যাম ঠেকাতে লুকানো ফাঁদ; দ্রুত পূরণ করা বা autofill ব্যবহার করা
+     প্রকৃত পাঠকের প্রশ্ন কেবল সময়ের ভিত্তিতে বাতিল করা হয় না। */
+  const looksAutomated=()=>{const trap=$("ab");return !!(trap&&trap.value.trim().length>0)};
   if(!directPossible&&how)how.textContent="«প্রশ্ন পাঠান» চাপলে WhatsApp ও Messenger-এর বোতাম আসবে; যেকোনো একটিতে আপনার প্রশ্ন লেখা অবস্থায় চ্যাট খুলবে, সেখানে Send চাপলেই প্রশ্নটি আমাদের কাছে পৌঁছাবে।";
 
-  const copyText=text=>{let ok=false;
-   try{const ta=document.createElement("textarea");ta.value=text;ta.setAttribute("readonly","");ta.style.cssText="position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;pointer-events:none";document.body.appendChild(ta);ta.select();ta.setSelectionRange(0,text.length);ok=document.execCommand("copy");ta.remove()}catch(e){}
-   try{navigator.clipboard?.writeText(text).catch(()=>{})}catch(e){}
-   return ok};
-  /* লিংকে খুব লম্বা লেখা দেওয়া যায় না; পুরো প্রশ্ন clipboard-এ থাকে, তাই প্রয়োজনে Paste করা যায় */
+  const copyText=async text=>{
+   try{if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(text);return true}}catch(e){}
+   let ta;try{ta=document.createElement("textarea");ta.value=text;ta.setAttribute("readonly","");ta.style.cssText="position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;pointer-events:none";document.body.appendChild(ta);ta.select();ta.setSelectionRange(0,text.length);return !!document.execCommand("copy")}catch(e){return false}finally{ta?.remove()}};
+  /* লিংকে খুব লম্বা লেখা দেওয়া যায় না; পাঠক চাইলে পুরো প্রশ্ন কপি করে Paste করতে পারেন */
   const clip=text=>text.length>700?text.slice(0,700)+"…":text;
   const CHAT={
    whatsapp:{name:"WhatsApp",cls:"ask-whatsapp",url:text=>LINKS.whatsapp+"?text="+encodeURIComponent(clip(text))},
    messenger:{name:"Messenger",cls:"ask-messenger",url:text=>MESSENGER+"?text="+encodeURIComponent(clip(text))}
   };
 
-  /* সরাসরি জমা না হলে দেখানো হয়: WhatsApp ও Messenger — দুটি বোতাম (প্রশ্ন লেখা অবস্থায় চ্যাট খোলে) এবং "আবার কপি" */
+  /* সরাসরি জমা না হলে দেখানো হয়: WhatsApp ও Messenger — দুটি বোতাম (প্রশ্ন লেখা অবস্থায় চ্যাট খোলে) এবং "পুরো প্রশ্ন কপি" */
   const chatOptions=(text,lead)=>{
-   const copied=copyText(text),p=document.createElement("span");
-   p.textContent=lead+"নিচের WhatsApp বা Messenger বোতামে চাপুন — আপনার প্রশ্ন লেখা অবস্থায় চ্যাট খুলবে, সেখানে Send চাপলেই প্রশ্নটি আমাদের কাছে পৌঁছাবে।"+(copied?" প্রশ্নটি কপিও করা আছে; বার্তা ফাঁকা বা অসম্পূর্ণ দেখালে Paste করুন।":"");
+   const p=document.createElement("span");
+   p.textContent=lead+"নিচের WhatsApp বা Messenger বোতামে চাপুন — সেখানে Send চাপলেই প্রশ্নটি পৌঁছাবে। বার্তা ফাঁকা বা অসম্পূর্ণ দেখালে পুরো প্রশ্ন কপি করে Paste করুন।";
    const actions=Object.assign(document.createElement("span"),{className:"ask-actions"});
    for(const kind of ["whatsapp","messenger"]){const app=CHAT[kind];
     actions.append(Object.assign(document.createElement("a"),{href:app.url(text),target:"_blank",rel:"noopener noreferrer",className:app.cls,textContent:app.name+"-এ পাঠান ↗"}))}
-   const again=Object.assign(document.createElement("button"),{type:"button",className:"ask-copy",textContent:"প্রশ্ন আবার কপি করুন"});
-   again.addEventListener("click",()=>{copyText(text);again.textContent="কপি হয়েছে ✓"});
+   const again=Object.assign(document.createElement("button"),{type:"button",className:"ask-copy",textContent:"পুরো প্রশ্ন কপি করুন"});
+   again.addEventListener("click",async()=>{again.textContent=(await copyText(text))?"কপি হয়েছে ✓":"কপি করা যায়নি"});
    actions.append(again);
    msg.replaceChildren(p,actions);
   };
@@ -1193,7 +1195,7 @@ setupLibrary({id:"f",deep:PAGE==="fatwa",rows:FT,manifest:PAGE==="fatwa"?FATWA_P
     if(!ok)throw new Error("not delivered");
     msg.textContent="ধন্যবাদ! আপনার প্রশ্ন আমাদের কাছে পৌঁছেছে। ইন শা আল্লাহ শীঘ্রই উত্তর দেওয়া হবে।";aq.value="";saveDraft();showSuggestions();
    }catch(e){
-    chatOptions(text,"সরাসরি জমা দেওয়া যায়নি। ");
+    chatOptions(text,"সরাসরি জমা হয়েছে কি না নিশ্চিত করা যায়নি। আবার পাঠালে একই প্রশ্ন দুবার পৌঁছাতে পারে। ");
    }
    btn.disabled=false;
   });
@@ -1225,7 +1227,7 @@ if(readTools){
  const article=$("read"),SAVED_KEY="dawahx-saved",SCALE_KEY="dawahx-read-scale";
  const question=()=>new URLSearchParams(location.search);
  const savedList=()=>{try{const a=JSON.parse(localStorage.getItem(SAVED_KEY)||"[]");return Array.isArray(a)?a:[]}catch(e){return[]}};
- const storeList=a=>{try{localStorage.setItem(SAVED_KEY,JSON.stringify(a.slice(0,200)))}catch(e){}};
+ const storeList=a=>{try{localStorage.setItem(SAVED_KEY,JSON.stringify(a.slice(0,200)));return true}catch(e){return false}};
  const curKey=()=>question().get("k")||"";
  const countEl=$("read-saved-count");
  const paintCount=()=>{if(countEl)countEl.textContent=formatCount(savedList().length)};
@@ -1247,14 +1249,14 @@ if(readTools){
  /* সংরক্ষণ: বোতাম চাপলে লেখাটি পড়ার তালিকায় যোগ হয় বা বাদ যায় */
  const saveBtn=$("read-save"),saveLabel=$("read-save-label");
  const canSave=/^[0-9a-f]{14}$/.test(curKey());
- if(saveBtn&&!canSave)saveBtn.disabled=true;
+ if(saveBtn)saveBtn.disabled=!canSave||$("read-body")?.dataset.loaded!=="true";
  const paintSave=()=>{
   const on=canSave&&savedList().some(x=>x.k===curKey());
   if(saveBtn)saveBtn.setAttribute("aria-pressed",on?"true":"false");
   if(saveLabel)saveLabel.textContent=on?"তালিকায় আছে":"সংরক্ষণ করুন";
  };
  if(saveBtn)saveBtn.addEventListener("click",()=>{
-  if(!canSave)return;
+  if(!canSave||$("read-body")?.dataset.loaded!=="true")return;
   const k=curKey();let list=savedList();
   if(list.some(x=>x.k===k))list=list.filter(x=>x.k!==k);
   else{
@@ -1262,7 +1264,8 @@ if(readTools){
    if(!title||title.indexOf("লোড হচ্ছে")>=0)return;
    list.unshift({k,t:title,c:cat,d:new Date().toISOString().slice(0,10),f:question().get("from")==="f"?"f":"q"});
   }
-  storeList(list);paintSave();paintCount();
+  if(!storeList(list)){if(saveLabel)saveLabel.textContent="সংরক্ষণ করা যায়নি";return}
+  paintSave();paintCount();
  });
  const printBtn=$("read-print");
  if(printBtn)printBtn.addEventListener("click",()=>window.print());
