@@ -7,7 +7,12 @@ const SITE='https://ebrahim-ead.github.io/DAWAH-X/',API='https://dawahx-assistan
 const read=async(url,options={})=>{const response=await fetch(url,{...options,signal:AbortSignal.timeout(120000)});if(!response.ok)throw Error(`HTTP ${response.status} at ${new URL(url).pathname}`);return response};
 const request=async payload=>{const r=await read(API,{method:'POST',headers:{'Content-Type':'application/json',Origin:ORIGIN},body:JSON.stringify(payload)});return r.json()};
 const annotation=(level,text)=>{if(process.env.GITHUB_ACTIONS==='true')console.log('::'+level+'::'+String(text).slice(0,500).replace(/%/g,'%25').replace(/\r/g,'%0D').replace(/\n/g,'%0A'))};
-const report=(label,data)=>annotation('notice',label+' '+JSON.stringify({grounded:data.grounded,partial:data.partial,failures:Array.isArray(data.search_failures)?data.search_failures.filter(x=>/^(quran|hadith|site_search|site_pages|articles|direct_lookup)$/.test(x)):[],snapshot:data.snapshot_search,diagnostics:Array.isArray(data.source_diagnostics)?data.source_diagnostics:undefined,verification_failed:data.verification_failed,mode:data.mode,source_count:Array.isArray(data.sources)?data.sources.length:0}));
+// One notice at the end avoids GitHub's per-step annotation cap hiding later
+// samples. Keep this timer referenced: an unresolved fetch must not let Node
+// silently exit successfully before all questions finish.
+const reports=[];
+const report=(label,data)=>reports.push(label+' '+JSON.stringify({grounded:data.grounded,partial:data.partial,failures:Array.isArray(data.search_failures)?data.search_failures.filter(x=>/^(quran|hadith|site_search|site_pages|articles|direct_lookup)$/.test(x)):[],mode:data.mode,source_count:Array.isArray(data.sources)?data.sources.length:0}));
+const watchdog=setTimeout(()=>{console.error('Live smoke failed: overall deadline exceeded');annotation('error','Live smoke failed: overall deadline exceeded');process.exit(1)},10*60*1000);
 (async()=>{
  const [app,client]=await Promise.all(['app.js','assistant.js'].map(async file=>{
   const live=await (await read(SITE+file,{cache:'no-store'})).text();
@@ -18,7 +23,7 @@ const report=(label,data)=>annotation('notice',label+' '+JSON.stringify({grounde
  const context={atob,Float32Array,Uint8Array,Promise,Set,Map,fetch:async url=>read(new URL(String(url),SITE).href)};
  vm.runInNewContext('const toLatinDigits=s=>String(s).replace(/[০-৯]/g,d=>String("০১২৩৪৫৬৭৮৯".indexOf(d)));\n'+app.slice(start,end)+'\nglobalThis.suggest=SUGGEST;',context);
  const failures=[];
- async function run(label,fn){try{await fn();console.log('PASS:',label);annotation('notice','PASS: '+label)}catch(error){failures.push(label+': '+error.message);console.error('FAIL:',label,error.message);annotation('error','FAIL: '+label+': '+error.message)}}
+ async function run(label,fn){try{await fn();console.log('PASS:',label)}catch(error){failures.push(label+': '+error.message);console.error('FAIL:',label,error.message);annotation('error','FAIL: '+label+': '+error.message)}}
  // A fixed direct text lookup exercises source fetching without model inference.
  await run('direct Quran lookup',async()=>{
   const data=await request({message:'কুরআন ২:২৫৫',ids:[],pages:[],history:[],lookupComplete:true,allSources:true});
@@ -38,4 +43,5 @@ const report=(label,data)=>annotation('notice',label+' '+JSON.stringify({grounde
  });
  if(failures.length)throw Error(failures.join('; '));
  console.log('Live smoke completed. Generated claims still require independent review; searching is bounded.');
-})().catch(error=>{console.error('Live smoke failed:',error.message);annotation('error','Live smoke failed: '+error.message);process.exitCode=1});
+ for(const result of reports)annotation('notice',result);
+})().catch(error=>{console.error('Live smoke failed:',error.message);annotation('error','Live smoke failed: '+error.message);process.exitCode=1}).finally(()=>clearTimeout(watchdog));
