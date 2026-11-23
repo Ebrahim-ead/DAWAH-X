@@ -1,41 +1,82 @@
-/* ঢাকার আনুমানিক সময়: adhan-js, করাচি 18°/18° এবং শাফেয়ী আসর। */
+/* আলআযান: ঢাকা, করাচি পদ্ধতি (18°/18°), স্ট্যান্ডার্ড আসর। */
 (()=>{
  const dateNode=document.getElementById('prayer-date'),nextNode=document.getElementById('prayer-next');
  if(!dateNode||!nextNode)return;
- const details=document.getElementById('prayer-reference'),frame=document.getElementById('prayer-frame');
  const keys=['fajr','sunrise','dhuhr','asr','maghrib','isha'];
+ const apiKeys={fajr:'Fajr',sunrise:'Sunrise',dhuhr:'Dhuhr',asr:'Asr',maghrib:'Maghrib',isha:'Isha'};
  const names={fajr:'ফজর',sunrise:'সূর্যোদয়',dhuhr:'যোহর',asr:'আসর',maghrib:'মাগরিব',isha:'এশা'};
  const cards=keys.map(key=>document.querySelector('.prayer-card[data-prayer="'+key+'"]'));
- let widgetDay='', midnightTimer;
- // Dhaka stays at UTC+06:00; schedule an update for its next calendar day.
- // A suspended tab is refreshed again on visibilitychange/pageshow/focus.
- const scheduleMidnight=now=>{
-  window.clearTimeout(midnightTimer);
-  const dhakaOffset=6*60*60*1000,dayMs=24*60*60*1000;
-  const remaining=dayMs-((now.getTime()+dhakaOffset)%dayMs+dayMs)%dayMs;
-  midnightTimer=window.setTimeout(render,remaining+50);
- };
+ const months=new Map(),inflight=new Map(),failures=new Map(),ttl=6*60*60*1000,retryAfter=5*60*1000;
+ let shownDay='',sequence=0,midnightTimer;
  const dayParts=now=>{
   const parts=new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Dhaka',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(now);
-  const values=Object.fromEntries(parts.map(part=>[part.type,part.value]));
-  return {year:Number(values.year),month:Number(values.month),day:Number(values.day),key:values.year+'-'+values.month+'-'+values.day};
+  const p=Object.fromEntries(parts.map(part=>[part.type,part.value]));
+  return {year:Number(p.year),month:Number(p.month),day:Number(p.day),key:p.year+'-'+p.month+'-'+p.day};
  };
- const widgetRefresh=day=>{
-  if(!details?.open||!frame?.dataset.src||widgetDay===day)return;
-  const url=new URL(frame.dataset.src);url.searchParams.set('dawahx_day',day);
-  frame.src=url.href;widgetDay=day;
+ const tomorrow=day=>{const d=new Date(Date.UTC(day.year,day.month-1,day.day+1));return {year:d.getUTCFullYear(),month:d.getUTCMonth()+1,day:d.getUTCDate()}};
+ const clear=()=>cards.forEach(card=>{if(!card)return;card.classList.remove('is-current','is-next');const time=card.querySelector('time');time.textContent='—';time.removeAttribute('datetime');card.querySelector('.prayer-state').textContent=''});
+ const scheduleMidnight=now=>{
+  window.clearTimeout(midnightTimer);
+  const offset=6*60*60*1000,dayMs=24*60*60*1000;
+  const remaining=dayMs-((now.getTime()+offset)%dayMs+dayMs)%dayMs;
+  midnightTimer=window.setTimeout(render,remaining+50);
  };
- const render=()=>{
+ // Validate the complete month, including date, method, school and timezone.
+ // Do not silently present stale, malformed or differently configured times.
+ function parseCalendar(data,year,month){
+  const days=new Date(Date.UTC(year,month,0)).getUTCDate();
+  if(data?.code!==200||!Array.isArray(data.data)||data.data.length!==days)throw Error('invalid calendar');
+  const output=new Map();
+  for(const row of data.data){
+   const match=/^(\d{2})-(\d{2})-(\d{4})$/.exec(row?.date?.gregorian?.date||'');
+   if(!match||Number(match[2])!==month||Number(match[3])!==year)throw Error('invalid date');
+   const day=Number(match[1]);if(day<1||day>days||output.has(day))throw Error('duplicate date');
+   if(row.meta?.timezone!=='Asia/Dhaka'||row.meta?.method?.id!==1||row.meta?.school!=='STANDARD')throw Error('invalid method');
+   const times={};
+   for(const key of keys){
+    const name=apiKeys[key],value=row.timings?.[name];
+    const m=typeof value==='string'&&/^([01]\d|2[0-3]):([0-5]\d)(?:\s+\(\+06(?::?00)?\))?$/.exec(value);
+    if(!m||row.meta.offset?.[name]!==0)throw Error('invalid timing');
+    times[key]=new Date(Date.UTC(year,month-1,day,Number(m[1])-6,Number(m[2])));
+   }
+   for(let i=1;i<keys.length;i++)if(times[keys[i]]<=times[keys[i-1]])throw Error('invalid order');
+   output.set(day,times);
+  }
+  return output;
+ }
+ async function calendar(day){
+  const id=day.year+'-'+String(day.month).padStart(2,'0'),now=Date.now(),cached=months.get(id);
+  if(cached&&cached.until>now)return cached.data;
+  if(inflight.has(id))return inflight.get(id);
+  if((failures.get(id)||0)>now)throw Error('temporarily unavailable');
+  const request=Promise.resolve().then(async()=>{
+   const controller=new AbortController(),timer=window.setTimeout(()=>controller.abort(),12000);
+   try{
+    const url='https://api.aladhan.com/v1/calendarByCity/'+day.year+'/'+day.month+'?city=Dhaka&country=Bangladesh&method=1&school=0';
+    const response=await fetch(url,{signal:controller.signal,cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});
+    if(!response.ok)throw Error('calendar unavailable');
+    const data=parseCalendar(await response.json(),day.year,day.month);
+    months.set(id,{data,until:Date.now()+ttl});failures.delete(id);return data;
+   }catch(error){months.delete(id);failures.set(id,Date.now()+retryAfter);throw error}
+   finally{window.clearTimeout(timer);inflight.delete(id)}
+  });
+  inflight.set(id,request);return request;
+ }
+ const formatted=new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Dhaka',hour:'2-digit',minute:'2-digit',hour12:true});
+ const dateFormat=new Intl.DateTimeFormat('bn-BD-u-nu-latn',{timeZone:'Asia/Dhaka',weekday:'long',day:'numeric',month:'long',year:'numeric'});
+ async function render(){
+  const id=++sequence;let now=new Date();const day=dayParts(now);
+  dateNode.textContent=dateFormat.format(now);
+  const monthId=day.year+'-'+String(day.month).padStart(2,'0'),cached=months.get(monthId);
+  if(shownDay!==day.key||!cached||cached.until<=Date.now()){
+   shownDay=day.key;clear();nextNode.textContent='আলআযান থেকে সময়সূচি আনা হচ্ছে…';
+  }
   try{
-   if(typeof DawahAdhan==='undefined'||cards.some(card=>!card))throw new Error('calculator unavailable');
-   const now=new Date(),day=dayParts(now),date=new Date(day.year,day.month-1,day.day,12);
-   const params=DawahAdhan.CalculationMethod.Karachi();
-   const coords=new DawahAdhan.Coordinates(23.7104,90.40744);
-   const times=new DawahAdhan.PrayerTimes(coords,date,params);
-   if(keys.some(key=>!(times[key] instanceof Date)||!Number.isFinite(times[key].getTime())))throw new Error('invalid prayer time');
-   const formatted=new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Dhaka',hour:'2-digit',minute:'2-digit',hour12:true});
-   const dateFormat=new Intl.DateTimeFormat('bn-BD-u-nu-latn',{timeZone:'Asia/Dhaka',weekday:'long',day:'numeric',month:'long',year:'numeric'});
-   dateNode.textContent=dateFormat.format(now);
+   if(cards.some(card=>!card))throw Error('missing card');
+   const times=(await calendar(day)).get(day.day);
+   if(id!==sequence)return;
+   now=new Date();if(dayParts(now).key!==day.key){render();return}
+   if(!times)throw Error('missing day');
    let current=-1;for(let i=0;i<keys.length;i++)if(now>=times[keys[i]])current=i;
    const next=current+1;
    cards.forEach((card,i)=>{
@@ -43,22 +84,18 @@
     card.classList.toggle('is-current',i===current);card.classList.toggle('is-next',i===next);
     card.querySelector('.prayer-state').textContent=i===current?'সর্বশেষ সময়':i===next?'পরবর্তী':'';
    });
-   if(next<keys.length){nextNode.textContent='পরবর্তী: '+names[keys[next]]+' · '+formatted.format(times[keys[next]])}
+   if(next<keys.length)nextNode.textContent='পরবর্তী: '+names[keys[next]]+' · '+formatted.format(times[keys[next]]);
    else{
-    const tomorrow=new Date(day.year,day.month-1,day.day+1,12);
-    const fajr=new DawahAdhan.PrayerTimes(coords,tomorrow,params).fajr;
-    if(!Number.isFinite(fajr.getTime()))throw new Error('invalid next day');
-    nextNode.textContent='পরবর্তী: ফজর · আগামীকাল '+formatted.format(fajr);
+    nextNode.textContent='আগামীকালের ফজরের সময় আনা হচ্ছে…';
+    try{const nextDay=tomorrow(day),nextTimes=(await calendar(nextDay)).get(nextDay.day);
+     if(id!==sequence)return;if(dayParts(new Date()).key!==day.key){render();return}
+     if(!nextTimes)throw Error('missing next day');nextNode.textContent='পরবর্তী: ফজর · আগামীকাল '+formatted.format(nextTimes.fajr);
+    }catch(_){if(id===sequence)nextNode.textContent='আগামীকালের ফজরের সময় পাওয়া যাচ্ছে না। আলআযানের লিংক বা স্থানীয় সময়সূচি দেখুন।'}
    }
-   widgetRefresh(day.key);
-  }catch(_){
-   cards.forEach(card=>{if(!card)return;card.classList.remove('is-current','is-next');card.querySelector('time').textContent='—';card.querySelector('time').removeAttribute('datetime');card.querySelector('.prayer-state').textContent=''});
-   dateNode.textContent='ঢাকা · বাংলাদেশ সময়';nextNode.textContent='সময় গণনা করা যাচ্ছে না। IslamicFinder-এর লিংক বা স্থানীয় সময়সূচি দেখুন।';
-  }finally{scheduleMidnight(new Date())}
- };
+  }catch(_){if(id===sequence){clear();nextNode.textContent='আলআযানের সময়সূচি এখন পাওয়া যাচ্ছে না। লিংক বা স্থানীয় সময়সূচি দেখুন।'}}
+  finally{if(id===sequence)scheduleMidnight(new Date())}
+ }
  render();window.setInterval(render,60000);
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)render()});
- window.addEventListener('pageshow',render);
- window.addEventListener('focus',render);
- details?.addEventListener('toggle',render);
+ window.addEventListener('pageshow',render);window.addEventListener('focus',render);
 })();

@@ -1369,7 +1369,7 @@ body[data-page="fatwa"] .library-note:not(.catalog-status){margin-top:7px!import
 .prayer-header p{color:var(--muted);font-size:14px}
 .prayer-source{display:inline-flex;align-items:center;justify-content:center;padding:8px 12px;border:1px solid rgba(246,196,83,.24);border-radius:11px;background:rgba(246,196,83,.055);color:var(--gold2);font-weight:700;font-size:12px;line-height:1.4;text-decoration:none;transition:background-color .2s ease,border-color .2s ease,transform .2s ease}
 .prayer-source:hover{background:rgba(246,196,83,.13);border-color:rgba(246,196,83,.45);transform:translateY(-1px)}
-.prayer-source:focus-visible,.prayer-reference summary:focus-visible{outline:2px solid var(--gold2);outline-offset:4px;border-radius:3px}
+.prayer-source:focus-visible{outline:2px solid var(--gold2);outline-offset:4px;border-radius:3px}
 .prayer-intro{margin:15px 0 8px;color:var(--muted);font-size:13px}
 .prayer-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}
 .prayer-card{position:relative;display:flex;flex-direction:column;min-width:0;min-height:112px;padding:10px 12px;border:1px solid rgba(166,194,190,.14);border-radius:14px;background:linear-gradient(155deg,rgba(255,255,255,.055),rgba(255,255,255,.018));box-shadow:inset 0 1px rgba(255,255,255,.035);transition:background-color .22s ease,border-color .22s ease,box-shadow .22s ease}
@@ -1387,11 +1387,8 @@ body[data-page="fatwa"] .library-note:not(.catalog-status){margin-top:7px!import
 .prayer-next{display:flex;align-items:center;gap:9px;margin-top:12px;color:var(--gold2);font-size:14px;font-weight:700}
 .prayer-next::before{content:"";flex:none;width:7px;height:7px;border-radius:50%;background:var(--gold2);box-shadow:0 0 0 4px rgba(246,196,83,.10)}
 .prayer-disclaimer{margin-top:13px;padding:10px 12px;border:1px solid rgba(166,194,190,.11);border-radius:13px;background:rgba(0,0,0,.12)}
-.prayer-method,.prayer-note,.prayer-reference p{color:var(--muted);font-size:12px;line-height:1.7}
+.prayer-method,.prayer-note{color:var(--muted);font-size:12px;line-height:1.7}
 .prayer-disclaimer .prayer-note{margin-top:5px}
-.prayer-reference{margin-top:11px;padding-top:10px;border-top:1px solid rgba(173,193,215,.14)}
-.prayer-reference summary{width:fit-content;color:var(--gold2);font-size:13px;font-weight:700;cursor:pointer}.prayer-reference p{margin-top:8px}
-.prayer-widget{width:min(100%,280px);margin-top:12px}.prayer-widget iframe{display:block;width:100%;height:358px;border:0;border-radius:12px;background:#fff}
 html[data-theme="light"] .prayer-panel{background:radial-gradient(ellipse at 100% 0,rgba(26,132,106,.07),transparent 40%),#fffdf8;border-color:rgba(162,112,10,.2);box-shadow:0 6px 24px rgba(23,36,44,.07)}
 html[data-theme="light"] .prayer-card{background:linear-gradient(145deg,#f5f3ec,#eeece4);border-color:rgba(23,36,44,.09);box-shadow:inset 0 1px rgba(255,255,255,.8)}
 html[data-theme="light"] .prayer-card h3{color:#596b68}
