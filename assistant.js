@@ -30,22 +30,23 @@
  function pageMatches(q){const site=/(?:dawah\s*x|দা[ওউ]য়?া?হ|দাওয়াহ|দাওয়াহ|ওয়েবসাইট|ওয়েবসাইট|ওয়েবসাইট|সাইট|আপনাদের|তোমাদের)/i.test(q);if(!site)return [];const pages=['about.html'];if(/সেবা|কার্যক্রম|কাজ|উদ্দেশ্য|service/i.test(q))pages.push('services.html');if(/যোগাযোগ|ফোন|নম্বর|whatsapp|হোয়াটসঅ্যাপ|হোয়াটসঅ্যাপ/i.test(q))pages.push('contact.html');if(/নীতি|তথ্যসূত্র|উৎস|রেফারেন্স|সংশোধন/i.test(q))pages.push('policy.html');return pages}
  function citations(items){if(!items.length)return;const box=document.createElement('div');box.className='dxa-sources';const title=document.createElement('strong');title.textContent='উত্তরে উল্লেখিত উৎস — মূল লেখা যাচাই করুন';box.append(title);
   function link(label,href){const a=document.createElement('a');a.textContent=label;a.href=href;a.target='_blank';a.rel='noopener noreferrer';box.append(a)}
+  function snapshot(item,repo,path){if(/^[a-f0-9]{40}$/.test(item.snapshot||''))link('ব্যবহৃত বিকল্প উৎসের নির্দিষ্ট সংস্করণ (সাইটের বর্তমান পাঠ ভিন্ন হতে পারে)'+(item.key?' · লেখার ID: '+item.key:''),'https://github.com/Ebrahim-ead/'+repo+'/blob/'+item.snapshot+'/'+path)}
   const books={bukhari:'বুখারী',muslim:'মুসলিম','abu-dawud':'আবু দাউদ',tirmidhi:'তিরমিজি',nasai:'নাসাঈ','ibn-majah':'ইবনে মাজাহ',mishkat:'মিশকাত'};
   for(const item of items){if(!item||!Number.isInteger(item.number)||item.number<1||typeof item.title!=='string')continue;
    if(item.type==='quran-surah'&&Number.isInteger(item.surah)&&item.surah>=1&&item.surah<=114){
     link('['+item.number+'] '+item.title+' · Ebrahim Ead','https://ebrahim-ead.github.io/ead/quran.html#'+item.surah);
-    link('একই সূরা Quran.com-এ দেখুন','https://quran.com/'+item.surah);continue;
+    snapshot(item,'ead','assets/quran/data/index.json');link('একই সূরা Quran.com-এ দেখুন','https://quran.com/'+item.surah);continue;
    }
    if(item.type==='quran'&&Number.isInteger(item.surah)&&item.surah>=1&&item.surah<=114&&Number.isInteger(item.verse)&&item.verse>=1&&item.verse<=286){
     link('['+item.number+'] '+item.title+' · Ebrahim Ead', 'https://ebrahim-ead.github.io/ead/quran.html#'+item.surah+':'+item.verse);
-    link('একই আয়াত Quran.com-এ দেখুন (ভিন্ন অনুবাদ হতে পারে)','https://quran.com/'+item.surah+'/'+item.verse);continue;
+    snapshot(item,'ead','assets/quran/data/suras/'+item.surah+'.json');link('একই আয়াত Quran.com-এ দেখুন (ভিন্ন অনুবাদ হতে পারে)','https://quran.com/'+item.surah+'/'+item.verse);continue;
    }
    if(item.type==='hadith'&&Object.prototype.hasOwnProperty.call(books,item.book)&&Number.isInteger(item.chapter)&&item.chapter>=0&&item.chapter<=200&&Number.isInteger(item.hadith)&&item.hadith>=1&&item.hadith<=20000){
     link('['+item.number+'] '+item.title+' · Ebrahim Ead','https://ebrahim-ead.github.io/ead/hadith.html#'+item.book+':'+item.chapter+':'+item.hadith);
-    link('HadithBD-তে খুঁজুন (সংস্করণ ও নম্বর মিলিয়ে দেখুন)','https://www.hadithbd.com/search/?q='+encodeURIComponent(books[item.book]+' '+item.hadith));continue;
+    snapshot(item,'ead','assets/hadith/data/'+item.book+'/'+item.chapter+'.json');link('HadithBD-তে খুঁজুন (সংস্করণ ও নম্বর মিলিয়ে দেখুন)','https://www.hadithbd.com/search/?q='+encodeURIComponent(books[item.book]+' '+item.hadith));continue;
    }
    if(!/^[a-f0-9]{14}$/.test(item.key||'')&&!sitePages.has(item.path))continue;
-   link('['+item.number+'] '+item.title,item.path&&sitePages.has(item.path)?url(item.path):url('read.html?k='+encodeURIComponent(item.key)));
+   link('['+item.number+'] '+item.title,item.path&&sitePages.has(item.path)?url(item.path):url('read.html?k='+encodeURIComponent(item.key)));snapshot(item,'DAWAH-X',item.path&&sitePages.has(item.path)?item.path:'texts/'+item.key.slice(-3)+'.json');
   }chat.append(box);chat.scrollTop=chat.scrollHeight}
  async function requestAnswer(payload){
   // Keep the most recent complete turns while respecting the Worker's byte limit.
@@ -77,6 +78,7 @@
     const missing=Object.keys(names).filter(k=>c[k]==='no_match').map(k=>names[k]),skipped=Object.keys(names).filter(k=>c[k]==='skipped').map(k=>names[k]);
     if(missing.length)bubble('সীমিত অনুসন্ধানে সরাসরি '+missing.join(' ও ')+'ের পাঠ মেলেনি; এর মানে এই নয় যে সেখানে কোনো দলিল নেই।','status');
     if(skipped.length)bubble(skipped.join(' ও ')+'-এ বিষয়ভিত্তিক অনুসন্ধান করা যায়নি।','status')}
+   if(data.snapshot_search===true)bubble('কিছু অনুসন্ধান বা উৎসে বিকল্প স্থির সংস্করণ ব্যবহার হয়েছে; বর্তমান সাইটের পাঠ ভিন্ন হতে পারে। বিকল্প পাঠ ব্যবহার হলে উৎসের পাশে সংস্করণের লিংক দেওয়া আছে।','status');
    if(data.incomplete===true)bubble('উত্তর সম্পূর্ণ করা যায়নি। প্রশ্নটি ছোট অংশে ভাগ করে আবার করুন।','status');
    // Start a long answer at its beginning instead of jumping past it to citations.
    if(answerBubble.offsetHeight>chat.clientHeight*0.7)chat.scrollTop+=answerBubble.getBoundingClientRect().top-chat.getBoundingClientRect().top-8;

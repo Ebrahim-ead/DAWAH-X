@@ -1,4 +1,4 @@
-import {sourceText} from './source-fetch.mjs';
+import {sourceText,EAD_SNAPSHOT} from './source-fetch.mjs';
 // Direct numbered lookups use only the user's own Ebrahim Ead site. No URL or
 // text supplied by the browser is fetched, and no model supplies a reference.
 const BASE='https://ebrahim-ead.github.io/ead/';
@@ -82,14 +82,14 @@ export function parseSurah(message){
  if(!words.some(w=>/^(?:কী|কি|কোন|কোনটি|কোনটা|নাম|নামটি|কত|কয়টি|কয়টি|সংখ্যা|ki|what|which|name|koto|koyti|many|বলুন|বলো|বলবেন|জানাবেন)$/.test(w)))return null;
  return {kind:'surah',surah:numbers[0]};
 }
-export async function scriptureJSON(path){
- return JSON.parse(await sourceText(BASE+path,3*1024*1024));
+export async function scriptureJSON(path,mirrors){
+ return JSON.parse(await sourceText(BASE+path,3*1024*1024,mirrors));
 }
-export async function lookupScripture(ref){
+export async function lookupScripture(ref,mirrors){
  if(ref.kind==='unsupported')return null;
  if(ref.kind==='surah'){
   if(!Number.isInteger(ref.surah)||ref.surah<1||ref.surah>114)return null;
-  const index=await scriptureJSON('assets/quran/data/index.json');
+  const index=await scriptureJSON('assets/quran/data/index.json',mirrors);
   if(!Array.isArray(index.suras))throw Error('Invalid Quran index');
   const rows=index.suras.filter(row=>row.n===ref.surah);
   if(rows.length!==1)throw Error('Invalid Quran index');
@@ -97,25 +97,25 @@ export async function lookupScripture(ref){
   if(typeof row.bn!=='string'||!row.bn.trim()||row.bn.length>100||!Number.isInteger(row.count)||row.count<1||row.count>286||!['makki','madani'].includes(row.type))throw Error('Invalid Quran metadata');
   const title='সূরা '+row.bn+' · সূরা নম্বর '+ref.surah;
   const answer='কুরআনের '+ref.surah+' নম্বর সূরা হলো '+row.bn+'। [1]\n\nএই সূরায় '+row.count+'টি আয়াত আছে; উৎসের তালিকা অনুযায়ী এটি '+(row.type==='makki'?'মাক্কী':'মাদানী')+' সূরা।';
-  return {answer,source:{number:1,title,type:'quran-surah',surah:ref.surah}};
+  return {answer,source:{number:1,title,type:'quran-surah',surah:ref.surah,...(mirrors?.has(BASE+'assets/quran/data/index.json')?{snapshot:EAD_SNAPSHOT}:{})}};
  }
  if(ref.kind==='quran'){
   if(!Number.isInteger(ref.surah)||ref.surah<1||ref.surah>114||!Number.isInteger(ref.verse)||ref.verse<1||ref.verse>286)return null;
-  const data=await scriptureJSON('assets/quran/data/suras/'+ref.surah+'.json');
+  const data=await scriptureJSON('assets/quran/data/suras/'+ref.surah+'.json',mirrors);
   if(data.n!==ref.surah||!Array.isArray(data.verses))throw Error('Invalid Quran source');
   const rows=data.verses.filter(x=>x.a===ref.verse&&typeof x.bn==='string'&&x.bn.trim());if(rows.length!==1)return null;
   const v=rows[0],title='সূরা '+String(data.bnName||data.translit||ref.surah).slice(0,100)+' · '+ref.surah+':'+ref.verse;
   if(v.bn.length>8000)return null;
   const arabic=typeof v.ar==='string'&&v.ar.trim()&&v.ar.length<=4000?'আরবি মূল:\n'+v.ar+'\n\n':'';
   const answer='নির্দিষ্ট নম্বরের অনুবাদ নিচে দেওয়া হলো; অতিরিক্ত ব্যাখ্যা বা অন্য প্রশ্নের উত্তর এখানে যাচাই করা হয়নি।\n\n'+title+' [1]\n\n'+arabic+'বাংলা অনুবাদ:\n'+v.bn+'\n\nবাংলা অনুবাদ: ড. আবূ বকর মুহাম্মাদ যাকারিয়া, রাওয়াদ ট্রান্সলেশন সেন্টার; সূত্র: QuranEnc.com (সংস্করণ ১.১.১), Ebrahim Ead সাইটে প্রকাশিত। বন্ধনীর নম্বরগুলো অনুবাদের টীকা; সম্পূর্ণ টীকা ও প্রসঙ্গ মূল পাতায় দেখুন।';
-  return {answer,evidence:'কুরআনের আয়াত: '+title+'\nবাংলা অনুবাদ: '+notesAsText(v.bn)+(arabic?'\n'+arabic.trim():'')+'\nঅনুবাদক ড. আবূ বকর মুহাম্মাদ যাকারিয়া; রাওয়াদ ট্রান্সলেশন সেন্টার, QuranEnc.com সংস্করণ ১.১.১। মূল পাতায় টীকা ও প্রসঙ্গ দেখুন।',source:{number:1,title,type:'quran',surah:ref.surah,verse:ref.verse}};
+  return {answer,evidence:'কুরআনের আয়াত: '+title+'\nবাংলা অনুবাদ: '+notesAsText(v.bn)+(arabic?'\n'+arabic.trim():'')+'\nঅনুবাদক ড. আবূ বকর মুহাম্মাদ যাকারিয়া; রাওয়াদ ট্রান্সলেশন সেন্টার, QuranEnc.com সংস্করণ ১.১.১। মূল পাতায় টীকা ও প্রসঙ্গ দেখুন।',source:{number:1,title,type:'quran',surah:ref.surah,verse:ref.verse,...(mirrors?.has(BASE+'assets/quran/data/suras/'+ref.surah+'.json')?{snapshot:EAD_SNAPSHOT}:{})}};
  }
  if(ref.kind!=='hadith'||!BOOKS.some(b=>b.slug===ref.book)||!Number.isInteger(ref.number)||ref.number<1||ref.number>20000)return null;
- const idx=await scriptureJSON('assets/hadith/data/index.json');
+ const idx=await scriptureJSON('assets/hadith/data/index.json',mirrors);
  const book=Array.isArray(idx.books)&&idx.books.find(b=>b.slug===ref.book);if(!book||!Array.isArray(book.chapters))throw Error('Invalid hadith index');
  const chapters=book.chapters.filter(c=>Number.isInteger(c.id)&&c.id>=0&&c.id<=200&&Number.isInteger(c.from)&&Number.isInteger(c.to)&&ref.number>=c.from&&ref.number<=c.to);
  if(!chapters.length)return null;if(chapters.length>2)throw Error('Ambiguous hadith index');
- const data=await Promise.all(chapters.map(c=>scriptureJSON('assets/hadith/data/'+ref.book+'/'+c.id+'.json')));
+ const data=await Promise.all(chapters.map(c=>scriptureJSON('assets/hadith/data/'+ref.book+'/'+c.id+'.json',mirrors)));
  const found=[];data.forEach((d,i)=>{if(d.book!==ref.book||d.chapter!==chapters[i].id||!Array.isArray(d.verses))throw Error('Invalid hadith source');for(const v of d.verses)if(v.i===ref.number&&typeof v.b==='string'&&v.b.trim()&&!/^(?:অনুবাদ পাওয়া যায়নি।?|\(\.\.\.\)|—|-)$/.test(v.b.trim()))found.push({v,chapter:chapters[i].id})});
  // Multiple variants or numbering overlaps must not be silently conflated.
  if(found.length!==1||found[0].v.b.length>8000)return null;
@@ -124,5 +124,5 @@ export async function lookupScripture(ref){
  const attribution=ref.book==='mishkat'?'মুসলিম বাংলা (muslimbangla.com)':'আল-হাদিস / IRD Foundation (ihadis.com)';
  const arabic=typeof v.a==='string'&&v.a.trim()&&v.a.length<=4000?'\n\nআরবি পাঠ:\n'+v.a:'';
  const answer='নির্দিষ্ট নম্বরের বাংলা পাঠ নিচে দেওয়া হলো; অতিরিক্ত ব্যাখ্যা বা অন্য প্রশ্নের উত্তর এখানে যাচাই করা হয়নি।\n\n'+title+' [1]\n\n'+v.b+arabic+grade+'\n\nউৎস: '+attribution+'; Ebrahim Ead সাইটে প্রকাশিত। হাদিসের নম্বর প্রকাশনী ও সংস্করণভেদে ভিন্ন হতে পারে; মূল উৎসে যাচাই করুন।';
- return {answer,evidence:'হাদিস: '+title+'\nবাংলা পাঠ: '+notesAsText(v.b)+arabic+grade+'\nমূল তথ্য: '+attribution+'; Ebrahim Ead-এ প্রকাশিত। সংস্করণভেদে নম্বর ভিন্ন হতে পারে।',source:{number:1,title,type:'hadith',book:ref.book,chapter,hadith:ref.number}};
+ return {answer,evidence:'হাদিস: '+title+'\nবাংলা পাঠ: '+notesAsText(v.b)+arabic+grade+'\nমূল তথ্য: '+attribution+'; Ebrahim Ead-এ প্রকাশিত। সংস্করণভেদে নম্বর ভিন্ন হতে পারে।',source:{number:1,title,type:'hadith',book:ref.book,chapter,hadith:ref.number,...(mirrors?.has(BASE+'assets/hadith/data/'+ref.book+'/'+chapter+'.json')?{snapshot:EAD_SNAPSHOT}:{})}};
 }

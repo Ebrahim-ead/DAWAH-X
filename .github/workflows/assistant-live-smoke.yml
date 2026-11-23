@@ -1,12 +1,16 @@
 name: Assistant live smoke test
-# Manual only: sends three fixed, public sample questions to production and
+# Opt-in only: sends fixed, public sample questions to production and
 # incurs Workers AI inference costs. No user chats, training or writes.
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - "arena/**"
 permissions:
   contents: read
 jobs:
   smoke:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[assistant-live-check]')
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:

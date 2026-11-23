@@ -1,7 +1,7 @@
 // Candidate discovery is keyword-based, not a religious verdict. Every selected
 // record is reloaded from Ebrahim Ead's structured data before model use.
 import {scriptureJSON} from './scripture.mjs';
-import {sourceText} from './source-fetch.mjs';
+import {sourceText,EAD_SNAPSHOT} from './source-fetch.mjs';
 import {findHadithCandidates} from './hadith-index.mjs';
 const BASE='https://ebrahim-ead.github.io/ead/';
 const BOOKS=new Set(['bukhari','muslim','abu-dawud','tirmidhi','nasai','ibn-majah','mishkat']);
@@ -51,49 +51,50 @@ function near(text,terms,window=240,normalized=false){
 }
 function footnotes(text){return text.replace(/\[\s*([0-9০-৯]+)\s*\]/g,'(অনুবাদের টীকা $1)');}
 let ayahCache=null,indexCache=null;
-async function cached(slot,loader){
+async function cached(slot,loader,mirrors){
  // Store only completed data: Cloudflare request-bound I/O promises must not
  // be shared across simultaneous requests or retained in an isolate.
  const item=slot==='ayah'?ayahCache:indexCache;
- if(item&&item.until>Date.now())return item.value;
- const value=await loader(),next={value,until:Date.now()+30*60*1000};
+ if(item&&item.until>Date.now()){for(const url of item.mirrors)mirrors?.add(url);return item.value}
+ const used=new Set();const value=await loader(used),next={value,mirrors:[...used],until:Date.now()+30*60*1000};
+ for(const url of used)mirrors?.add(url);
  if(slot==='ayah')ayahCache=next;else indexCache=next;
  return value;
 }
-async function ayahIndex(){
- const s=await sourceText(BASE+'assets/search-ayahs.js',4*1024*1024);
+async function ayahIndex(mirrors){
+ const s=await sourceText(BASE+'assets/search-ayahs.js',4*1024*1024,mirrors);
  const m=s.match(/window\.SITE_AYAHS\s*=\s*(\[[\s\S]*\])\s*;\s*$/);if(!m)throw Error('Invalid Quran search index');
  const rows=JSON.parse(m[1]);if(!Array.isArray(rows)||!rows.length||rows.length>7000)throw Error('Invalid Quran search index');
  return rows.filter(r=>Array.isArray(r)&&Number.isInteger(r[0])&&r[0]>=1&&r[0]<=114&&Number.isInteger(r[1])&&r[1]>=1&&r[1]<=286&&typeof r[2]==='string'&&r[2].length<=8000).map(r=>[r[0],r[1],fold(r[2])]);
 }
-async function quran(terms){
- const rows=await cached('ayah',ayahIndex), needed=terms.length;
+async function quran(terms,mirrors){
+ const rows=await cached('ayah',ayahIndex,mirrors), needed=terms.length;
  const matches=[],seen=new Set();for(const row of rows){const key=row[0]+':'+row[1];if(seen.has(key))continue;seen.add(key);const n=score(row[2],terms,true);if(n>=needed&&near(row[2],terms,240,true))matches.push({surah:row[0],verse:row[1],score:n})}
  matches.sort((a,b)=>b.score-a.score||a.surah-b.surah||a.verse-b.verse);
  // Avoid giving all evidence slots to one chapter, but keep the highest ranks.
  const picks=[];for(const m of matches){if(picks.filter(x=>x.surah===m.surah).length<2)picks.push(m);if(picks.length===3)break}
  const chapters=[...new Set(picks.map(x=>x.surah))];
- const results=await Promise.allSettled(chapters.map(n=>scriptureJSON('assets/quran/data/suras/'+n+'.json')));
+ const results=await Promise.allSettled(chapters.map(n=>scriptureJSON('assets/quran/data/suras/'+n+'.json',mirrors)));
  const docs=new Map();results.forEach((r,i)=>{if(r.status==='fulfilled'&&r.value.n===chapters[i]&&Array.isArray(r.value.verses))docs.set(chapters[i],r.value)});
  let failed=docs.size!==chapters.length;const items=[];
  for(const p of picks){const d=docs.get(p.surah);if(!d)continue;const vs=d.verses.filter(v=>v.a===p.verse&&typeof v.bn==='string'&&v.bn.trim()&&v.bn.length<=6000);if(vs.length!==1||score(vs[0].bn,terms)<needed||!near(vs[0].bn,terms)){failed=true;continue}
   const name=typeof d.bnName==='string'&&d.bnName.trim()?d.bnName.slice(0,100):String(p.surah),title='সূরা '+name+' · '+p.surah+':'+p.verse;
-  items.push({title,type:'quran',surah:p.surah,verse:p.verse,text:'কুরআনের আয়াত: '+title+'\nবাংলা অনুবাদ: '+footnotes(vs[0].bn)+'\nঅনুবাদক ড. আবূ বকর মুহাম্মাদ যাকারিয়া; রাওয়াদ ট্রান্সলেশন সেন্টার, QuranEnc.com সংস্করণ ১.১.১। টীকা ও আগের-পরের আয়াত মূল উৎসে দেখুন।'});
+  items.push({title,type:'quran',surah:p.surah,verse:p.verse,...(mirrors?.has(BASE+'assets/quran/data/suras/'+p.surah+'.json')?{snapshot:EAD_SNAPSHOT}:{}),text:'কুরআনের আয়াত: '+title+'\nবাংলা অনুবাদ: '+footnotes(vs[0].bn)+'\nঅনুবাদক ড. আবূ বকর মুহাম্মাদ যাকারিয়া; রাওয়াদ ট্রান্সলেশন সেন্টার, QuranEnc.com সংস্করণ ১.১.১। টীকা ও আগের-পরের আয়াত মূল উৎসে দেখুন।'});
  }
  return {items,failed};
 }
-async function hadith(terms){
- const idx=await cached('index',()=>scriptureJSON('assets/hadith/data/index.json'));
+async function hadith(terms,mirrors){
+ const idx=await cached('index',used=>scriptureJSON('assets/hadith/data/index.json',used),mirrors);
  if(!Array.isArray(idx.books))throw Error('Invalid hadith search index');
  let candidatesFromIndex=[],indexFailed=false,indexLimited=false;
- try{candidatesFromIndex=await findHadithCandidates(terms);indexLimited=!!candidatesFromIndex.limited}catch(_){indexFailed=true}
+ try{candidatesFromIndex=await findHadithCandidates(terms,mirrors);indexLimited=!!candidatesFromIndex.limited}catch(_){indexFailed=true}
  const chapters=[];for(const b of idx.books){if(!BOOKS.has(b.slug)||!Array.isArray(b.chapters)||typeof b.bn!=='string')continue;for(const c of b.chapters){if(!Number.isInteger(c.id)||c.id<0||c.id>200||typeof c.bn!=='string')continue;const n=score(c.bn,terms);if(n)chapters.push({book:b.slug,name:b.bn.slice(0,100),id:c.id,score:n})}}
  const titleOnly=terms.length===1&&chapters.length>0;
  const picked=[];for(const c of (titleOnly?[]:candidatesFromIndex)){const b=idx.books.find(b=>b.slug===c.book),chapter=b?.chapters?.find(x=>x.id===c.id);if(b&&chapter&&typeof b.bn==='string')picked.push({...c,name:b.bn.slice(0,100)})}
  // Fall back to title search if no indexed candidates were found or the
  // candidate index is temporarily unavailable. It is not full-text coverage.
  if(!picked.length){chapters.sort((a,b)=>b.score-a.score);for(const c of chapters){if(picked.filter(x=>x.book===c.book).length<2)picked.push(c);if(picked.length===5)break}}
- const results=await Promise.allSettled(picked.map(c=>scriptureJSON('assets/hadith/data/'+c.book+'/'+c.id+'.json')));
+ const results=await Promise.allSettled(picked.map(c=>scriptureJSON('assets/hadith/data/'+c.book+'/'+c.id+'.json',mirrors)));
  let failed=indexFailed;const candidates=[];
  results.forEach((r,i)=>{const c=picked[i];if(r.status!=='fulfilled'||r.value.book!==c.book||r.value.chapter!==c.id||!Array.isArray(r.value.verses)){failed=true;return}
   const counts=new Map();for(const v of r.value.verses)counts.set(v.i,(counts.get(v.i)||0)+1);
@@ -101,7 +102,7 @@ async function hadith(terms){
   for(const v of r.value.verses){if(indexed&&!indexed.has(v.i))continue;if(!Number.isInteger(v.i)||v.i<1||v.i>20000||counts.get(v.i)!==1||v.dup||typeof v.b!=='string'||!v.b.trim()||v.b.length>6000||/^(?:অনুবাদ পাওয়া যায়নি।?|\(\.\.\.\)|—|-)$/u.test(v.b.trim()))continue;
    const n=score(v.b,terms);if(n<terms.length||!near(v.b,terms,300))continue;
    const title=c.name+' · হাদিস '+v.i,grade=typeof v.g==='string'&&v.g.trim()?v.g.slice(0,100):'উৎসে উল্লেখ নেই';
-   candidates.push({rank:c.ranks?.[v.i]||n,title,type:'hadith',book:c.book,chapter:c.id,hadith:v.i,text:'হাদিস: '+title+'\nবাংলা পাঠ: '+footnotes(v.b)+'\nউৎসে উল্লিখিত মান: '+grade+'। মূল তথ্য: '+(c.book==='mishkat'?'মুসলিম বাংলা':'IRD Foundation / ihadis.com')+'; Ebrahim Ead-এ প্রকাশিত। সংস্করণভেদে নম্বর ভিন্ন হতে পারে।'});
+   candidates.push({rank:c.ranks?.[v.i]||n,title,type:'hadith',book:c.book,chapter:c.id,hadith:v.i,...(mirrors?.has(BASE+'assets/hadith/data/'+c.book+'/'+c.id+'.json')?{snapshot:EAD_SNAPSHOT}:{}),text:'হাদিস: '+title+'\nবাংলা পাঠ: '+footnotes(v.b)+'\nউৎসে উল্লিখিত মান: '+grade+'। মূল তথ্য: '+(c.book==='mishkat'?'মুসলিম বাংলা':'IRD Foundation / ihadis.com')+'; Ebrahim Ead-এ প্রকাশিত। সংস্করণভেদে নম্বর ভিন্ন হতে পারে।'});
   }
  });
  const counts=new Map();for(const v of candidates){const key=v.book+':'+v.hadith;counts.set(key,(counts.get(key)||0)+1)}
@@ -110,9 +111,9 @@ async function hadith(terms){
 // A lexical pre-filter, not proof of relevance. Do not drop sources when the
 // question has fewer than two meaningful groups; website pages remain separate.
 export function articleCandidate(text,termGroups){const t=topics(termGroups);const body=text.split('\nলেখার প্রাসঙ্গিক পাদটীকা')[0].replace(/\([^()]{0,500}\)/gu,' ');return t.length<2||(score(body,t)===t.length&&near(body,t,300));}
-export async function searchScripture(termGroups){
+export async function searchScripture(termGroups,mirrors){
  const terms=topics(termGroups);if(!terms.length||terms.every(group=>group.every(x=>/^\d+$/.test(x))))return {items:[],failed:false,skipped:true};
- const results=await Promise.allSettled([quran(terms),hadith(terms)]);
+ const results=await Promise.allSettled([quran(terms,mirrors),hadith(terms,mirrors)]);
  const failedSources=results.flatMap((r,i)=>r.status==='rejected'||r.value.failed?[i===0?'quran':'hadith']:[]);
  return {items:results.flatMap(r=>r.status==='fulfilled'?r.value.items:[]),failed:failedSources.length>0,failedSources,limited:results.some(r=>r.status==='fulfilled'&&r.value.limited===true)};
 }
