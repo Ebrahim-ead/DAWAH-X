@@ -40,13 +40,12 @@ const watchdog=setTimeout(()=>{console.error('Live smoke failed: overall deadlin
   if(!found)throw Error('Live site search failed for the sample question');
   const data=await request({message:q,ids:found.texts.slice(0,6).map(x=>x.k),pages:[],history:[],lookupComplete:true,scriptureSearch:true,siteSearchFailed:false,siteSearchLimited:found.limited===true,...(found.correction?{searchCorrection:found.correction}:{}),allSources:true},'answer request');
   console.log(JSON.stringify({question:q,candidates:found.texts.slice(0,6).map(x=>x.title),correction:found.correction,response:data}));report(q,data);
-  // Focused runs use fixed public questions. Surface the generated response and
-  // cited identifiers in annotations as well as logs, for review where Actions
-  // log downloads are inaccessible. Never include user-submitted questions.
-  if(process.env.ASSISTANT_LIVE_FOCUS==='camel'&&typeof data.answer==='string'){
+  // These are fixed public questions, never user chats. Emit each source
+  // separately so annotation length limits do not truncate the source list.
+  if(typeof data.answer==='string'){
    const answer=Array.from(data.answer).slice(0,1400).join('');
-   for(let i=0;i<answer.length;i+=350)annotation('notice','Answer '+(i/350+1)+': '+answer.slice(i,i+350));
-   annotation('notice','Cited sources: '+JSON.stringify(data.sources||[]));
+   for(let i=0;i<answer.length;i+=350)annotation('notice','Answer '+q+' '+(i/350+1)+': '+answer.slice(i,i+350));
+   for(const source of Array.isArray(data.sources)?data.sources:[])annotation('notice','Source '+q+': '+JSON.stringify(source));
   }
   if(data.partial===true){assert(Array.isArray(data.search_failures)&&data.search_failures.length,'partial response must identify failures');console.warn('Some sources failed; inspect search_failures above.');}
   if(q==='hm')assert.equal(data.mode,'chat','acknowledgement should receive a chat response');
