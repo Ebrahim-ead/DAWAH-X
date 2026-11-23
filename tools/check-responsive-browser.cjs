@@ -27,10 +27,17 @@ const checkOverflow=async(page,label)=>{
   browser=await chromium.launch({executablePath:process.env.CHROME_PATH||'/usr/bin/google-chrome',args:['--no-sandbox']});
   for(const width of [320,390,768,1280])for(const theme of ['light','dark']){
    const context=await browser.newContext({viewport:{width,height:900},reducedMotion:'reduce',serviceWorkers:'block'});
-   let response='true',submissions=[];
+   let response='true',submissions=[],assistantRequests=[];
    await context.route('**/*',async route=>{
     const url=new URL(route.request().url());
     if(url.hostname==='127.0.0.1')return route.continue();
+    if(url.hostname==='dawahx-assistant.www-mdrazu55555.workers.dev'){
+     const headers={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Methods':'POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type'};
+     if(route.request().method()==='OPTIONS')return route.fulfill({status:204,headers});
+     const payload=route.request().postDataJSON();assistantRequests.push(payload);
+     const result=payload.lookupComplete===false?{needs_sources:true,all_sources:true}:payload.message==='তাওহীদ'?{answer:'লেখার তথ্য [1]',sources:[{number:1,title:'লেখা',key:'0c11409ae22b68'}],grounded:true,source_coverage:{quran:'no_match',hadith:'no_match'}}:{answer:'উৎস অনুসন্ধান অসম্পূর্ণ।',sources:[],grounded:false,partial:true,search_failures:['hadith','site_search']};
+     return route.fulfill({status:200,contentType:'application/json',headers,body:JSON.stringify(result)});
+    }
     if(url.hostname==='formsubmit.co'){
      const headers={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Methods':'POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type, Accept'};
      if(route.request().method()==='OPTIONS')return route.fulfill({status:204,headers});
@@ -52,6 +59,18 @@ const checkOverflow=async(page,label)=>{
     assert.equal(await trigger.getAttribute('aria-expanded'),'false');
    };
    await visit('index.html');await checkAssistant();
+   if(width===390&&theme==='light'){
+    await page.evaluate(()=>{window.testSearchCalls=0;window.dawahxAssistantSearch=async()=>{if(++window.testSearchCalls===1)throw Error('temporary');return {texts:[],videos:Promise.resolve([])}}});
+    await page.click('.dxa-trigger');await page.fill('#dxa-input','নামাজের সময় কী?');await page.locator('.dxa-form button').click();
+    await page.waitForFunction(()=>document.querySelector('.dxa-chat').textContent.includes('হাদিস, সাইটের লেখা খোঁজা'));
+    assert.equal(await page.evaluate(()=>window.testSearchCalls),2,'temporary client search error should be retried');
+    assert.equal(assistantRequests.length,2);assert.equal(assistantRequests[1].siteSearchFailed,false);
+    await page.fill('#dxa-input','তাওহীদ');await page.locator('.dxa-form button').click();
+    await page.waitForFunction(()=>document.querySelector('.dxa-chat').textContent.includes('সরাসরি কুরআন ও হাদিসের পাঠ মেলেনি'));
+
+    await page.locator('.dxa-close').click();
+   }
+
    const expectedMenu=['index.html','questions.html','topics.html','fatwa.html','videos.html','ask.html','about.html','services.html','contact.html'];
    assert.deepEqual(await page.locator('#menu a').evaluateAll(links=>links.map(a=>a.getAttribute('href'))),expectedMenu);
    await page.click('#theme-toggle');assert.notEqual(await page.getAttribute('html','data-theme'),theme);await page.reload();assert.notEqual(await page.getAttribute('html','data-theme'),theme);await page.click('#theme-toggle');

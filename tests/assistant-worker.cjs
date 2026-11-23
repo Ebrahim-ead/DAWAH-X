@@ -11,7 +11,7 @@ const assert=require('node:assert/strict');
  try {
   let res=await worker.fetch(req(body),env),data=await res.json();
   assert.equal(res.status,200);assert.equal(data.answer,'একটি উত্তর [1]');assert.equal(data.grounded,true);assert.deepEqual(data.sources,[{number:1,key:'034d218703d000',title:'নমুনা'}]);assert.equal(res.headers.get('access-control-allow-origin'),origin);
-  assert.deepEqual(fetches,['https://ebrahim-ead.github.io/DAWAH-X/texts/000.json']);assert.match(captured.args.messages[1].content,/বিশ্বস্ত লেখা/);assert.ok(!captured.args.messages[1].content.includes('<p>'));assert.match(captured.args.messages[0].content,/ONLY using facts/);
+  assert.deepEqual(fetches,['https://ebrahim-ead.github.io/DAWAH-X/texts/000.json']);assert.match(captured.args.messages[1].content,/বিশ্বস্ত লেখা/);assert.ok(!captured.args.messages[1].content.includes('<p>'));assert.match(captured.args.messages[0].content,/ONLY using facts/);assert.match(captured.args.messages[1].content,/Direct Quran excerpts retrieved: no; direct hadith excerpts retrieved: no/);
   res=await worker.fetch(req({message:'অজানা বিষয়',ids:[],history:[]}),env);data=await res.json();assert.equal(data.grounded,false);assert.deepEqual(data.sources,[]);assert.equal(calls,1,'no source must skip the model');
   modelResponse='অনুমানভিত্তিক উত্তর';res=await worker.fetch(req(body),env);data=await res.json();assert.equal(data.grounded,false);assert(!data.answer.includes('অনুমানভিত্তিক'));
   modelResponse='উত্তর [2]';res=await worker.fetch(req(body),env);data=await res.json();assert.equal(data.grounded,false,'invalid reference must not be presented');
