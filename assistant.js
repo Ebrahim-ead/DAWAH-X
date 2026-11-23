@@ -28,7 +28,7 @@
  function isFollowUp(q){const t=q.trim();return /^(?:এটা|এটি|এগুলো|ওটা|সেটা|সেটি|সেগুলো|এর|এদের|তার|তাদের|তাহলে|আর|আরও|আরো|তারপর|এ বিষয়ে|এ বিষয়ে|ওই বিষয়ে|ওই বিষয়ে|এই আয়াতের|এই আয়াতের|এই হাদিসের|এই হাদীসের|এ আয়াতের|এ আয়াতের|এ হাদিসের|এ হাদীসের)(?:\s|[?？।!,:ঃ]|$)/u.test(t)||/^(?:কেন|কীভাবে|কিভাবে|কখন|কোথায়|কোথায়|বিস্তারিত|ব্যাখ্যা)(?:\s*(?:বলুন|বলেন|বলবেন|জানান|করুন|চাই|দিন))?\s*[?？।!]*$/u.test(t)||/^(?:why|how|what about (?:it|that|this)|explain|tell me more)[?.!\s]*$/i.test(t)}
  function searchContext(q){if(!isFollowUp(q))return q;const parts=[q],users=history.filter(m=>m.role==='user');for(let i=users.length-1;i>=0;i--){parts.push(users[i].content);if(!isFollowUp(users[i].content))break}return parts.join(' ')}
  function pageMatches(q){const site=/(?:dawah\s*x|দা[ওউ]য়?া?হ|দাওয়াহ|দাওয়াহ|ওয়েবসাইট|ওয়েবসাইট|ওয়েবসাইট|সাইট|আপনাদের|তোমাদের)/i.test(q);if(!site)return [];const pages=['about.html'];if(/সেবা|কার্যক্রম|কাজ|উদ্দেশ্য|service/i.test(q))pages.push('services.html');if(/যোগাযোগ|ফোন|নম্বর|whatsapp|হোয়াটসঅ্যাপ|হোয়াটসঅ্যাপ/i.test(q))pages.push('contact.html');if(/নীতি|তথ্যসূত্র|উৎস|রেফারেন্স|সংশোধন/i.test(q))pages.push('policy.html');return pages}
- function citations(items){if(!items.length)return;const box=document.createElement('div');box.className='dxa-sources';const title=document.createElement('strong');title.textContent='উত্তরে উল্লেখিত উৎস — মূল লেখা যাচাই করুন';box.append(title);
+ function citations(items,candidates=false){if(!items.length)return;const box=document.createElement('div');box.className='dxa-sources';const title=document.createElement('strong');title.textContent=candidates?'সম্ভাব্য উৎস — প্রশ্নের উত্তর হিসেবে যাচাই করা হয়নি':'উত্তরে উল্লেখিত উৎস — মূল লেখা যাচাই করুন';box.append(title);
   function link(label,href){const a=document.createElement('a');a.textContent=label;a.href=href;a.target='_blank';a.rel='noopener noreferrer';box.append(a)}
   function snapshot(item,repo,path){if(/^[a-f0-9]{40}$/.test(item.snapshot||''))link('ব্যবহৃত বিকল্প উৎসের নির্দিষ্ট সংস্করণ (সাইটের বর্তমান পাঠ ভিন্ন হতে পারে)'+(item.key?' · লেখার ID: '+item.key:''),'https://github.com/Ebrahim-ead/'+repo+'/blob/'+item.snapshot+'/'+path)}
   const books={bukhari:'বুখারী',muslim:'মুসলিম','abu-dawud':'আবু দাউদ',tirmidhi:'তিরমিজি',nasai:'নাসাঈ','ibn-majah':'ইবনে মাজাহ',mishkat:'মিশকাত'};
@@ -54,7 +54,10 @@
   while(payload.history.length&&new TextEncoder().encode(encoded).length>15000){payload.history.splice(0,2);encoded=JSON.stringify(payload)}
   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),120000);let res;
   try{res=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:encoded,signal:controller.signal})}finally{clearTimeout(timer)}
-  if(!res.ok)throw Error(String(res.status));return res.json();
+  if(!res.ok){
+   if(res.status===502){try{const data=await res.json();if(data.error_code==='model_unavailable'&&Array.isArray(data.candidates)){const error=Error('model_unavailable');error.candidates=data.candidates.slice(0,6);error.partial=data.partial===true;error.quota=data.model_reason==='quota';throw error}}catch(error){if(error.message==='model_unavailable')throw error}}
+   throw Error(String(res.status));
+  }return res.json();
  }
  function modeLabel(mode){const el=document.createElement('div');el.className='dxa-mode';el.textContent=mode==='chat'?'সাধারণ আলাপ · সাইটের উৎসভিত্তিক নয়':mode==='failed'?'উৎস অনুসন্ধান সম্পূর্ণ হয়নি':mode==='verification'?'উত্তর যাচাই করা যায়নি':mode==='no-source'?'খুঁজে পাওয়া উৎসে পর্যাপ্ত তথ্য নেই':'প্রাপ্ত উৎসভিত্তিক উত্তর';chat.append(el)}
  async function submit(q){q=q.trim();if(!q||busy)return;busy=true;send.disabled=true;input.value='';bubble(q,'user');const status=bubble('উত্তর তৈরি হচ্ছে…','status');
@@ -84,7 +87,12 @@
    // Start a long answer at its beginning instead of jumping past it to citations.
    if(answerBubble.offsetHeight>chat.clientHeight*0.7)chat.scrollTop+=answerBubble.getBoundingClientRect().top-chat.getBoundingClientRect().top-8;
    history.push({role:'user',content:q},{role:'assistant',content:data.answer.slice(0,2000)});history=history.slice(-6);
-  }catch(e){status.remove();if(!input.value)input.value=q;bubble(e.message==='429'?'অনেকগুলো অনুরোধ এসেছে। একটু পরে আবার চেষ্টা করুন।':e.message==='search'?'সাইটের লেখা এখন খোঁজা যাচ্ছে না। সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।':e.message==='unsupported'?'এআই সেবা এখনো হালনাগাদ হয়নি। পরে আবার চেষ্টা করুন, অথবা টিমকে প্রশ্ন পাঠান।':'এখন উত্তর পাওয়া যাচ্ছে না। সংযোগ পরীক্ষা করে আবার চেষ্টা করুন, অথবা টিমকে প্রশ্ন পাঠান।','assistant')}
+  }catch(e){status.remove();if(!input.value)input.value=q;
+   if(e.message==='model_unavailable'){
+    bubble((e.quota?'এআই সেবা দৈনিক ব্যবহারের সীমা শেষ হয়েছে বলে জানিয়েছে।':'এআই দিয়ে ব্যাখ্যা তৈরির সেবা এখন কাজ করছে না।')+' নিচে সম্ভাব্য উৎস দেওয়া হলো; এগুলো আপনার প্রশ্নের সঠিক উত্তর কি না যাচাই করা হয়নি। মূল লেখা দেখুন বা পরে আবার চেষ্টা করুন।','assistant');
+    citations(e.candidates||[],true);if(e.partial)bubble('কিছু উৎসে অনুসন্ধান সম্পূর্ণ হয়নি।','status');
+   }else bubble(e.message==='429'?'অনেকগুলো অনুরোধ এসেছে। একটু পরে আবার চেষ্টা করুন।':e.message==='search'?'সাইটের লেখা এখন খোঁজা যাচ্ছে না। সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।':e.message==='unsupported'?'এআই সেবা এখনো হালনাগাদ হয়নি। পরে আবার চেষ্টা করুন, অথবা টিমকে প্রশ্ন পাঠান।':'এখন উত্তর পাওয়া যাচ্ছে না। সংযোগ পরীক্ষা করে আবার চেষ্টা করুন, অথবা টিমকে প্রশ্ন পাঠান।','assistant')}
+
   finally{busy=false;send.disabled=false;if(!panel.hidden)input.focus()}
  }
  form.addEventListener('submit',e=>{e.preventDefault();submit(input.value)});

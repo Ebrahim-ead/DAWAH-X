@@ -11,6 +11,8 @@ const assert=require('node:assert/strict');
   calls=[];results=[{response:''},{choices:[{message:{content:'ভুল [9]'}}]},{choices:[{message:{content:'সংশোধিত [1]'}}]}];({body}=await ask());assert.equal(body.answer,'সংশোধিত [1]');assert.equal(calls[2].model,calls[1].model,'citation retry stays on the actual selected model');
   calls=[];results=[{response:'NOT_ENOUGH_INFORMATION'}];({body}=await ask());assert.equal(body.grounded,false);assert.equal(calls.length,1,'abstention is not a reason to shop for a different answer');
   calls=[];results=[new Error('secret'),{choices:[{message:{content:null,reasoning_content:'fabricated [1]'}}]}];({status,body}=await ask());assert.equal(status,502);assert.equal(body.error_code,'model_unavailable');assert(!JSON.stringify(body).includes('fabricated'));assert.equal(calls.length,2,'at most one fallback attempt');
+  calls=[];results=[Object.assign(new Error('sensitive'),{code:4006}),new Error('you have used up your daily free allocation of 10,000 neurons, private data')];({status,body}=await ask());assert.equal(status,502);assert.equal(body.model_reason,'quota');assert(!JSON.stringify(body).includes('private data'));assert.equal(body.candidates[0].key,'034d218703d000');
+  calls=[];results=[Object.assign(new Error('sensitive'),{code:4006}),new Error('other failure')];({body}=await ask());assert.equal(body.model_reason,undefined,'mixed or ambiguous failures must not be called quota exhaustion');
   console.log('assistant model fallback: bounded failover, final-text-only, citations and abstention pass');
  }finally{global.fetch=old}
 })().catch(e=>{console.error(e);process.exitCode=1});

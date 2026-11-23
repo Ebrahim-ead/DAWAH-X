@@ -4,7 +4,7 @@
 // This consumes Workers AI inference; it does not train a model or change data.
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const SITE='https://ebrahim-ead.github.io/DAWAH-X/',API='https://dawahx-assistant.www-mdrazu55555.workers.dev',ORIGIN='https://ebrahim-ead.github.io';
-const read=async(url,options={})=>{const response=await fetch(url,{...options,signal:AbortSignal.timeout(120000)});if(!response.ok){let code='';if(url===API){try{const data=await response.json();if(['model_unavailable','processing_failed'].includes(data.error_code))code=' ('+data.error_code+')'}catch(_){}}throw Error(`HTTP ${response.status} at ${new URL(url).pathname}`+code)}return response};
+const read=async(url,options={})=>{const response=await fetch(url,{...options,signal:AbortSignal.timeout(120000)});if(!response.ok){let code='';if(url===API){try{const data=await response.json();if(['model_unavailable','processing_failed'].includes(data.error_code))code=' ('+data.error_code+(data.model_reason==='quota'?', quota':'')+')'}catch(_){}}throw Error(`HTTP ${response.status} at ${new URL(url).pathname}`+code)}return response};
 const request=async(payload,stage='request')=>{try{const r=await read(API,{method:'POST',headers:{'Content-Type':'application/json',Origin:ORIGIN},body:JSON.stringify(payload)});return r.json()}catch(error){throw Error(stage+': '+error.message)}};
 const annotation=(level,text)=>{if(process.env.GITHUB_ACTIONS==='true')console.log('::'+level+'::'+String(text).slice(0,500).replace(/%/g,'%25').replace(/\r/g,'%0D').replace(/\n/g,'%0A'))};
 // One notice at the end avoids GitHub's per-step annotation cap hiding later

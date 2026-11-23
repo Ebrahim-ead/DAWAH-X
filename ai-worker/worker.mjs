@@ -47,11 +47,16 @@ function lengthLimited(result,limit){
 // occur in Workers AI integrations. A citation is still not semantic proof.
 function modelText(result){if(typeof result?.response==='string'&&result.response.trim())return result.response;const text=result?.choices?.[0]?.message?.content;return typeof text==='string'?text:''}
 async function generateAnswer(ai,messages,limit,grounded){
- let first,model=MODEL,text='';
+ let first,model=MODEL,text='',quotaFailures=0;
  for(const candidate of [MODEL,FALLBACK_MODEL]){
-  try{const result=await ai.run(candidate,{messages,max_tokens:limit});const value=modelText(result);if(!value.trim())continue;first=result;text=value;model=candidate;break}catch(_){}
+  try{const result=await ai.run(candidate,{messages,max_tokens:limit});const value=modelText(result);if(!value.trim())continue;first=result;text=value;model=candidate;break}catch(error){
+   // Disclose only this fixed category, never provider exception text or user
+   // content. Both attempts must explicitly report a daily Neuron quota.
+   const message=typeof error?.message==='string'?error.message:'';
+   if([3036,4006].includes(Number(error?.code))||/you have used up your daily free allocation of [\d,]+ neurons/i.test(message))quotaFailures++;
+  }
  }
- if(!text.trim())throw Error('Model unavailable');
+ if(!text.trim()){const error=Error('Model unavailable');if(quotaFailures===2)error.reason='quota';throw error}
  if(!lengthLimited(first,limit))return {text,incomplete:false,model};
  // Keep costs and context bounded; do not continue an abstention or oversized text.
  if(text.includes('NOT_ENOUGH_INFORMATION')||text.length>12000)return {text,incomplete:true,model};
@@ -73,6 +78,9 @@ function reply(body, status, origin, allowed) {
   return new Response(JSON.stringify(body), {status, headers});
 }
 function origins(env) { return (env.ALLOWED_ORIGINS || '').split(',').map(x=>x.trim()).filter(Boolean); }
+// Only known identifiers and provenance leave the Worker. Candidate links are
+// not citations and are not proof that the texts answer the question.
+function referenceInfo(r,number){return {number,title:r.title,...(r.snapshot?{snapshot:r.snapshot}:{}),...(r.type==='quran'?{type:r.type,surah:r.surah,verse:r.verse}:r.type==='hadith'?{type:r.type,book:r.book,chapter:r.chapter,hadith:r.hadith}:r.path?{path:r.path}:{key:r.key})}}
 // Keep paragraph boundaries so long articles can be searched for useful passages.
 function plain(html) { return String(html || '').replace(/<!--[\s\S]*?-->/g,' ').replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,' ').replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi,' ').replace(/<\s*(?:br\s*\/?|\/\s*(?:p|div|li|h[1-6]|blockquote|tr))\s*>/gi,'\n').replace(/<[^>]*>/g,' ').replace(/&nbsp;|&#160;/gi,' ').replace(/&amp;/gi,'&').replace(/&lt;/gi,'<').replace(/&gt;/gi,'>').replace(/&quot;/gi,'"').replace(/&#39;/gi,"'").replace(/[ \t\r]+/g,' ').replace(/\n\s*\n+/g,'\n').trim(); }
 // Small, explicit Banglish vocabulary used only for source search; unknown
@@ -286,7 +294,11 @@ export default {
    const prior=questionContext(body.message.trim(),history).slice(1).reverse().join('\n');
    const messages=[{role:'system',content:GROUNDED_SAFETY},{role:'user',content:context+'\n\nEarlier questions (context only):\n'+prior+'\n\nLatest question: '+body.message.trim()}];
    let result;
-   try{result=await generateAnswer(env.AI,messages,ANSWER_TOKENS,true)}catch(_){return reply({error:'Assistant unavailable',error_code:'model_unavailable'},502,origin,allowed)}
+   try{result=await generateAnswer(env.AI,messages,ANSWER_TOKENS,true)}catch(error){
+    // Preserve clickable candidates during inference outages, but never label
+    // them as verified answers or return source excerpts as a ruling.
+    return reply({error:'Assistant unavailable',error_code:'model_unavailable',...(error?.reason==='quota'?{model_reason:'quota'}:{}),candidates:refs.slice(0,6).map((r,i)=>referenceInfo(r,i+1)),partial,search_limited:true,...(partial?{search_failures:failures}:{})},502,origin,allowed);
+   }
    let checked=verifyAnswer(result.text,refs);
    if(!checked.valid&&!checked.abstained&&!result.incomplete){
     // One fresh attempt with the same evidence, never the rejected output.
@@ -305,7 +317,7 @@ export default {
     quran:foundQuran?'matched':failures.includes('quran')?'failed':scriptureRefs.skipped?'skipped':'no_match',
     hadith:foundHadith?'matched':failures.includes('hadith')?'failed':scriptureRefs.skipped?'skipped':'no_match'
    }:null;
-   const cited=[...new Set(marks)].map(n=>{const r=refs[n-1];return {number:n,title:r.title,...(r.snapshot?{snapshot:r.snapshot}:{}),...(r.type==='quran'?{type:r.type,surah:r.surah,verse:r.verse}:r.type==='hadith'?{type:r.type,book:r.book,chapter:r.chapter,hadith:r.hadith}:r.path?{path:r.path}:{key:r.key})}});
+   const cited=[...new Set(marks)].map(n=>referenceInfo(refs[n-1],n));
    return reply({answer:answer+(camelUrine(query)?'\n\n'+CAMEL_URINE_WARNING:''),sources:cited,grounded:true,partial,...(mirrors.size?{snapshot_search:true}:{}),...(partial?{search_failures:failures}:{}),...(sourceCoverage?{source_coverage:sourceCoverage}:{}),...(limited?{search_limited:true}:{}),...(result.incomplete?{incomplete:true}:{})},200,origin,allowed);
   } catch (_) { return reply({error:'Assistant unavailable',error_code:'processing_failed'},502,origin,allowed); }
  }
