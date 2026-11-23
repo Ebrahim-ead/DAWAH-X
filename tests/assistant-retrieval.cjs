@@ -30,7 +30,7 @@ vm.runInNewContext('const toLatinDigits=s=>String(s).replace(/[০-৯]/g,d=>Str
  const romanInjection=await sandbox.suggest.find('roja rekhe injection nile ki roja venge jay',{includeVideos:false,includeBodyMatches:true});
  assert(romanInjection.texts.slice(0,4).some(x=>x.title.includes('ইনজেকশন')),'common Banglish should preserve the specific fasting question');
  // User's real question has a colloquial verb; source titles use বাঁধা/বেঁধে.
- for(const question of ['নামাজে হাত কোথায় বাঁধবো বুকে নাকি নাভির নিচে','নামাজে হাত বেঁধে বুকে নাকি নাভির নিচে']){
+ for(const question of ['নামাজে হাত কোথায় বাঁধবো বুকে নাকি নাভির নিচে','নামাজে হাত বেঁধে বুকে নাকি নাভির নিচে','নামাজের সময় হাত কোথায় বাঁধবো বুকে নাকি নাভির নিচে']){
   const result=await sandbox.suggest.find(question,{includeVideos:false,includeBodyMatches:true});
   assert(result.texts.slice(0,4).some(x=>['1baadfbb8e91fa','1cdcea4ead1cbb','1592fe54154eac'].includes(x.k)),'hand-placement candidate should be retrieved: '+question);
  }
