@@ -1,0 +1,23 @@
+name: Worker preview smoke test
+# Opt-in: one fixed public lookup, no generative AI inference or user messages.
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'arena/**'
+permissions:
+  contents: read
+jobs:
+  preview:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[preview-live-check]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Check preview Worker bindings and direct source
+        env:
+          PREVIEW_BRANCH: ${{ github.ref_name }}
+        run: node tools/check-worker-preview.cjs

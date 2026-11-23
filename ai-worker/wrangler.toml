@@ -13,3 +13,16 @@ simple = { limit = 10, period = 60 }
 
 [vars]
 ALLOWED_ORIGINS = "https://ebrahim-ead.github.io"
+
+# Preview settings do not inherit production bindings. Use an isolated rate
+# limit namespace; AI inference still uses the account's Workers AI quota.
+[previews.ai]
+binding = "AI"
+
+[[previews.ratelimits]]
+name = "RATE_LIMITER"
+namespace_id = "1002"
+simple = { limit = 10, period = 60 }
+
+[previews.vars]
+ALLOWED_ORIGINS = "https://ebrahim-ead.github.io"
