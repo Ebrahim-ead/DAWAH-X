@@ -16,7 +16,10 @@ const CONCEPTS=[['শিশু','বাচ্চা','সন্তান','ন�
 // use of the words. Keep short পা boundary-checked (it must not match পানি).
 const INFLECTIONS=[
  {forms:['পা','পায়ে','পায়ের','পায়ে','পায়ের'],match:['পা']},
- {forms:['মিলানো','মিলানোর','মিলানোয়','মিলিয়ে','মিলিয়ে','মিলানোকে','মিলান'],match:['মিলানো','মিলিয়ে','মিলান']}
+ {forms:['মিলানো','মিলানোর','মিলানোয়','মিলিয়ে','মিলিয়ে','মিলানোকে','মিলান'],match:['মিলানো','মিলিয়ে','মিলান']},
+ // Nominal forms such as ভাঙার/ভঙ্গের describe the same candidate topic;
+ // keep the subject and other conditions required, and do not guess rulings.
+ {forms:['ভাঙা','ভাঙ্গা','ভাঙার','ভাঙ্গার','ভঙ্গ','ভঙ্গের'],match:['ভাঙা','ভাঙ্গা','ভঙ্গ']}
 ].map(({forms,match})=>({forms:new Set(forms.map(fold)),match:match.map(fold)}));
 export function topics(terms){
  const expanded=terms.filter(group=>!group.some(x=>generic.has(x))).map(group=>{const inflection=INFLECTIONS.find(g=>group.some(x=>g.forms.has(x)));if(inflection)return inflection.match;const concept=CONCEPTS.find((g,i)=>!(i===2&&group.some(x=>generic.has(x)))&&group.some(x=>g.some(y=>x===y||([...y].length>=3&&x.startsWith(y)))));return concept||group});
@@ -115,9 +118,9 @@ async function hadith(terms,mirrors){
  const counts=new Map();for(const v of candidates){const key=v.book+':'+v.hadith;counts.set(key,(counts.get(key)||0)+1)}
  candidates.sort((a,b)=>b.rank-a.rank);return {items:candidates.filter(v=>counts.get(v.book+':'+v.hadith)===1).slice(0,3).map(({rank,...item})=>item),failed,limited:indexLimited||titleOnly};
 }
-// A lexical pre-filter, not proof of relevance. Do not drop sources when the
-// question has fewer than two meaningful groups; website pages remain separate.
-export function articleCandidate(text,termGroups){const t=topics(termGroups);const body=text.split('\nলেখার প্রাসঙ্গিক পাদটীকা')[0].replace(/\([^()]{0,500}\)/gu,' ');return t.length<2||(score(body,t)===t.length&&near(body,t,300));}
+// A lexical pre-filter, not proof of relevance. An identified single topic
+// must still occur in the body; empty topic sets retain the previous behavior.
+export function articleCandidate(text,termGroups){const t=topics(termGroups);const body=text.split('\nলেখার প্রাসঙ্গিক পাদটীকা')[0].replace(/\([^()]{0,500}\)/gu,' ');return !t.length||(score(body,t)===t.length&&near(body,t,300));}
 export async function searchScripture(termGroups,mirrors){
  const terms=topics(termGroups);if(!terms.length||terms.every(group=>group.every(x=>/^\d+$/.test(x))))return {items:[],failed:false,skipped:true};
  const results=await Promise.allSettled([quran(terms,mirrors),hadith(terms,mirrors)]);

@@ -71,7 +71,9 @@ function fold(text){return String(text||'').normalize('NFC').toLowerCase().repla
 // Remove only an explicit source-preface from retrieval terms. The full user
 // question still goes to the model, including the requested sources.
 function stripSourcePreface(q){return q.replace(/(?:কুরআন|কোরআন|কুরান|কোরান)(?:ের)?\s*(?:ও|এবং|এবঙ)\s*(?:সুন্নাহ(?:র|ের)?|হাদিস(?:ের)?)\s*(?:আলোকে|অনুজায়ি|অনুসারে|ভিত্তিতে)/gu,' ')}
-const SKIP=new Set('কি কেন কিভাবে কোথায় কেমন কোন কখন আমার আমি আমাদের আপনি আপনার জানতে জানাবেন চাই সম্পর্কে বিষয় প্রস্ন উত্তর একটি একটা বলে বলা করা করবে করে গেলে হতে হবে আছে নাই থেকে মধ্যে সাথে তার এই এবং অথবা the what how when why who where for the and'.split(' ').map(fold));
+// Interrogatives ask for a count; they are not literal words that must occur
+// in the answer. Explicit numbers and substantive conditions remain required.
+const SKIP=new Set('কি কেন কিভাবে কোথায় কেমন কোন কখন কয়টি কয়টা কতটি কতটা আমার আমি আমাদের আপনি আপনার জানতে জানাবেন চাই সম্পর্কে বিষয় প্রস্ন উত্তর একটি একটা বলে বলা করা করবে করে গেলে হতে হবে আছে নাই থেকে মধ্যে সাথে তার এই এবং অথবা the what how when why who where for the and'.split(' ').map(fold));
 const SYNONYMS=[['নামাজ','সালাত'],['রোজা','সিয়াম','সাওম'],['কোরআন','কুরআন','কুরান'],['অজু','ওজু','উজু'],['হাদিস','হাদীস','হাদীছ'],['দোয়া','দোআ','দুআ'],['বিয়ে','বিবাহ']].map(g=>g.map(fold));
 export function queryTerms(q){let normalized=stripSourcePreface(fold(normalizeRoman(q)));
  // In a hand-placement question, “নামাজের সময়” describes the act of

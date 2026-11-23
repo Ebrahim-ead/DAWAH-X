@@ -227,10 +227,12 @@ const ASK_LEN="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
 const askCp=t=>[...t].length,askMinPrefix=t=>[...t][1]==="\u09cd"?5:3;
 /* একটি শব্দ → খোঁজার রূপগুলো [[রূপ, শুরু মিললেই চলবে?]]; শব্দটি (বা তার মূল রূপ) খুব সাধারণ হলে null।
    ছোট মূল রূপ (৩ অক্ষর) হুবহু মিলতে হয় — নইলে "বানর" থেকে "বান" হয়ে "বান্দা"-ও ধরা পড়ত */
-function askForms(tok,stop){const out=new Map();
+function askForms(tok,stop,assistant=false){const out=new Map();
  // Common conjugations of tying/binding differ from article-headword forms.
  // Keep this mapping narrow: it finds candidates, not an answer or a ruling.
  if(/^(?:বাধবো|বাধবে|বাধব|বাধেন|বাধুন|বেধে|বেধেসে|বেধেসেন|বাধার|বাধা)$/u.test(tok))return [["বাধা",true],["বেধে",true],["বাধবে",true]];
+ // Nominal forms for breaking are equivalent for candidate discovery only.
+ if(assistant&&/^(?:ভাঙা|ভাঙ্গা|ভাঙার|ভাঙ্গার|ভঙ্গ|ভঙ্গের)$/u.test(tok))return [["ভাঙা",true],["ভাঙ্গা",true],["ভঙ্গ",true]];
  for(const a of searchAlts(tok)){if(stop.has(a)||ASK_SKIP.has(a))return null;
   out.set(a,askCp(a)>=askMinPrefix(a));
   for(const s of ASK_SUFFIXES){if(!a.endsWith(s))continue;const r=a.slice(0,-s.length),n=askCp(r);if(n<3)continue;
@@ -272,7 +274,7 @@ const SUGGEST={tm:null,side:null,ready:null,tsh:new Map(),relc:new Map(),bodyc:n
  async find(q,{includeVideos=true,includeBodyMatches=false}={}){try{
    if(!(await this.init()))return null;
    const vp=includeVideos?this.videos():Promise.resolve(null),stop=includeBodyMatches?new Set([...DEEP.stop].filter(t=>!ASSISTANT_TITLE_TOPICS.has(t))):DEEP.stop,seen=new Set(),same=new Set(),G=[];
-   for(const t of searchTokens(includeBodyMatches?stripSourcePreface(foldBn(normalizeRoman(q))):q)){if(/^\d+$/.test(t)||seen.has(t))continue;seen.add(t);const f=askForms(t,stop);if(!f)continue;
+   for(const t of searchTokens(includeBodyMatches?stripSourcePreface(foldBn(normalizeRoman(q))):q)){if(/^\d+$/.test(t)||seen.has(t))continue;seen.add(t);const f=askForms(t,stop,includeBodyMatches);if(!f)continue;
     const id=f.map(x=>x[0]).sort().join("|");if(same.has(id))continue;same.add(id);G.push(f);if(G.length>=12)break}
    if(!G.length)return {texts:[],videos:Promise.resolve([]),limited:true};
    const N=DEEP.meta.n,nb=DEEP.meta.shards,nt=this.tm.shards,B=[],T=[];
