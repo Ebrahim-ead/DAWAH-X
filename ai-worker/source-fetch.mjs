@@ -13,15 +13,15 @@ function mirrorFor(url){
 }
 // Do not log URLs, questions, exception text, IP addresses or response bodies.
 // Fixed codes aid diagnosis in Worker logs without recording user content.
-function report(url,kind,reason){const category=url.includes('/ead/assets/quran/')||url.endsWith('/assets/search-ayahs.js')?'quran':url.includes('/hadith')?'hadith':url.includes('/texts/')?'articles':'pages';console.warn('assistant-source',category,kind,reason)}
+function report(url,kind,reason,trace){const category=url.includes('/ead/assets/quran/')||url.endsWith('/assets/search-ayahs.js')?'quran':url.includes('/hadith')?'hadith':url.includes('/texts/')?'articles':'pages';console.warn('assistant-source',category,kind,reason);if(trace?.diagnostics&&trace.diagnostics.length<12)trace.diagnostics.push({category,origin:kind,reason})}
 export async function sourceText(url,maxBytes,mirrors){
  const mirror=mirrorFor(url);
  try{const result=await readSource(url,maxBytes,2);mirrors?.delete(url);return result}catch(error){
   if(!mirror)throw error;
-  report(url,'published',error?.code||'network');
+  report(url,'published',error?.code||'network',mirrors);
   if(error?.code==='size'||(/^http-4/.test(error?.code||'')&&!['http-403','http-408','http-429'].includes(error.code)))throw error;
   try{const result=await readSource(mirror,maxBytes,1);if(mirrors)mirrors.add(url);return result}
-  catch(fallbackError){report(url,'snapshot',fallbackError?.code||'network');throw fallbackError}
+  catch(fallbackError){report(url,'snapshot',fallbackError?.code||'network',mirrors);throw fallbackError}
  }
 }
 function sourceError(code){const e=Error('Source unavailable');e.code=code;return e}
