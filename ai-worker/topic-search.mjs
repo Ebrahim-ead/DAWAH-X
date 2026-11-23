@@ -5,7 +5,7 @@ import {sourceText,EAD_SNAPSHOT} from './source-fetch.mjs';
 import {findHadithCandidates} from './hadith-index.mjs';
 const BASE='https://ebrahim-ead.github.io/ead/';
 const BOOKS=new Set(['bukhari','muslim','abu-dawud','tirmidhi','nasai','ibn-majah','mishkat']);
-const GENERIC=new Set('কুরআন কুরআনের কোরআন কোরআনের কুরানের হাদিস হাদিসের হাদীস হাদীসের ইসলাম ইসলামি ইসলামের আল্লাহ আল্লাহর বিষয়ে বিষয়ে সম্পরকে গুরুত্ব গুরুতব গুরুত্বপূর্ণ গুরুতবপূর্ণ আলোকে দলিল প্রমান প্রমাণ নিয়ম নিয়ম বিধান বলে বলুন ব্যাখ্যা বযাখযা জানতে জানাবেন চাই কেন কিভাবে কিভাবে সম্পর্কে আলোচনা উল্লেখ শুনতে শুনছি শুনেছি শুনেছি নাকি সঙ্গে সহিত প্রত্যেক প্রতিটি প্রতিটা প্রতিটিই প্রত্যেকটি হিসেবে রূপে হয়েছে কি কী হুকুম করনীয় করণীয় রেখে নিলে নিয়েছে নিয়েছে ভেঙে ভাঙে ভাঙ্গে যায় যায় হলো হলে করতে করলে অনুসারে অনুযায়ী quran hadith islam according evidence ruling'.split(' '));
+const GENERIC=new Set('কুরআন কুরআনের কোরআন কোরআনের কুরানের হাদিস হাদিসের হাদীস হাদীসের ইসলাম ইসলামি ইসলামের আল্লাহ আল্লাহর বিষয়ে বিষয়ে সম্পরকে গুরুত্ব গুরুতব গুরুত্বপূর্ণ গুরুতবপূর্ণ আলোকে দলিল প্রমান প্রমাণ নিয়ম নিয়ম বিধান বলে বলুন ব্যাখ্যা বযাখযা বুঝিয়ে বুঝিয়ে বুঝতে বুঝান বোঝান জানতে জানাবেন চাই কেন কিভাবে কিভাবে সম্পর্কে আলোচনা উল্লেখ শুনতে শুনছি শুনেছি শুনেছি নাকি সঙ্গে সহিত প্রত্যেক প্রতিটি প্রতিটা প্রতিটিই প্রত্যেকটি হিসেবে রূপে হয়েছে কি কী হুকুম করনীয় করণীয় রেখে নিলে নিয়েছে নিয়েছে ভেঙে ভাঙে ভাঙ্গে যায় যায় হলো হলে করতে করলে করার অনুসারে অনুযায়ী quran hadith islam according evidence ruling'.split(' '));
 const FOLD={'ী':'ি','ূ':'ু','ঈ':'ই','ঊ':'উ','ছ':'স','শ':'স','ষ':'স','য':'জ','ণ':'ন','ৎ':'ত'};
 export function fold(text){return String(text||'').normalize('NFC').toLowerCase().replace(/[০-৯]/g,c=>String(c.charCodeAt(0)-0x09e6)).replace(/[\u200b-\u200d\u00ad\ufeff\u0981]/g,'').replace(/([\p{L}\p{M}])[‘’'ʼ](?=\p{L})/gu,'$1').replace(/\u09af\u09bc/g,'\u09df').replace(/\u09a1\u09bc/g,'\u09dc').replace(/\u09a2\u09bc/g,'\u09dd').replace(/([কত])\u09cd\u09ac/g,'$1').replace(/[ীূঈঊছশষযণৎ]/g,c=>FOLD[c]);}
 const generic=new Set([...GENERIC].map(fold));
@@ -20,6 +20,9 @@ const INFLECTIONS=[
  // Nominal forms such as ভাঙার/ভঙ্গের describe the same candidate topic;
  // keep the subject and other conditions required, and do not guess rulings.
  {forms:['ভাঙা','ভাঙ্গা','ভাঙার','ভাঙ্গার','ভঙ্গ','ভঙ্গের'],match:['ভাঙা','ভাঙ্গা','ভঙ্গ']},
+ // Bengali articles and translations use these words for the same substance.
+ {forms:['মূত্র','মূত্রের','মূত্রকে','মুত্র','মুত্রের','প্রস্রাব','প্রস্রাবের','পেশাব','পেশাবের'],match:['মূত্র','প্রস্রাব','পেশাব']},
+ {forms:['পান','পানের','পানকে','পানে'],match:['পান']},
  // A permissibility question can be answered positively OR negatively. This
  // is a search group, not an assertion that these words mean the same thing.
  {forms:['জায়েজ','জায়েজ','জায়েয','জায়েয','বৈধ'],match:['জায়েজ','জায়েয','বৈধ','অবৈধ','হালাল','হারাম','নিষিদ্ধ']}
@@ -44,7 +47,7 @@ function locations(value,form){
  if([...form].length<=3){
   // Short Bengali stems occur inside unrelated words (সুদ / সুদৃশ্য).
   // Match whole words and a conservative set of case/derivational suffixes.
-  const suffix=form===fold('পা')?'(?:য়ের|য়ে|য়ের|য়ে|ের|তে|কে|টি|টা|গুলো|গুলি|ই|ও|ে|র)?':'(?:ের|দের|তে|কে|টি|টা|রা|গুলো|গুলি|ই|ও|ে|ি|র)?';
+  const suffix=form===fold('পা')?'(?:য়ের|য়ে|য়ের|য়ে|ের|তে|কে|টি|টা|গুলো|গুলি|ই|ও|ে|র)?':form===fold('পান')?'(?:ের|তে|কে|ই|ও|ে)?':'(?:ের|দের|তে|কে|টি|টা|রা|গুলো|গুলি|ই|ও|ে|ি|র)?';
   const r=new RegExp('(?<![\\p{L}\\p{M}\\p{N}])'+form+suffix+'(?![\\p{L}\\p{M}\\p{N}])','gu'),out=[];
   for(const m of value.matchAll(r)){out.push(m.index);if(out.length===100)break}return out;
  }
