@@ -136,6 +136,7 @@ export function queryTerms(q){let normalized=stripSourcePreface(fold(normalizeRo
   // Conjugations are candidate-search equivalents only. The original
   // question, including its intent, still goes unchanged to the model.
   const group=/^(?:বাধবো|বাধবে|বাধব|বাধেন|বাধুন|বেধে|বেধেসে|বেধেসেন|বাধার|বাধা)$/u.test(word)?['বাধা','বেধে','বাধবে']:
+   /^(?:দেব|দেবো|দিব|দিবো|দেবে|দেবেন)$/u.test(word)?['দেওয়া','দিতে','দান','প্রদান']:
    /^(?:পড়ব|পড়বো|পড়বে|পড়বেন)$/u.test(word)?[word,'পড়া','পড়তে','পড়ে',...(prayer?['আদায়']:[])]:
    /^(?:ভাঙব|ভাঙবো|ভাঙ্গব|ভাঙ্গবো|ভাঙবে|ভাঙ্গবে)$/u.test(word)?[word,'ভাঙা','ভাঙ্গা','ভঙ্গ']:
    SYNONYMS.find(g=>g.some(x=>word.startsWith(x)));out.push(group||[word]);if(out.length===12)break}return out;}
@@ -199,7 +200,7 @@ async function sitePages(paths,query,mirrors){
 }
 
 // Deterministic conservative guard complements (but cannot guarantee) model routing.
-const RELIGIOUS_OR_SITE=/(?:ইসলাম|ইস্লাম|মুসলিম|মুসলমান|আল্লাহ|আললাহ|খোদা|খুদা|নামাজ|নামায|সালাত|ছালাত|রোজা|রোযা|সিয়াম|সিয়ম|সাওম|কুরআন|কোরআন|কোরান|কুরান|হাদিস|হাদীস|হাদীছ|হাদীথ|ফতোয়া|ফতোয়া|ফতওয়া|ফতওয়া|ফিকহ|শরিয়ত|শরিয়ত|শরীয়াহ|সুন্নাহ|সুন্নত|হালাল|হারাম|গুনাহ|পাপ|সওয়াব|সওয়াব|দোয়া|দোয়া|দুআ|দোআ|জান্নাত|জাহান্নাম|কবর|আখিরাত|কিয়ামত|কিয়ামত|তাকদীর|আকিদা|আকীদা|তাওহীদ|তাওহিদ|যাকাত|জাকাত|যাকাত|জাকাত|সদকা|সাদাকা|ইবাদত|নবী|নবি|রাসুল|রাসূল|মুহাম্মদ|মুহাম্মাদ|মোহাম্মদ|ফেরেশতা|ফিরিশতা|মসজিদ|মাসজিদ|হিজাব|বোরকা|ইমাম|আলেম|রুকু|রুকূ|সেজদা|সিজদা|সিজদাহ|সেহরি|সাহরি|ইফতার|তারাবি|তারাবিহ|তাহাজ্জুদ|তাসবিহ|তাসবীহ|রমজান|রমযান|রামাদান|রামাযান|মাগরিব|ফজর|জুমা|জুমুআ|আযান|আজান|হজ্জ|কুরবানি|কোরবানি|দাজ্জাল|ধর্ম|ধার্মিক|ধর্মীয়|ধর্মীয়|ভগবান|উপাসনা|খ্রিস্টান|হিন্দু|বৌদ্ধ|দাওয়াহ|দাওয়াহ|দাওয়া|দাওয়া|সাইট|ওয়েবসাইট|ওয়েবসাইট|আপনাদের|তোমাদের|\bdawah\b|\bislam\w*|\bmuslim\w*|\ballah\b|\bqur.?an\b|\bkoran\b|\bhadith\b|\bsunnah\b|\bprophet\b|\bfiqh\b|\bfatwa\b|\bhalal\b|\bharam\b|\bsalah\b|\bsalat\b|\bnamaz\b|\bnamaj\b|\broza\b|\broja\b|\brozah\b|\bramadan\b|\bramzan\b|\biftar\b|\bsehri\b|\bfajr\b|\bmaghrib\b|\btahajjud\b|\bjummah\b|\bsujud\b|\bdua\b|\bzakat\b|\bmosque\b|\breligio\w*|\bwebsite\b|[؀-ۿ])/iu;
+const RELIGIOUS_OR_SITE=/(?:ইসলাম|ইস্লাম|মুসলিম|মুসলমান|আল্লাহ|আললাহ|খোদা|খুদা|নামাজ|নামায|সালাত|ছালাত|রোজা|রোযা|সিয়াম|সিয়ম|সাওম|কুরআন|কোরআন|কোরান|কুরান|হাদিস|হাদীস|হাদীছ|হাদীথ|ফতোয়া|ফতোয়া|ফতওয়া|ফতওয়া|ফিকহ|শরিয়ত|শরিয়ত|শরীয়াহ|সুন্নাহ|সুন্নত|হালাল|হারাম|গুনাহ|পাপ|সওয়াব|সওয়াব|দোয়া|দোয়া|দুআ|দোআ|জান্নাত|জাহান্নাম|কবর|আখিরাত|কিয়ামত|কিয়ামত|তাকদীর|আকিদা|আকীদা|তাওহীদ|তাওহিদ|যাকাত|জাকাত|যাকাত|জাকাত|সদকা|সাদাকা|ইবাদত|অজু|অযু|অযূ|ওজু|ওজূ|ওযু|ওযূ|উজু|উযু|নবী|নবি|রাসুল|রাসূল|মুহাম্মদ|মুহাম্মাদ|মোহাম্মদ|ফেরেশতা|ফিরিশতা|মসজিদ|মাসজিদ|হিজাব|বোরকা|ইমাম|আলেম|রুকু|রুকূ|সেজদা|সিজদা|সিজদাহ|সেহরি|সাহরি|ইফতার|তারাবি|তারাবিহ|তাহাজ্জুদ|তাসবিহ|তাসবীহ|রমজান|রমযান|রামাদান|রামাযান|মাগরিব|ফজর|জুমা|জুমুআ|আযান|আজান|হজ্জ|কুরবানি|কোরবানি|দাজ্জাল|ধর্ম|ধার্মিক|ধর্মীয়|ধর্মীয়|ভগবান|উপাসনা|খ্রিস্টান|হিন্দু|বৌদ্ধ|দাওয়াহ|দাওয়াহ|দাওয়া|দাওয়া|সাইট|ওয়েবসাইট|ওয়েবসাইট|আপনাদের|তোমাদের|\bdawah\b|\bislam\w*|\bmuslim\w*|\ballah\b|\bqur.?an\b|\bkoran\b|\bhadith\b|\bsunnah\b|\bprophet\b|\bfiqh\b|\bfatwa\b|\bhalal\b|\bharam\b|\bsalah\b|\bsalat\b|\bnamaz\b|\bnamaj\b|\bwudu\b|\boju\b|\broza\b|\broja\b|\brozah\b|\bramadan\b|\bramzan\b|\biftar\b|\bsehri\b|\bfajr\b|\bmaghrib\b|\btahajjud\b|\bjummah\b|\bsujud\b|\bdua\b|\bzakat\b|\bmosque\b|\breligio\w*|\bwebsite\b|[؀-ۿ])/iu;
 function isFollowUp(q){const t=q.trim();return /^(?:এটা|এটি|এগুলো|ওটা|সেটা|সেটি|সেগুলো|এর|এদের|তার|তাদের|তাহলে|আর|আরও|আরো|তারপর|এ বিষয়ে|এ বিষয়ে|ওই বিষয়ে|ওই বিষয়ে|এই আয়াতের|এই আয়াতের|এই হাদিসের|এই হাদীসের|এ আয়াতের|এ আয়াতের|এ হাদিসের|এ হাদীসের)(?:\s|[?？।!,:ঃ]|$)/u.test(t)||/^(?:কেন|কীভাবে|কিভাবে|কখন|কোথায়|কোথায়|বিস্তারিত|ব্যাখ্যা)(?:\s*(?:বলুন|বলেন|বলবেন|জানান|করুন|চাই|দিন))?\s*[?？।!]*$/u.test(t)||/^(?:why|how|what about (?:it|that|this)|explain|tell me more)[?.!\s]*$/i.test(t)}
 // Follow a short chain of follow-ups back to the nearest standalone user question.
 // Never cross a later standalone topic change or use an assistant answer as evidence.
@@ -232,7 +233,7 @@ function plainSpecific(message,history){
 }
 function hardGrounded(message,history){
  if(specificLookup(message,history)||contextualScripture(message,history))return true;
- return questionContext(message,history).some(q=>RELIGIOUS_OR_SITE.test(normalizeRoman(q).normalize('NFC')));
+ return questionContext(message,history).some(q=>{const value=normalizeRoman(q).normalize('NFC');return RELIGIOUS_OR_SITE.test(value)||/(?<![\p{L}\p{M}\p{N}])হজ(?:ের|ে|র|কে|টি)?(?![\p{L}\p{M}\p{N}])/u.test(value)});
 }
 async function routeMessage(message,history,ai){
  if(hardGrounded(message,history))return 'GROUNDED';
@@ -362,9 +363,9 @@ export default {
     // short source text as an explicitly unverified quotation instead.
     const match=!isFollowUp(body.message.trim())?matchingSourceQuote(body.message.trim(),articles,correction):null;
     if(match)return reply({answer:'এআই নিশ্চিত উত্তর দিতে পারেনি। কাছাকাছি প্রশ্নের উৎস থেকে হুবহু লেখা নিচে দেওয়া হলো; এটি আপনার অবস্থার জন্য প্রযোজ্য কি না যাচাই করা হয়নি। মূল লেখাটি পড়ুন এবং ব্যক্তিগত বিষয়ে যোগ্য আলেমের পরামর্শ নিন।\n\n'+match.title+'\n\n'+match.quote,sources:[referenceInfo(match,1)],grounded:false,mode:'source_quote',partial,...(mirrors.size?{snapshot_search:true}:{}),...(partial?{search_failures:failures}:{}),...(limited?{search_limited:true}:{})},200,origin,allowed);
-    return reply({answer:NO_ANSWER,sources:[],grounded:false,partial,...(mirrors.size?{snapshot_search:true}:{}),...(partial?{search_failures:failures}:{}),...(limited?{search_limited:true}:{})},200,origin,allowed);
+    return reply({answer:NO_ANSWER,sources:[],candidates:refs.slice(0,6).map((r,i)=>referenceInfo(r,i+1)),grounded:false,partial,...(mirrors.size?{snapshot_search:true}:{}),...(partial?{search_failures:failures}:{}),...(limited?{search_limited:true}:{})},200,origin,allowed);
    }
-   if(!checked.valid)return reply({answer:'উত্তরের উৎসসংখ্যা বা আয়াত-হাদিসের পরিচয় যাচাই করা যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন বা টিমকে প্রশ্ন পাঠান।',sources:[],grounded:false,partial,...(mirrors.size?{snapshot_search:true}:{}),...(partial?{search_failures:failures}:{}),verification_failed:true,...(limited?{search_limited:true}:{})},200,origin,allowed);
+   if(!checked.valid)return reply({answer:'উত্তরের উৎসসংখ্যা বা আয়াত-হাদিসের পরিচয় যাচাই করা যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন বা টিমকে প্রশ্ন পাঠান।',sources:[],candidates:refs.slice(0,6).map((r,i)=>referenceInfo(r,i+1)),grounded:false,partial,...(mirrors.size?{snapshot_search:true}:{}),...(partial?{search_failures:failures}:{}),verification_failed:true,...(limited?{search_limited:true}:{})},200,origin,allowed);
    const {answer,marks}=checked;
    // Expose discovery coverage separately from citations: a model may choose
    // not to cite a retrieved item, and no match never proves non-existence.

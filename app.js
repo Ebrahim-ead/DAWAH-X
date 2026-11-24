@@ -241,6 +241,8 @@ function askForms(tok,stop,assistant=false){const out=new Map();
  // Keep this mapping narrow: it finds candidates, not an answer or a ruling.
  if(/^(?:বাধবো|বাধবে|বাধব|বাধেন|বাধুন|বেধে|বেধেসে|বেধেসেন|বাধার|বাধা)$/u.test(tok))return [["বাধা",true],["বেধে",true],["বাধবে",true]];
  if(assistant&&tok===foldBn('কাকে'))return [[foldBn('কাকে'),true],[foldBn('কাদের'),true]];
+ // Colloquial conjugations of giving are candidate alternatives, not a ruling.
+ if(assistant&&/^(?:দেব|দেবো|দিব|দিবো|দেবে|দেবেন)$/u.test(tok))return ['দেওয়া','দিতে','দান','প্রদান'].map(x=>[foldBn(x),true]);
  // Nominal forms for breaking are equivalent for candidate discovery only.
  if(assistant&&/^(?:ভাঙা|ভাঙ্গা|ভাঙার|ভাঙ্গার|ভঙ্গ|ভঙ্গের)$/u.test(tok))return [["ভাঙা",true],["ভাঙ্গা",true],["ভঙ্গ",true]];
  for(const a of searchAlts(tok)){if(stop.has(a)||ASK_SKIP.has(a))return null;
@@ -318,8 +320,15 @@ const SUGGEST={tm:null,side:null,ready:null,tsh:new Map(),relc:new Map(),bodyc:n
    /* A one-word subject can be common yet meaningful (e.g. রোজা). Use
       matching titles as candidates, not answers; the Worker still checks the
       body and the model must establish relevance. Avoid broad short stems. */
-   if(includeBodyMatches&&G.length===1&&!ranked.length&&G[0].some(([t])=>askCp(t)>=4||ASSISTANT_TITLE_TOPICS.has(t))){
-    ranked=[...T[0]].map(id=>[id,1/Math.max(1,ASK_LEN.indexOf(L[id]))]).sort((a,b)=>b[1]-a[1]||a[0]-b[0]);
+   if(includeBodyMatches&&G.length===1&&!ranked.length){
+    let candidates=T[0];
+    if(!G[0].some(([t])=>askCp(t)>=4||ASSISTANT_TITLE_TOPICS.has(t))){
+     // Short subjects can be meaningful, but prefix matching them would also
+     // admit unrelated words. Use only exact indexed title tokens here.
+     candidates=new Set();
+     for(const [form] of G[0])if(askCp(form)===3){const sh=await this.tshard(searchShard(form,nb)%nt);if(Object.prototype.hasOwnProperty.call(sh,form))for(const id of DEEP.ids(sh[form]))candidates.add(id)}
+    }
+    ranked=[...candidates].map(id=>[id,1/Math.max(1,ASK_LEN.indexOf(L[id]))]).sort((a,b)=>b[1]-a[1]||a[0]-b[0]);
    }
    // A general importance question should also consider subject titles even
    // when they do not contain the word "importance". This broadens candidate
@@ -361,7 +370,7 @@ const SUGGEST={tm:null,side:null,ready:null,tsh:new Map(),relc:new Map(),bodyc:n
    if(includeBodyMatches&&ranked.length&&!B.some((b,i)=>!b.size&&!T[i].size)){
     const when=queryWords.some(t=>t===foldBn('কখন'));
     const how=queryWords.some(t=>t===foldBn('কিভাবে')||t===foldBn('কীভাবে'));
-    const intent=(when?[['কখন',5],['সময়',4],['ওয়াক্ত',4],['সময়সীমা',4],['শুরু',1],['শেষ',1]]:how?[['পদ্ধতি',5],['কিভাবে',5],['নিয়ম',4]]:[]).map(([word,weight])=>[foldBn(word),weight]);
+    const intent=(when?[['কখন',5],['সময়',4],['ওয়াক্ত',4],['সময়সীমা',4],['শুরু',1],['শেষ',1]]:how?[['পদ্ধতি',5],['কিভাবে',5],['যেভাবে',5],['নিয়ম',4]]:[]).map(([word,weight])=>[foldBn(word),weight]);
     const subjects=T.filter((_,i)=>!(prayer&&/^(?:পড়ব|পড়বো|পড়বে|পড়বেন)$/u.test(original[i])));
     if(intent.length&&subjects.length){
      const hits=new Map();await Promise.all(intent.map(async([word,weight])=>{
@@ -372,7 +381,9 @@ const SUGGEST={tm:null,side:null,ready:null,tsh:new Map(),relc:new Map(),bodyc:n
      const existing=new Set(ranked.map(([id])=>id));
      const added=[...hits.keys()].filter(id=>!existing.has(id)&&eligible(id)).sort((a,b)=>hits.get(b)-hits.get(a)||a-b).slice(0,80);
      ranked.push(...added.map(id=>[id,0]));
-     const priority=id=>eligible(id)?hits.get(id)||0:0;
+     // For a single subject, retain short general titles alongside more
+     // specific how/when titles; the model still checks the actual evidence.
+     const priority=id=>eligible(id)?Math.max(hits.get(id)||0,G.length===1&&ASK_LEN.indexOf(L[id])>0&&ASK_LEN.indexOf(L[id])<=4?4:0):0;
      ranked.sort((a,b)=>priority(b[0])-priority(a[0])||b[1]-a[1]||a[0]-b[0]);
     }
    }
