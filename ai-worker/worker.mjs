@@ -96,6 +96,21 @@ function stripSourcePreface(q){return q.replace(/(?:কুরআন|কোরআ
 // in the answer. Explicit numbers and substantive conditions remain required.
 const SKIP=new Set('কি কেন কিভাবে কোথায় কেমন কোন কখন কয়টি কয়টা কতটি কতটা কাকে কাদের কাদেরকে আমার আমি আমাদের আপনি আপনার জানতে জানাবেন চাই সম্পর্কে বিষয় প্রস্ন উত্তর একটি একটা বলে বলা করা করবে করে গেলে হতে হবে আছে নাই থেকে মধ্যে সাথে তার এই এবং অথবা the what how when why who where for the and'.split(' ').map(fold));
 const SYNONYMS=[['নামাজ','সালাত'],['রোজা','সিয়াম','সাওম'],['কোরআন','কুরআন','কুরান'],['অজু','ওজু','উজু'],['হাদিস','হাদীস','হাদীছ'],['দোয়া','দোআ','দুআ'],['বিয়ে','বিবাহ']].map(g=>g.map(fold));
+// This is deliberately narrower than search: preserve all substantive words,
+// conditions, negations and their order. A title match is NOT proof that the
+// article answers the question; it only permits displaying its attributed text.
+function quoteQuestionKey(value){
+ const text=fold(value).replace(/^\s*প্রস্ন\s*(?:\(\s*\d+\s*\))?\s*[:：-]\s*/u,'');
+ const words=text.match(/[\p{L}\p{M}\p{N}]+/gu)||[];
+ const map=new Map([[fold('কোর্টের'),'কোর্ট'],[fold('কোর্টে'),'কোর্ট'],[fold('জায়েজ'),'বৈধ'],[fold('জায়েয'),'বৈধ'],[fold('বৈধ'),'বৈধ']]);
+ const fillers=new Set(['কি','হবে'].map(fold));
+ const result=words.map(w=>map.get(w)||w).filter((w,i,all)=>!fillers.has(w)&&!(w===fold('মাধ্যমে')&&all[i-1]==='কোর্ট'));
+ return result.length>=3?result.join(' '):'';
+}
+function matchingSourceQuote(question,articles){
+ const key=quoteQuestionKey(question);if(!key)return null;
+ return articles.find(r=>r.quote&&/প্রশ্ন\s*(?:\([^)]*\))?\s*[:：-]/u.test(r.title)&&quoteQuestionKey(r.title)===key)||null;
+}
 export function queryTerms(q){let normalized=stripSourcePreface(fold(normalizeRoman(q)));
  // An explanation request is not an extra subject or a duration in days.
  // Keep an actual number of days in all other contexts.
@@ -148,7 +163,14 @@ async function references(ids,query,mirrors) {
     return JSON.parse(await siteText('texts/'+shard+'.json',mirrors));
   })));
   results.forEach((result,i)=>{if(result.status==='fulfilled')shards.set(files[i],result.value)});
-  const items=keys.map(k=>{const x=shards.get(k.slice(-3))?.[k];return x&&typeof x.h==='string'&&x.h.trim()?{key:k,title:String(x.t||'').slice(0,250),...(mirrors?.has(SITE+'texts/'+k.slice(-3)+'.json')?{snapshot:SITE_SNAPSHOT}:{}),text:excerpt(x.h,query)}:null}).filter(Boolean);
+  const items=keys.map(k=>{
+    const x=shards.get(k.slice(-3))?.[k];if(!x||typeof x.h!=='string'||!x.h.trim())return null;
+    // Use a complete, short answer section only; never silently clip a source
+    // quotation or use the client-supplied title or text as evidence.
+    const section=plain(x.h).split(/\n\s*(?:প্রশ্নকারী\s*:|প্রসঙ্গসমূহ\s*»)/u)[0].trim();
+    const quote=/^উত্তর\s*[:：]/u.test(section)&&section.length<=2200?section:null;
+    return {key:k,title:String(x.t||'').slice(0,250),...(mirrors?.has(SITE+'texts/'+k.slice(-3)+'.json')?{snapshot:SITE_SNAPSHOT}:{}),text:excerpt(x.h,query),quote};
+  }).filter(Boolean);
   return {items,failed:items.length!==keys.length||results.some(result=>result.status==='rejected')};
 }
 async function sitePages(paths,query,mirrors){
@@ -318,7 +340,14 @@ export default {
      if(text.trim()){result={text,incomplete:lengthLimited(retry,ANSWER_TOKENS),model:result.model};checked=verifyAnswer(result.text,refs)}
     }catch(_){}
    }
-   if(checked.abstained)return reply({answer:NO_ANSWER,sources:[],grounded:false,partial,...(mirrors.size?{snapshot_search:true}:{}),...(partial?{search_failures:failures}:{}),...(limited?{search_limited:true}:{})},200,origin,allowed);
+   if(checked.abstained){
+    // Do not override the model's abstention with an invented verdict. If the
+    // standalone question closely matches a site's Q&A title, show the actual
+    // short source text as an explicitly unverified quotation instead.
+    const match=!isFollowUp(body.message.trim())?matchingSourceQuote(body.message.trim(),articles):null;
+    if(match)return reply({answer:'এআই নিশ্চিত উত্তর দিতে পারেনি। কাছাকাছি প্রশ্নের উৎস থেকে হুবহু লেখা নিচে দেওয়া হলো; এটি আপনার অবস্থার জন্য প্রযোজ্য কি না যাচাই করা হয়নি। মূল লেখাটি পড়ুন এবং ব্যক্তিগত বিষয়ে যোগ্য আলেমের পরামর্শ নিন।\n\n'+match.title+'\n\n'+match.quote,sources:[referenceInfo(match,1)],grounded:false,mode:'source_quote',partial,...(mirrors.size?{snapshot_search:true}:{}),...(partial?{search_failures:failures}:{}),...(limited?{search_limited:true}:{})},200,origin,allowed);
+    return reply({answer:NO_ANSWER,sources:[],grounded:false,partial,...(mirrors.size?{snapshot_search:true}:{}),...(partial?{search_failures:failures}:{}),...(limited?{search_limited:true}:{})},200,origin,allowed);
+   }
    if(!checked.valid)return reply({answer:'উত্তরের উৎসসংখ্যা বা আয়াত-হাদিসের পরিচয় যাচাই করা যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন বা টিমকে প্রশ্ন পাঠান।',sources:[],grounded:false,partial,...(mirrors.size?{snapshot_search:true}:{}),...(partial?{search_failures:failures}:{}),verification_failed:true,...(limited?{search_limited:true}:{})},200,origin,allowed);
    const {answer,marks}=checked;
    // Expose discovery coverage separately from citations: a model may choose

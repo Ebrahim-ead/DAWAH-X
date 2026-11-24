@@ -9,8 +9,9 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('nod
  }},match:async req=>{for(const name of stores.keys()){const found=await (await caches.open(name)).match(req);if(found)return found}}};
  const response=text=>({ok:true,type:'basic',text:async()=>text,clone(){return response(text)}});
  const ctx={self:{addEventListener:(type,cb)=>listeners[type]=cb,registration:{scope:base},location:{origin:'https://example.test'}},caches,fetch:async()=>{if(!online)throw Error('offline');return response('new')},URL,Response,Request,Promise,Set};
- vm.runInNewContext(fs.readFileSync('sw.js','utf8'),ctx);
- const shell=await caches.open('dawahx-shell-v47');await shell.put('app.js',response('old'));await shell.put('read.html',response('read shell'));await shell.put('index.html',response('home shell'));
+ const sw=fs.readFileSync('sw.js','utf8');vm.runInNewContext(sw,ctx);
+ const version=sw.match(/const VERSION='(v\d+)'/);assert(version,'service worker cache version');
+ const shell=await caches.open('dawahx-shell-'+version[1]);await shell.put('app.js',response('old'));await shell.put('read.html',response('read shell'));await shell.put('index.html',response('home shell'));
  async function run(url,extra={}){let result;const waits=[];listeners.fetch({request:{url:new URL(url,base).href,method:'GET',mode:'same-origin',headers:new Headers(),...extra},respondWith:p=>{result=p},waitUntil:p=>waits.push(p)});if(!result)return null;const out=await result;await Promise.all(waits);return out}
  assert.equal(await (await run('app.js')).text(),'new');online=false;assert.equal(await (await run('app.js')).text(),'new','offline must prefer the latest runtime version to the older shell');
  assert.equal(await (await run('read.html?k=abc',{mode:'navigate'})).text(),'read shell');assert.equal(await (await run('./',{mode:'navigate'})).text(),'home shell');
