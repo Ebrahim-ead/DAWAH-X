@@ -11,7 +11,7 @@ const document={currentScript:{src:'https://example.test/DAWAH-X/assistant.js'},
 vm.runInNewContext(fs.readFileSync('assistant.js','utf8'),{document,URL});
 const trigger=body.children[0],img=trigger.children[0];
 assert.equal(trigger.tag,'button');assert.equal(trigger.attrs['aria-label'],'এআই সহকারী চ্যাট খুলুন');assert.equal(trigger.attrs['aria-expanded'],'false');
-assert.equal(img.tag,'img');assert.equal(img.src,'https://example.test/DAWAH-X/assistant-logo.webp');assert.equal(img.alt,'');assert(fs.existsSync('assistant-logo.webp'));
+assert.equal(img.tag,'img');assert.equal(img.src,'https://example.test/DAWAH-X/assistant-logo.webp');assert.equal(img.alt,'');assert.equal(img.width,72);assert.equal(img.height,72);assert(fs.existsSync('assistant-logo.webp'));
 assert.equal(panel.hidden,true);trigger.listeners.click();assert.equal(panel.hidden,false);assert.equal(trigger.attrs['aria-expanded'],'true');assert(input.focused);
 close.listeners.click();assert.equal(panel.hidden,true);assert.equal(trigger.attrs['aria-expanded'],'false');assert(trigger.focused);
 assert(fs.readFileSync('sw.js','utf8').includes("'assistant-logo.webp'"),'logo is available in offline shell');
