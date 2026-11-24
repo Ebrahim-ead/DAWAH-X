@@ -223,6 +223,9 @@ function normalizeRoman(q){return String(q).replace(/[A-Za-z]+/g,w=>ROMAN_BN[w.t
    unchanged for the model. Do not strip standalone questions about Sunnah. */
 function stripSourcePreface(q){return q.replace(/(?:কুরআন|কোরআন|কুরান|কোরান)(?:ের)?\s*(?:ও|এবং|এবঙ)\s*(?:সুন্নাহ(?:র|ের)?|হাদিস(?:ের)?)\s*(?:আলোকে|অনুজায়ি|অনুসারে|ভিত্তিতে)/gu,' ')}
 const ASSISTANT_TITLE_TOPICS=new Set(["সালাত","ইসলাম","আল্লাহ","নবি","রাসুল","ইবাদত"]);
+// Interrogative and auxiliary forms are not subjects. This only affects
+// assistant candidate search; the full question remains model context.
+const ASSISTANT_QUERY_FILLERS=new Set('করব করবো করবেন করি পারবো পারবেন'.split(' ').map(foldBn));
 const ASK_LEN="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"; /* tools/build-site-data.cjs-এর LEN_CHARS */
 const askCp=t=>[...t].length,askMinPrefix=t=>[...t][1]==="\u09cd"?5:3;
 /* একটি শব্দ → খোঁজার রূপগুলো [[রূপ, শুরু মিললেই চলবে?]]; শব্দটি (বা তার মূল রূপ) খুব সাধারণ হলে null।
@@ -237,6 +240,7 @@ function askForms(tok,stop,assistant=false){const out=new Map();
  // Common conjugations of tying/binding differ from article-headword forms.
  // Keep this mapping narrow: it finds candidates, not an answer or a ruling.
  if(/^(?:বাধবো|বাধবে|বাধব|বাধেন|বাধুন|বেধে|বেধেসে|বেধেসেন|বাধার|বাধা)$/u.test(tok))return [["বাধা",true],["বেধে",true],["বাধবে",true]];
+ if(assistant&&tok===foldBn('কাকে'))return [[foldBn('কাকে'),true],[foldBn('কাদের'),true]];
  // Nominal forms for breaking are equivalent for candidate discovery only.
  if(assistant&&/^(?:ভাঙা|ভাঙ্গা|ভাঙার|ভাঙ্গার|ভঙ্গ|ভঙ্গের)$/u.test(tok))return [["ভাঙা",true],["ভাঙ্গা",true],["ভঙ্গ",true]];
  for(const a of searchAlts(tok)){if(stop.has(a)||ASK_SKIP.has(a))return null;
@@ -281,7 +285,10 @@ const SUGGEST={tm:null,side:null,ready:null,tsh:new Map(),relc:new Map(),bodyc:n
  async find(q,{includeVideos=true,includeBodyMatches=false}={}){try{
    if(!(await this.init()))return null;
    const vp=includeVideos?this.videos():Promise.resolve(null),stop=includeBodyMatches?new Set([...DEEP.stop].filter(t=>!ASSISTANT_TITLE_TOPICS.has(t))):DEEP.stop,seen=new Set(),same=new Set(),G=[],original=[];
-   for(const t of searchTokens(includeBodyMatches?stripSourcePreface(foldBn(normalizeRoman(q))):q)){if(/^\d+$/.test(t)||seen.has(t))continue;seen.add(t);const f=askForms(t,stop,includeBodyMatches);if(!f)continue;
+   const question=includeBodyMatches?stripSourcePreface(foldBn(normalizeRoman(q))):q,queryWords=searchTokens(question);
+   const prayer=includeBodyMatches&&queryWords.some(t=>/^(?:নামাজ|সালাত)/u.test(t));
+   for(const t of queryWords){if(/^\d+$/.test(t)||seen.has(t)||(includeBodyMatches&&ASSISTANT_QUERY_FILLERS.has(t)))continue;seen.add(t);
+    const f=prayer&&/^(?:পড়ব|পড়বো|পড়বে|পড়বেন)$/u.test(t)?[[t,true],['পড়া',true],['পড়তে',true],['আদায়',true]]:askForms(t,stop,includeBodyMatches);if(!f)continue;
     const id=f.map(x=>x[0]).sort().join("|");if(same.has(id))continue;same.add(id);G.push(f);original.push(t);if(G.length>=12)break}
    if(!G.length)return {texts:[],videos:Promise.resolve([]),limited:true};
    const N=DEEP.meta.n,nb=DEEP.meta.shards,nt=this.tm.shards,B=[],T=[];
@@ -345,6 +352,28 @@ const SUGGEST={tm:null,side:null,ready:null,tsh:new Map(),relc:new Map(),bodyc:n
      if(countsBySide('q')>=3&&countsBySide('f')>=3)break;
      const batch=candidates.slice(i,i+6),near=await Promise.all(batch.map(([id])=>this.bodyNear(DEEP.keys.substr(id*14,14),G,includeBodyMatches)));
      ranked.push(...batch.filter((_,j)=>near[j]));
+    }
+   }
+   // A question's intent (when/how) is often expressed by a different word
+   // in article titles. Add a bounded set of title candidates and rank them
+   // ahead of generic subject hits, without relaxing unknown subject groups.
+   // These are still unverified candidates, not answers or semantic proof.
+   if(includeBodyMatches&&ranked.length&&!B.some((b,i)=>!b.size&&!T[i].size)){
+    const when=queryWords.some(t=>t===foldBn('কখন'));
+    const how=queryWords.some(t=>t===foldBn('কিভাবে')||t===foldBn('কীভাবে'));
+    const intent=(when?[['কখন',5],['সময়',4],['ওয়াক্ত',4],['সময়সীমা',4],['শুরু',1],['শেষ',1]]:how?[['পদ্ধতি',5],['কিভাবে',5],['নিয়ম',4]]:[]).map(([word,weight])=>[foldBn(word),weight]);
+    const subjects=T.filter((_,i)=>!(prayer&&/^(?:পড়ব|পড়বো|পড়বে|পড়বেন)$/u.test(original[i])));
+    if(intent.length&&subjects.length){
+     const hits=new Map();await Promise.all(intent.map(async([word,weight])=>{
+      const shard=await this.tshard(searchShard(word,nb)%nt);
+      for(const tok in shard)if(tok.startsWith(word))for(const id of DEEP.ids(shard[tok]))hits.set(id,Math.max(hits.get(id)||0,weight));
+     }));
+     const eligible=id=>subjects.every(set=>set.has(id));
+     const existing=new Set(ranked.map(([id])=>id));
+     const added=[...hits.keys()].filter(id=>!existing.has(id)&&eligible(id)).sort((a,b)=>hits.get(b)-hits.get(a)||a-b).slice(0,80);
+     ranked.push(...added.map(id=>[id,0]));
+     const priority=id=>eligible(id)?hits.get(id)||0:0;
+     ranked.sort((a,b)=>priority(b[0])-priority(a[0])||b[1]-a[1]||a[0]-b[0]);
     }
    }
    const pick={q:[],f:[]};for(const [id] of ranked){const s=this.side(id);if(pick[s].length<6)pick[s].push(id)}
