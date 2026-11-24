@@ -15,4 +15,5 @@ assert.equal(img.tag,'img');assert.equal(img.src,'https://example.test/DAWAH-X/a
 assert.equal(panel.hidden,true);trigger.listeners.click();assert.equal(panel.hidden,false);assert.equal(trigger.attrs['aria-expanded'],'true');assert(input.focused);
 close.listeners.click();assert.equal(panel.hidden,true);assert.equal(trigger.attrs['aria-expanded'],'false');assert(trigger.focused);
 assert(fs.readFileSync('sw.js','utf8').includes("'assistant-logo.webp'"),'logo is available in offline shell');
+const css=fs.readFileSync('assistant.css','utf8');assert.match(css,/\.dxa-trigger\{[^}]*border-radius:50%/,'launcher is circular');assert.match(css,/\.dxa-trigger img\{[^}]*object-fit:contain/,'keep the supplied image visible without stretching');
 console.log('assistant logo: relative asset, accessible button and open/close behavior pass');
