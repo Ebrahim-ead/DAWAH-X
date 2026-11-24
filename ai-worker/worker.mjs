@@ -107,8 +107,16 @@ function quoteQuestionKey(value){
  const result=words.map(w=>map.get(w)||w).filter((w,i,all)=>!fillers.has(w)&&!(w===fold('মাধ্যমে')&&all[i-1]==='কোর্ট'));
  return result.length>=3?result.join(' '):'';
 }
-function matchingSourceQuote(question,articles){
- const key=quoteQuestionKey(question);if(!key)return null;
+function matchingSourceQuote(question,articles,correction){
+ // The original is never silently changed. This narrowly scoped spelling
+ // hint is separately displayed by the client; all other words are retained.
+ let candidate=question;
+ if(correction&&(fold(correction.from)==='কোটে'||fold(correction.from)==='কোট')&&fold(correction.to)==='কোর্ট'){
+  const words=fold(question).match(/[\p{L}\p{M}\p{N}]+/gu)||[];
+  if(words.includes(fold(correction.from))&&words.some(w=>w===fold('বিবাহ')||w===fold('বিয়ে')))
+   candidate=question.replace(/(?<![\p{L}\p{M}\p{N}])কোটে?(?![\p{L}\p{M}\p{N}])/u,'কোর্ট');
+ }
+ const key=quoteQuestionKey(candidate);if(!key)return null;
  return articles.find(r=>r.quote&&/প্রশ্ন\s*(?:\([^)]*\))?\s*[:：-]/u.test(r.title)&&quoteQuestionKey(r.title)===key)||null;
 }
 export function queryTerms(q){let normalized=stripSourcePreface(fold(normalizeRoman(q)));
@@ -344,7 +352,7 @@ export default {
     // Do not override the model's abstention with an invented verdict. If the
     // standalone question closely matches a site's Q&A title, show the actual
     // short source text as an explicitly unverified quotation instead.
-    const match=!isFollowUp(body.message.trim())?matchingSourceQuote(body.message.trim(),articles):null;
+    const match=!isFollowUp(body.message.trim())?matchingSourceQuote(body.message.trim(),articles,correction):null;
     if(match)return reply({answer:'এআই নিশ্চিত উত্তর দিতে পারেনি। কাছাকাছি প্রশ্নের উৎস থেকে হুবহু লেখা নিচে দেওয়া হলো; এটি আপনার অবস্থার জন্য প্রযোজ্য কি না যাচাই করা হয়নি। মূল লেখাটি পড়ুন এবং ব্যক্তিগত বিষয়ে যোগ্য আলেমের পরামর্শ নিন।\n\n'+match.title+'\n\n'+match.quote,sources:[referenceInfo(match,1)],grounded:false,mode:'source_quote',partial,...(mirrors.size?{snapshot_search:true}:{}),...(partial?{search_failures:failures}:{}),...(limited?{search_limited:true}:{})},200,origin,allowed);
     return reply({answer:NO_ANSWER,sources:[],grounded:false,partial,...(mirrors.size?{snapshot_search:true}:{}),...(partial?{search_failures:failures}:{}),...(limited?{search_limited:true}:{})},200,origin,allowed);
    }

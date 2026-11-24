@@ -145,7 +145,11 @@ export function articleCandidate(text,termGroups,correction,title=''){
  if(t.length>=2&&title&&score(title,t)===t.length&&near(title,t,300)&&t.some(g=>!g.numeric&&score(body,[g])===1))return true;
  if(t.length<2||!correction||typeof correction.from!=='string'||typeof correction.to!=='string')return false;
  const from=fold(correction.from),to=fold(correction.to);
- if(!/^[\u0980-\u09ff]+$/u.test(from)||!/^[\u0980-\u09ff]+$/u.test(to)||!oneTypo(from,to))return false;
+ // Missing Bengali র্ is two Unicode code points. Accept this one explicit
+ // possible spelling only with a separate marriage topic; never trust an
+ // arbitrary client correction or discard the other required terms.
+ const courtMarriage=(from==='কোটে'||from==='কোট')&&to==='কোর্ট'&&t.some(g=>g.includes(fold('বিবাহ'))||g.includes(fold('বিয়ে')));
+ if(!/^[\u0980-\u09ff]+$/u.test(from)||!/^[\u0980-\u09ff]+$/u.test(to)||(!oneTypo(from,to)&&!courtMarriage))return false;
  const missing=t.map((g,i)=>score(body,[g])? -1:i).filter(i=>i>=0);if(missing.length!==1)return false;
  const i=missing[0],group=t[i];if(group.numeric||!group.includes(from))return false;
  const expanded=t.map((g,n)=>n===i?[to]:g);return score(body,expanded)===t.length&&near(body,expanded,300);

@@ -360,6 +360,20 @@ const SUGGEST={tm:null,side:null,ready:null,tsh:new Map(),relc:new Map(),bodyc:n
     const seenV=new Set();for(const [i] of this.score(V.list.length,TV,null,w,raw,i=>V.len[i])){const v=V.list[i],ft=foldBn(v.title);if(seenV.has(ft))continue;seenV.add(ft);videos.push({id:v.id,title:v.title,channel:v.channelTitle||""});if(videos.length>=2)break}}
     return videos}).catch(()=>[]);
    return {texts,videos,...(includeBodyMatches?{limited:true}:{}),...(correction?{correction}:{})}}catch(e){return null}}};
+// The imported corpus sometimes spells court as কোটে. Only suggest the
+// correction alongside a marriage term, and disclose it to the visitor; the
+// original question still goes to the Worker and model unchanged.
+async function assistantSearch(q){
+ const normalized=foldBn(q),words=normalized.match(/[\p{L}\p{M}\p{N}]+/gu)||[];
+ const mistaken=words.find(w=>w==='কোটে'||w==='কোট');
+ if(mistaken&&words.some(w=>/^(?:বিবাহ|বিয়ে)(?:ের|ে|র)?$/u.test(w))){
+  const corrected=String(q).replace(/(?<![\p{L}\p{M}\p{N}])কোটে?(?![\p{L}\p{M}\p{N}])/u,'কোর্ট');
+  const result=await SUGGEST.find(corrected,{includeBodyMatches:true});
+  // A second typo cannot be represented by a single correction hint.
+  if(result&&!result.correction)return {...result,correction:{from:mistaken,to:'কোর্ট'}};
+ }
+ return SUGGEST.find(q,{includeBodyMatches:true});
+}
 /* ===== /মিলে-যাওয়া লেখা ও ভিডিও ===== */
 const hostOf=u=>{try{return new URL(u).hostname.replace(/^www\./,"")}catch(e){return""}};
 const formatCount=n=>new Intl.NumberFormat("en-US").format(n);
@@ -1605,5 +1619,5 @@ if(navigator.serviceWorker&&(location.protocol==="https:"||location.hostname==="
 }
 
 /* এআই সহকারী — অনুসন্ধান সূচি প্রয়োজন হলে তবেই লোড হয়। */
-window.dawahxAssistantSearch=q=>SUGGEST.find(q,{includeBodyMatches:true});
+window.dawahxAssistantSearch=q=>assistantSearch(q);
 {const script=document.createElement('script');script.src=new URL('assistant.js',document.currentScript.src).href;script.defer=true;document.body.appendChild(script)}
