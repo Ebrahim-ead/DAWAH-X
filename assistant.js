@@ -59,7 +59,7 @@
    throw Error(String(res.status));
   }return res.json();
  }
- function modeLabel(mode){const el=document.createElement('div');el.className='dxa-mode';el.textContent=mode==='chat'?'সাধারণ আলাপ · সাইটের উৎসভিত্তিক নয়':mode==='failed'?'উৎস অনুসন্ধান সম্পূর্ণ হয়নি':mode==='verification'?'উত্তর যাচাই করা যায়নি':mode==='no-source'?'খুঁজে পাওয়া উৎসে পর্যাপ্ত তথ্য নেই':'প্রাপ্ত উৎসভিত্তিক উত্তর';chat.append(el)}
+ function modeLabel(mode){const el=document.createElement('div');el.className='dxa-mode';el.textContent=mode==='chat'?'সাধারণ আলাপ · সাইটের উৎসভিত্তিক নয়':mode==='source_quote'?'কাছাকাছি প্রশ্নের মূল লেখা · প্রযোজ্যতা যাচাই করা হয়নি':mode==='failed'?'উৎস অনুসন্ধান সম্পূর্ণ হয়নি':mode==='verification'?'উত্তর যাচাই করা যায়নি':mode==='no-source'?'খুঁজে পাওয়া উৎসে পর্যাপ্ত তথ্য নেই':'প্রাপ্ত উৎসভিত্তিক উত্তর';chat.append(el)}
  async function submit(q){q=q.trim();if(!q||busy)return;busy=true;send.disabled=true;input.value='';bubble(q,'user');const status=bubble('উত্তর তৈরি হচ্ছে…','status');
   try{
    if(!API_URL)throw Error('unsupported');
@@ -76,7 +76,7 @@
     if(data.grounded===true)sources(texts,videos);
    }
    if(typeof data.answer!=='string'||!data.answer.trim()||!Array.isArray(data.sources)||typeof data.grounded!=='boolean'||(data.grounded&&!data.sources.length))throw Error('unsupported');
-   status.remove();if(spelling&&typeof spelling.from==='string'&&typeof spelling.to==='string')bubble('উৎস খোঁজায় সম্ভাব্য বানান ব্যবহার করা হয়েছে: '+spelling.from+' → '+spelling.to+'। অর্থ ভিন্ন হলে প্রশ্নটি সংশোধন করুন।','status');modeLabel(data.mode==='chat'?'chat':data.grounded?'grounded':data.verification_failed?'verification':data.partial?'failed':'no-source');const answerBubble=bubble(data.answer,'assistant');citations(data.sources);if(data.partial===true){const labels={quran:'কুরআন',hadith:'হাদিস',site_search:'সাইটের লেখা খোঁজা',site_pages:'সাইটের তথ্য',articles:'বাছাই করা লেখা',direct_lookup:'নির্দিষ্ট আয়াত বা হাদিস'};
+   status.remove();if(spelling&&typeof spelling.from==='string'&&typeof spelling.to==='string')bubble('উৎস খোঁজায় সম্ভাব্য বানান ব্যবহার করা হয়েছে: '+spelling.from+' → '+spelling.to+'। অর্থ ভিন্ন হলে প্রশ্নটি সংশোধন করুন।','status');modeLabel(data.mode==='chat'?'chat':data.mode==='source_quote'?'source_quote':data.grounded?'grounded':data.verification_failed?'verification':data.partial?'failed':'no-source');const answerBubble=bubble(data.answer,'assistant');citations(data.sources,data.mode==='source_quote');if(data.partial===true){const labels={quran:'কুরআন',hadith:'হাদিস',site_search:'সাইটের লেখা খোঁজা',site_pages:'সাইটের তথ্য',articles:'বাছাই করা লেখা',direct_lookup:'নির্দিষ্ট আয়াত বা হাদিস'};
     const failed=Array.isArray(data.search_failures)?[...new Set(data.search_failures.filter(x=>Object.prototype.hasOwnProperty.call(labels,x)).map(x=>labels[x]))]:[];
     bubble(failed.length?'এই অংশগুলোতে সমস্যা হয়েছে: '+failed.join(', ')+'। অনুসন্ধান সম্পূর্ণ হয়নি।':'কিছু উৎস এই মুহূর্তে পাওয়া যায়নি; অনুসন্ধান সম্পূর্ণ হয়নি।','status')}if(data.search_limited===true)bubble(data.mode==='chat'?'এই সাধারণ কথায় বিষয়ভিত্তিক উৎস অনুসন্ধান সীমিত ছিল।':'উৎসগুলোতে বিষয়ভিত্তিক অনুসন্ধান সীমিত ছিল; প্রয়োজন হলে বিষয় ও প্রাসঙ্গিক শর্ত স্পষ্ট করে আবার চেষ্টা করুন।','status');if(data.grounded===true&&data.source_coverage){const c=data.source_coverage,names={quran:'কুরআন',hadith:'হাদিস'};
     const missing=Object.keys(names).filter(k=>c[k]==='no_match').map(k=>names[k]),skipped=Object.keys(names).filter(k=>c[k]==='skipped').map(k=>names[k]);
