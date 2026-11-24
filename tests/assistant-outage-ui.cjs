@@ -11,7 +11,8 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('nod
  const body=new Element('body'),head=new Element('head'),panel=new Element('aside'),chat=new Element('div'),form=new Element('form'),input=new Element('textarea'),send=new Element('button'),close=new Element('button');
  panel.querySelector=s=>({'.dxa-chat':chat,'form':form,'textarea':input,'.dxa-close':close})[s];form.querySelector=()=>send;
  const document={currentScript:{src:'https://example.test/DAWAH-X/assistant.js'},head,body,createElement:tag=>tag==='aside'?panel:new Element(tag)};
- let calls=0,quota=false,quote=false;const fetch=async(_url,options)=>{calls++;const payload=JSON.parse(options.body);if(!payload.lookupComplete)return Response.json({needs_sources:true,all_sources:true});
+ let calls=0,quota=false,quote=false,abstain=false;const fetch=async(_url,options)=>{calls++;const payload=JSON.parse(options.body);if(!payload.lookupComplete)return Response.json({needs_sources:true,all_sources:true});
+  if(abstain)return Response.json({answer:'পর্যাপ্ত তথ্য পাওয়া যায়নি',grounded:false,sources:[],candidates:[{number:1,title:'সম্ভাব্য লেখা',key:'1289166d87d0da'},{number:2,title:'bad link',key:'../../malicious'}]});
   if(quote)return Response.json({answer:'মূল লেখা থেকে উদ্ধৃতি',grounded:false,mode:'source_quote',sources:[{number:1,title:'সাইটের লেখা',key:'1289166d87d0da'}]});
   return Response.json({error:'Assistant unavailable',error_code:'model_unavailable',...(quota?{model_reason:'quota'}:{}),partial:true,candidates:[{number:1,title:'সহীহ বুখারী · হাদিস 233',type:'hadith',book:'bukhari',chapter:4,hadith:233},{number:2,title:'সাইটের লেখা',key:'1289166d87d0da'},{number:3,title:'bad link',key:'../../malicious'}]}, {status:502})};
  const context={document,window:{dawahxAssistantSearch:async()=>({texts:[],videos:null,limited:true})},URL,fetch,Response,AbortController,TextEncoder,setTimeout,clearTimeout,console};
@@ -26,5 +27,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('nod
  assert(chat.children.some(x=>x.className==='dxa-mode'&&(x.textContent||'').includes('প্রযোজ্যতা যাচাই করা হয়নি')));
  assert(chat.children.some(x=>x.className==='dxa-sources'&&(x.children[0]?.textContent||'').includes('প্রশ্নের উত্তর হিসেবে যাচাই করা হয়নি')));
  assert(chat.children.some(x=>x.className==='dxa-message assistant'&&x.textContent==='মূল লেখা থেকে উদ্ধৃতি'));
+ abstain=true;input.value='অন্য প্রশ্ন';const previous=chat.children.length;form.listeners.submit({preventDefault(){}});for(let i=0;i<20&&send.disabled;i++)await new Promise(resolve=>setImmediate(resolve));
+ const fresh=chat.children.slice(previous),candidateBox=fresh.find(x=>x.className==='dxa-sources');assert(candidateBox);assert.match(candidateBox.children[0].textContent,/প্রশ্নের উত্তর হিসেবে যাচাই করা হয়নি/);assert(candidateBox.children.some(x=>x.href?.includes('read.html?k=1289166d87d0da')));assert(!candidateBox.children.some(x=>x.href?.includes('malicious')));
  console.log('assistant outage UI: candidate links and source quotations are explicitly unverified and retry is available');
 })().catch(e=>{console.error(e);process.exitCode=1});
