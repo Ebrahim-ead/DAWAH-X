@@ -8,7 +8,7 @@ permissions:
 jobs:
   collect:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
         with:
@@ -17,11 +17,13 @@ jobs:
         with:
           node-version: 20
       - run: npm install --prefix /tmp/ihadis-parser cheerio@1.0.0 --no-audit --no-fund
-      - name: Collect public pages slowly
-        run: NODE_PATH=/tmp/ihadis-parser/node_modules node tools/collect-ihadis.cjs 100-hadith ramadaner-durbol-hadis silsila-sahiha miskate-dhaif-hadis
-      - name: Save complete snapshots
+      - name: Collect and checkpoint each complete book
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add tools/ihadis-*-snapshot.json.gz tools/ihadis-collection-report.json
-          git commit -m 'Record iHadis source collection results' && git push origin HEAD:arena/983d824f-dawah-x
+          for book in fazayele-amal sahih-hadise-qudsi; do
+            NODE_PATH=/tmp/ihadis-parser/node_modules node tools/collect-ihadis.cjs "$book"
+            git add tools/ihadis-*-snapshot.json.gz tools/ihadis-collection-report.json
+            git commit -m "Record collection result for $book" && git push origin HEAD:arena/983d824f-dawah-x
+            node -e "let r=require('./tools/ihadis-collection-report.json').find(x=>x.slug===process.argv[1]);if(!r||r.status!=='complete'){console.error(r);process.exit(1)}" "$book"
+          done
