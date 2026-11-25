@@ -61,5 +61,10 @@
     "count": 163,
     "chapters": 1,
     "sha256": "6ede1112cd0c62d5af0237229d9891281486ee55f0a9fe9f3d132068067b849a"
+  },
+  {
+    "slug": "targib-wattahrib",
+    "status": "failed",
+    "error": "Error: Missing translation or grade targib-wattahrib:18"
   }
 ]
