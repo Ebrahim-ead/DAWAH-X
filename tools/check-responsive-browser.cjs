@@ -197,11 +197,13 @@ const checkOverflow=async(page,label)=>{
    await context.close();page=null;console.log(`${theme} ${width}px: navigation, reading, videos and form passed`);
   }
   // Desktop breakpoints near the navigation's tightest layouts.
-  for(const width of [1100,1180,1280,1366,1440,1600,1920])for(const fallback of [false,true]){
+  for(const width of [1100,1180,1280,1366,1440,1559,1560,1600,1920])for(const fallback of [false,true]){
    const context=await browser.newContext({viewport:{width,height:900},reducedMotion:'reduce',serviceWorkers:'block'});
    if(fallback)await context.route('**/fonts/**',route=>route.abort());
    page=await context.newPage();await page.goto(base+'index.html',{waitUntil:'domcontentloaded'});await page.evaluate(()=>document.fonts.ready);
    const bounds=await page.locator('#menu a').evaluateAll(links=>links.map(link=>{const b=link.getBoundingClientRect();return {left:b.left,right:b.right,top:b.top,bottom:b.bottom,scroll:link.scrollWidth,client:link.clientWidth}}));
+   const navStyle=await page.locator('#menu').evaluate(menu=>({justify:getComputedStyle(menu).justifyContent,gap:parseFloat(getComputedStyle(menu).columnGap),font:parseFloat(getComputedStyle(menu.querySelector('a')).fontSize)}));
+   assert.equal(navStyle.justify,'center');assert(navStyle.gap<=4,`${width}px: navigation items too far apart`);assert(navStyle.font>=(width<1560?15:17),`${width}px: navigation text too small`);
    assert.equal(bounds.length,10);for(let i=0;i<bounds.length;i++){assert(bounds[i].scroll<=bounds[i].client+1,`${width}px fallback=${fallback}: clipped navigation text`);if(i){assert(bounds[i].left>=bounds[i-1].right-1,`${width}px: overlapping navigation links`);assert(Math.abs(bounds[i].top-bounds[0].top)<2,`${width}px: wrapped navigation`)}}
    const acts=await page.locator('.acts').boundingBox();assert(bounds.at(-1).right<=acts.x+1,`${width}px: navigation overlaps actions`);
    await checkOverflow(page,`${width}px desktop navigation`);await context.close();page=null;
