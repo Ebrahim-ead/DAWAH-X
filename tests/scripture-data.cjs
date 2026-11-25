@@ -14,6 +14,11 @@ const { SURAHS, QURAN, HADITH_INDEX } = context.window;
 assert.equal(SURAHS.length, 114);
 assert.equal(QURAN.verses.length, 114);
 assert.equal(QURAN.verses.reduce((n, a) => n + a.length, 0), 6236);
+// Verify every English verse and its order against the pinned source snapshot.
+for (let s=1; s<=114; s++) vm.runInNewContext(read(`scripture-en-${s}.js`).toString(), context);
+const en = Array.from({length:114},(_,i)=>Array.from(context.window.EN_SURAHS[i+1]));
+en.forEach((verses,i)=>assert.equal(verses.length,QURAN.counts[i],`English surah ${i+1}`));
+assert.equal(crypto.createHash('sha256').update(JSON.stringify(en)).digest('hex'),'5dcc56b64294142cc23e7b78e115f7e0ce076f0fe5195e6ad587c63d71fb043b');
 for (let i=1; i<=114; i++) for (const group of ['bn','tafsir','tafsir-ibn-kathir']) assert.ok(fs.existsSync(path.join(root, `scripture-${group}-${i}.js`)));
 const manifest = JSON.parse(read('scripture-manifest.json'));
 assert.equal(manifest.shards.length, 428);

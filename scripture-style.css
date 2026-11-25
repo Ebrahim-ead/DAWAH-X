@@ -953,3 +953,24 @@ html[data-theme="light"] body.scripture-page { background:radial-gradient(ellips
 .scripture-page #app .verse { margin:0;color:var(--text);font-weight:400; }
 .scripture-page #app .btn,.scripture-page .footer-tools .btn { min-height:44px;width:auto; }
 @media(max-width:560px){.scripture-page #app .btn,.scripture-page .footer-tools .btn{width:auto}}
+
+/* Use the main DAWAH X shell, spacing and card language throughout the readers. */
+.scripture-page header.top .wrap,.scripture-page footer .wrap,.scripture-page .reader-utilities.wrap {width:auto;max-width:1140px;margin:0 auto;padding-left:20px;padding-right:20px}
+@media(min-width:1100px){.scripture-page header.top .bar{width:100%;max-width:1500px;padding-inline:16px}}
+@media(max-width:360px){.scripture-page header.top .bar{padding-inline:16px}}
+.scripture-page header.top,.scripture-page footer {font-family:"Hind Siliguri",system-ui,-apple-system,"Segoe UI",sans-serif}
+.scripture-page footer .fg h2 {font-size:16px;margin-bottom:10px}
+.scripture-page footer .fg .word {height:64px;width:auto;max-width:100%}
+.scripture-page footer .follow-btn {font-size:14px}
+.scripture-page .reader-utilities {padding-top:4px;padding-bottom:24px;color:var(--muted)}
+.scripture-page .reader-utilities .build-line {font-size:12px}
+.scripture-page #app .page-head {text-align:center}
+.scripture-page #app .page-head h1 {display:flex;align-items:center;justify-content:center;gap:16px;font-size:clamp(24px,4vw,32px);color:var(--text)}
+.scripture-page #app .page-head h1::before,.scripture-page #app .page-head h1::after {content:"";height:1px;width:min(110px,12vw);background:var(--gold)}
+.scripture-page #app .card-panel,.scripture-page #app .surah-card,.scripture-page #app .verse {background:var(--card);border-color:var(--line);border-radius:12px;box-shadow:none}
+.scripture-page #app .surah-card:hover,.scripture-page #app .hadith-book:hover,.scripture-page #app .verse:hover {border-color:var(--gold);background:var(--card)}
+.scripture-page #app .verse.is-target {border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-dim)}
+.scripture-page #app .btn-primary {background:linear-gradient(135deg,#ffd651,#f5a800);color:#1a1300;border-color:var(--gold);box-shadow:0 8px 24px rgba(245,168,0,.2)}
+.scripture-page #app .verses.mushaf .verse,.scripture-page #app .verses.mushaf .verse:hover {background:none;border:0;box-shadow:none}
+.scripture-page #app .english-translation .tr-text {font-family:system-ui,sans-serif;line-height:1.75}
+@media(max-width:560px){.scripture-page .reader-utilities .btn{width:auto}}

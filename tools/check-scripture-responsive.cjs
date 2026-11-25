@@ -21,8 +21,15 @@ const server=http.createServer((req,res)=>{
    await context.addInitScript(t=>localStorage.setItem('dawahx-theme',t),theme);
    const check=async(label)=>{await page.evaluate(()=>document.fonts.ready);const s=await page.evaluate(()=>({client:document.documentElement.clientWidth,scroll:document.documentElement.scrollWidth}));if(s.scroll>s.client+1)console.log(await page.evaluate(()=>Array.from(document.querySelectorAll('*')).map(e=>[e.tagName,e.className,e.getBoundingClientRect().right,e.scrollWidth,e.clientWidth]).filter(r=>r[2]>document.documentElement.clientWidth+1).slice(0,20)));assert(s.scroll<=s.client+1,`${width} ${theme} ${label}: overflow ${s.scroll-s.client}px`)};
    await page.goto(base+'quran.html');await page.waitForSelector('.surah-card');assert.equal(await page.locator('.surah-card').count(),114);await check('surahs');
-   await page.goto(base+'quran.html#/s/1/a/1');await page.waitForFunction(()=>document.querySelector('#v1 .verse-translation')?.textContent.includes('রহমান, রহীম'));await check('verse');
-   await page.goto(base+'hadith.html');await page.waitForSelector('.hadith-book');assert.equal(await page.locator('.hadith-book').count(),9);await check('books');
+   assert.equal(await page.locator('footer .qlinks li').count(),13);
+   assert.equal(await page.locator('footer .soc a').count(),3);
+   assert.equal(await page.locator('footer .follow-btn').count(),2);
+   assert.equal(await page.locator('footer .word').getAttribute('src'),theme==='light'?'logo-dark.webp':'logo.webp');
+   const columns=await page.locator('footer .qlinks li').evaluateAll(items=>items.slice(0,2).map(x=>x.getBoundingClientRect().x));
+   assert(columns[1]>columns[0],`${width}: quick links should have two columns`);
+   await page.goto(base+'quran.html#/s/1/a/1');await page.waitForFunction(()=>document.querySelector('#v1 .verse-translation')?.textContent.includes('রহমান, রহীম'));
+   await page.waitForFunction(()=>document.querySelector('#v1 .english-translation .tr-text')?.textContent==='In the name of Allah, the Beneficent, the Merciful');await check('verse');
+   await page.goto(base+'hadith.html');await page.waitForSelector('.hadith-book');assert.equal(await page.locator('.hadith-book').count(),9);assert.equal(await page.locator('footer .qlinks li').count(),13);await check('books');
    await page.goto(base+'hadith.html#/hadith/bukhari/section/1');await page.waitForSelector('.hadith-card');await check('hadith');
    if(width<1100) await page.click('#burger');
    await page.locator('#menu a[href="quran.html"]').click();await page.waitForSelector('.surah-card');assert.equal(new URL(page.url()).pathname,'/DAWAH-X/quran.html');
@@ -50,6 +57,15 @@ const server=http.createServer((req,res)=>{
   await sharedPage.click('#burger'); await sharedPage.click('#menu a[href="index.html"]');
   await sharedPage.waitForFunction(()=>document.documentElement.getAttribute('data-theme')==='dark');
   assert.equal(await sharedPage.evaluate(()=>localStorage.getItem('dawahx-theme')),'dark'); await shared.close();
+  // A failed lazy translation is reported and can be retried without a reload.
+  const retry=await browser.newContext({serviceWorkers:'block'}), retryPage=await retry.newPage();
+  let rejectEnglish=true;
+  await retryPage.route('**/scripture-en-2.js',route=>rejectEnglish ? route.abort() : route.continue());
+  await retryPage.goto(base+'quran.html#/s/2/a/1');
+  await retryPage.waitForFunction(()=>document.querySelector('#v1 .english-translation')?.textContent.includes('লোড করা যায়নি'));
+  rejectEnglish=false; await retryPage.uncheck('#showEnglish'); await retryPage.check('#showEnglish');
+  await retryPage.waitForFunction(()=>document.querySelector('#v1 .english-translation .tr-text')?.textContent==='Alif. Lam. Mim');
+  await retry.close();
   // A direct reader visit registers the existing site worker. Previously read
   // chapters may be available offline; this is not a full offline download.
   const offlineContext=await browser.newContext(); const offlinePage=await offlineContext.newPage();
@@ -59,6 +75,12 @@ const server=http.createServer((req,res)=>{
   await offlinePage.reload(); await offlinePage.waitForSelector('.hadith-card');
   await offlinePage.waitForFunction(async()=>!!(await caches.match('scripture-hadith-bukhari-1.json.gz')));
   await offlineContext.setOffline(true); await offlinePage.reload(); await offlinePage.waitForSelector('.hadith-card');
+  await offlineContext.setOffline(false);
+  await offlinePage.goto(base+'quran.html#/s/2/a/1');
+  await offlinePage.waitForFunction(()=>document.querySelector('#v1 .english-translation .tr-text')?.textContent==='Alif. Lam. Mim');
+  await offlinePage.waitForFunction(async()=>!!(await caches.match('scripture-en-2.js')));
+  await offlineContext.setOffline(true); await offlinePage.reload();
+  await offlinePage.waitForFunction(()=>document.querySelector('#v1 .english-translation .tr-text')?.textContent==='Alif. Lam. Mim');
   await offlineContext.close();
   console.log('scripture reader: Chromium responsive layouts, themes, navigation and previously read offline chapter pass');
  } finally {if(browser)await browser.close();server.close();}

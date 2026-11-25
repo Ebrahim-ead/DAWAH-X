@@ -1,0 +1,3 @@
+/* Pickthall 1930; quran-json snapshot, see scripture-credits.md. */
+window.EN_SURAHS = window.EN_SURAHS || {};
+window.EN_SURAHS[102] = ["Rivalry in worldly increase distracteth you","Until ye come to the graves","Nay, but ye will come to know","Nay, but ye will come to know","Nay, would that ye knew (now) with a sure knowledge","For ye will behold hell-fire","Aye, ye will behold it with sure vision","Then, on that day, ye will be asked concerning pleasure"];

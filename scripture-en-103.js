@@ -1,0 +1,3 @@
+/* Pickthall 1930; quran-json snapshot, see scripture-credits.md. */
+window.EN_SURAHS = window.EN_SURAHS || {};
+window.EN_SURAHS[103] = ["By the declining day","Lo! man is a state of loss","Save those who believe and do good works, and exhort one another to truth and exhort one another to endurance"];

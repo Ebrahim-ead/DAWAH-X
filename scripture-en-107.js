@@ -1,0 +1,3 @@
+/* Pickthall 1930; quran-json snapshot, see scripture-credits.md. */
+window.EN_SURAHS = window.EN_SURAHS || {};
+window.EN_SURAHS[107] = ["Hast thou observed him who belieth religion","That is he who repelleth the orphan","And urgeth not the feeding of the needy","Ah, woe unto worshippers","Who are heedless of their prayer","Who would be seen (at worship)","Yet refuse small kindnesses"];

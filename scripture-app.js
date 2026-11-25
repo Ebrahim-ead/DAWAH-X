@@ -68,6 +68,7 @@
     qfs: Math.min(56, Math.max(20, Number(load('qfs', 32)) || 32)),
     mode: ['cards', 'mushaf', 'study', 'focus'].indexOf(load('mode2', 'cards')) !== -1 ? load('mode2', 'cards') : 'cards',
     showTranslation: load('showTranslation2', true) !== false,
+    showEnglish: load('showEnglish', true) !== false,
     bfs: clampLoad(load('bfs', 15), 12, 26),
     openTafsir: {},
     bookmarks: load('bookmarks', []),
@@ -201,8 +202,28 @@
   function ensureReaderBn(s, a) {
     if (bnReady(s) || bnFailed[s]) return;
     loadBn(s, function () {
-      if (state.view === 'reader' && state.current.s === s) renderReader(s, a, false);
+      if (state.view === 'reader' && state.current.s === s) renderReader(s, state.current.a, false);
     });
+  }
+  // Each surah is fetched from this site only when its English text is shown.
+  var enPending = {}, enFailed = {};
+  function enArr(s) { return window.EN_SURAHS && window.EN_SURAHS[s]; }
+  function loadEnglish(s) {
+    if (enArr(s) || enPending[s] || enFailed[s]) return;
+    enPending[s] = true;
+    var tag = document.createElement('script');
+    tag.src = 'scripture-en-' + s + '.js';
+    tag.onload = function () {
+      delete enPending[s];
+      if (!enArr(s)) enFailed[s] = true;
+      tag.remove();
+      if (state.view === 'reader' && state.current.s === s && state.showEnglish) renderReader(s, state.current.a, false);
+    };
+    tag.onerror = function () {
+      delete enPending[s]; enFailed[s] = true; tag.remove();
+      if (state.view === 'reader' && state.current.s === s && state.showEnglish) renderReader(s, state.current.a, false);
+    };
+    document.head.appendChild(tag);
   }
 
   /* ---------- Hafs metadata (juz / page / hizb / ruku / sajda) ---------- */
@@ -555,6 +576,11 @@
       ? '<div class="verse-translation"><span class="tr-label">বাংলা অনুবাদ</span><div class="tr-text">' +
           bnHtml(s, a) + '</div>' + fnLegend(s, a) + '</div>'
       : '';
+    if (!mushaf && state.showEnglish) {
+      var english = enArr(s);
+      translation += '<div class="verse-translation english-translation"><span class="tr-label">English translation · Marmaduke Pickthall</span><div class="tr-text" lang="en">' +
+        (english ? esc(english[a - 1]) : (enFailed[s] ? 'ইংরেজি অনুবাদ লোড করা যায়নি। আবার চেষ্টা করতে অনুবাদ বন্ধ করে চালু করুন।' : 'ইংরেজি অনুবাদ লোড হচ্ছে…')) + '</div></div>';
+    }
 
     var panel = '';
     if (!mushaf && (study || state.openTafsir[key]) && notes) {
@@ -656,6 +682,7 @@
               '<option value="ibn-kathir"' + (state.tafsirSource === 'ibn-kathir' ? ' selected' : '') + '>ইবনে কাসীর</option>' +
             '</select></div>' +
           '<label class="switch-line tool-group"><input type="checkbox" id="showTranslation" ' + (state.showTranslation ? 'checked' : '') + '/> বাংলা অনুবাদ</label>' +
+          '<label class="switch-line tool-group"><input type="checkbox" id="showEnglish" ' + (state.showEnglish ? 'checked' : '') + '/> ইংরেজি অনুবাদ</label>' +
           '<div class="tool-group size-control"><span class="tool-label">আরবি</span>' +
             '<button type="button" data-action="fs" data-d="-2" aria-label="আরবি অক্ষর ছোট">−</button>' +
             '<output id="fsVal">' + bn(state.qfs) + '</output>' +
@@ -686,7 +713,7 @@
         '</div>' +
 
         (s !== 1 && s !== 9 ? '<div class="bismillah-band"><p lang="ar" dir="rtl">' + esc(BISMILLAH) + '</p></div>' : '') +
-        (mushaf ? '<p class="mode-hint">এই মোডে শুধু আরবি পাঠ দেখানো হচ্ছে — <strong>বাংলা অনুবাদ ও তাফসীর</strong> দেখতে «আয়াত ধরে» বা «অধ্যয়ন» বাছুন, অথবা যেকোনো আয়াতে ক্লিক করে 📖 চাপুন।</p>' : '') +
+        (mushaf ? '<p class="mode-hint">এই মোডে শুধু আরবি পাঠ দেখানো হচ্ছে — <strong>বাংলা ও ইংরেজি অনুবাদ এবং তাফসীর</strong> দেখতে «আয়াত ধরে» বা «অধ্যয়ন» বাছুন।</p>' : '') +
 
         '<div class="verses' + (mushaf ? ' mushaf' : '') + (study ? ' study' : '') + (focus ? ' focus' : '') + '" id="verses">' + verses.join(' ') + '</div>' +
         (focus ? '<div class="focus-nav">' +
@@ -695,6 +722,7 @@
           '<button type="button" class="btn" data-action="focus-next" ' + (a >= count ? 'disabled' : '') + '>পরের আয়াত →</button>' +
         '</div>' : '') +
         '<p class="source-note">' + (state.tafsirSource === 'ibn-kathir' ? IBN_KATHIR_LINE : SOURCE_LINE) +
+        (state.showEnglish && !mushaf ? ' · English: Marmaduke Pickthall (1930), <a href="https://github.com/risan/quran-json" target="_blank" rel="noopener noreferrer">quran-json</a> · CC BY-SA 4.0' : '') +
         ' · <a href="scripture-credits.md">ক্রেডিট</a></p>' +
 
         '<div class="reader-bottom">' +
@@ -719,6 +747,7 @@
       }, 50);
     }
     ensureReaderBn(s, a);
+    if (state.showEnglish && !mushaf) loadEnglish(s);
   }
 
   function showAyahBar(s, a) {
@@ -1637,7 +1666,7 @@
       notes: state.notes, plan: state.plan, tafsirSource: state.tafsirSource,
       settings: {
         theme: state.theme, qfs: state.qfs, bfs: state.bfs,
-        mode: state.mode, showTranslation: state.showTranslation
+        mode: state.mode, showTranslation: state.showTranslation, showEnglish: state.showEnglish
       }
     };
   }
@@ -1687,6 +1716,7 @@
       if (data.settings.qfs) state.qfs = clamp(Number(data.settings.qfs) || 32, 20, 56);
       if (data.settings.bfs) state.bfs = clamp(Number(data.settings.bfs) || 15, 12, 26);
       if (typeof data.settings.showTranslation === 'boolean') state.showTranslation = data.settings.showTranslation;
+      if (typeof data.settings.showEnglish === 'boolean') { state.showEnglish = data.settings.showEnglish; save('showEnglish', state.showEnglish); }
       if (['cards', 'mushaf', 'study', 'focus'].indexOf(data.settings.mode) !== -1) state.mode = data.settings.mode;
     }
     if (data.tafsirSource === 'ibn-kathir' || data.tafsirSource === 'zakaria') {
@@ -1926,6 +1956,12 @@
     else if (e.target.id === 'showTranslation') {
       state.showTranslation = e.target.checked;
       save('showTranslation2', state.showTranslation);
+      if (state.view === 'reader') renderReader(state.current.s, state.current.a, false);
+    }
+    else if (e.target.id === 'showEnglish') {
+      state.showEnglish = e.target.checked;
+      save('showEnglish', state.showEnglish);
+      if (state.showEnglish) delete enFailed[state.current.s];
       if (state.view === 'reader') renderReader(state.current.s, state.current.a, false);
     }
     else if (e.target.id === 'tafsirSourceSelect') {
