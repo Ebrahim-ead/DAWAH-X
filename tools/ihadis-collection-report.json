@@ -89,5 +89,10 @@
     "count": 1336,
     "chapters": 22,
     "sha256": "d3b9a00b5b66f3f233c8409a862c36aa58e2104a030270086b90fa06632cf410"
+  },
+  {
+    "slug": "bulugul-maram",
+    "status": "failed",
+    "error": "Error: Missing displayed number bulugul-maram:1448"
   }
 ]
