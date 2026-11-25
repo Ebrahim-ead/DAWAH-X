@@ -16,7 +16,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - run: npm install --prefix /tmp/ihadis-browser playwright-core@1.56.1 --no-audit --no-fund
+      - run: npm install --prefix /tmp/ihadis-browser playwright-core@1.56.1 cheerio@1.0.0 --no-audit --no-fund
       - name: Examine rendered chapters
         run: NODE_PATH=/tmp/ihadis-browser/node_modules node tools/ihadis-browser-probe.cjs
       - name: Save small diagnostic result
