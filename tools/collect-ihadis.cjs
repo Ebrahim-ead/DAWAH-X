@@ -12,7 +12,7 @@ async function get(path){
  if(!response.ok)throw Error('HTTP '+response.status+' '+path);const text=await response.text();if(text.length>12_000_000||text.length<5000||/Just a moment\.\.\.|cf-chl-/i.test(text))throw Error('Unusable page '+path);return text;
 }
 (async()=>{let report=JSON.parse(fs.readFileSync('tools/ihadis-collection-report.json')); report=report.filter(r=>!books.includes(r.slug));
- for(const slug of books){try{
+ for(const slug of books){console.log('Collecting',slug);try{
   let html=await get('/'+slug),meta=x.index(html,slug),sections=[],ids=new Set();
   for(const ch of meta.chapters){html=await get('/'+slug+'/'+ch.id);let data=x.chapter(html,slug,ch.id);const rows=new Map(data.rows.map(r=>[r.id,r]));
    for(const id of data.missing){if(rows.has(id))throw Error('Duplicate internal id '+id);const raw=await get('/'+slug+'/hadith/'+id);rows.set(id,x.single(raw,slug,id));}
@@ -22,6 +22,8 @@ async function get(path){
   if(ids.size!==meta.expected)throw Error('Record count mismatch '+slug+' '+ids.size+'/'+meta.expected);
   const snapshot={source:'https://ihadis.com/'+slug,extractedAt:new Date().toISOString(),meta,sections};const buffer=Buffer.from(JSON.stringify(snapshot));
   fs.writeFileSync('tools/ihadis-'+slug+'-snapshot.json.gz',zlib.gzipSync(buffer,{level:9,mtime:0}));report.push({slug,status:'complete',count:ids.size,chapters:sections.length,sha256:crypto.createHash('sha256').update(buffer).digest('hex')});
- }catch(e){report.push({slug,status:'failed',error:String(e)});if(/HTTP (?:403|429)|Unusable page|fetch failed|TimeoutError/.test(String(e))) break}}
+  console.log('Complete',slug,ids.size);
+ }catch(e){console.error('Collection stopped for',slug,String(e));report.push({slug,status:'failed',error:String(e)});if(/HTTP (?:403|429)|Unusable page|fetch failed|TimeoutError/.test(String(e))) break}}
  fs.writeFileSync('tools/ihadis-collection-report.json',JSON.stringify(report,null,2));
+ if(books.some(slug=>!report.some(r=>r.slug===slug&&r.status==='complete')))process.exitCode=1;
 })().catch(e=>{console.error(e);process.exitCode=1});

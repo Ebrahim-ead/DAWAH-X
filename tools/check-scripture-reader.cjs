@@ -128,7 +128,7 @@ async function go(w, hash) { w.location.hash=hash; await new Promise(r=>setTimeo
   assert.ok($('#searchResults').textContent.includes('রহমান'));
   dom.window.close(); delayIndexes=false;
   dom=await open('hadith.html'); w=dom.window; $=s=>w.document.querySelector(s);
-  await waitFor(()=>w.document.querySelectorAll('.hadith-book').length===10,'book catalogue'); assert.equal(w.location.hash,'#/hadith');
+  await waitFor(()=>w.document.querySelectorAll('.hadith-book').length===14,'book catalogue'); assert.equal(w.location.hash,'#/hadith');
   const bn=n=>String(n).replace(/[0-9]/g,d=>'০১২৩৪৫৬৭৮৯'[+d]);
   const grades=w.document.querySelectorAll('.grade-card');
   assert.ok(grades[0].textContent.includes(bn(w.HADITH_GRADE_INDEX.daif.length)));
@@ -145,6 +145,12 @@ async function go(w, hash) { w.location.hash=hash; await new Promise(r=>setTimeo
   assert.match($('#hadithGradeResults .hadith-grade').textContent,/যঈফ|দুর্বল/);assert.equal(w.document.querySelectorAll('#hadithGradeResults button.more-btn').length,0);
   ob=w.__observers.findLast(x=>!x.disconnected);assert(ob,'grade observer');kept=$('#hadithGradeResults .hadith-card');ob.trigger();await waitFor(()=>w.document.querySelectorAll('#hadithGradeResults .hadith-card').length>20,'automatic grade batch');assert.equal($('#hadithGradeResults .hadith-card'),kept,'grade batch preserves existing cards');
   await go(w,'/hadith/bukhari/1');assert(w.document.body.textContent.includes('সংগ্রহ পরিবর্তিত হয়েছে'),'old links do not change meaning');
+  await go(w,'/hadith2/hundredsunnah/60');await waitFor(()=>$('.hadith-card .hadith-bn')?.textContent.includes('সর্বাবস্থায়'),'100 hadith chapter');
+  assert.ok($('.hadith-ar.missing'));assert.equal($('.hadith-actions a').href,'https://ihadis.com/100-hadith/hadith/60');assert.match($('.hadith-grade-reason').textContent,/মুসলিম ৩৭৩/);
+  await go(w,'/hadith2/ramadandaif/15');await waitFor(()=>$('.hadith-card .hadith-grade-reason')?.textContent.includes('ইব্‌ন রজব'),'Ramadan weak hadith notes');
+  assert.ok($('.hadith-grade.daif'));assert.match($('.hadith-ar').textContent,/إني رأيت/);
+  await go(w,'/hadith2/mishkatdaif/35');await waitFor(()=>$('.hadith-card .hadith-grade-reason')?.textContent.includes('পরিত্যক্ত'),'separate Mishkat weak book notes');
+  assert.equal($('.hadith-actions a').href,'https://ihadis.com/miskate-dhaif-hadis/hadith/35');
   await go(w,'/hadith2/daifseries/14');await waitFor(()=>$('.hadith-card .hadith-grade-reason'),'iHadis direct edition');
   assert.equal($('.hadith-card .hadith-grade.daif').textContent, "যঈফ (Dai'f)");assert.equal($('.hadith-source-grade').textContent,'উৎসের মান: খুবই দুর্বল');assert.ok($('.hadith-ar.missing'));assert.match($('.hadith-grade-reason').textContent,/ওয়াকেদী/);
   assert.equal($('.hadith-actions a').href,'https://ihadis.com/dhaif-hadis-sirij/hadith/14');
@@ -190,5 +196,5 @@ async function go(w, hash) { w.location.hash=hash; await new Promise(r=>setTimeo
   await waitFor(()=>$('#hadithResults')?.textContent.includes('অনুসন্ধান সম্পূর্ণ হয়নি'),'failed search notice');
   assert.ok(!$('#hadithResults').textContent.includes('কিছু পাওয়া যায়নি'));
   dom.window.close(); assert.deepEqual(errors,[]);
-  console.log('scripture reader: project-relative routes, surahs, tafsir, search, all 10 books, bookmarks, gzip modes and errors pass (jsdom)');
+  console.log('scripture reader: project-relative routes, surahs, tafsir, search, all 14 books, bookmarks, gzip modes and errors pass (jsdom)');
 })().catch(e=>{console.error(e);process.exitCode=1;}).finally(()=>server.close());

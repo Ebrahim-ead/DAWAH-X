@@ -2,7 +2,7 @@
 'use strict';
 // Append independently acquired iHadis editions to the existing EAD build.
 const fs=require('node:fs'),vm=require('node:vm'),zlib=require('node:zlib'),crypto=require('node:crypto');
-const specs=[['nawawi','40-hadith','নববী ৪০','ইসলাম হাউজ ডট কম'],['rafayadain','jujul-rafayel-yadain','রাফায়েল ইয়াদাইন','তাওহীদ পাবলিকেশন্স'],['daifseries','dhaif-hadis-sirij','জাল ও যঈফ সিরিজ','তাওহীদ পাবলিকেশন্স']];
+const specs=[['nawawi','40-hadith','নববী ৪০','ইসলাম হাউজ ডট কম'],['rafayadain','jujul-rafayel-yadain','রাফায়েল ইয়াদাইন','তাওহীদ পাবলিকেশন্স'],['daifseries','dhaif-hadis-sirij','জাল ও যঈফ সিরিজ','তাওহীদ পাবলিকেশন্স'],['hundredsunnah','100-hadith','১০০ সুসাব্যস্ত হাদীস','হাদিস প্রজেক্ট টীম'],['ramadandaif','ramadaner-durbol-hadis','রমজানের দুর্বল হাদিস','সানাউল্লাহ নজির আহমদ'],['silsilasahih','silsila-sahiha','সিলসিলা সহিহা','আতিফা পাবলিকেশন্স'],['mishkatdaif','miskate-dhaif-hadis','মিশকাতে যঈফ হাদীস','আছ-সিরাত প্রকাশনী']];
 const ctx={window:{}};vm.runInNewContext(fs.readFileSync('scripture-hadith-index.js','utf8'),ctx);const index=ctx.window.HADITH_INDEX,grades=ctx.window.HADITH_GRADE_INDEX,manifest=JSON.parse(fs.readFileSync('scripture-manifest.json'));
 const names=new Set(specs.map(x=>x[0]));for(const id of names){delete index.books[id];delete manifest.books[id]}
 manifest.shards=manifest.shards.filter(x=>!names.has(x.book));for(const key of ['daif','mawdu'])grades[key]=grades[key].filter(x=>!names.has(x[0]));
