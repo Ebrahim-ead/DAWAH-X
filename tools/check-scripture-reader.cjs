@@ -108,6 +108,16 @@ async function go(w, hash) { w.location.hash=hash; await new Promise(r=>setTimeo
   await go(w,'/hadith/grade/daif');await waitFor(()=>$('#hadithGradeResults .hadith-grade-reason'),'weak-grade provenance notice');
   assert.match($('#hadithGradeResults .hadith-grade-reason').textContent,/যাচাইকৃত কারণ এখানে এখনও যুক্ত করা হয়নি/);assert.equal(w.document.querySelectorAll('#hadithGradeResults button.more-btn').length,0);
   ob=w.__observers.findLast(x=>!x.disconnected);assert(ob,'grade observer');kept=$('#hadithGradeResults .hadith-card');ob.trigger();await waitFor(()=>w.document.querySelectorAll('#hadithGradeResults .hadith-card').length>20,'automatic grade batch');assert.equal($('#hadithGradeResults .hadith-card'),kept,'grade batch preserves existing cards');
+  for(const [route, phrase, source] of [
+    ['/hadith/abudawud/29','কাতাদাহ','https://www.hadithbd.com/hadith/abu-dawud/29'],
+    ['/hadith/abudawud/752','মুনযিরীর','https://www.hadithbd.com/hadith/abu-dawud/752'],
+    ['/hadith/abudawud/2128','খায়সামাহ','https://www.hadithbd.com/hadith/abu-dawud/2128'],
+    ['/hadith/tirmidhi/358','মুরসাল','https://www.hadithbd.com/hadith/tirmidhi/358'],
+    ['/hadith/tirmidhi/727','আবূ আতিকা','https://www.hadithbd.com/hadith/tirmidhi/726']
+  ]) {
+    await go(w,route);await waitFor(()=>$('.hadith-grade-reason')?.textContent.includes(phrase),'reviewed reason '+route);
+    assert.equal($('.hadith-grade-reason a').getAttribute('href'),source);
+  }
   await go(w,'/hadith/abudawud/594');await waitFor(()=>$('.hadith-grade-reason')?.textContent.includes('মাকহূল'), 'reviewed chain reason 594');
   assert.equal($('.hadith-grade-reason a').getAttribute('href'),'https://www.hadithbd.com/hadith/abu-dawud/594');
   await go(w,'/hadith/abudawud/756');await waitFor(()=>$('.hadith-grade-reason')?.textContent.includes('ওয়াসিতী'), 'reviewed chain reason 756');
