@@ -55,6 +55,10 @@ async function go(w, hash) { w.location.hash=hash; await new Promise(r=>setTimeo
   dom.window.close();
   dom=await open('hadith.html'); w=dom.window; $=s=>w.document.querySelector(s);
   await waitFor(()=>w.document.querySelectorAll('.hadith-book').length===9,'book catalogue'); assert.equal(w.location.hash,'#/hadith');
+  const bn=n=>String(n).replace(/[0-9]/g,d=>'০১২৩৪৫৬৭৮৯'[+d]);
+  const grades=w.document.querySelectorAll('.grade-card');
+  assert.ok(grades[0].textContent.includes(bn(w.HADITH_GRADE_INDEX.daif.length)));
+  assert.ok(grades[1].textContent.includes(bn(w.HADITH_GRADE_INDEX.mawdu.length)));
   for (const [book, b] of Object.entries(w.HADITH_INDEX.books)) {
     const sec=b.sections.find(s=>s.count); await go(w,`/hadith/${book}/section/${sec.id}`);
     await waitFor(()=>w.HADITH_DATA[book][sec.id]?.length===sec.count,book+' chapter');

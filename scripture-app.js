@@ -1315,10 +1315,10 @@
       hadithSearchForm('', 'all', 'all') +
       '<div class="grade-row">' +
         '<a class="card-panel grade-card" href="#/hadith/grade/daif"><span class="grade-ic warn">⚠</span>' +
-        '<div><b>আলবানীর তাহকীক · যঈফ</b><p>' + bn((window.HADITH_GRADE_INDEX || {}).daifCount || 0) +
+        '<div><b>আলবানীর তাহকীক · যঈফ</b><p>' + bn(((window.HADITH_GRADE_INDEX || {}).daif || []).length) +
         ' টি হাদিস · বিদ্যমান গ্রন্থের গ্রেড থেকে ফিল্টার</p></div><span class="card-arrow">→</span></a>' +
         '<a class="card-panel grade-card" href="#/hadith/grade/mawdu"><span class="grade-ic warn">⚠</span>' +
-        '<div><b>আলবানীর তাহকীক · জাল</b><p>' + bn((window.HADITH_GRADE_INDEX || {}).mawduCount || 0) +
+        '<div><b>আলবানীর তাহকীক · জাল</b><p>' + bn(((window.HADITH_GRADE_INDEX || {}).mawdu || []).length) +
         ' টি হাদিস · পৃথক «সিলসিলা» গ্রন্থের পূর্ণ পাঠ নয়</p></div><span class="card-arrow">→</span></a>' +
       '</div>' +
       '<div class="hadith-grid">' + cards + '</div>' +
