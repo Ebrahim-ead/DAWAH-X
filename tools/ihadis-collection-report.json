@@ -108,5 +108,12 @@
     "count": 1906,
     "chapters": 55,
     "sha256": "29d905d11b68a02f3f41fee21c4d7844aa0250bee8d95f2bde9414c9f27ba7c0"
+  },
+  {
+    "slug": "hadis-somvar",
+    "status": "complete",
+    "count": 2013,
+    "chapters": 20,
+    "sha256": "d904d2ab8d0d328ffec341b09554f192cf63ee4d7ccbdb39dd77238cdfea7664"
   }
 ]
