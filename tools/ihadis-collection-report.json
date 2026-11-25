@@ -19,5 +19,33 @@
     "count": 102,
     "chapters": 1,
     "sha256": "32db2d9f9366e63abaf0f944810a593206c028c046ff43f592b1510c79897c5b"
+  },
+  {
+    "slug": "100-hadith",
+    "status": "complete",
+    "count": 101,
+    "chapters": 7,
+    "sha256": "759d88acd0d65cc6c97dda7691887d472fcc6f8dce6d079003675f25e2ea607f"
+  },
+  {
+    "slug": "ramadaner-durbol-hadis",
+    "status": "complete",
+    "count": 36,
+    "chapters": 1,
+    "sha256": "17c9db2fc0f67fea727d773c6d23411b3459c8751dc523ea9a919b9a479b5c0c"
+  },
+  {
+    "slug": "silsila-sahiha",
+    "status": "complete",
+    "count": 60,
+    "chapters": 1,
+    "sha256": "528614cc59ae936f1a5fd328c7b8555494ab5115a595f97969a699305777eb4e"
+  },
+  {
+    "slug": "miskate-dhaif-hadis",
+    "status": "complete",
+    "count": 106,
+    "chapters": 4,
+    "sha256": "5a8bbfe09114ff6a3528f90e5f091e77ec68f2283e410184b9c9d88249bdcf5d"
   }
 ]
