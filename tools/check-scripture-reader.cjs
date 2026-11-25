@@ -144,7 +144,9 @@ async function go(w, hash) { w.location.hash=hash; await new Promise(r=>setTimeo
   assert.match($('#hadithGradeResults .hadith-grade').textContent,/যঈফ/);assert.equal(w.document.querySelectorAll('#hadithGradeResults button.more-btn').length,0);
   ob=w.__observers.findLast(x=>!x.disconnected);assert(ob,'grade observer');kept=$('#hadithGradeResults .hadith-card');ob.trigger();await waitFor(()=>w.document.querySelectorAll('#hadithGradeResults .hadith-card').length>20,'automatic grade batch');assert.equal($('#hadithGradeResults .hadith-card'),kept,'grade batch preserves existing cards');
   await go(w,'/hadith/tirmidhi/2727');await waitFor(()=>$('.hadith-card .hadith-grade')?.textContent.includes('জাল'),'fabricated grade remains');
-  assert.equal(w.document.querySelectorAll('.hadith-grade-reason').length,0,'unknown reason is not invented');
+  assert.equal($('.hadith-grade-reason a').href,'https://ihadis.com/tirmidhi/hadith/2714','use edition number, not internal ID');
+  await go(w,'/hadith/abudawud/3');await waitFor(()=>$('.hadith-card'),'unreviewed weak hadith');assert.equal($('.hadith-grade-reason'),null,'unknown reason is not invented');
+  await go(w,'/hadith/ibnmajah/968');await waitFor(()=>$('.hadith-grade-reason'),'partial grading discussion');assert($('.hadith-grade-reason').textContent.includes('অতিরিক্ত অংশ'));
   for (const n of [2017,2018,2038,2051,2054,2057,2060,2097]) {
     await go(w,`/hadith/ibnmajah/${n}`);await waitFor(()=>$('.hadith-grade-reason a'),'verified reason '+n);
     assert.equal($('.hadith-grade-reason a').href,`https://ihadis.com/ibn-majah/hadith/${n}`);

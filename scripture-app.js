@@ -1391,7 +1391,7 @@
   // A commentary belongs to one identified chain, not every similar matn.
   function hadithReason(id, r) {
     var notes = window.HADITH_REASON_NOTES || {}, item = notes[id + ':' + r[0]];
-    if (!item || item.ar !== r[4] || gradeCategory(id, r[7]) !== 'daif' || !/^https:\/\/ihadis\.com\//.test(item.url)) return '';
+    if (!item || item.ar !== r[4] || !['daif', 'mawdu'].includes(item.grade) || gradeCategory(id, r[7]) !== item.grade || !/^https:\/\/ihadis\.com\//.test(item.url)) return '';
     return '<aside class="hadith-grade-reason"><strong>সনদ সম্পর্কে iHadis-এর আলোচনা</strong>' +
       '<p>' + esc(item.note) + '</p><a href="' + esc(item.url) + '" target="_blank" rel="noopener noreferrer">iHadis-এ বিস্তারিত ও উৎস ↗</a></aside>';
   }
