@@ -1,4 +1,4 @@
-name: Inspect rendered iHadis chapters
+name: Collect rendered iHadis chapters
 on:
   push:
     branches: ['arena/983d824f-dawah-x']
@@ -8,7 +8,7 @@ permissions:
 jobs:
   browser:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
         with:
@@ -17,13 +17,14 @@ jobs:
         with:
           node-version: 20
       - run: npm install --prefix /tmp/ihadis-browser playwright-core@1.56.1 cheerio@1.0.0 --no-audit --no-fund
-      - name: Examine rendered chapters
-        run: NODE_PATH=/tmp/ihadis-browser/node_modules node tools/ihadis-browser-probe.cjs
-      - name: Save small diagnostic result
+      - name: Collect and checkpoint complete books
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add tools/ihadis-browser-probe-result.json
-          git commit -m 'Capture iHadis page-loading diagnostic' && git push origin HEAD:arena/983d824f-dawah-x
-
-# Probe with a tall viewport and compare every rendered row.
+          for book in fazayele-amal sahih-hadise-qudsi targib-wattahrib; do
+            status=0
+            NODE_PATH=/tmp/ihadis-browser/node_modules node tools/collect-ihadis-browser.cjs "$book" || status=$?
+            git add tools/ihadis-*-snapshot.json.gz tools/ihadis-collection-report.json
+            git commit -m "Record collection result for $book" && git push origin HEAD:arena/983d824f-dawah-x
+            if [ "$status" -ne 0 ]; then exit "$status"; fi
+          done
