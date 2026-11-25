@@ -146,11 +146,29 @@ async function go(w, hash) { w.location.hash=hash; await new Promise(r=>setTimeo
   ob=w.__observers.findLast(x=>!x.disconnected);assert(ob,'grade observer');kept=$('#hadithGradeResults .hadith-card');ob.trigger();await waitFor(()=>w.document.querySelectorAll('#hadithGradeResults .hadith-card').length>20,'automatic grade batch');assert.equal($('#hadithGradeResults .hadith-card'),kept,'grade batch preserves existing cards');
   await go(w,'/hadith/bukhari/1');assert(w.document.body.textContent.includes('সংগ্রহ পরিবর্তিত হয়েছে'),'old links do not change meaning');
   await go(w,'/hadith2/daifseries/14');await waitFor(()=>$('.hadith-card .hadith-grade-reason'),'iHadis direct edition');
-  assert.match($('.hadith-card .hadith-grade').textContent,/দুর্বল/);assert.ok($('.hadith-ar.missing'));assert.match($('.hadith-grade-reason').textContent,/ওয়াকেদী/);
+  assert.equal($('.hadith-card .hadith-grade.daif').textContent, "যঈফ (Dai'f)");assert.equal($('.hadith-source-grade').textContent,'উৎসের মান: খুবই দুর্বল');assert.ok($('.hadith-ar.missing'));assert.match($('.hadith-grade-reason').textContent,/ওয়াকেদী/);
   assert.equal($('.hadith-actions a').href,'https://ihadis.com/dhaif-hadis-sirij/hadith/14');
-  await go(w,'/hadith2/nawawi/11');await waitFor(()=>$('.hadith-card .hadith-grade')?.textContent.includes('হাসান সহিহ'),'iHadis full individual source');assert.match($('.hadith-card .hadith-ar').textContent,/الْحَسَنِ/);
+  await go(w,'/hadith2/nawawi/11');await waitFor(()=>$('.hadith-card .hadith-source-grade')?.textContent.includes('হাসান সহিহ'),'iHadis full individual source');assert.ok($('.hadith-grade.hasan'));assert.ok($('.hadith-grade.sahih'));assert.match($('.hadith-card .hadith-ar').textContent,/الْحَسَنِ/);
+  // All six requested styles, plus mixed and pending source verdicts.
+  const badgeCases = [
+    ['bukhari',1,'সহিহ হাদিস',[['sahih','সহিহ (Sahih)']]],
+    ['nasai',50,'হাসান হাদিস',[['hasan','হাসান (Hasan)']]],
+    ['nasai',34,'দুর্বল হাদিস',[['daif',"যঈফ (Dai'f)"]]],
+    ['nasai',375,'মুনকার',[['munkar','মুনকার (সহিহ হাদীসের বিপরীত)']]],
+    ['nasai',36,'অন্যান্য',[['other','অন্যান্য']]],
+    ['abudawud',5081,'জাল হাদিস',[['mawdu','জাল (Fake)']]],
+    ['nasai',753,'দুর্বল মুনকার',[['daif',"যঈফ (Dai'f)"],['munkar','মুনকার (সহিহ হাদীসের বিপরীত)']]],
+    ['nasai',17,'হাসান সহিহ',[['hasan','হাসান (Hasan)'],['sahih','সহিহ (Sahih)']]],
+    ['mishkat',18,'তাহকীক চলমান',[['other','অন্যান্য']]]
+  ];
+  for (const [book,num,sourceGrade,expected] of badgeCases) {
+    await go(w,`/hadith2/${book}/${num}`);
+    await waitFor(()=>$('.hadith-source-grade')?.textContent==='উৎসের মান: '+sourceGrade,'grade '+book+':'+num);
+    assert.equal(w.document.querySelectorAll('.hadith-grade').length,expected.length);
+    for (const [cls,text] of expected) assert.equal($('.hadith-grade.'+cls).textContent,text);
+  }
   await go(w,'/hadith2/abudawud/1');await waitFor(()=>$('.hadith-card .hadith-bn'),'EAD first hadith');
-  const source=w.HADITH_DATA.abudawud[1][0];assert.equal($('.hadith-bn').textContent,source[3]);assert.equal($('.hadith-grade').textContent,source[7]);assert.equal($('.hadith-actions a').href,'https://ebrahim-ead.github.io/ead/hadith.html#abu-dawud:1:1');
+  const source=w.HADITH_DATA.abudawud[1][0];assert.equal($('.hadith-bn').textContent,source[3]);assert.equal($('.hadith-source-grade').textContent,'উৎসের মান: '+source[7]);assert.equal($('.hadith-actions a').href,'https://ebrahim-ead.github.io/ead/hadith.html#abu-dawud:1:1');
   await go(w,'/hadith2/abudawud/3');await waitFor(()=>$('.hadith-grade-reason p'),'source note');assert.equal($('.hadith-grade-reason p').textContent,w.HADITH_DATA.abudawud[1][2][8]);
   click(w,'[data-action=hadith-bookmark]');await go(w,'/hadith2/saved');await waitFor(()=>$('#hadithSaved .hadith-card'),'saved hadith');
   await go(w,'/hadith2/search?q=1&book=abudawud');await waitFor(()=>$('#hadithResults .result-item'),'number search');

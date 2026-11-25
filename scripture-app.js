@@ -1352,10 +1352,19 @@
   function gradeLabel(id, g) {
     return String(g || '') || 'মান উল্লেখ নেই';
   }
-  function gradeClass(label) {
-    if (/যঈফ|দুর্বল|জাল/.test(label)) return 'warn';
-    if (/সহিহ|সহীহ|বিশুদ্ধ|হাসান/.test(label)) return 'ok';
-    return 'muted';
+  // Display categories are visual aids, not a replacement for the source's
+  // exact verdict. Combined verdicts retain both applicable badges.
+  function gradeBadges(label) {
+    var badges = [];
+    if (/জাল|মাওদু|মাওযূ|mawdu|maudu|fabricat/i.test(label)) badges.push(['mawdu', 'জাল (Fake)']);
+    if (/যঈফ|দুর্বল/.test(label)) badges.push(['daif', "যঈফ (Dai'f)"]);
+    if (/মুনকার/.test(label)) badges.push(['munkar', 'মুনকার (সহিহ হাদীসের বিপরীত)']);
+    if (/হাসান/.test(label)) badges.push(['hasan', 'হাসান (Hasan)']);
+    if (/সহিহ|সহীহ|বিশুদ্ধ/.test(label)) badges.push(['sahih', 'সহিহ (Sahih)']);
+    if (!badges.length) badges.push(['other', 'অন্যান্য']);
+    return badges.map(function (b) {
+      return '<span class="hadith-grade ' + b[0] + '">' + esc(b[1]) + '</span>';
+    }).join('');
   }
   function hadithCredit() {
     return '<p class="meta-credit hadith-credit">হাদিসের উৎস: <a href="https://ebrahim-ead.github.io/ead/hadith.html" target="_blank" rel="noopener noreferrer">Ebrahim Ead</a> ও <a href="https://ihadis.com/hadith-books" target="_blank" rel="noopener noreferrer">iHadis</a> · মিশকাত: মুসলিম বাংলা · <a href="scripture-credits.md">ক্রেডিট</a></p>';
@@ -1384,13 +1393,13 @@
   }
   function hadithCard(id, r) {
     var b = hBook(id), an = hNum(r[2]), sec = hSectionOf(id, r[0]);
-    var gl = gradeLabel(id, r[7]), gcls = gradeClass(gl);
+    var gl = gradeLabel(id, r[7]);
     var saved = isHadithSaved(id, r[0]);
     return '<article class="hadith-card card-panel">' +
       '<div class="hadith-head">' +
         '<div class="hadith-badges">' +
           '<span class="hadith-num">' + esc(b.short) + ' ' + bn(r[1]) + '</span>' +
-          '<span class="hadith-grade ' + gcls + '">' + esc(gl) + '</span>' +
+          gradeBadges(gl) + '<span class="hadith-source-grade">উৎসের মান: ' + esc(gl) + '</span>' +
           (r[6] ? '<span class="hadith-narrator">' + esc(r[6]) + '</span>' : '') + (r[9] ? '<span class="hadith-narrator">একই নম্বরের আরেক বর্ণনা</span>' : '') +
         '</div>' +
         '<div class="hadith-icons">' +
