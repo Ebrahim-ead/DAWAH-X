@@ -112,6 +112,12 @@ async function go(w, hash) { w.location.hash=hash; await new Promise(r=>setTimeo
   assert.equal($('.hadith-grade-reason a').getAttribute('href'),'https://www.hadithbd.com/hadith/abu-dawud/594');
   await go(w,'/hadith/abudawud/756');await waitFor(()=>$('.hadith-grade-reason')?.textContent.includes('ওয়াসিতী'), 'reviewed chain reason 756');
   assert.equal($('.hadith-grade-reason a').getAttribute('href'),'https://www.hadithbd.com/hadith/abu-dawud/756');
+  // Reader uses internal positions; source editions use printed hadith numbers.
+  await go(w,'/hadith/tirmidhi/2726');await waitFor(()=>$('.hadith-grade-reason')?.textContent.includes('হামযা'), 'Tirmidhi 2713 weak reason');
+  assert.equal($('.hadith-grade-reason a').getAttribute('href'),'https://www.hadithbd.com/hadith/tirmidhi/2713');
+  await go(w,'/hadith/tirmidhi/2727');await waitFor(()=>$('.hadith-grade-reason')?.textContent.includes('আমবাসাহ'), 'Tirmidhi 2714 fabricated reason');
+  assert.match($('.hadith-grade-reason').textContent,/তিরমিযী নিজে এই সনদকে দুর্বল/);
+  assert.equal($('.hadith-grade-reason a').getAttribute('href'),'https://www.hadithbd.com/hadith/mishkat/4658');
   await go(w,'/hadith/bukhari/1'); await waitFor(()=>$('.hadith-card .hadith-bn')?.textContent.includes('নিয়্যাত'),'Bukhari direct link');
   click(w,'[data-action="hadith-bookmark"]'); await go(w,'/hadith/saved'); await waitFor(()=>$('#hadithSaved .hadith-card'),'saved hadith');
   await go(w,'/hadith/search?q='+encodeURIComponent('নিয়্যাত')+'&book=bukhari');
