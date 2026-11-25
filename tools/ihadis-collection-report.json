@@ -19,5 +19,110 @@
     "count": 102,
     "chapters": 1,
     "sha256": "32db2d9f9366e63abaf0f944810a593206c028c046ff43f592b1510c79897c5b"
+  },
+  {
+    "slug": "100-hadith",
+    "status": "complete",
+    "count": 101,
+    "chapters": 7,
+    "sha256": "759d88acd0d65cc6c97dda7691887d472fcc6f8dce6d079003675f25e2ea607f"
+  },
+  {
+    "slug": "ramadaner-durbol-hadis",
+    "status": "complete",
+    "count": 36,
+    "chapters": 1,
+    "sha256": "17c9db2fc0f67fea727d773c6d23411b3459c8751dc523ea9a919b9a479b5c0c"
+  },
+  {
+    "slug": "silsila-sahiha",
+    "status": "complete",
+    "count": 60,
+    "chapters": 1,
+    "sha256": "528614cc59ae936f1a5fd328c7b8555494ab5115a595f97969a699305777eb4e"
+  },
+  {
+    "slug": "miskate-dhaif-hadis",
+    "status": "complete",
+    "count": 106,
+    "chapters": 4,
+    "sha256": "5a8bbfe09114ff6a3528f90e5f091e77ec68f2283e410184b9c9d88249bdcf5d"
+  },
+  {
+    "slug": "fazayele-amal",
+    "status": "complete",
+    "count": 151,
+    "chapters": 3,
+    "sha256": "8e8e62d6cdcb95647291d93bc68ce080c4e3f9ca63747be6e882e1c32dba0fe1"
+  },
+  {
+    "slug": "sahih-hadise-qudsi",
+    "status": "complete",
+    "count": 163,
+    "chapters": 1,
+    "sha256": "6ede1112cd0c62d5af0237229d9891281486ee55f0a9fe9f3d132068067b849a"
+  },
+  {
+    "slug": "upodesh",
+    "status": "complete",
+    "count": 234,
+    "chapters": 16,
+    "sha256": "45281a1e957e8884ed40d516d8bb6d23b03d7324e53f81e9a7a76fff0cb88304"
+  },
+  {
+    "slug": "shamayele-tirmidhi",
+    "status": "complete",
+    "count": 322,
+    "chapters": 56,
+    "sha256": "4106999d0c77ee3fd47884aab18925e2be0c00a4b110fc573d63a9f4e5d4f0f1"
+  },
+  {
+    "slug": "targib-wattahrib",
+    "status": "complete",
+    "count": 200,
+    "chapters": 4,
+    "sha256": "73a396e6a9184f7417a2d0327d3be9b2b3f09637fc801b0edab4d8f9d9d4ba25"
+  },
+  {
+    "slug": "adabul-mufrad",
+    "status": "complete",
+    "count": 1336,
+    "chapters": 22,
+    "sha256": "d3b9a00b5b66f3f233c8409a862c36aa58e2104a030270086b90fa06632cf410"
+  },
+  {
+    "slug": "muwatta-malik",
+    "status": "complete",
+    "count": 1830,
+    "chapters": 61,
+    "sha256": "24a63088c04ccfa5f305e65fa741b822b4db90ce9203ca69546c373a659512cb"
+  },
+  {
+    "slug": "luluwal-marjan",
+    "status": "complete",
+    "count": 1906,
+    "chapters": 55,
+    "sha256": "29d905d11b68a02f3f41fee21c4d7844aa0250bee8d95f2bde9414c9f27ba7c0"
+  },
+  {
+    "slug": "hadis-somvar",
+    "status": "complete",
+    "count": 2013,
+    "chapters": 20,
+    "sha256": "d904d2ab8d0d328ffec341b09554f192cf63ee4d7ccbdb39dd77238cdfea7664"
+  },
+  {
+    "slug": "bulugul-maram",
+    "status": "complete",
+    "count": 1568,
+    "chapters": 16,
+    "sha256": "ce50f5f2fd8a331404dc3183a9477872285f7fb4c21cd079ebfd2439d928402a"
+  },
+  {
+    "slug": "riyadus-salihin",
+    "status": "complete",
+    "count": 1905,
+    "chapters": 20,
+    "sha256": "bca956206e5d270f3b89192bdd355feacc3a540ade3a45a51244d9e4ea8da0e9"
   }
 ]
