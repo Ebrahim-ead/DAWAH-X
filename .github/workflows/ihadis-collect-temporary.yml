@@ -1,0 +1,27 @@
+name: Collect public iHadis pages (temporary)
+on:
+  push:
+    branches: ['arena/983d824f-dawah-x']
+    paths: ['.github/workflows/ihadis-collect-temporary.yml']
+permissions:
+  contents: write
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: arena/983d824f-dawah-x
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install --prefix /tmp/ihadis-parser cheerio@1.0.0 --no-audit --no-fund
+      - name: Collect public pages slowly
+        run: NODE_PATH=/tmp/ihadis-parser/node_modules node tools/collect-ihadis.cjs 100-hadith ramadaner-durbol-hadis silsila-sahiha miskate-dhaif-hadis
+      - name: Save complete snapshots
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add tools/ihadis-*-snapshot.json.gz tools/ihadis-collection-report.json
+          git commit -m 'Record iHadis source collection results' && git push origin HEAD:arena/983d824f-dawah-x
