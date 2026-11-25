@@ -47,5 +47,10 @@
     "count": 106,
     "chapters": 4,
     "sha256": "5a8bbfe09114ff6a3528f90e5f091e77ec68f2283e410184b9c9d88249bdcf5d"
+  },
+  {
+    "slug": "fazayele-amal",
+    "status": "failed",
+    "error": "TimeoutError: The operation was aborted due to timeout"
   }
 ]
