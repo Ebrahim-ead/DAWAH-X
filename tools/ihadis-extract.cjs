@@ -14,19 +14,22 @@ function index(html,slug){
  return {slug,title,expected:+m[2],chapters:[...chapters.values()].sort((a,b)=>a.id-b.id)};
 }
 function extractCard($,card,slug,expectedId){
- const header=tidy(card.find('h3 a[href]').first().text() || card.find('h2,h3').first().text()), n=ascii(header).match(/:\s*(?:(\d+)\s*\/\s*)?(\d+)\s*$/);if(!n)throw Error('Missing displayed number '+slug+':'+expectedId);
+ const header=tidy(card.find('h3 a[href]').first().text() || card.find('h2,h3').first().text()), n=ascii(header).match(/:\s*(?:(\d+)\s*\/\s*)?(\d+)(?:\s*[-–]\s*(?:(\d+)\s*\/\s*)?(\d+))?\s*$/);if(!n)throw Error('Missing displayed number '+slug+':'+expectedId);
  const grade=tidy(card.find('button[style] span').first().text()), narr=tidy(card.find('h4').first().text());
  const ar=card.find('p[dir="rtl"]').map((_,p)=>paragraphs($,p)).get().filter(Boolean).join('\n\n');
  const bnp=card.find('h4').length ? card.find('h4').first().parent().find('p').first() : card.find('p.font-normal').first(),bn=bnp.length?paragraphs($,bnp):'';
  const notes=[];card.find('p').each((_,p)=>{const q=$(p);if(q.attr('dir')==='rtl'||p===bnp[0]||q.closest('h3').length||q.attr('class')?.includes('tablet:hidden')||q.closest('button').length||q.closest('a').length)return;const t=paragraphs($,p);if(t)notes.push(t)});
  if(!bn||!grade)throw Error('Missing translation or grade '+slug+':'+expectedId);
  const row={id:expectedId,number:+n[2],bn,ar,narrator:narr,grade,notes:notes.join('\n\n')};
- if(n[1])row.sourceRef=tidy(header);
+ if(n[1]||n[4])row.sourceRef=tidy(header);
+ if(n[4]){if(+n[2]!==expectedId || +n[4]<=expectedId || +n[4]-expectedId>20)throw Error('Ambiguous displayed range '+slug+':'+header);row.rangeEnd=+n[4]}
  return row;
 }
 function chapter(html,slug,id){
  const $=cheerio.load(html), rows=[], missing=[];
  $('[id^="hadith-"]').each((_,el)=>{const card=$(el),url=card.find('h3 a[href]').first().attr('href');const match=(url||'').match(new RegExp('^/'+slug+'/hadith/(\\d+)$'));if(!match)throw Error('Invalid hadith link '+slug+'/'+id+' '+url);const n=+match[1];
+  const header=ascii(tidy(card.find('h3 a[href]').first().text())),range=header.match(/:\s*(?:(\d+)\s*\/\s*)?(\d+)\s*[-–]\s*(?:(\d+)\s*\/\s*)?(\d+)\s*$/);
+  if(range){if(+range[2]!==n||+range[4]<=n||+range[4]-n>20)throw Error('Ambiguous displayed range '+slug+':'+header);for(let v=n+1;v<=+range[4];v++)missing.push(v)}
   if(!card.find('p.font-normal').length)missing.push(n);else rows.push(extractCard($,card,slug,n));
  });
  if(!rows.length&&!missing.length)throw Error('No hadith cards '+slug+'/'+id);
@@ -34,7 +37,7 @@ function chapter(html,slug,id){
 }
 function single(html,slug,id){
  const $=cheerio.load(html), cards=$('[id^="hadith-"]');if(cards.length!==1)throw Error('Unexpected single card '+slug+':'+id);
- const got=tidy($('main h1').first().text());if(!ascii(got).includes('হাদিস '+id+' '))throw Error('Wrong single page '+slug+':'+id+' '+got);
+ const got=tidy($('main h1').first().text());if(!new RegExp('হাদিস\\s+(?:\\d+\\s*/\\s*)?'+id+'(?:\\s|$)').test(ascii(got)))throw Error('Wrong single page '+slug+':'+id+' '+got);
  return extractCard($,cards.first(),slug,id);
 }
 module.exports={index,chapter,single};
