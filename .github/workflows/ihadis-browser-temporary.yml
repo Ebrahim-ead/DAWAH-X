@@ -21,7 +21,10 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          for book in fazayele-amal sahih-hadise-qudsi targib-wattahrib; do
+          NODE_PATH=/tmp/ihadis-browser/node_modules node -e 'const fs=require("fs");fetch("https://ihadis.com/targib-wattahrib/hadith/18",{signal:AbortSignal.timeout(45000)}).then(async r=>{if(!r.ok)throw Error("HTTP "+r.status);let $=require("cheerio").load(await r.text());fs.writeFileSync("tools/ihadis-targib-probe.html",$("[id^=hadith-]").first().prop("outerHTML"))}).catch(e=>fs.writeFileSync("tools/ihadis-targib-probe.html",String(e)))'
+          git add tools/ihadis-targib-probe.html
+          git commit -m "Inspect one unusual source card" && git push origin HEAD:arena/983d824f-dawah-x
+          for book in upodesh shamayele-tirmidhi; do
             status=0
             NODE_PATH=/tmp/ihadis-browser/node_modules node tools/collect-ihadis-browser.cjs "$book" || status=$?
             git add tools/ihadis-*-snapshot.json.gz tools/ihadis-collection-report.json
