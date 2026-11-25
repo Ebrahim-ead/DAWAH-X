@@ -8,7 +8,7 @@ permissions:
 jobs:
   browser:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
         with:
@@ -21,7 +21,7 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          for book in upodesh shamayele-tirmidhi targib-wattahrib; do
+          for book in adabul-mufrad bulugul-maram muwatta-malik luluwal-marjan hadis-somvar riyadus-salihin; do
             status=0
             NODE_PATH=/tmp/ihadis-browser/node_modules node tools/collect-ihadis-browser.cjs "$book" || status=$?
             git add tools/ihadis-*-snapshot.json.gz tools/ihadis-collection-report.json
