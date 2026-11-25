@@ -20,7 +20,7 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
    await page.waitForTimeout(3500);let sweeps=0,steps=0;
    while(rows.size<expected.size){
     if(block.length)throw Error('HTTP or site failure '+JSON.stringify(block));
-    const state=await page.evaluate(()=>({y:scrollY,h:innerHeight,height:document.documentElement.scrollHeight,cards:Array.from(document.querySelectorAll('[id^="hadith-"]')).filter(e=>e.querySelector('h4')).map(e=>e.outerHTML)}));
+    const state=await page.evaluate(()=>({y:scrollY,h:innerHeight,height:document.documentElement.scrollHeight,cards:Array.from(document.querySelectorAll('[id^="hadith-"]')).filter(e=>e.querySelector('p.font-normal')).map(e=>e.outerHTML)}));
     for(const html of state.cards){let row=x.chapter(html,slug,ch.id).rows[0];if(!row||!expected.has(row.id))throw Error('Unexpected rendered card '+ch.id+':'+row?.id);if(rows.has(row.id)&&JSON.stringify(rows.get(row.id))!==JSON.stringify(row))throw Error('Rendered/source mismatch '+ch.id+':'+row.id);rows.set(row.id,row)}
     if(rows.size===expected.size)break;
     if(++steps>1200)throw Error('Chapter scroll limit '+ch.id);
