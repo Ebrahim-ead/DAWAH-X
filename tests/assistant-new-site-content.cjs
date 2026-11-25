@@ -22,7 +22,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
  assert(sitePageMatches('আপনাদের সাইটের উৎস যোগাযোগ সেবা নাস্তিকতা ফতোয়া কুরআন').length<=4,'bounded page requests');
  const root=path.resolve(__dirname,'..'),old=global.fetch,origin='https://ebrahim-ead.github.io';let prompt='',broken=false,paths=[];
  global.fetch=async u=>{const url=String(u);paths.push(url);
-  if(url.includes('/assets/search-ayahs.js'))return new Response('window.SITE_AYAHS=[];');
+  if(url.includes('/assets/search-ayahs.js'))return new Response('window.SITE_AYAHS=[[1,1,\"পরীক্ষার তথ্য\"]];');
   if(url.includes('/assets/hadith/data/index.json'))return Response.json({books:[]});
   const m=url.match(/^https:\/\/ebrahim-ead\.github\.io\/DAWAH-X\/(index|questions|fatwa|about|services|contact|policy)\.html$/);
   if(m){if(broken)return new Response('',{status:503});return new Response(fs.readFileSync(path.join(root,m[1]+'.html'),'utf8'))}

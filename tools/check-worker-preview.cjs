@@ -22,4 +22,4 @@ const assert=require('node:assert/strict');
   const d=await r.json();assert.equal(d.grounded,true,message);assert(d.sources?.some(s=>s.book===book&&s.hadith===1&&s.origin==='dawahx'),message+' must cite the local reader');
  }
  console.log('Preview Worker: CORS, required bindings and three direct scripture lookups passed. Model inference was not tested.');
-})().catch(error=>{console.error('Preview Worker check failed:',error.message);process.exitCode=1});
+})().catch(error=>{console.error('Preview Worker check failed:',error.message);if(process.env.GITHUB_ACTIONS==='true')console.log('::error::Preview Worker check failed: '+String(error.message).replace(/%/g,'%25').replace(/\r/g,'%0D').replace(/\n/g,'%0A'));process.exitCode=1});
