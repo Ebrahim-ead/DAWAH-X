@@ -38,10 +38,43 @@ async function go(w, hash) { w.location.hash=hash; await new Promise(r=>setTimeo
   async function open(file, hash='') {
     return JSDOM.fromURL(base+file+hash,{resources:'usable',runScripts:'dangerously',pretendToBeVisual:true,virtualConsole:vc,beforeParse(w){
       w.scrollTo=()=>{};w.Element.prototype.scrollIntoView=()=>{};w.TextDecoder=TextDecoder;w.fetch=(url,opts)=>fetch(new URL(url,w.location.href),opts);
-      w.__audio=[];w.Audio=class extends w.EventTarget { constructor(){super();this.src='';this.paused=true;w.__audio.push(this)} play(){this.paused=false;return Promise.resolve()} pause(){this.paused=true} removeAttribute(name){if(name==='src')this.src=''} load(){} };
+      w.__audio=[];w.Audio=class extends w.EventTarget {
+        constructor(){super();this._src='';this.paused=true;this.ended=false;this.error=null;this.loads=0;this.rejectNext=false;w.__audio.push(this)}
+        get src(){return this._src} set src(v){this._src=v;this.ended=false;this.error=null}
+        play(){if(this.rejectNext){this.rejectNext=false;return Promise.reject(new Error('media unavailable'))}this.paused=false;return Promise.resolve()}
+        pause(){this.paused=true} removeAttribute(name){if(name==='src')this.src=''} load(){this.loads++;this.error=null;this.ended=false}
+        finish(){this.ended=true;this.paused=true;this.dispatchEvent(new w.Event('ended'))}
+      };
       w.__observers=[];w.IntersectionObserver=class {constructor(cb){this.cb=cb;this.disconnected=false;w.__observers.push(this)}observe(el){this.el=el}disconnect(){this.disconnected=true}trigger(){if(!this.disconnected)this.cb([{isIntersecting:true,target:this.el}])}};
     }});
   }
+  // Full-surah playback reuses the verse player, handles races and all endings.
+  let playback=await open('quran.html','#/s/1/a/4'), pw=playback.window, psel=s=>pw.document.querySelector(s);
+  await waitFor(()=>psel('[data-action=surah-audio]'),'complete surah control');
+  assert.equal(pw.__audio.length,0,'do not autoplay on page load');
+  click(pw,'[data-action=surah-audio]');let player=pw.__audio[0];
+  assert.equal(player.src,'https://everyayah.com/data/Yasser_Ad-Dussary_128kbps/001001.mp3','full surah starts at first verse even from deep link');
+  assert.equal(psel('[data-action=surah-audio]').getAttribute('aria-pressed'),'true');
+  player.finish();assert.equal(player.src,'https://everyayah.com/data/Yasser_Ad-Dussary_128kbps/001002.mp3');
+  assert.match(psel('#surahAudioStatus').textContent,/আয়াত ২ \/ ৭/);
+  click(pw,'[data-action=surah-audio]');assert(player.paused);assert.equal(psel('[data-action=surah-audio]').getAttribute('aria-pressed'),'false');
+  player.dispatchEvent(new pw.Event('ended'));assert.equal(player.src,'https://everyayah.com/data/Yasser_Ad-Dussary_128kbps/001002.mp3','stale ended does not advance while paused');
+  click(pw,'[data-action=surah-audio]');assert(!player.paused);assert.equal(player.src,'https://everyayah.com/data/Yasser_Ad-Dussary_128kbps/001002.mp3');
+  await go(pw,'/s/1/a/5');assert(!player.paused,'same-surah navigation continues full playback');
+  click(pw,'[data-action=mode][data-mode=mushaf]');assert.equal(psel('[data-action=surah-audio]').getAttribute('aria-pressed'),'true','mode changes retain the queue');
+  for(let n=2;n<=7;n++)player.finish();
+  assert.equal(player.src,'https://everyayah.com/data/Yasser_Ad-Dussary_128kbps/001007.mp3','stop at last verse');
+  assert.equal(psel('[data-action=surah-audio]').getAttribute('aria-pressed'),'false');assert.match(psel('#surahAudioStatus').textContent,/শেষ হয়েছে/);
+  click(pw,'[data-action=surah-audio]');assert.equal(player.src,'https://everyayah.com/data/Yasser_Ad-Dussary_128kbps/001001.mp3','replay starts at first verse');
+  await go(pw,'/s/114/a/6');assert(player.paused);assert.equal(player.src,'','changing surah stops playback');
+  click(pw,'[data-action=surah-audio]');assert.equal(player.src,'https://everyayah.com/data/Yasser_Ad-Dussary_128kbps/114001.mp3');
+  for(let n=1;n<=6;n++)player.finish();assert.equal(player.src,'https://everyayah.com/data/Yasser_Ad-Dussary_128kbps/114006.mp3');assert.match(psel('#surahAudioStatus').textContent,/শেষ হয়েছে/);
+  click(pw,'[data-action=mode][data-mode=cards]');click(pw,'[data-action=surah-audio]');
+  click(pw,'#v2 [data-action=audio]');assert.equal(player.src,'https://everyayah.com/data/Yasser_Ad-Dussary_128kbps/114002.mp3');
+  player.finish();assert.equal(player.src,'https://everyayah.com/data/Yasser_Ad-Dussary_128kbps/114002.mp3','individual verse cancels continuous mode');
+  player.rejectNext=true;click(pw,'[data-action=surah-audio]');await waitFor(()=>psel('[data-action=surah-audio]').getAttribute('aria-pressed')==='false','failed stream resets state');
+  let loads=player.loads;click(pw,'[data-action=surah-audio]');assert.equal(player.loads,loads+1,'failed stream retries media');assert(!player.paused);
+  await go(pw,'/surahs');assert(player.paused);assert.equal(player.src,'');playback.window.close();
   let dom = await open('quran.html'), w=dom.window, $=s=>w.document.querySelector(s);
   await waitFor(()=>w.document.querySelectorAll('.surah-card').length===114,'surah catalogue');
   assert.equal(w.location.hash,'#/surahs');

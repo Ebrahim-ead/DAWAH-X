@@ -52,9 +52,10 @@
     book: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/><path d="M9 7h7M9 11h5"/></svg>'
   };
 
-  // One shared on-demand audio element: no downloads before a user action.
-  // EveryAyah identifies files by 3-digit surah and 3-digit ayah.
+  // A single player is shared by a verse and a complete-surah sequence.
+  // Sequential playback starts only after a click and fetches each ayah on demand.
   var ayahAudio = null, audioKey = '', audioPlaying = false, audioAttempt = 0;
+  var audioSurah = 0, audioAyah = 0, sequenceSurah = 0, audioMessage = '', audioFailed = false;
   function audioButton(s, a) {
     return '<button type="button" class="act-btn audio-btn" data-action="audio" data-s="' + s + '" data-a="' + a + '" aria-label="ইয়াসির আদ-দুসারির তিলাওয়াত শুনুন" title="ইয়াসির আদ-দুসারির তিলাওয়াত শুনুন" aria-pressed="false">' + ICON.play + '</button>';
   }
@@ -66,24 +67,74 @@
       button.setAttribute('aria-label', playing ? 'তিলাওয়াত বিরতি দিন' : 'ইয়াসির আদ-দুসারির তিলাওয়াত শুনুন');
       button.title = playing ? 'তিলাওয়াত বিরতি দিন' : 'ইয়াসির আদ-দুসারির তিলাওয়াত শুনুন';
     });
+    document.querySelectorAll('[data-action="surah-audio"]').forEach(function (button) {
+      var active = sequenceSurah === +button.dataset.s, playing = active && audioPlaying;
+      var text = playing ? 'সূরা বিরতি দিন' : active ? 'সূরা আবার চালু করুন' : 'সম্পূর্ণ সূরা শুনুন';
+      button.innerHTML = (playing ? ICON.pause : ICON.play) + '<span>' + text + '</span>';
+      button.setAttribute('aria-pressed', String(playing));
+    });
+    var status = document.getElementById('surahAudioStatus');
+    if (status) {
+      status.textContent = sequenceSurah ? (audioPlaying ? 'চলছে' : 'বিরতি') + ' · আয়াত ' + bn(audioAyah) + ' / ' + bn(Q.counts[sequenceSurah - 1]) + ' · ইয়াসির আদ-দুসারি' :
+        (audioMessage || 'ইয়াসির আদ-দুসারি · ইন্টারনেট প্রয়োজন');
+    }
   }
   function stopAudio() {
     audioAttempt++; if (ayahAudio) { ayahAudio.pause(); ayahAudio.removeAttribute('src'); ayahAudio.load(); }
-    audioKey = ''; audioPlaying = false; syncAudioButtons();
+    audioKey = ''; audioSurah = 0; audioAyah = 0; sequenceSurah = 0; audioMessage = ''; audioFailed = false; audioPlaying = false; syncAudioButtons();
   }
+  function audioFailure(attempt) {
+    if (attempt !== audioAttempt || !audioPlaying) return;
+    audioFailed = true; audioPlaying = false; syncAudioButtons();
+    toast('তিলাওয়াত চালানো যায়নি। ইন্টারনেট পরীক্ষা করে আবার চেষ্টা করুন।');
+  }
+  function ensureAudio() {
+    if (ayahAudio) return;
+    ayahAudio = new Audio(); ayahAudio.preload = 'none';
+    ayahAudio.addEventListener('ended', function () {
+      // Ignore an old queued event after a new source has been selected.
+      if (!audioPlaying || !ayahAudio.ended) return;
+      if (sequenceSurah && audioSurah === sequenceSurah && audioAyah < Q.counts[sequenceSurah - 1]) {
+        playAyah(sequenceSurah, audioAyah + 1);
+      } else {
+        if (sequenceSurah) audioMessage = 'সম্পূর্ণ সূরার তিলাওয়াত শেষ হয়েছে।';
+        sequenceSurah = 0; audioPlaying = false; syncAudioButtons();
+      }
+    });
+    ayahAudio.addEventListener('error', function () { if (audioKey && ayahAudio.error) audioFailure(audioAttempt); });
+  }
+  function playAyah(s, a, restart) {
+    ensureAudio();
+    var key = refKey(s, a);
+    if (audioKey !== key || restart) {
+      ayahAudio.pause(); audioKey = key;
+      ayahAudio.src = 'https://everyayah.com/data/Yasser_Ad-Dussary_128kbps/' + String(s).padStart(3, '0') + String(a).padStart(3, '0') + '.mp3';
+    } else if (audioFailed) {
+      ayahAudio.load();
+    } else if (ayahAudio.ended) {
+      try { ayahAudio.currentTime = 0; } catch (e) { /* media may not be seekable yet */ }
+    }
+    audioSurah = s; audioAyah = a; audioMessage = ''; audioFailed = false;
+    var attempt = ++audioAttempt; audioPlaying = true; syncAudioButtons();
+    try {
+      var promise = ayahAudio.play();
+      if (promise && promise.catch) promise.catch(function () { audioFailure(attempt); });
+    } catch (e) { audioFailure(attempt); }
+  }
+  function pauseAudio() { audioAttempt++; ayahAudio.pause(); audioPlaying = false; syncAudioButtons(); }
   function toggleAudio(s, a) {
     if (!Number.isInteger(s) || s < 1 || s > 114 || !Number.isInteger(a) || a < 1 || a > Q.counts[s - 1]) return;
-    if (!ayahAudio) {
-      ayahAudio = new Audio(); ayahAudio.preload = 'none';
-      ayahAudio.addEventListener('ended', function () { audioPlaying = false; syncAudioButtons(); });
-      ayahAudio.addEventListener('error', function () { if (audioKey && audioPlaying) { audioPlaying = false; syncAudioButtons(); toast('তিলাওয়াত চালানো যায়নি। ইন্টারনেট পরীক্ষা করে আবার চেষ্টা করুন।'); } });
+    sequenceSurah = 0; audioMessage = '';
+    if (ayahAudio && audioKey === refKey(s, a) && audioPlaying) { pauseAudio(); return; }
+    playAyah(s, a);
+  }
+  function toggleSurahAudio(s) {
+    if (!Number.isInteger(s) || s < 1 || s > 114) return;
+    if (sequenceSurah === s) {
+      if (audioPlaying) pauseAudio(); else playAyah(s, audioAyah);
+    } else {
+      sequenceSurah = s; playAyah(s, 1, true);
     }
-    var key = refKey(s, a);
-    if (audioKey === key && audioPlaying) { audioAttempt++; ayahAudio.pause(); audioPlaying = false; syncAudioButtons(); return; }
-    if (audioKey !== key) { ayahAudio.pause(); audioKey = key; ayahAudio.src = 'https://everyayah.com/data/Yasser_Ad-Dussary_128kbps/' + String(s).padStart(3, '0') + String(a).padStart(3, '0') + '.mp3'; }
-    var attempt = ++audioAttempt; audioPlaying = true; syncAudioButtons();
-    var promise = ayahAudio.play();
-    if (promise && promise.catch) promise.catch(function () { if (attempt === audioAttempt && audioPlaying) { audioPlaying = false; syncAudioButtons(); toast('তিলাওয়াত চালানো যায়নি। ইন্টারনেট পরীক্ষা করে আবার চেষ্টা করুন।'); } });
   }
 
   /* ------------------------------ storage ------------------------------ */
@@ -709,6 +760,10 @@
           '<h1 class="surah-ar" lang="ar" dir="rtl">' + esc(x.ar) + '</h1>' +
           '<p class="surah-bn">' + esc(x.bn) + '</p>' +
           '<p class="surah-sub">' + esc(x.en) + ' · ' + bn(count) + ' টি আয়াত</p>' +
+          '<div class="surah-audio">' +
+            '<button type="button" class="btn btn-primary surah-audio-button" data-action="surah-audio" data-s="' + s + '" aria-pressed="false">' + ICON.play + '<span>সম্পূর্ণ সূরা শুনুন</span></button>' +
+            '<p id="surahAudioStatus" class="surah-audio-status" role="status" aria-live="polite">ইয়াসির আদ-দুসারি · ইন্টারনেট প্রয়োজন</p>' +
+          '</div>' +
           '<div class="surah-chips">' +
             (function () {
               var info = surahInfo(s), j = juzOf(s, 1), p = pageOf(s, 1), q = quarterOf(s, 1);
@@ -1891,6 +1946,7 @@
         go('/s/' + state.current.s + '/a/' + clamp(state.current.a + 1, 1, Q.counts[state.current.s - 1]));
         break;
       case 'audio': e.stopPropagation(); toggleAudio(s, a); break;
+      case 'surah-audio': toggleSurahAudio(s); break;
       case 'select-ayah': showAyahBar(s, a); break;
       case 'tafsir': toggleTafsirPanel(s, a); break;
       case 'fn': openFootnote(s, a, el.dataset.n); break;
@@ -2101,7 +2157,12 @@
       go('/s/' + state.current.s + '/a/' + clamp(state.current.a - 1, 1, Q.counts[state.current.s - 1]));
     }
   });
-  window.addEventListener('hashchange', function () { stopAudio(); stopHadithAuto(); renderRoute(); });
+  window.addEventListener('hashchange', function () {
+    // Browsing to another ayah in the same surah should not interrupt a full recitation.
+    var seg = parseRoute().seg;
+    if (!sequenceSurah || seg[0] !== 's' || clamp(parseInt(seg[1], 10) || 1, 1, 114) !== sequenceSurah) stopAudio();
+    stopHadithAuto(); renderRoute();
+  });
 
   /* ------------------------------ backup import / PWA / touch ------------------------------ */
   function handleImport(input) {

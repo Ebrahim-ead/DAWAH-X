@@ -322,6 +322,11 @@ html[data-theme="light"] .icon-sun { display: block; }
 }
 .surah-bn { margin: 4px 0 0; font-size: 19px; font-weight: 700; color: var(--gold-soft); }
 .surah-sub { margin: 2px 0 14px; font-size: 12.5px; color: var(--muted); }
+.surah-audio { display: grid; justify-items: center; gap: 6px; margin: 16px 0; }
+.surah-audio-button { min-height: 44px; justify-content: center; }
+.surah-audio-status { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.6; }
+@media print { .surah-audio { display: none; } }
+
 
 .reader-toolbar {
   display: flex; gap: 12px; align-items: center; justify-content: space-between;

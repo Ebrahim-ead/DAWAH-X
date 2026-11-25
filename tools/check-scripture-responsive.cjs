@@ -43,15 +43,26 @@ const server=http.createServer((req,res)=>{
   const interaction=await browser.newContext({serviceWorkers:'block'}), ip=await interaction.newPage();
   await interaction.addInitScript(()=>{
     window.__players=[];
-    window.Audio=class extends EventTarget { constructor(){super();this.src='';this.paused=true;window.__players.push(this)}
+    window.Audio=class extends EventTarget { constructor(){super();this._src='';this.ended=false;this.paused=true;window.__players.push(this)}
+      get src(){return this._src} set src(v){this._src=v;this.ended=false}
       play(){this.paused=false;return Promise.resolve()} pause(){this.paused=true}
-      removeAttribute(name){if(name==='src')this.src=''} load(){} };
+      removeAttribute(name){if(name==='src')this.src=''} load(){}
+      finish(){this.ended=true;this.paused=true;this.dispatchEvent(new Event('ended'))} };
   });
   await ip.goto(base+'quran.html#/s/1/a/1');await ip.waitForSelector('#v1 [data-action="audio"]');
   await ip.click('#v1 [data-action="audio"]');assert.equal(await ip.getAttribute('#v1 [data-action="audio"]','aria-pressed'),'true');
   assert.equal(await ip.evaluate(()=>window.__players[0].src),'https://everyayah.com/data/Yasser_Ad-Dussary_128kbps/001001.mp3');
   await ip.click('#v2 [data-action="audio"]');assert.equal(await ip.getAttribute('#v1 [data-action="audio"]','aria-pressed'),'false');
   assert.equal(await ip.evaluate(()=>window.__players.length),1);assert.equal(await ip.evaluate(()=>window.__players[0].src),'https://everyayah.com/data/Yasser_Ad-Dussary_128kbps/001002.mp3');
+  await ip.click('[data-action="surah-audio"]');assert.equal(await ip.getAttribute('[data-action="surah-audio"]','aria-pressed'),'true');
+  assert.equal(await ip.evaluate(()=>window.__players[0].src),'https://everyayah.com/data/Yasser_Ad-Dussary_128kbps/001001.mp3');
+  await ip.evaluate(()=>window.__players[0].finish());assert.equal(await ip.evaluate(()=>window.__players[0].src),'https://everyayah.com/data/Yasser_Ad-Dussary_128kbps/001002.mp3');
+  assert((await ip.locator('#surahAudioStatus').innerText()).includes('আয়াত ২ / ৭'));
+  await ip.click('[data-action="surah-audio"]');assert(await ip.evaluate(()=>window.__players[0].paused));
+  await ip.click('[data-action="surah-audio"]');assert(!(await ip.evaluate(()=>window.__players[0].paused)));
+  await ip.evaluate(()=>location.hash='#/s/1/a/2');await ip.waitForFunction(()=>document.querySelector('#v2')?.classList.contains('is-target'));assert(!(await ip.evaluate(()=>window.__players[0].paused)));
+  await ip.evaluate(()=>{for(let i=0;i<6;i++)window.__players[0].finish()});assert((await ip.locator('#surahAudioStatus').innerText()).includes('শেষ হয়েছে'));
+
   await ip.goto(base+'hadith.html#/hadith/bukhari/section/64');await ip.waitForSelector('.hadith-autoload');
   const first=ip.locator('#hadithList .hadith-card').first();await first.evaluate(e=>e.dataset.testIdentity='retained');
   await ip.locator('.hadith-autoload').scrollIntoViewIfNeeded();await ip.waitForFunction(()=>document.querySelectorAll('#hadithList .hadith-card').length>20);
