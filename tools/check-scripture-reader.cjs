@@ -74,6 +74,9 @@ async function go(w, hash) { w.location.hash=hash; await new Promise(r=>setTimeo
   player.finish();assert.equal(player.src,'https://everyayah.com/data/Yasser_Ad-Dussary_128kbps/114002.mp3','individual verse cancels continuous mode');
   player.rejectNext=true;click(pw,'[data-action=surah-audio]');await waitFor(()=>psel('[data-action=surah-audio]').getAttribute('aria-pressed')==='false','failed stream resets state');
   let loads=player.loads;click(pw,'[data-action=surah-audio]');assert.equal(player.loads,loads+1,'failed stream retries media');assert(!player.paused);
+  player.rejectNext=true;player.finish();await waitFor(()=>psel('[data-action=surah-audio]').getAttribute('aria-pressed')==='false','next verse failure is reported');
+  assert.equal(player.src,'https://everyayah.com/data/Yasser_Ad-Dussary_128kbps/114002.mp3');
+  click(pw,'[data-action=surah-audio]');assert.equal(player.src,'https://everyayah.com/data/Yasser_Ad-Dussary_128kbps/114002.mp3','retry resumes the failed verse without skipping');
   await go(pw,'/surahs');assert(player.paused);assert.equal(player.src,'');playback.window.close();
   let dom = await open('quran.html'), w=dom.window, $=s=>w.document.querySelector(s);
   await waitFor(()=>w.document.querySelectorAll('.surah-card').length===114,'surah catalogue');
