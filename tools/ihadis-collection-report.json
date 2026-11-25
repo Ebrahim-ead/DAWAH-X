@@ -51,6 +51,6 @@
   {
     "slug": "fazayele-amal",
     "status": "failed",
-    "error": "TimeoutError: The operation was aborted due to timeout"
+    "error": "Error: Missing rendered cards 1: 11,12,13"
   }
 ]
