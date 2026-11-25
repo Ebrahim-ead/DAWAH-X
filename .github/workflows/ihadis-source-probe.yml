@@ -8,7 +8,7 @@ permissions:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 4
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:
@@ -16,24 +16,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Inspect client asset routes and individual page
-        run: |
-          node - <<'NODE'
-          const fs=require('fs');
-          (async()=>{
-            const html=fs.readFileSync('tools/ihadis-probe-40-hadith.html','utf8');
-            const paths=[...new Set([...html.matchAll(/<script[^>]+src="(\/_next\/static\/chunks\/[^"?]+\.js)/g)].map(m=>m[1]))];
-            const results=[];
-            for(const path of paths){
-              try{const r=await fetch('https://ihadis.com'+path,{signal:AbortSignal.timeout(30000)});if(!r.ok){results.push({path,status:r.status});continue};const text=await r.text();const snippets=[];const re=/.{0,220}(?:hadith\.[a-zA-Z0-9]+|hadiths\.[a-zA-Z0-9]+|chapter\.[a-zA-Z0-9]+|getHadith[a-zA-Z0-9]+|getChapter[a-zA-Z0-9]+|useInfiniteQuery|useQuery).{0,220}/gi;for(const m of text.matchAll(re)){if(snippets.length>=120)break;snippets.push(m[0]);}if(snippets.length)results.push({path,snippets});await new Promise(r=>setTimeout(r,300));}catch(e){results.push({path,error:String(e)})}
-            }
-            const r=await fetch('https://ihadis.com/40-hadith/hadith/11',{signal:AbortSignal.timeout(30000)});if(r.ok)fs.writeFileSync('tools/ihadis-probe-single.html',await r.text());results.push({single:r.status});
-            fs.writeFileSync('tools/ihadis-assets-result.json',JSON.stringify(results,null,2));
-          })().catch(e=>{fs.writeFileSync('tools/ihadis-assets-result.json',JSON.stringify({error:String(e)}))});
-          NODE
+      - name: Install parser
+        run: npm install --prefix /tmp/ihadis-parser cheerio@1.0.0 --no-audit --no-fund
+      - name: Collect public source pages gently
+        run: NODE_PATH=/tmp/ihadis-parser/node_modules node tools/collect-ihadis.cjs
       - name: Save results on this session branch only
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add tools/ihadis-probe-single.html tools/ihadis-assets-result.json 2>/dev/null || git add tools/ihadis-assets-result.json
+          git add tools/ihadis-*-snapshot.json.gz tools/ihadis-collection-report.json 2>/dev/null || git add tools/ihadis-collection-report.json
           git commit -m 'Inspect iHadis source response for import' && git push origin HEAD:arena/571b6185-dawah-x

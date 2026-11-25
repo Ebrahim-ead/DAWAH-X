@@ -1,6 +1,6 @@
 'use strict';
-// Parse the public Bangla book/chapter HTML, never guess missing fields.
-const cheerio=require('cheerio');
+// Parse iHadis's public rendered text; placeholders are never treated as data.
+const cheerio=require('cheerio'),crypto=require('node:crypto');
 const ascii=s=>String(s||'').replace(/[০-৯]/g,c=>String(c.charCodeAt(0)-0x9e6));
 const tidy=s=>String(s||'').trim();
 function paragraphs($,el){const spans=$(el).children('span');return spans.length?spans.map((_,s)=>tidy($(s).text())).get().filter(Boolean).join('\n\n'):tidy($(el).text())}
@@ -13,22 +13,26 @@ function index(html,slug){
  if(chapters.size!==+m[1])throw Error('Chapter count mismatch '+slug+' '+chapters.size+'/'+m[1]);
  return {slug,title,expected:+m[2],chapters:[...chapters.values()].sort((a,b)=>a.id-b.id)};
 }
-function chapter(html,slug,id){
- const $=cheerio.load(html), cards=$('[id^="hadith-"]'), rows=[];
- cards.each((_,el)=>{const card=$(el), url=card.find('h3 a[href]').first().attr('href');const match=(url||'').match(new RegExp('^/'+slug+'/hadith/(\\d+)$'));if(!match)throw Error('Invalid hadith link '+slug+'/'+id+' '+url);
-  const header=tidy(card.find('h3').first().text()), n=ascii(header).match(/:\s*(\d+)\s*$/); if(!n)throw Error('Missing displayed number '+url);
-  const grade=tidy(card.find('button[style] span').first().text());
-  const narr=tidy(card.find('h4').first().text());
-  const ar=card.find('p[dir="rtl"]').map((_,p)=>paragraphs($,p)).get().filter(Boolean).join('\n\n');
-  const bnp=card.find('h4').first().parent().find('p').first();
-  const bn=bnp.length?paragraphs($,bnp):'';
-  const notes=[];card.find('p').each((_,p)=>{let q=$(p);if(q.attr('dir')==='rtl'||q.closest('h4').length||p===bnp[0]||q.closest('h3').length||q.attr('class')?.includes('tablet:hidden'))return;
-   if(q.closest('button').length||q.closest('a').length)return;const t=paragraphs($,p);if(t)notes.push(t);
-  });
-  if(!bn||!grade)throw Error('Missing translation or grade '+url);
-  rows.push({id:+match[1],number:+n[1],bn,ar,narrator:narr,grade,notes:notes.join('\n\n')});
- });
- if(!rows.length)throw Error('No hadith cards '+slug+'/'+id);
- return rows;
+function extractCard($,card,slug,expectedId){
+ const header=tidy(card.find('h3,h2').first().text()), n=ascii(header).match(/:\s*(\d+)\s*$/);if(!n)throw Error('Missing displayed number '+slug+':'+expectedId);
+ const grade=tidy(card.find('button[style] span').first().text()), narr=tidy(card.find('h4').first().text());
+ const ar=card.find('p[dir="rtl"]').map((_,p)=>paragraphs($,p)).get().filter(Boolean).join('\n\n');
+ const bnp=card.find('h4').first().parent().find('p').first(),bn=bnp.length?paragraphs($,bnp):'';
+ const notes=[];card.find('p').each((_,p)=>{const q=$(p);if(q.attr('dir')==='rtl'||p===bnp[0]||q.closest('h3').length||q.attr('class')?.includes('tablet:hidden')||q.closest('button').length||q.closest('a').length)return;const t=paragraphs($,p);if(t)notes.push(t)});
+ if(!bn||!grade)throw Error('Missing translation or grade '+slug+':'+expectedId);
+ return {id:expectedId,number:+n[1],bn,ar,narrator:narr,grade,notes:notes.join('\n\n')};
 }
-module.exports={index,chapter};
+function chapter(html,slug,id){
+ const $=cheerio.load(html), rows=[], missing=[];
+ $('[id^="hadith-"]').each((_,el)=>{const card=$(el),url=card.find('h3 a[href]').first().attr('href');const match=(url||'').match(new RegExp('^/'+slug+'/hadith/(\\d+)$'));if(!match)throw Error('Invalid hadith link '+slug+'/'+id+' '+url);const n=+match[1];
+  if(!card.find('h4').length)missing.push(n);else rows.push(extractCard($,card,slug,n));
+ });
+ if(!rows.length&&!missing.length)throw Error('No hadith cards '+slug+'/'+id);
+ return {rows,missing,sha256:crypto.createHash('sha256').update(html).digest('hex')};
+}
+function single(html,slug,id){
+ const $=cheerio.load(html), cards=$('[id^="hadith-"]');if(cards.length!==1)throw Error('Unexpected single card '+slug+':'+id);
+ const got=tidy($('main h1').first().text());if(!ascii(got).includes('হাদিস '+id+' '))throw Error('Wrong single page '+slug+':'+id+' '+got);
+ return extractCard($,cards.first(),slug,id);
+}
+module.exports={index,chapter,single};
