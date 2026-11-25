@@ -120,7 +120,9 @@
   },
   {
     "slug": "riyadus-salihin",
-    "status": "failed",
-    "error": "TimeoutError: page.goto: Timeout 60000ms exceeded.\nCall log:\n  - navigating to \"https://ihadis.com/riyadus-salihin/hadith/942\", waiting until \"domcontentloaded\"\n"
+    "status": "complete",
+    "count": 1905,
+    "chapters": 20,
+    "sha256": "bca956206e5d270f3b89192bdd355feacc3a540ade3a45a51244d9e4ea8da0e9"
   }
 ]
