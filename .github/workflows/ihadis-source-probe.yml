@@ -1,0 +1,36 @@
+name: Inspect iHadis public pages
+on:
+  push:
+    branches: ['arena/571b6185-dawah-x']
+    paths: ['.github/workflows/ihadis-source-probe.yml']
+permissions:
+  contents: write
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: arena/571b6185-dawah-x
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Save bounded public page samples for importer development
+        run: |
+          node - <<'NODE'
+          const fs=require('fs');
+          (async()=>{
+            let result=[];
+            for(const path of ['/40-hadith/1','/dhaif-hadis-sirij/1','/riyadus-salihin']) {
+              try {const r=await fetch('https://ihadis.com'+path,{signal:AbortSignal.timeout(30000),headers:{'User-Agent':'DAWAHX-HadithImporter/1.0 (research; contact: https://ebrahim-ead.github.io/DAWAH-X/contact.html)'}}); const text=await r.text();const filename='tools/ihadis-probe-'+(path.split('/')[1])+'.html';if(r.ok && text.length<5000000)fs.writeFileSync(filename,text);result.push({path,status:r.status,length:text.length,filename:r.ok?filename:null})}catch(e){result.push({path,error:String(e)})}
+            }
+            fs.writeFileSync('tools/ihadis-probe-result.json',JSON.stringify(result,null,2));
+          })();
+          NODE
+      - name: Save results on this session branch only
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add tools/ihadis-probe-*.html tools/ihadis-probe-result.json 2>/dev/null || git add tools/ihadis-probe-result.json
+          git commit -m 'Inspect iHadis source response for import' && git push origin HEAD:arena/571b6185-dawah-x
