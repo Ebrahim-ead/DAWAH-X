@@ -21,11 +21,15 @@ match = re.search(r'window\.QURAN\s*=\s*(\{.*\})\s*;', qscript, re.S)
 if not match: raise SystemExit('Unexpected Quran data format')
 counts = json.loads(match.group(1))['counts']
 if len(data) != 114 or len(counts) != 114: raise SystemExit('Expected 114 surahs')
+all_texts = []
 for s in range(1,115):
     rows = data[str(s)]
     if len(rows) != counts[s-1] or any(r['chapter'] != s or r['verse'] != i or not isinstance(r['text'],str) or not r['text'] for i,r in enumerate(rows,1)):
         raise SystemExit('Invalid verse alignment in surah ' + str(s))
     texts = [r['text'] for r in rows]
+    all_texts.append(texts)
     out = '/* Pickthall 1930; quran-json snapshot, see scripture-credits.md. */\nwindow.EN_SURAHS = window.EN_SURAHS || {};\nwindow.EN_SURAHS[' + str(s) + '] = ' + json.dumps(texts,ensure_ascii=False,separators=(',',':')) + ';\n'
     (root / f'scripture-en-{s}.js').write_text(out, encoding='utf-8')
-print('Built 114 surahs,',sum(counts),'unmodified English translations, revision', revision)
+bundle = '/* Pickthall 1930; quran-json snapshot, see scripture-credits.md. Loaded only for English search. */\nwindow.EN_TRANSLATION = ' + json.dumps(all_texts,ensure_ascii=False,separators=(',',':')) + ';\n'
+(root / 'scripture-en-translation.js').write_text(bundle, encoding='utf-8')
+print('Built 114 surahs and search bundle,',sum(counts),'unmodified English translations, revision', revision)

@@ -208,6 +208,26 @@
   // Each surah is fetched from this site only when its English text is shown.
   var enPending = {}, enFailed = {};
   function enArr(s) { return window.EN_SURAHS && window.EN_SURAHS[s]; }
+  var enFlat = null, enFullLoading = false, enFullFailed = false;
+  function loadEnglishIndex() {
+    if (enFlat || enFullLoading || enFullFailed) return;
+    enFullLoading = true;
+    var tag = document.createElement('script');
+    tag.src = 'scripture-en-translation.js';
+    function finish(ok) {
+      enFullLoading = false;
+      var data = window.EN_TRANSLATION;
+      if (ok && Array.isArray(data) && data.length === 114 && data.every(function (v, i) { return Array.isArray(v) && v.length === Q.counts[i]; })) {
+        enFlat = [];
+        data.forEach(function (chapter) { chapter.forEach(function (text) { enFlat.push({ t: text, n: norm(text) }); }); });
+      } else enFullFailed = true;
+      tag.remove();
+      if (state.view === 'search') drawSearch(state.query, state.searchSeq);
+    }
+    tag.onload = function () { finish(true); };
+    tag.onerror = function () { finish(false); };
+    document.head.appendChild(tag);
+  }
   function loadEnglish(s) {
     if (enArr(s) || enPending[s] || enFailed[s]) return;
     enPending[s] = true;
@@ -309,7 +329,7 @@
   /* Full-text tafsir search: load all 114 tafsir scripts in small batches on
      the first tafsir search, build a plain-text index, then keep it in memory.
      Reuses the exact same files the reader uses — no duplicate data. */
-  var tafsirFlat = null, tafsirAllPending = null;
+  var tafsirFlat = null, tafsirAllPending = null, tafsirAllFailed = false;
   function stripTags(h) {
     return String(h || '')
       .replace(/<[^>]*>/g, ' ')
@@ -336,7 +356,9 @@
     var seen = cached;
     function step() {
       if (!queue.length) {
-        buildTafsirFlat();
+        // Never claim an exhaustive result when a chapter failed to load.
+        tafsirAllFailed = Array.from({length: 114}, function (_, i) { return i + 1; }).some(function (s) { return !tafsirData(s); });
+        if (!tafsirAllFailed) buildTafsirFlat();
         var waiting = tafsirAllPending || []; tafsirAllPending = null;
         waiting.forEach(function (fn) { fn(); });
         return;
@@ -537,7 +559,7 @@
       '<section class="page-head"><div class="eyebrow">' + bn(114) + ' টি সূরা</div><h1>সূরা সমূহ</h1>' +
       '<p>যেকোনো সূরায় ক্লিক করে পড়া শুরু করুন।</p></section>' +
       '<div class="card-panel search-panel"><form class="search-form" data-action="search-submit">' +
-      '<input class="input" type="search" name="q" placeholder="কুরআন, অনুবাদ বা তাফসিরে খুঁজুন…" aria-label="কুরআনে অনুসন্ধান"/>' +
+      '<input class="input" type="search" name="q" placeholder="আরবি, বাংলা বা ইংরেজি অনুবাদে খুঁজুন…" aria-label="কুরআনে অনুসন্ধান"/>' +
       '<button class="btn btn-primary" type="submit">খুঁজুন</button></form>' +
       '<a class="btn btn-ghost" href="#/bookmarks">★ সংরক্ষিত আয়াত</a></div>' +
       '<section class="surah-section" id="surahList">' +
@@ -867,23 +889,24 @@
     state.query = q;
     var seq = ++state.searchSeq;
     if (!norm(asciiDigits(q).trim())) {
-      box.innerHTML = '<div class="empty-state"><span class="empty-icon">⌕</span><h3>কী খুঁজতে চান?</h3><p>আরবি শব্দ, <strong>বাংলা অনুবাদের শব্দ</strong>, সূরার নাম, <strong>২:২৫৫</strong> রেফারেন্স — চাইলে «তাফসীরেও খোঁজা» চালু করে টীকার ভেতরেও।</p></div>';
+      box.innerHTML = '<div class="empty-state"><span class="empty-icon">⌕</span><h3>কী খুঁজতে চান?</h3><p>আরবি, বাংলা বা ইংরেজি অনুবাদের শব্দ, সূরার নাম, <strong>২:২৫৫</strong> রেফারেন্স — চাইলে তাফসীরেও খুঁজুন।</p></div>';
       return;
     }
-    if (!bnFlatReady && !bnFlatLoading) {
+    if (!bnFlatReady && !bnFlatLoading && !bnFailed.full) {
       bnFlatLoading = true;
       loadFullBn(function () {
         bnFlatLoading = false;
-        buildBnFlat();
-        if (seq === state.searchSeq && state.query === q) drawSearch(q, seq);
+        if (fullVerses()) buildBnFlat(); else bnFailed.full = true;
+        if (state.view === 'search') drawSearch(state.query, state.searchSeq);
       });
     }
-    if (state.searchTafsir && !tafsirFlat) {
+    if (/[a-z]/i.test(q)) loadEnglishIndex();
+    if (state.searchTafsir && !tafsirFlat && !tafsirAllPending && !tafsirAllFailed) {
       loadAllTafsir(function (done, total) {
         var pr = document.getElementById('tafsirProgress');
         if (pr) pr.textContent = 'তাফসীর লোড হচ্ছে… ' + bn(done) + ' / ' + bn(total);
       }, function () {
-        if (seq === state.searchSeq && state.query === q) drawSearch(q, seq);
+        if (state.view === 'search') drawSearch(state.query, state.searchSeq);
       });
     }
     drawSearch(q, seq);
@@ -902,7 +925,8 @@
       return norm(x.ar).indexOf(nq) !== -1 || norm(x.en).indexOf(nq) !== -1 || norm(x.bn).indexOf(nq) !== -1;
     }).slice(0, 12);
 
-    var matches = [], totalHits = 0, bnHits = 0, tfHits = 0;
+    var matches = [], totalHits = 0, bnHits = 0, enHits = 0, tfHits = 0;
+    var searchEnglish = /[a-z]/i.test(raw);
     var needle = state.ignore ? nq : raw;
     for (var i = 0; i < FLAT.length; i++) {
       var v = FLAT[i];
@@ -910,29 +934,36 @@
       var b = BN_FLAT[i] || null;
       var btext = b ? b.t : bnText(v.s, v.a);
       var bnHit = !!b && (state.ignore ? b.n : b.r).indexOf(needle) !== -1;
+      var en = enFlat && searchEnglish ? enFlat[i] : null;
+      var enHit = !!en && en.n.indexOf(nq) !== -1;
       var tf = tafsirFlat ? tafsirFlat[i] : null;
       var tfHit = !!(state.searchTafsir && tf && needle &&
         (state.ignore ? tf.n : tf.r).indexOf(needle) !== -1);
-      if (arHit || bnHit || tfHit) {
+      if (arHit || bnHit || enHit || tfHit) {
         totalHits++;
-        if (bnHit && !arHit) bnHits++;
-        if (tfHit && !arHit && !bnHit) tfHits++;
+        if (bnHit) bnHits++;
+        if (enHit) enHits++;
+        if (tfHit) tfHits++;
         if (matches.length < 400) {
           matches.push({
             s: v.s, a: v.a, t: v.t, bn: btext,
+            en: enHit ? snippetAround(en.t, raw) : '',
             tf: tfHit ? snippetAround(tf.t, raw) : '',
-            via: tfHit && !arHit && !bnHit ? 'tafsir' : (bnHit && !arHit ? 'bn' : 'ar')
+            via: tfHit && !arHit && !bnHit && !enHit ? 'tafsir' : (bnHit && !arHit ? 'bn' : 'ar')
           });
         }
       }
     }
 
-    var pending = [];
-    if (!bnFlatReady) pending.push('বাংলা অনুবাদের ইনডেক্স লোড হচ্ছে…');
+    var pending = [], failed = [];
+    if (!bnFlatReady) (bnFailed.full ? failed : pending).push('বাংলা অনুবাদের ইনডেক্স');
+    if (searchEnglish && !enFlat) (enFullFailed ? failed : pending).push('ইংরেজি অনুবাদের ইনডেক্স');
     if (state.searchTafsir && !tafsirFlat) {
-      pending.push('<span id="tafsirProgress">তাফসীরের ১১৪টি ফাইল লোড হচ্ছে… (প্রথমবারে একটু সময় লাগে, এরপর তাৎক্ষণিক)</span>');
+      if (tafsirAllFailed) failed.push('তাফসীরের ইনডেক্স');
+      else pending.push('<span id="tafsirProgress">তাফসীরের ১১৪টি ফাইল</span>');
     }
-    var html = pending.length ? '<p class="search-progress" role="status">' + pending.join(' · ') + '</p>' : '';
+    var html = pending.length ? '<p class="search-progress" role="status">' + pending.join(' · ') + ' লোড হচ্ছে…</p>' : '';
+    if (failed.length) html += '<p class="search-progress" role="status">অনুসন্ধান সম্পূর্ণ হয়নি: ' + failed.join(' · ') + ' লোড করা যায়নি।</p><button type="button" class="btn" data-action="retry-search">আবার চেষ্টা করুন</button>';
 
     if (direct) {
       html += '<div class="result-item" data-action="goto-ayah" data-s="' + direct.s + '" data-a="' + direct.a + '" role="button" tabindex="0">' +
@@ -954,11 +985,13 @@
     if (matches.length) {
       var shown = matches.slice(0, state.searchLimit);
       html += '<p class="result-meta">আয়াতে মিল: ' + bn(totalHits) + ' টি (বাংলা অনুবাদে ' + bn(bnHits) +
+        (searchEnglish ? ', ইংরেজি অনুবাদে ' + bn(enHits) : '') +
         (state.searchTafsir ? ', তাফসীরে ' + bn(tfHits) : '') + ') · ' + bn(shown.length) + ' টি দেখানো হচ্ছে</p><div class="result-list">' +
         shown.map(function (v) {
           var snippet = v.bn
             ? '<div class="result-bn-snippet"><span class="via">' + (v.via === 'bn' ? 'অনুবাদে মিল' : 'বাংলা অনুবাদ') + '</span>' + highlight(v.bn, raw) + '</div>'
             : '';
+          if (v.en) snippet += '<div class="result-bn-snippet" lang="en"><span class="via">ইংরেজি অনুবাদে মিল · Pickthall</span>' + esc(v.en) + '</div>';
           if (v.tf) snippet += '<div class="result-tf-snippet"><span class="via">তাফসীরে মিল</span>' + highlight(v.tf, raw) + '</div>';
           return '<button type="button" class="result-item" data-action="goto-ayah" data-s="' + v.s + '" data-a="' + v.a + '">' +
             '<div class="result-ref"><span class="dot"></span> ' + esc(label(v.s, v.a)) + ' <span style="color:var(--muted);font-weight:400">(' + v.s + ':' + v.a + ')</span></div>' +
@@ -967,8 +1000,9 @@
       if (matches.length > state.searchLimit) {
         html += '<button type="button" class="btn more-btn" data-action="more-results">আরও দেখুন ' + ICON.arrow + '</button>';
       }
+      if (totalHits > 400) html += '<p class="search-progress">প্রথম ৪০০টি মিল দেখানো যায়। আরও নির্দিষ্ট শব্দ দিয়ে খুঁজুন।</p>';
     }
-    if (!direct && !surahHits.length && !matches.length && !pending.length) {
+    if (!direct && !surahHits.length && !matches.length && !pending.length && !failed.length) {
       html += '<div class="empty-state"><span class="empty-icon">⌕</span><h3>কিছু পাওয়া যায়নি</h3><p>বানান বদলে বা “হরকত উপেক্ষা” চালু করে আবার চেষ্টা করুন।</p></div>';
     }
     box.innerHTML = html;
@@ -986,7 +1020,7 @@
         '<h1>খোঁজার ফলাফল</h1>' +
         '<div class="card-panel search-panel">' +
           '<form class="search-form compact-search" data-action="search-submit">' +
-            '<input class="input" id="searchInput" type="search" name="q" value="' + esc(state.query) + '" placeholder="যেমন: আল্লাহ, রহমান, কাহফ, ২:২৫৫" aria-label="অনুসন্ধান"/>' +
+            '<input class="input" id="searchInput" type="search" name="q" value="' + esc(state.query) + '" placeholder="আল্লাহ, mercy, কাহফ, ২:২৫৫" aria-label="আরবি, বাংলা বা ইংরেজি অনুসন্ধান"/>' +
             '<button class="btn btn-primary" type="submit">খুঁজুন</button>' +
           '</form>' +
           '<label class="toggle-line"><input type="checkbox" id="ignoreHarakat" ' + (state.ignore ? 'checked' : '') + '/> হরকত / তাশকিল উপেক্ষা করুন</label>' +
@@ -1867,6 +1901,10 @@
         toast('আয়াতের লিংক কপি হয়েছে');
         break;
       case 'bookmark': toggleBookmark(s, a); break;
+      case 'retry-search':
+        bnFailed.full = false; enFullFailed = false; tafsirAllFailed = false;
+        runSearch(state.query);
+        break;
       case 'more-results':
         state.searchLimit += 40;
         drawSearch(state.query, state.searchSeq);

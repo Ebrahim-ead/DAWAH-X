@@ -12,6 +12,21 @@
    document.getElementById('daily-reading').hidden=false;
   }
  }
+ // The Quran reader records the last explicitly opened/selected ayah locally.
+ const resume=document.getElementById('scripture-resume');
+ if(resume){
+  const paintResume=()=>{
+   let value;try{value=JSON.parse(localStorage.getItem('dawahx-quran:last')||'null')}catch(_){value=null}
+   const match=typeof value==='string'&&/^(\d{1,3}):(\d{1,3})$/.exec(value);
+   const s=match&&Number(match[1]),a=match&&Number(match[2]);
+   if(!s||s>114||!a||a>286){resume.hidden=true;return}
+   resume.href='quran.html#/s/'+s+'/a/'+a;
+   resume.textContent='কুরআনের সর্বশেষ খোলা আয়াতে ফিরুন · '+s+':'+a+' →';
+   resume.hidden=false;
+  };
+  paintResume();
+  window.addEventListener('storage',e=>{if(e.key==='dawahx-quran:last'||e.key===null)paintResume()});
+ }
  const body=document.getElementById('read-body');if(!body)return;
  const key=new URLSearchParams(location.search).get('k')||'';
  if(!/^[0-9a-f]{14}$/.test(key))return;
