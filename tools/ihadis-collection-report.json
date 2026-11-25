@@ -73,5 +73,12 @@
     "count": 234,
     "chapters": 16,
     "sha256": "45281a1e957e8884ed40d516d8bb6d23b03d7324e53f81e9a7a76fff0cb88304"
+  },
+  {
+    "slug": "shamayele-tirmidhi",
+    "status": "complete",
+    "count": 322,
+    "chapters": 56,
+    "sha256": "4106999d0c77ee3fd47884aab18925e2be0c00a4b110fc573d63a9f4e5d4f0f1"
   }
 ]
