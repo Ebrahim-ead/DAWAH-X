@@ -74,7 +74,8 @@ const watchdog=setTimeout(()=>{console.error('Live smoke failed: overall deadlin
  // through the checks API even when Actions artifact download is unavailable.
  if(process.env.GITHUB_ACTIONS==='true'){
   const packed=zlib.gzipSync(JSON.stringify(review)).toString('base64');
-  if(packed.length<60000)console.log('::notice::FIXED_PUBLIC_REVIEW_GZIP_BASE64 '+packed);
+  const chunks=packed.match(/.{1,3000}/g)||[];
+  if(chunks.length<=9)chunks.forEach((chunk,i)=>console.log(`::notice::FIXED_PUBLIC_REVIEW_PART_${i+1}_OF_${chunks.length} ${chunk}`));
  }
  annotation('notice',reports.join(' | '));
  if(failures.length)throw Error(failures.join('; '));

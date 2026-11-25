@@ -1,0 +1,22 @@
+name: Retrieve fixed assistant review
+# Opt-in: exposes only the fixed public sample responses, no user messages.
+on:
+  push:
+    branches:
+      - 'arena/**'
+permissions:
+  actions: read
+  contents: read
+jobs:
+  report:
+    if: contains(github.event.head_commit.message, '[report-review-45578745460]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Retrieve prior fixed public test responses
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 45578745460 --name assistant-live-review --dir "$RUNNER_TEMP/review" --repo "$GITHUB_REPOSITORY"
+          node tools/report-assistant-review.cjs "$RUNNER_TEMP/review/assistant-live-review.json"
