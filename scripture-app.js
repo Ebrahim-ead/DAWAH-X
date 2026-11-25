@@ -47,8 +47,44 @@
     arrow: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
     shuffle: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>',
     close: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>',
+    play: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg>',
+    pause: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4h4v16H6zm8 0h4v16h-4z"/></svg>',
     book: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/><path d="M9 7h7M9 11h5"/></svg>'
   };
+
+  // One shared on-demand audio element: no downloads before a user action.
+  // EveryAyah identifies files by 3-digit surah and 3-digit ayah.
+  var ayahAudio = null, audioKey = '', audioPlaying = false, audioAttempt = 0;
+  function audioButton(s, a) {
+    return '<button type="button" class="act-btn audio-btn" data-action="audio" data-s="' + s + '" data-a="' + a + '" aria-label="ইয়াসির আদ-দুসারির তিলাওয়াত শুনুন" title="ইয়াসির আদ-দুসারির তিলাওয়াত শুনুন" aria-pressed="false">' + ICON.play + '</button>';
+  }
+  function syncAudioButtons() {
+    document.querySelectorAll('[data-action="audio"]').forEach(function (button) {
+      var playing = audioPlaying && audioKey === refKey(+button.dataset.s, +button.dataset.a);
+      button.innerHTML = playing ? ICON.pause : ICON.play;
+      button.setAttribute('aria-pressed', String(playing));
+      button.setAttribute('aria-label', playing ? 'তিলাওয়াত বিরতি দিন' : 'ইয়াসির আদ-দুসারির তিলাওয়াত শুনুন');
+      button.title = playing ? 'তিলাওয়াত বিরতি দিন' : 'ইয়াসির আদ-দুসারির তিলাওয়াত শুনুন';
+    });
+  }
+  function stopAudio() {
+    audioAttempt++; if (ayahAudio) { ayahAudio.pause(); ayahAudio.removeAttribute('src'); ayahAudio.load(); }
+    audioKey = ''; audioPlaying = false; syncAudioButtons();
+  }
+  function toggleAudio(s, a) {
+    if (!Number.isInteger(s) || s < 1 || s > 114 || !Number.isInteger(a) || a < 1 || a > Q.counts[s - 1]) return;
+    if (!ayahAudio) {
+      ayahAudio = new Audio(); ayahAudio.preload = 'none';
+      ayahAudio.addEventListener('ended', function () { audioPlaying = false; syncAudioButtons(); });
+      ayahAudio.addEventListener('error', function () { if (audioKey) { audioPlaying = false; syncAudioButtons(); toast('তিলাওয়াত চালানো যায়নি। ইন্টারনেট পরীক্ষা করে আবার চেষ্টা করুন।'); } });
+    }
+    var key = refKey(s, a);
+    if (audioKey === key && audioPlaying) { audioAttempt++; ayahAudio.pause(); audioPlaying = false; syncAudioButtons(); return; }
+    if (audioKey !== key) { ayahAudio.pause(); audioKey = key; ayahAudio.src = 'https://everyayah.com/data/Yasser_Ad-Dussary_128kbps/' + String(s).padStart(3, '0') + String(a).padStart(3, '0') + '.mp3'; }
+    var attempt = ++audioAttempt; audioPlaying = true; syncAudioButtons();
+    var promise = ayahAudio.play();
+    if (promise && promise.catch) promise.catch(function () { if (attempt === audioAttempt) { audioPlaying = false; syncAudioButtons(); toast('তিলাওয়াত চালানো যায়নি। ইন্টারনেট পরীক্ষা করে আবার চেষ্টা করুন।'); } });
+  }
 
   /* ------------------------------ storage ------------------------------ */
   var KEY = 'dawahx-quran:';
@@ -600,8 +636,9 @@
       : '';
     if (!mushaf && state.showEnglish) {
       var english = enArr(s);
-      translation += '<div class="verse-translation english-translation"><span class="tr-label">English translation · Marmaduke Pickthall</span><div class="tr-text" lang="en">' +
-        (english ? esc(english[a - 1]) : (enFailed[s] ? 'ইংরেজি অনুবাদ লোড করা যায়নি। আবার চেষ্টা করতে অনুবাদ বন্ধ করে চালু করুন।' : 'ইংরেজি অনুবাদ লোড হচ্ছে…')) + '</div></div>';
+      translation += '<div class="verse-translation english-translation"><span class="tr-label">English translation · Saheeh International</span><div class="tr-text" lang="en">' +
+        (english ? esc(english[a - 1]) : (enFailed[s] ? 'ইংরেজি অনুবাদ লোড করা যায়নি। আবার চেষ্টা করতে অনুবাদ বন্ধ করে চালু করুন।' : 'ইংরেজি অনুবাদ লোড হচ্ছে…')) + '</div>' +
+        (english && window.EN_NOTES && window.EN_NOTES[s] && window.EN_NOTES[s][a - 1] ? '<details class="english-notes"><summary>English footnotes</summary><p lang="en">' + esc(window.EN_NOTES[s][a - 1]) + '</p></details>' : '') + '</div>';
     }
 
     var panel = '';
@@ -612,6 +649,7 @@
     var actions =
       '<div class="verse-actions">' +
         (notes && !mushaf && !study ? '<button type="button" class="act-btn has-tafsir" data-action="tafsir" data-s="' + s + '" data-a="' + a + '" aria-label="তাফসীর দেখুন" title="তাফসীর / টীকা">' + ICON.book + '</button>' : '') +
+        audioButton(s, a) +
         '<button type="button" class="act-btn" data-action="copy" data-s="' + s + '" data-a="' + a + '" aria-label="আয়াত কপি" title="কপি">' + ICON.copy + '</button>' +
         '<button type="button" class="act-btn' + (saved ? ' saved' : '') + '" data-action="bookmark" data-s="' + s + '" data-a="' + a + '" aria-label="সংরক্ষণ" title="সংরক্ষণ">' + ICON.star + '</button>' +
         '<button type="button" class="act-btn" data-action="share" data-s="' + s + '" data-a="' + a + '" aria-label="লিংক কপি" title="লিংক কপি">' + ICON.link + '</button>' +
@@ -744,7 +782,8 @@
           '<button type="button" class="btn" data-action="focus-next" ' + (a >= count ? 'disabled' : '') + '>পরের আয়াত →</button>' +
         '</div>' : '') +
         '<p class="source-note">' + (state.tafsirSource === 'ibn-kathir' ? IBN_KATHIR_LINE : SOURCE_LINE) +
-        (state.showEnglish && !mushaf ? ' · English: Marmaduke Pickthall (1930), <a href="https://github.com/risan/quran-json" target="_blank" rel="noopener noreferrer">quran-json</a> · CC BY-SA 4.0' : '') +
+        (state.showEnglish && !mushaf ? ' · English: Saheeh International, Noor International Center · <a href="https://quranenc.com/en/browse/english_saheeh" target="_blank" rel="noopener noreferrer">QuranEnc.com</a> v1.1.2' : '') +
+        ' · তিলাওয়াত: ইয়াসির আদ-দুসারি · <a href="https://everyayah.com/" target="_blank" rel="noopener noreferrer">EveryAyah</a> (ইন্টারনেট প্রয়োজন)' +
         ' · <a href="scripture-credits.md">ক্রেডিট</a></p>' +
 
         '<div class="reader-bottom">' +
@@ -756,6 +795,7 @@
       '<div class="ayah-bar" id="ayahBar" hidden></div>';
 
     app.innerHTML = html;
+    syncAudioButtons();
     applyQfs();
     applyBfs();
     updateBookmarkCount();
@@ -782,12 +822,14 @@
       '<span class="ref">' + esc(label(s, a)) + '</span>' +
       '<span class="bar-actions">' +
         (hasTafsir(s, a) ? '<button type="button" class="act-btn has-tafsir" data-action="tafsir-modal" data-s="' + s + '" data-a="' + a + '" title="অনুবাদ ও তাফসীর" aria-label="অনুবাদ ও তাফসীর">' + ICON.book + '</button>' : '') +
+        audioButton(s, a) +
         '<button type="button" class="act-btn" data-action="copy" data-s="' + s + '" data-a="' + a + '" title="কপি" aria-label="কপি">' + ICON.copy + '</button>' +
         '<button type="button" class="act-btn' + (isSaved(s, a) ? ' saved' : '') + '" data-action="bookmark" data-s="' + s + '" data-a="' + a + '" title="সংরক্ষণ" aria-label="সংরক্ষণ">' + ICON.star + '</button>' +
         '<button type="button" class="act-btn" data-action="share" data-s="' + s + '" data-a="' + a + '" title="লিংক" aria-label="লিংক">' + ICON.link + '</button>' +
         '<button type="button" class="act-btn" data-action="close-ayah-bar" title="বন্ধ" aria-label="বন্ধ">' + ICON.close + '</button>' +
       '</span>';
     bar.hidden = false;
+    syncAudioButtons();
     state.current.a = a;
     state.last = refKey(s, a);
     save('last', state.last);
@@ -991,7 +1033,7 @@
           var snippet = v.bn
             ? '<div class="result-bn-snippet"><span class="via">' + (v.via === 'bn' ? 'অনুবাদে মিল' : 'বাংলা অনুবাদ') + '</span>' + highlight(v.bn, raw) + '</div>'
             : '';
-          if (v.en) snippet += '<div class="result-bn-snippet" lang="en"><span class="via">ইংরেজি অনুবাদে মিল · Pickthall</span>' + esc(v.en) + '</div>';
+          if (v.en) snippet += '<div class="result-bn-snippet" lang="en"><span class="via">ইংরেজি অনুবাদে মিল · Saheeh International</span>' + esc(v.en) + '</div>';
           if (v.tf) snippet += '<div class="result-tf-snippet"><span class="via">তাফসীরে মিল</span>' + highlight(v.tf, raw) + '</div>';
           return '<button type="button" class="result-item" data-action="goto-ayah" data-s="' + v.s + '" data-a="' + v.a + '">' +
             '<div class="result-ref"><span class="dot"></span> ' + esc(label(v.s, v.a)) + ' <span style="color:var(--muted);font-weight:400">(' + v.s + ':' + v.a + ')</span></div>' +
@@ -1305,6 +1347,7 @@
         '<p class="hadith-ar missing">এই হাদিসের আরবি মূল উৎসে নেই।</p>') +
       (r[3] ? '<p class="hadith-bn">' + esc(r[3]) + '</p>' :
         '<p class="hadith-bn missing">এই হাদিসের বাংলা অনুবাদ উৎসে নেই।</p>') +
+      ((gradeCategory(id, r[7]) === 'daif' || gradeCategory(id, r[7]) === 'mawdu') ? '<p class="hadith-grade-reason">এই মানটি উৎসের তাহকীক থেকে দেখানো হয়েছে। এই নির্দিষ্ট বর্ণনাটি কেন ' + (gradeCategory(id, r[7]) === 'mawdu' ? 'জাল' : 'যঈফ') + ' বলা হয়েছে তার কারণ ডেটাসেটে নেই; অনুমান করে কারণ দেখানো হচ্ছে না। মূল তাহকীক ও যোগ্য মুহাদ্দিসের কাছে যাচাই করুন।</p>' : '') +
       '<div class="hadith-foot">' +
         '<div class="hadith-ref">' +
           (an ? 'আন্তর্জাতিক নম্বর ' + esc(an) + ' · ' : '') +
@@ -1418,6 +1461,23 @@
       '<div class="result-list">' + rows + '</div>' + hadithCredit();
     updateBookmarkCount(); window.scrollTo(0, 0);
   }
+  // Automatically advance long hadith lists as the reader reaches the end.
+  // No button and no network work until the next batch is in view.
+  var hadithAutoStop = null;
+  function stopHadithAuto() { if (hadithAutoStop) { hadithAutoStop(); hadithAutoStop = null; } }
+  function watchHadithMore(box, loadNext) {
+    stopHadithAuto();
+    var marker = document.createElement('div');
+    marker.className = 'hadith-autoload'; marker.setAttribute('role', 'status');
+    marker.textContent = 'পরবর্তী হাদিস আসছে…'; box.appendChild(marker);
+    var active = true, observer = null;
+    function cleanup() { if (!active) return; active = false; if (observer) observer.disconnect(); window.removeEventListener('scroll', check); window.removeEventListener('resize', check); }
+    function next() { if (!active || !marker.isConnected) { cleanup(); return; } cleanup(); hadithAutoStop = null; loadNext(); }
+    function check() { if (marker.isConnected && marker.getBoundingClientRect().top < window.innerHeight + 400) next(); }
+    if ('IntersectionObserver' in window) { observer = new IntersectionObserver(function (entries) { if (entries.some(function (entry) { return entry.isIntersecting; })) next(); }, { rootMargin: '400px' }); observer.observe(marker); }
+    else { window.addEventListener('scroll', check, { passive: true }); window.addEventListener('resize', check); }
+    hadithAutoStop = cleanup;
+  }
   function renderHadithSection(id, secId) {
     state.view = 'hadith'; var b = hBook(id), sec = null;
     hSections(id).forEach(function (s) { if (s.id === secId) sec = s; });
@@ -1443,11 +1503,9 @@
     var html = '<div class="hadith-list">' + arr.slice(0, state.hadithLimit).map(function (r) {
       return hadithCard(id, r);
     }).join('') + '</div>';
-    if (arr.length > state.hadithLimit) {
-      html += '<button type="button" class="btn more-btn" data-action="hadith-more">আরও দেখুন ' + ICON.arrow + '</button>';
-    }
     if (!arr.length) html = '<div class="empty-state"><h3>লোড করা যায়নি</h3><p>সংযোগ পরীক্ষা করে পাতা রিফ্রেশ করুন।</p></div>';
     box.innerHTML = html;
+    if (arr.length > state.hadithLimit) watchHadithMore(box, function () { state.hadithLimit += 40; drawHadithSection(id, secId); });
   }
   function renderHadithOne(id, i) {
     state.view = 'hadith'; var b = hBook(id), sec = hSectionOf(id, i);
@@ -1505,8 +1563,8 @@
       }).filter(Boolean).join('');
       box.innerHTML = (complete ? '' : '<p class="search-progress">কিছু হাদিস লোড করা যায়নি। সংযোগ পরীক্ষা করে পাতা রিফ্রেশ করুন।</p>') +
         '<p class="result-meta">' + bn(list.length) + ' টির মধ্যে ' + bn(slice.length) + ' টি চাওয়া হয়েছে</p>' +
-        '<div class="hadith-list">' + (cards || '<div class="empty-state"><h3>কিছু পাওয়া যায়নি</h3></div>') + '</div>' +
-        (list.length > slice.length ? '<button type="button" class="btn more-btn" data-action="hadith-grade-more">আরও দেখুন ' + ICON.arrow + '</button>' : '');
+        '<div class="hadith-list">' + (cards || '<div class="empty-state"><h3>কিছু পাওয়া যায়নি</h3></div>') + '</div>';
+      if (complete && list.length > slice.length) watchHadithMore(box, function () { state.hadithGradeLimit += 40; drawHadithGrade(); });
     });
   }
   function renderHadithSaved() {
@@ -1599,13 +1657,12 @@
           (x.an ? ' <span style="color:var(--muted);font-weight:400">(আন্তর্জাতিক ' + esc(x.an) + ')</span>' : '') + '</div>' +
           '<div class="result-snippet">' + esc(snip) + '</div></button>';
       }).join('') + '</div>';
-      if (matches.length > state.hadithSearchLimit) {
-        html += '<button type="button" class="btn more-btn" data-action="hadith-search-more">আরও দেখুন ' + ICON.arrow + '</button>';
-      }
+
     } else {
       html += '<div class="empty-state"><span class="empty-icon">⌕</span><h3>কিছু পাওয়া যায়নি</h3><p>বানান বদলে বা অন্য গ্রন্থ বেছে আবার চেষ্টা করুন।</p></div>';
     }
     box.innerHTML = html;
+    if (matches.length > state.hadithSearchLimit) watchHadithMore(box, function () { state.hadithSearchLimit += 80; drawHadithSearch(q, scope); });
   }
 
   /* ------------------------------ footnote links ------------------------------ */
@@ -1823,6 +1880,7 @@
       case 'focus-next':
         go('/s/' + state.current.s + '/a/' + clamp(state.current.a + 1, 1, Q.counts[state.current.s - 1]));
         break;
+      case 'audio': e.stopPropagation(); toggleAudio(s, a); break;
       case 'select-ayah': showAyahBar(s, a); break;
       case 'tafsir': toggleTafsirPanel(s, a); break;
       case 'fn': openFootnote(s, a, el.dataset.n); break;
@@ -1838,7 +1896,6 @@
         fillTafsirModal(ss, aa);
         break;
       }
-      case 'hadith-grade-more': state.hadithGradeLimit += 20; drawHadithGrade(); break;
       case 'open-juz':
       case 'plan-today': {
         var st = juzStart(clamp(parseInt(el.dataset.j, 10) || 1, 1, 30));
@@ -1926,14 +1983,6 @@
       case 'hadith-share':
         copyText(location.origin + location.pathname + '#/hadith/' + el.dataset.book + '/' + el.dataset.i);
         toast('হাদিসের লিংক কপি হয়েছে');
-        break;
-      case 'hadith-more':
-        state.hadithLimit += 20;
-        drawHadithSection(state.hadithBook, state.hadithSec);
-        break;
-      case 'hadith-search-more':
-        state.hadithSearchLimit += 40;
-        drawHadithSearch(state.hadithQuery, state.hadithScope);
         break;
     }
   });
@@ -2042,7 +2091,7 @@
       go('/s/' + state.current.s + '/a/' + clamp(state.current.a - 1, 1, Q.counts[state.current.s - 1]));
     }
   });
-  window.addEventListener('hashchange', renderRoute);
+  window.addEventListener('hashchange', function () { stopAudio(); stopHadithAuto(); renderRoute(); });
 
   /* ------------------------------ backup import / PWA / touch ------------------------------ */
   function handleImport(input) {

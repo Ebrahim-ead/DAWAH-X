@@ -1,3 +1,5 @@
-/* Pickthall 1930; quran-json snapshot, see scripture-credits.md. */
+/* Saheeh International, Noor International Center, QuranEnc english_saheeh v1.1.2; see scripture-credits.md. */
 window.EN_SURAHS = window.EN_SURAHS || {};
-window.EN_SURAHS[108] = ["Lo! We have given thee Abundance","So pray unto thy Lord, and sacrifice","Lo! it is thy insulter (and not thou) who is without posterity"];
+window.EN_NOTES = window.EN_NOTES || {};
+window.EN_SURAHS[108] = ["(1) Indeed, We have granted you, [O Muḥammad], al-Kawthar.","(2) So pray to your Lord and offer sacrifice [to Him alone].","(3) Indeed, your enemy is the one cut off.[2002]"];
+window.EN_NOTES[108] = ["","","[2002]- From all good in this world and the Hereafter."];

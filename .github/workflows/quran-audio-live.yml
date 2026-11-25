@@ -1,0 +1,21 @@
+name: Quran audio source check
+# Optional check of public file names and four small responses. No user data.
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'arena/**'
+permissions:
+  contents: read
+jobs:
+  audio:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[audio-live-check]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Verify source catalogue and sample streams
+        run: node tools/check-quran-audio-live.cjs

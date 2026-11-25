@@ -1,3 +1,5 @@
-/* Pickthall 1930; quran-json snapshot, see scripture-credits.md. */
+/* Saheeh International, Noor International Center, QuranEnc english_saheeh v1.1.2; see scripture-credits.md. */
 window.EN_SURAHS = window.EN_SURAHS || {};
-window.EN_SURAHS[95] = ["By the fig and the olive","By Mount Sinai","And by this land made safe","Surely We created man of the best stature","Then we reduced him to the lowest of the low","Save those who believe and do good works, and theirs is a reward unfailing","So who henceforth will give the lie to thee about the judgment","Is not Allah the most conclusive of all judges"];
+window.EN_NOTES = window.EN_NOTES || {};
+window.EN_SURAHS[95] = ["(1) By the fig and the olive[1947]","(2) And [by] Mount Sinai","(3) And [by] this secure city [i.e., Makkah],","(4) We have certainly created man in the best of stature;[1948]","(5) Then We return him to the lowest of the low,[1949]","(6) Except for those who believe and do righteous deeds, for they will have a reward uninterrupted.","(7) So what yet causes you to deny the Recompense?[1950]","(8) Is not Allāh the most just of judges?"];
+window.EN_NOTES[95] = ["[1947]- Referring to the places known for their production, i.e., Damascus and Jerusalem, respectively. It could also refer to the fig and olive trees or to the fruits themselves.","","","[1948]- i.e., upright, symmetrical, and balanced in form and nature.","[1949]- This can refer to the depths of Hell, to decrepit old age or to immorality.","","[1950]- More literally, \"What makes you lie concerning it?\"",""];

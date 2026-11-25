@@ -1,3 +1,5 @@
-/* Pickthall 1930; quran-json snapshot, see scripture-credits.md. */
+/* Saheeh International, Noor International Center, QuranEnc english_saheeh v1.1.2; see scripture-credits.md. */
 window.EN_SURAHS = window.EN_SURAHS || {};
-window.EN_SURAHS[94] = ["Have We not caused thy bosom to dilate","And eased thee of the burden","Which weighed down thy back","And exalted thy fame","But lo! with hardship goeth ease","Lo! with hardship goeth ease","So when thou art relieved, still toil","And strive to please thy Lord"];
+window.EN_NOTES = window.EN_NOTES || {};
+window.EN_SURAHS[94] = ["(1) Did We not expand for you, [O Muḥammad], your breast?[1944]","(2) And We removed from you your burden[1945]","(3) Which had weighed upon your back","(4) And raised high for you your repute.","(5) For indeed, with hardship [will be] ease [i.e., relief].","(6) Indeed, with hardship [will be] ease.","(7) So when you have finished [your duties], then stand up [for worship].","(8) And to your Lord direct [your] longing."];
+window.EN_NOTES[94] = ["[1944]- i.e., enlighten, assure and gladden your heart with guidance.","[1945]- By forgiving any errors which you may have committed previously or might commit consequently. \"Burden\" can also refer to the anxiety experienced by the Prophet (ﷺ) at the beginning of his mission.","","","","","",""];

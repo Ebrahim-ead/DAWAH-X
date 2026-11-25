@@ -1,3 +1,5 @@
-/* Pickthall 1930; quran-json snapshot, see scripture-credits.md. */
+/* Saheeh International, Noor International Center, QuranEnc english_saheeh v1.1.2; see scripture-credits.md. */
 window.EN_SURAHS = window.EN_SURAHS || {};
-window.EN_SURAHS[110] = ["When Allah's succour and the triumph cometh","And thou seest mankind entering the religion of Allah in troops","Then hymn the praises of thy Lord, and seek forgiveness of Him. Lo! He is ever ready to show mercy"];
+window.EN_NOTES = window.EN_NOTES || {};
+window.EN_SURAHS[110] = ["(1) When the victory of Allāh has come and the conquest,[2005]","(2) And you see the people entering into the religion of Allāh in multitudes,","(3) Then exalt [Him] with praise of your Lord and ask forgiveness of Him. Indeed, He is ever Accepting of Repentance.[2006]"];
+window.EN_NOTES[110] = ["[2005]- The conquest of Makkah.","","[2006]- Refer to footnote of 2:37."];
