@@ -1,0 +1,23 @@
+[
+  {
+    "slug": "40-hadith",
+    "status": "complete",
+    "count": 42,
+    "chapters": 1,
+    "sha256": "6409d26b1b2b7c66cf18de23f372f4346e6c6791dbc30bfc0b3548b6c6e402ab"
+  },
+  {
+    "slug": "jujul-rafayel-yadain",
+    "status": "complete",
+    "count": 48,
+    "chapters": 1,
+    "sha256": "06853f2bf2fa919713eb8d658b22f7452ba6aaf9528db124e29a6d66675bc1dd"
+  },
+  {
+    "slug": "dhaif-hadis-sirij",
+    "status": "complete",
+    "count": 102,
+    "chapters": 1,
+    "sha256": "32db2d9f9366e63abaf0f944810a593206c028c046ff43f592b1510c79897c5b"
+  }
+]
