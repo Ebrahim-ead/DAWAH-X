@@ -1,0 +1,27 @@
+name: Inspect rendered iHadis chapters
+on:
+  push:
+    branches: ['arena/983d824f-dawah-x']
+    paths: ['.github/workflows/ihadis-browser-temporary.yml']
+permissions:
+  contents: write
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: arena/983d824f-dawah-x
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install --prefix /tmp/ihadis-browser playwright-core@1.56.1 --no-audit --no-fund
+      - name: Examine rendered chapters
+        run: NODE_PATH=/tmp/ihadis-browser/node_modules node tools/ihadis-browser-probe.cjs
+      - name: Save small diagnostic result
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add tools/ihadis-browser-probe-result.json
+          git commit -m 'Capture iHadis page-loading diagnostic' && git push origin HEAD:arena/983d824f-dawah-x
