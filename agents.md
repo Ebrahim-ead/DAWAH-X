@@ -554,3 +554,6 @@ One gotcha seen here: the `BACKFILL_TAB` env var did not take effect for the pas
 
 ### Services link placement
 - The shared header menu has ten links and intentionally excludes `services.html`. The services page remains available from the footer quick links on every shared-shell page, including the Quran and Hadith readers. Generated topic and series pages inherit the shell from `questions.html`; keep this placement when regenerating them. `node tests/menu-order.cjs` checks both the menu order and the footer link.
+
+### Desktop navigation spacing
+- The desktop header groups its ten links centrally with a 3px gap instead of spreading them across the row. Text is 15px at 1100–1559px and 17px at wider widths; the two longer section labels may wrap inside their own links. Keep the mobile menu unchanged and verify both the shared header and scripture readers at the 1100px and 1559/1560px boundaries, including fallback fonts. `tools/check-responsive-browser.cjs` asserts size, spacing, and no overlap.
