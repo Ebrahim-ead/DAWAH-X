@@ -29,7 +29,7 @@ const server=http.createServer((req,res)=>{
    assert(columns[1]>columns[0],`${width}: quick links should have two columns`);
    await page.goto(base+'quran.html#/s/1/a/1');await page.waitForFunction(()=>document.querySelector('#v1 .verse-translation')?.textContent.includes('রহমান, রহীম'));
    await page.waitForFunction(()=>document.querySelector('#v1 .english-translation .tr-text')?.textContent==='(1) In the name of Allāh,[2] the Entirely Merciful, the Especially Merciful.[3]');await check('verse');
-   await page.goto(base+'hadith.html');await page.waitForSelector('.hadith-book');assert.equal(await page.locator('.hadith-book').count(),14);assert.equal(await page.locator('footer .qlinks li').count(),13);await check('books');
+   await page.goto(base+'hadith.html');await page.waitForSelector('.hadith-book');assert.equal(await page.locator('.hadith-book').count(),25);assert.equal(await page.locator('footer .qlinks li').count(),13);await check('books');
    await page.goto(base+'hadith.html#/hadith2/bukhari/section/1');await page.waitForSelector('.hadith-card');await check('hadith');
    if(width<1100) await page.click('#burger');
    await page.locator('#menu a[href="quran.html"]').click();await page.waitForSelector('.surah-card');assert.equal(new URL(page.url()).pathname,'/DAWAH-X/quran.html');

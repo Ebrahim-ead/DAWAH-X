@@ -128,7 +128,7 @@ async function go(w, hash) { w.location.hash=hash; await new Promise(r=>setTimeo
   assert.ok($('#searchResults').textContent.includes('রহমান'));
   dom.window.close(); delayIndexes=false;
   dom=await open('hadith.html'); w=dom.window; $=s=>w.document.querySelector(s);
-  await waitFor(()=>w.document.querySelectorAll('.hadith-book').length===14,'book catalogue'); assert.equal(w.location.hash,'#/hadith');
+  await waitFor(()=>w.document.querySelectorAll('.hadith-book').length===25,'book catalogue'); assert.equal(w.location.hash,'#/hadith');
   const bn=n=>String(n).replace(/[0-9]/g,d=>'০১২৩৪৫৬৭৮৯'[+d]);
   const grades=w.document.querySelectorAll('.grade-card');
   assert.ok(grades[0].textContent.includes(bn(w.HADITH_GRADE_INDEX.daif.length)));
@@ -151,6 +151,18 @@ async function go(w, hash) { w.location.hash=hash; await new Promise(r=>setTimeo
   assert.ok($('.hadith-grade.daif'));assert.match($('.hadith-ar').textContent,/إني رأيت/);
   await go(w,'/hadith2/mishkatdaif/35');await waitFor(()=>$('.hadith-card .hadith-grade-reason')?.textContent.includes('পরিত্যক্ত'),'separate Mishkat weak book notes');
   assert.equal($('.hadith-actions a').href,'https://ihadis.com/miskate-dhaif-hadis/hadith/35');
+  await go(w,'/hadith2/fazayeleamal/100');await waitFor(()=>$('.hadith-grade-reason')?.textContent.includes('৩০৫৩'),'Fazayele Amal note');
+  assert.ok($('.hadith-ar.missing'));assert.equal($('.hadith-actions a').href,'https://ihadis.com/fazayele-amal/hadith/100');
+  await go(w,'/hadith2/hadisequdsi/120');await waitFor(()=>$('.hadith-card .hadith-grade.hasan'),'Hadith Qudsi grade');
+  assert.match($('.hadith-ar').textContent,/هُرَيْرَةَ/);assert.match($('.hadith-grade-reason').textContent,/হাকেম/);
+  await go(w,'/hadith2/luluwal/section/0');await waitFor(()=>$('.hadith-card'),'Luluwal chapter zero');assert.match($('.hadith-card .hadith-bn').textContent,/মিথ্যারোপ করো না/);
+  await go(w,'/hadith2/riyad/35');await waitFor(()=>$('.hadith-card .hadith-ref')?.textContent.includes('১০/৩৫'),'Riyad source reference');assert.equal($('.hadith-actions a').href,'https://ihadis.com/riyadus-salihin/hadith/35');
+  await go(w,'/hadith2/riyad/942');await waitFor(()=>$('.hadith-card .hadith-ref')?.textContent.includes('৩/৯৪২'),'Riyad range expanded');assert.match($('.hadith-bn').textContent,/জানাযার নামায/);
+  await go(w,'/hadith2/bulug/1448');await waitFor(()=>$('.hadith-card .hadith-ref')?.textContent.includes('১৪৪৮ - ১৪৪৯'),'Bulugh displayed range');assert.match($('.hadith-bn').textContent,/জুতা পরে/);
+  await go(w,'/hadith2/targib/18');await waitFor(()=>$('.hadith-card .hadith-bn')?.textContent.includes('আবু হুরায়রা'),'Targhib embedded narrator');
+  assert.match($('.hadith-ar').textContent,/هُرَيْرَةَ/);assert.equal($('.hadith-actions a').href,'https://ihadis.com/targib-wattahrib/hadith/18');
+  await go(w,'/hadith2/upodesh/68');await waitFor(()=>$('.hadith-card .hadith-bn')?.textContent.includes('সামুরা ইবনে জুনদুব'),'Advice embedded narrator');
+  assert.ok($('.hadith-grade.sahih'));assert.match($('.hadith-grade-reason').textContent,/বুখারী/);
   await go(w,'/hadith2/daifseries/14');await waitFor(()=>$('.hadith-card .hadith-grade-reason'),'iHadis direct edition');
   assert.equal($('.hadith-card .hadith-grade.daif').textContent, "যঈফ (Dai'f)");assert.equal($('.hadith-source-grade').textContent,'উৎসের মান: খুবই দুর্বল');assert.ok($('.hadith-ar.missing'));assert.match($('.hadith-grade-reason').textContent,/ওয়াকেদী/);
   assert.equal($('.hadith-actions a').href,'https://ihadis.com/dhaif-hadis-sirij/hadith/14');
@@ -196,5 +208,5 @@ async function go(w, hash) { w.location.hash=hash; await new Promise(r=>setTimeo
   await waitFor(()=>$('#hadithResults')?.textContent.includes('অনুসন্ধান সম্পূর্ণ হয়নি'),'failed search notice');
   assert.ok(!$('#hadithResults').textContent.includes('কিছু পাওয়া যায়নি'));
   dom.window.close(); assert.deepEqual(errors,[]);
-  console.log('scripture reader: project-relative routes, surahs, tafsir, search, all 14 books, bookmarks, gzip modes and errors pass (jsdom)');
+  console.log('scripture reader: project-relative routes, surahs, tafsir, search, all 25 books, bookmarks, gzip modes and errors pass (jsdom)');
 })().catch(e=>{console.error(e);process.exitCode=1;}).finally(()=>server.close());
