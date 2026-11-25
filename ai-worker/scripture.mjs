@@ -1,5 +1,4 @@
 import {sourceText,EAD_SNAPSHOT} from './source-fetch.mjs';
-import {lookupLocalHadith} from './local-hadith.mjs';
 // Direct numbered lookups use only the user's own Ebrahim Ead site. No URL or
 // text supplied by the browser is fetched, and no model supplies a reference.
 const BASE='https://ebrahim-ead.github.io/ead/';
@@ -10,9 +9,7 @@ const BOOKS=[
  {slug:'tirmidhi',match:/(?:তিরমি[জয][ীি]|তিরমিজি|tirmidhi)/iu},
  {slug:'nasai',match:/(?:নাসা[ঈইিী]|নাসাঈ|nasai)/iu},
  {slug:'ibn-majah',match:/(?:ইবন[ুে]?\s*মাজা[হহ্]?|ibn[ -]?majah)/iu},
- {slug:'mishkat',match:/(?:মিশকাত|mishkat)/iu},
- {slug:'malik',match:/(?:(?:মুয়াত্তা|মুওয়াত্তা|মুয়াত্তা|মুওয়াত্তা)(?:\s*মালিক)?|muwatta(?:[ -]?malik)?)/iu},
- {slug:'nawawi',match:/(?:নবব[ীি]|নাও[য়যয়]াব[ীি]|নাওয়াব[ীি]|nawawi)/iu}
+ {slug:'mishkat',match:/(?:মিশকাত|mishkat)/iu}
 ];
 const digits=s=>String(s).replace(/[০-৯]/g,c=>String(c.charCodeAt(0)-0x09e6));
 
@@ -115,7 +112,6 @@ export async function lookupScripture(ref,mirrors){
   return {answer,evidence:'কুরআনের আয়াত: '+title+'\nবাংলা অনুবাদ: '+notesAsText(v.bn)+(arabic?'\n'+arabic.trim():'')+'\nঅনুবাদক ড. আবূ বকর মুহাম্মাদ যাকারিয়া; রাওয়াদ ট্রান্সলেশন সেন্টার, QuranEnc.com সংস্করণ ১.১.১। মূল পাতায় টীকা ও প্রসঙ্গ দেখুন।',source:{number:1,title,type:'quran',surah:ref.surah,verse:ref.verse,...(mirrors?.has(BASE+'assets/quran/data/suras/'+ref.surah+'.json')?{snapshot:EAD_SNAPSHOT}:{})}};
  }
  if(ref.kind!=='hadith'||!BOOKS.some(b=>b.slug===ref.book)||!Number.isInteger(ref.number)||ref.number<1||ref.number>20000)return null;
- if(ref.book==='malik'||ref.book==='nawawi')return lookupLocalHadith(ref,mirrors);
  const idx=await scriptureJSON('assets/hadith/data/index.json',mirrors);
  const book=Array.isArray(idx.books)&&idx.books.find(b=>b.slug===ref.book);if(!book||!Array.isArray(book.chapters))throw Error('Invalid hadith index');
  const chapters=book.chapters.filter(c=>Number.isInteger(c.id)&&c.id>=0&&c.id<=200&&Number.isInteger(c.from)&&Number.isInteger(c.to)&&ref.number>=c.from&&ref.number<=c.to);

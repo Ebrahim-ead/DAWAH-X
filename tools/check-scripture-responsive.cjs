@@ -63,14 +63,12 @@ const server=http.createServer((req,res)=>{
   await ip.evaluate(()=>window.__players[0].finish());assert((await ip.locator('#surahAudioStatus').innerText()).includes('শেষ হয়েছে'));
 
 
-  await ip.goto(base+'hadith.html#/hadith/bukhari/section/64');await ip.waitForSelector('.hadith-autoload');
+  await ip.goto(base+'hadith.html#/hadith2/bukhari/section/64');await ip.waitForSelector('.hadith-autoload');
   const first=ip.locator('#hadithList .hadith-card').first();await first.evaluate(e=>e.dataset.testIdentity='retained');
   await ip.locator('.hadith-autoload').scrollIntoViewIfNeeded();await ip.waitForFunction(()=>document.querySelectorAll('#hadithList .hadith-card').length>20);
   assert.equal(await first.getAttribute('data-test-identity'),'retained');assert.equal(await ip.locator('#hadithList button.more-btn').count(),0);
-  await ip.goto(base+'hadith.html#/hadith/abudawud/594');await ip.waitForSelector('.hadith-card .hadith-grade');
-  assert((await ip.locator('.hadith-grade').innerText()).includes('যঈফ'));assert((await ip.locator('.hadith-grade-reason').innerText()).includes('মুনকাতি'));
-  await ip.goto(base+'hadith.html#/hadith/ibnmajah/2018');await ip.waitForSelector('.hadith-grade-reason');
-  assert.equal(await ip.locator('.hadith-grade-reason a').getAttribute('href'),'https://ihadis.com/ibn-majah/hadith/2018');await interaction.close();
+  await ip.goto(base+'hadith.html#/hadith2/abudawud/3');await ip.waitForSelector('.hadith-card .hadith-grade-reason');
+  assert((await ip.locator('.hadith-grade-reason').innerText()).includes('ব্যাখ্যা'));await interaction.close();
   // Theme and navigation remain consistent when moving from the existing site
   // into both readers and back, including the shared mobile menu.
   const shared=await browser.newContext({viewport:{width:390,height:900},serviceWorkers:'block',reducedMotion:'reduce'});

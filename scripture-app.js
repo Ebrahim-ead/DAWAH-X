@@ -178,7 +178,7 @@
     hadithQuery: '', hadithLimit: 20, hadithSearchLimit: 40, hadithSeq: 0,
     hadithBook: 'bukhari', hadithSec: 1, hadithScope: 'all',
     hadithGradeFilter: 'all', hadithGradeKey: 'daif', hadithGradeLimit: 20,
-    hadithBookmarks: load('hadithBookmarks', []),
+    hadithBookmarks: load('hadithBookmarksEad', []),
     tafsirSource: load('tafsirSource', 'zakaria') === 'ibn-kathir' ? 'ibn-kathir' : 'zakaria',
     current: { s: 1, a: 1 }
   };
@@ -566,8 +566,10 @@
     } else if (seg[0] === 'search') {
       var q = r.params.get('q') || '';
       if (q) renderSearch(q); else renderHome();
-    } else if (seg[0] === 'hadith') {
+    } else if (seg[0] === 'hadith2' || (seg[0] === 'hadith' && seg.length === 1)) {
       renderHadithRoute(r);
+    } else if (seg[0] === 'hadith') {
+      renderHadithLegacy();
     } else if (seg[0] === 'surahs') {
       renderSurahs();
     } else if (seg[0] === 'bookmarks') {
@@ -1264,7 +1266,7 @@
         var bytes = raw[0] === 0x1f && raw[1] === 0x8b ? window.fflate.gunzipSync(raw) : raw;
         if (bytes.byteLength > 8 * 1024 * 1024) throw Error('Hadith data too large');
         var rows = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
-        if (!Array.isArray(rows) || rows.length !== section.count || rows.some(function (row) { return !Array.isArray(row) || row.length !== 8; })) throw Error('Invalid hadith section');
+        if (!Array.isArray(rows) || rows.length !== section.count || rows.some(function (row) { return !Array.isArray(row) || row.length !== 11; })) throw Error('Invalid hadith section');
         window.HADITH_DATA[id][sec] = rows; return rows;
       });
     }).then(function (rows) {
@@ -1331,8 +1333,8 @@
     ids.forEach(function (id) {
       hSections(id).forEach(function (s) {
         (hData(id, s.id) || []).forEach(function (r) {
-          var t = hadithBangla(id, r) + ' ' + r[5] + ' ' + r[4];
-          out.push({ b: id, i: r[0], n: r[1], an: hNum(r[2]), k: norm(t).slice(0, 2000), gc: gradeCategory(id, r[7]) });
+          var t = r[3] + ' ' + r[6] + ' ' + r[8] + ' ' + r[4];
+          out.push({ b: id, i: r[0], n: r[1], an: hNum(r[2]), k: norm(t), gc: gradeCategory(id, r[7]) });
         });
       });
     });
@@ -1341,34 +1343,22 @@
   function hNum(x) { return (x === '' || x === null || x === undefined) ? '' : String(x); }
   function gradeCategory(id, g) {
     var raw = String(g || ''), l = gradeLabel(id, g);
-    if (/mawdu|maudu|মাওদু|জাল|fabricat/i.test(raw) || /জাল|মাওদু/.test(l)) return 'mawdu';
+    if (/mawdu|maudu|মাওদু|মাওযূ|জাল|fabricat/i.test(raw) || /জাল|মাওদু/.test(l)) return 'mawdu';
     if (/যঈফ|দুর্বল/.test(l)) return 'daif';
     if (/হাসান/.test(l)) return 'hasan';
     if (/সহিহ|সহীহ|বিশুদ্ধ/.test(l)) return 'sahih';
     return 'other';
   }
   function gradeLabel(id, g) {
-    var s = String(g || '');
-    if (/mawdu|maudu|মাওদু|জাল|fabricat/i.test(s)) return 'জাল হাদিস';
-    if (/sahih/i.test(s) && /hasan/i.test(s)) return 'হাসান সহিহ হাদিস';
-    if (/sahih|বিশুদ্ধ|সহীহ/i.test(s)) return 'সহিহ হাদিস';
-    if (/hasan/i.test(s)) return 'হাসান হাদিস';
-    if (/da'?if|দুর্বল|যঈফ/i.test(s)) return 'যঈফ হাদিস';
-    if (/তাহকীক/.test(s)) return 'তাহকীক চলমান';
-    if (!s) return (id === 'bukhari' || id === 'muslim') ? 'সহিহ হাদিস' : 'মান উল্লেখ নেই';
-    return s;
+    return String(g || '') || 'মান উল্লেখ নেই';
   }
   function gradeClass(label) {
-    if (/যঈফ|জাল/.test(label)) return 'warn';
-    if (/তাহকীক|মান উল্লেখ/.test(label)) return 'muted';
-    return 'ok';
+    if (/যঈফ|দুর্বল|জাল/.test(label)) return 'warn';
+    if (/সহিহ|সহীহ|বিশুদ্ধ|হাসান/.test(label)) return 'ok';
+    return 'muted';
   }
   function hadithCredit() {
-    return '<p class="meta-credit hadith-credit">বাংলা অনুবাদের মূল উৎস ' +
-      '<a href="https://www.hadithbd.com/hadith/" target="_blank" rel="noopener noreferrer">hadithbd.com</a> · ' +
-      'আট গ্রন্থ <a href="https://github.com/fawazahmed0/hadith-api" target="_blank" rel="noopener noreferrer">fawazahmed0/hadith-api@1</a> (Unlicense) · ' +
-      'মিশকাত <a href="https://muslimbangla.com/" target="_blank" rel="noopener noreferrer">muslimbangla.com</a> · ' +
-      'আরবি অপরিবর্তিত · <a href="scripture-credits.md">ক্রেডিট</a></p>';
+    return '<p class="meta-credit hadith-credit">হাদিসের উৎস: <a href="https://ebrahim-ead.github.io/ead/hadith.html" target="_blank" rel="noopener noreferrer">Ebrahim Ead</a> · ছয় গ্রন্থ: আল-হাদিস (iHadis) · মিশকাত: মুসলিম বাংলা · <a href="scripture-credits.md">ক্রেডিট</a></p>';
   }
   function hadithSearchForm(q, scope, grade) {
     var opts = '<option value="all"' + (scope === 'all' ? ' selected' : '') + '>সব গ্রন্থ</option>' +
@@ -1381,31 +1371,16 @@
     return '<div class="card-panel search-panel">' +
       '<form class="search-form hadith-search-form" data-action="hadith-search-submit">' +
         '<input class="input" id="hadithSearchInput" type="search" name="q" value="' + esc(q || '') +
-        '" placeholder="বাংলা / আরবি / English — যেমন: নিয়্যাত, রাসূল, intention" aria-label="হাদিসে অনুসন্ধান"/>' +
+        '" placeholder="বাংলা / আরবি — যেমন: নিয়্যাত, রাসূল" aria-label="হাদিসে অনুসন্ধান"/>' +
         '<select class="select" name="book" aria-label="গ্রন্থ বাছুন">' + opts + '</select>' +
         '<select class="select" name="grade" aria-label="মান বাছুন">' + gopts + '</select>' +
         '<button class="btn btn-primary" type="submit">খুঁজুন</button>' +
       '</form><p class="search-hint">' + bn(HTOTAL) + ' টি হাদিসে খোঁজা যায়। ' +
       'কিছু হাদিসের আরবি বা অনুবাদ উৎসে নেই; ফাঁকা ঘর বানিয়ে ভরাট করা হয়নি। সব গ্রন্থে খুঁজতে অনেক তথ্য ডাউনলোড হতে পারে।</p></div>';
   }
-  // Corrections are opt-in and require the exact source row, not just a number.
-  // Keep the compressed source unchanged; card, search and copy share this text.
-  function hadithCorrection(id, r) {
-    var item = (window.HADITH_REASON_NOTES || {})[id + ':' + r[0]];
-    if (!item || item.ar !== r[4] || item.originalBn !== r[3] || !item.correctedBn || !item.correctionNote ||
-        gradeCategory(id, r[7]) !== item.grade || !/^https:\/\/ihadis\.com\//.test(item.url)) return null;
-    return item;
-  }
-  function hadithBangla(id, r) {
-    var item = hadithCorrection(id, r);
-    return item ? item.correctedBn : r[3];
-  }
-  // A commentary belongs to one identified chain, not every similar matn.
+  // Notes are the source edition's own commentary, not an inferred grade.
   function hadithReason(id, r) {
-    var notes = window.HADITH_REASON_NOTES || {}, item = notes[id + ':' + r[0]];
-    if (!item || item.ar !== r[4] || !['daif', 'mawdu'].includes(item.grade) || gradeCategory(id, r[7]) !== item.grade || !/^https:\/\/ihadis\.com\//.test(item.url)) return '';
-    return '<aside class="hadith-grade-reason"><strong>সনদ সম্পর্কে iHadis-এর আলোচনা</strong>' +
-      '<p>' + esc(item.note) + '</p>' + (hadithCorrection(id, r) ? '<p>' + esc(item.correctionNote) + '</p>' : '') + '<a href="' + esc(item.url) + '" target="_blank" rel="noopener noreferrer">iHadis-এ বিস্তারিত ও উৎস ↗</a></aside>';
+    return r[8] ? '<details class="hadith-grade-reason"><summary>ব্যাখ্যা ও সনদ</summary><p>' + esc(r[8]).replace(/\n/g, '<br>') + '</p></details>' : '';
   }
   function hadithCard(id, r) {
     var b = hBook(id), an = hNum(r[2]), sec = hSectionOf(id, r[0]);
@@ -1416,16 +1391,17 @@
         '<div class="hadith-badges">' +
           '<span class="hadith-num">' + esc(b.short) + ' ' + bn(r[1]) + '</span>' +
           '<span class="hadith-grade ' + gcls + '">' + esc(gl) + '</span>' +
-          (r[6] ? '<span class="hadith-narrator">' + esc(r[6]) + '</span>' : '') +
+          (r[6] ? '<span class="hadith-narrator">' + esc(r[6]) + '</span>' : '') + (r[9] ? '<span class="hadith-narrator">একই নম্বরের আরেক বর্ণনা</span>' : '') +
         '</div>' +
         '<div class="hadith-icons">' +
           '<button type="button" class="act-btn' + (saved ? ' saved' : '') + '" data-action="hadith-bookmark" data-book="' + id + '" data-i="' + r[0] + '" aria-label="সংরক্ষণ" title="সংরক্ষণ">' + ICON.star + '</button>' +
           '<button type="button" class="act-btn" data-action="hadith-copy" data-book="' + id + '" data-i="' + r[0] + '" aria-label="হাদিস কপি" title="কপি">' + ICON.copy + '</button>' +
         '</div>' +
       '</div>' +
+      (r[10] ? '<p class="hadith-ref">' + esc(r[10]) + '</p>' : '') +
       (r[4] ? '<p class="hadith-ar" lang="ar" dir="rtl">' + esc(r[4]) + '</p>' :
         '<p class="hadith-ar missing">এই হাদিসের আরবি মূল উৎসে নেই।</p>') +
-      (r[3] ? '<p class="hadith-bn">' + esc(hadithBangla(id, r)) + '</p>' :
+      (r[3] ? '<p class="hadith-bn">' + esc(r[3]) + '</p>' :
         '<p class="hadith-bn missing">এই হাদিসের বাংলা অনুবাদ উৎসে নেই।</p>') +
       hadithReason(id, r) +
       '<div class="hadith-foot">' +
@@ -1437,23 +1413,18 @@
         '<div class="hadith-actions">' +
           '<button type="button" class="btn btn-sm" data-action="hadith-open" data-book="' + id + '" data-i="' + r[0] + '">একক পাতা ' + ICON.arrow + '</button>' +
           '<button type="button" class="btn btn-sm btn-ghost" data-action="hadith-share" data-book="' + id + '" data-i="' + r[0] + '">লিংক কপি</button>' +
-          '<a class="btn btn-sm btn-ghost" href="' + esc(b.site) + '" target="_blank" rel="noopener noreferrer">উৎস ↗</a>' +
+          '<a class="btn btn-sm btn-ghost" href="' + esc('https://ebrahim-ead.github.io/ead/hadith.html#' + b.slug + ':' + (sec ? sec.id : 1) + ':' + r[1]) + '" target="_blank" rel="noopener noreferrer">উৎস ↗</a>' +
         '</div>' +
       '</div>' +
     '</article>';
   }
   function hadithSourceNote(id) {
-    var b = hBook(id), src = b && b.source;
-    if (src === 'mishkat')
-      return 'মিশকাত: muslimbangla.com-ভিত্তিক ডেটাসেট · বাংলা + আরবি';
-    return 'বাংলা অনুবাদের মূল উৎস hadithbd.com · fawazahmed0/hadith-api@1 (Unlicense)';
+    return hBook(id).source === 'mishkat' ? 'মিশকাত: মুসলিম বাংলা, Ebrahim Ead সংগ্রহ' : 'আল-হাদিস (iHadis), Ebrahim Ead সংগ্রহ';
   }
   function hadithCopyText(id, r) {
-    var b = hBook(id), an = hNum(r[2]), correction = hadithCorrection(id, r);
-    return b.short + ' ' + r[1] + (an ? ' (আন্তর্জাতিক ' + an + ')' : '') + '\n\n' +
-      (r[4] || '') + '\n\n' + (hadithBangla(id, r) || '') + (r[5] ? '\n\n' + r[5] : '') +
-      (correction ? '\n\nসনদ সম্পর্কে iHadis: ' + correction.note : '') +
-      '\n\n— ' + hadithSourceNote(id) + (correction ? ' · বাংলা বাক্যাংশ সংশোধিত: ' + correction.url : ' · লেখা অপরিবর্তিত');
+    var b = hBook(id);
+    return b.short + ' ' + r[1] + ' · ' + r[7] + (r[6] ? '\nবর্ণনাকারী: ' + r[6] : '') + (r[10] ? '\n' + r[10] : '') + '\n\n' + (r[4] || 'আরবি মূল উৎসে নেই।') + '\n\n' + (r[3] || '') +
+      (r[8] ? '\n\nব্যাখ্যা ও সনদ: ' + r[8] : '') + '\n\n— ' + hadithSourceNote(id);
   }
   function hadithKey(id, i) { return id + ':' + i; }
   function isHadithSaved(id, i) { return state.hadithBookmarks.indexOf(hadithKey(id, i)) !== -1; }
@@ -1461,10 +1432,10 @@
     var k = hadithKey(id, i), at = state.hadithBookmarks.indexOf(k);
     if (at === -1) { state.hadithBookmarks.push(k); toast('হাদিসটি সংরক্ষিত হয়েছে ★'); }
     else { state.hadithBookmarks.splice(at, 1); toast('হাদিসটি সরানো হয়েছে'); }
-    save('hadithBookmarks', state.hadithBookmarks);
+    save('hadithBookmarksEad', state.hadithBookmarks);
     document.querySelectorAll('[data-action="hadith-bookmark"][data-book="' + id + '"][data-i="' + i + '"]')
       .forEach(function (b) { b.classList.toggle('saved', isHadithSaved(id, i)); });
-    if (state.view === 'hadith' && location.hash.indexOf('#/hadith/saved') === 0) renderHadithSaved();
+    if (state.view === 'hadith' && location.hash.indexOf('#/hadith2/saved') === 0) renderHadithSaved();
   }
 
   function renderHadithRoute(r) {
@@ -1483,13 +1454,20 @@
       renderHadithSection(sub, clamp(parseInt(seg[3], 10) || 0, 0, maxSec));
       return;
     }
-    renderHadithOne(sub, clamp(parseInt(seg[2], 10) || 1, 1, hBook(sub).total));
+    var index = /^\d+$/.test(seg[2]) ? Number(seg[2]) : 0;
+    if (!Number.isSafeInteger(index) || index < 1 || index > hBook(sub).total) { renderHadithBook(sub); return; }
+    renderHadithOne(sub, index);
+  }
+  function renderHadithLegacy() {
+    state.view = 'hadith'; state.hadithSeq++; setTitle('পুরোনো হাদিস লিংক'); setNav('hadith');
+    app.innerHTML = '<section class="page-head"><h1>সংগ্রহ পরিবর্তিত হয়েছে</h1><p>পুরোনো লিংকের ক্রম নতুন সংস্করণের নম্বরের সঙ্গে মেলে না, তাই ভুল হাদিস দেখানো হচ্ছে না। নতুন সংগ্রহে গ্রন্থ ও হাদিস নম্বর দিয়ে খুঁজুন। পুরোনো বুকমার্ক ব্রাউজারে সংরক্ষিত আছে, তবে স্বয়ংক্রিয়ভাবে স্থানান্তর করা হয়নি।</p><a class="btn btn-primary" href="#/hadith">নতুন সংগ্রহ দেখুন</a></section>';
+    window.scrollTo(0,0);
   }
   function renderHadithHome() {
     state.view = 'hadith'; setTitle('হাদিস'); setNav('hadith');
     var cards = HBOOKS.map(function (id) {
       var b = H.books[id];
-      return '<a class="card-panel hadith-book" href="#/hadith/' + id + '">' +
+      return '<a class="card-panel hadith-book" href="#/hadith2/' + id + '">' +
         '<span class="hadith-book-ar" lang="ar" dir="rtl">' + esc(b.ar) + '</span>' +
         '<h3>' + esc(b.bn) + '</h3>' +
         '<p class="hadith-book-en">' + esc(b.en) + ' · ' + esc(b.edition) + '</p>' +
@@ -1498,22 +1476,22 @@
     }).join('');
     app.innerHTML =
       '<section class="page-head"><div class="eyebrow">' + bn(HBOOKS.length) + ' টি গ্রন্থ</div><h1>হাদিস</h1>' +
-      '<p>বুখারী, মুসলিম, চার সুনান, মিশকাত, মুয়াত্তা ও নববী ৪০ — ' +
+      '<p>বুখারী, মুসলিম, চার সুনান ও মিশকাত — ' +
       bn(HTOTAL) + 'টি হাদিস: আরবি মূল প্রথমে, তার নিচে বাংলা। ' +
       'যে ঘরে উৎসে লেখা নেই সেখানে স্পষ্ট নোট; হাদিস-পাঠ বানানো হয়নি।</p></section>' +
       hadithSearchForm('', 'all', 'all') +
       '<div class="grade-row">' +
-        '<a class="card-panel grade-card" href="#/hadith/grade/daif"><span class="grade-ic warn">⚠</span>' +
-        '<div><b>আলবানীর তাহকীক · যঈফ</b><p>' + bn(((window.HADITH_GRADE_INDEX || {}).daif || []).length) +
+        '<a class="card-panel grade-card" href="#/hadith2/grade/daif"><span class="grade-ic warn">⚠</span>' +
+        '<div><b>উৎসে দুর্বল / যঈফ</b><p>' + bn(((window.HADITH_GRADE_INDEX || {}).daif || []).length) +
         ' টি হাদিস · বিদ্যমান গ্রন্থের গ্রেড থেকে ফিল্টার</p></div><span class="card-arrow">→</span></a>' +
-        '<a class="card-panel grade-card" href="#/hadith/grade/mawdu"><span class="grade-ic warn">⚠</span>' +
-        '<div><b>আলবানীর তাহকীক · জাল</b><p>' + bn(((window.HADITH_GRADE_INDEX || {}).mawdu || []).length) +
+        '<a class="card-panel grade-card" href="#/hadith2/grade/mawdu"><span class="grade-ic warn">⚠</span>' +
+        '<div><b>উৎসে জাল</b><p>' + bn(((window.HADITH_GRADE_INDEX || {}).mawdu || []).length) +
         ' টি হাদিস · পৃথক «সিলসিলা» গ্রন্থের পূর্ণ পাঠ নয়</p></div><span class="card-arrow">→</span></a>' +
       '</div>' +
       '<div class="hadith-grid">' + cards + '</div>' +
       '<div class="feature-actions"><button type="button" class="btn" data-action="hadith-random">' + ICON.shuffle + ' এলোমেলো হাদিস</button>' +
-      '<a class="btn btn-ghost" href="#/hadith/saved">★ সংরক্ষিত হাদিস (' + bn(state.hadithBookmarks.length) + ')</a>' +
-      '<a class="btn btn-ghost" href="#/hadith/search">সব হাদিসে খোঁজুন ' + ICON.arrow + '</a></div>' +
+      '<a class="btn btn-ghost" href="#/hadith2/saved">★ সংরক্ষিত হাদিস (' + bn(state.hadithBookmarks.length) + ')</a>' +
+      '<a class="btn btn-ghost" href="#/hadith2/search">সব হাদিসে খোঁজুন ' + ICON.arrow + '</a></div>' +
       hadithCredit();
     updateBookmarkCount(); window.scrollTo(0, 0);
   }
@@ -1521,7 +1499,7 @@
     state.view = 'hadith'; var b = hBook(id), list = hSections(id);
     setTitle(b.bn); setNav('hadith');
     var rows = list.map(function (s) {
-      return '<a class="result-item hadith-section" href="#/hadith/' + id + '/section/' + s.id + '">' +
+      return '<a class="result-item hadith-section" href="#/hadith2/' + id + '/section/' + s.id + '">' +
         '<div class="result-ref"><span class="dot"></span> অধ্যায় ' + bn(s.id) +
         ' <span style="color:var(--muted);font-weight:400">' + esc(s.name) + '</span></div>' +
         '<div class="result-snippet">' + bn(s.count) + ' টি হাদিস · হাদিস ' + bn(s.hadithFirst) + '–' + bn(s.hadithLast) + '</div></a>';
@@ -1530,15 +1508,15 @@
       '<section class="page-head"><div class="eyebrow"><a href="#/hadith" class="back-link">← হাদিস</a></div>' +
       '<h1>' + esc(b.bn) + '</h1><p>' + esc(b.en) + ' · ' + esc(b.edition) + ' · ' + bn(b.total) + ' টি হাদিস' +
       (b.langs && b.langs.bn ? '' : ' · <b>আরবি মূল; বাংলা/ইংরেজি অনুবাদ উৎসে নেই</b>') +
-      (b.langs && b.langs.bn ? ' · যেখানে আছে আন্তর্জাতিক নম্বর' : '') + '</p></section>' +
+      ' · নম্বর উৎসের সংস্করণ অনুযায়ী' + '</p></section>' +
       '<div class="card-panel search-panel">' +
         '<form class="search-form" data-action="hadith-goto" data-book="' + id + '">' +
-          '<input class="input" type="number" name="n" min="1" max="' + b.total + '" placeholder="ক্রমিক নম্বর (১–' + bn(b.total) + ')" aria-label="হাদিস নম্বর"/>' +
+          '<input class="input" type="number" name="n" min="1" max="20000" placeholder="উৎসের হাদিস নম্বর" aria-label="হাদিস নম্বর"/>' +
           '<button class="btn btn-primary" type="submit">যান</button>' +
         '</form></div>' +
       hadithSearchForm('', id) +
       '<div class="section-head"><div><div class="eyebrow">' + bn(list.length) + ' টি অধ্যায়</div><h2>অধ্যায় সমূহ</h2></div>' +
-      '<a class="btn btn-ghost btn-sm" href="#/hadith/saved">★ সংরক্ষিত</a></div>' +
+      '<a class="btn btn-ghost btn-sm" href="#/hadith2/saved">★ সংরক্ষিত</a></div>' +
       '<div class="result-list">' + rows + '</div>' + hadithCredit();
     updateBookmarkCount(); window.scrollTo(0, 0);
   }
@@ -1567,7 +1545,7 @@
     state.hadithLimit = 20; state.hadithSeq++;
     setTitle(b.bn + ' · অধ্যায় ' + bn(secId)); setNav('hadith');
     app.innerHTML =
-      '<section class="page-head"><div class="eyebrow"><a class="back-link" href="#/hadith/' + id + '">← ' + esc(b.bn) + '</a></div>' +
+      '<section class="page-head"><div class="eyebrow"><a class="back-link" href="#/hadith2/' + id + '">← ' + esc(b.bn) + '</a></div>' +
       '<h1>অধ্যায় ' + bn(secId) + '</h1><p>' + esc(sec.name) + ' · ' + bn(sec.count) + ' টি হাদিস</p></section>' +
       '<div id="hadithList"><div class="search-progress">হাদিস লোড হচ্ছে…</div></div>' + hadithCredit();
     updateBookmarkCount(); window.scrollTo(0, 0);
@@ -1594,13 +1572,13 @@
   function renderHadithOne(id, i) {
     state.view = 'hadith'; var b = hBook(id), sec = hSectionOf(id, i);
     state.hadithBook = id; state.hadithSeq++;
-    setTitle(b.bn + ' · হাদিস ' + bn(i)); setNav('hadith');
+    setTitle(b.bn + ' · পাঠ ক্রম ' + bn(i)); setNav('hadith');
     app.innerHTML =
-      '<section class="page-head"><div class="eyebrow"><a class="back-link" href="#/hadith/' + id + '">← ' + esc(b.bn) + '</a></div>' +
-      '<h1>হাদিস ' + bn(i) + '</h1><p>' + esc(b.en) + ' · উৎসে যতটুকু আছে, আরবি ও বাংলা পাঠ</p></section>' +
+      '<section class="page-head"><div class="eyebrow"><a class="back-link" href="#/hadith2/' + id + '">← ' + esc(b.bn) + '</a></div>' +
+      '<h1>পাঠ ক্রম ' + bn(i) + '</h1><p>' + esc(b.en) + ' · উৎসে যতটুকু আছে, আরবি ও বাংলা পাঠ</p></section>' +
       '<div class="hadith-one-nav">' +
         '<button type="button" class="btn btn-sm" data-action="hadith-prev" data-book="' + id + '" data-i="' + i + '"' + (i <= 1 ? ' disabled' : '') + '>← আগের</button>' +
-        '<a class="btn btn-sm btn-ghost" href="#/hadith/' + id + '/section/' + (sec ? sec.id : 0) + '">অধ্যায়ে ফিরুন</a>' +
+        '<a class="btn btn-sm btn-ghost" href="#/hadith2/' + id + '/section/' + (sec ? sec.id : 0) + '">অধ্যায়ে ফিরুন</a>' +
         '<button type="button" class="btn btn-sm" data-action="hadith-next" data-book="' + id + '" data-i="' + i + '"' + (i >= b.total ? ' disabled' : '') + '>পরের →</button>' +
       '</div>' +
       '<div id="hadithOne"><div class="search-progress">হাদিস লোড হচ্ছে…</div></div>' + hadithCredit();
@@ -1623,10 +1601,8 @@
     app.innerHTML =
       '<section class="page-head"><div class="eyebrow"><a class="back-link" href="#/hadith">← হাদিস</a></div>' +
       '<h1>' + (key === 'mawdu' ? 'জাল (মাওদু) হাদিস' : 'যঈফ হাদিস') + '</h1>' +
-      '<p>আলবানীসহ ডেটাসেটের গ্রেডারদের তাহকীক থেকে বিদ্যমান ' + bn(HBOOKS.length) +
-      ' গ্রন্থের ' + bn(list.length) + ' টি হাদিস ফিল্টার করা হয়েছে। ' +
-      'এটি শায়খ আলবানীর পৃথক «সিলসিলাতুদ-দ্বয়ীফা / জাল হাদীছ সিরিজ» গ্রন্থের পূর্ণ পাঠ নয়; ' +
-      'সেই বইয়ের নিরাপদ/লাইসেন্স-সম্মত ডিজিটাল পাঠ পাওয়া যায়নি। আমলের আগে আলিমের পরামর্শ নিন।</p></section>' +
+      '<p>উৎসের মান থেকে বিদ্যমান ' + bn(HBOOKS.length) +
+      ' গ্রন্থের ' + bn(list.length) + ' টি হাদিস ফিল্টার করা হয়েছে। অন্য মানগুলো পৃথকভাবে সংরক্ষিত আছে; আমলের আগে আলিমের পরামর্শ নিন।</p></section>' +
       '<div id="hadithGradeResults"></div>' + hadithCredit();
     updateBookmarkCount(); window.scrollTo(0, 0);
     drawHadithGrade();
@@ -1658,10 +1634,13 @@
   function renderHadithSaved() {
     state.view = 'hadith'; setTitle('সংরক্ষিত হাদিস'); setNav('hadith');
     state.hadithSeq++;
+    var legacy = load('hadithBookmarks', []);
+    if (!Array.isArray(legacy)) legacy = [];
+    var legacyNotice = legacy.length ? '<details class="card-panel"><summary>পুরোনো সংগ্রহের ' + bn(legacy.length) + 'টি সংরক্ষিত ID</summary><p>এগুলো পুরোনো সংস্করণের পাঠক্রম, হাদিস নম্বর নয়। ভুল বর্ণনা দেখানো এড়াতে স্বয়ংক্রিয়ভাবে স্থানান্তর করা হয়নি। ব্যাকআপেও এগুলো থাকবে।</p><p>' + esc(legacy.join(', ')) + '</p></details>' : '';
     app.innerHTML =
       '<section class="page-head"><div class="eyebrow"><a class="back-link" href="#/hadith">← হাদিস</a></div>' +
       '<h1>সংরক্ষিত হাদিস</h1><p>এই ব্রাউজারে সংরক্ষিত ' + bn(state.hadithBookmarks.length) + ' টি হাদিস।</p></section>' +
-      '<div id="hadithSaved"><div class="search-progress">হাদিস লোড হচ্ছে…</div></div>' + hadithCredit();
+      legacyNotice + '<div id="hadithSaved"><div class="search-progress">হাদিস লোড হচ্ছে…</div></div>' + hadithCredit();
     updateBookmarkCount(); window.scrollTo(0, 0);
     var keys = state.hadithBookmarks.slice(), box = document.getElementById('hadithSaved');
     if (!keys.length) {
@@ -1696,7 +1675,7 @@
     state.hadithSearchLimit = 40; state.hadithSeq++;
     app.innerHTML =
       '<section class="page-head"><div class="eyebrow"><a class="back-link" href="#/hadith">← হাদিস</a></div>' +
-      '<h1>হাদিসে অনুসন্ধান</h1><p>' + bn(HBOOKS.length) + ' গ্রন্থের আরবি, যেখানে আছে বাংলা/ইংরেজি লেখায় খোঁজুন; গ্রন্থ ও মান বাছলে দ্রুত ফল পাবেন।</p></section>' +
+      '<h1>হাদিসে অনুসন্ধান</h1><p>' + bn(HBOOKS.length) + ' গ্রন্থের বাংলা ও উৎসে প্রাপ্ত আরবি লেখায় খোঁজুন; গ্রন্থ ও মান বাছলে দ্রুত ফল পাবেন।</p></section>' +
       hadithSearchForm(state.hadithQuery, state.hadithScope, state.hadithGradeFilter) +
       '<div id="hadithResults"></div>' + hadithCredit();
     updateBookmarkCount(); window.scrollTo(0, 0);
@@ -1707,7 +1686,7 @@
     if (!box) return;
     if (!q.trim()) {
       box.innerHTML = '<div class="empty-state"><span class="empty-icon">⌕</span><h3>কিছু লিখে খুঁজুন</h3>' +
-        '<p>যেমন: নিয়্যাত, রাসূল, জান্নাত, intention, বা হাদিস নম্বর।</p></div>';
+        '<p>যেমন: নিয়্যাত, রাসূল, জান্নাত বা উৎসের হাদিস নম্বর।</p></div>';
       return;
     }
     box.innerHTML = '<div class="search-progress" id="hadithProgress">হাদিসের ইনডেক্স তৈরি হচ্ছে…</div>';
@@ -1732,8 +1711,7 @@
     var gf = state.hadithGradeFilter;
     var matches = flat.filter(function (x) {
       if (gf !== 'all' && x.gc !== gf) return false;
-      return x.k.indexOf(nq) !== -1 ||
-        (numQ && (String(x.n) === numQ || x.an === numQ));
+      return numQ ? (String(x.n) === numQ || x.an === numQ) : x.k.indexOf(nq) !== -1;
     });
     var html = '<p class="result-meta">' + bn(matches.length) + ' টি ফল · «' + esc(q) + '»' +
       ' · ' + (scope === 'all' ? 'সব গ্রন্থ' : esc(hBook(scope).short)) + '</p>';
@@ -1845,7 +1823,7 @@
     return {
       app: 'DAWAH X — আল-কুরআন', format: 1, build: BUILD.v,
       exportedAt: new Date().toISOString(),
-      bookmarks: state.bookmarks, hadithBookmarks: state.hadithBookmarks,
+      bookmarks: state.bookmarks, hadithBookmarks: state.hadithBookmarks, hadithEdition: 'ead-1', legacyHadithBookmarks: load('hadithBookmarks', []),
       notes: state.notes, plan: state.plan, tafsirSource: state.tafsirSource,
       settings: {
         theme: state.theme, qfs: state.qfs, bfs: state.bfs,
@@ -1871,12 +1849,18 @@
         if (parseRef(k) && state.bookmarks.indexOf(k) === -1) state.bookmarks.push(k);
       });
     }
-    if (Array.isArray(data.hadithBookmarks)) {
+    var oldSaved = data.hadithEdition === 'ead-1' ? data.legacyHadithBookmarks : data.hadithBookmarks;
+    if (Array.isArray(oldSaved)) {
+      var existing = load('hadithBookmarks', []); if (!Array.isArray(existing)) existing = [];
+      oldSaved.forEach(function (k) { if (typeof k === 'string' && /^[a-z]+:\d{1,5}$/.test(k) && existing.indexOf(k) === -1) existing.push(k); });
+      save('hadithBookmarks', existing);
+    }
+    if (data.hadithEdition === 'ead-1' && Array.isArray(data.hadithBookmarks)) {
       data.hadithBookmarks.forEach(function (k) {
         if (typeof k === 'string' && hBook(k.split(':')[0]) &&
             state.hadithBookmarks.indexOf(k) === -1) state.hadithBookmarks.push(k);
       });
-      save('hadithBookmarks', state.hadithBookmarks);
+      save('hadithBookmarksEad', state.hadithBookmarks);
     }
     if (data.notes && typeof data.notes === 'object') {
       Object.keys(data.notes).forEach(function (k) {
@@ -2059,12 +2043,12 @@
         state.searchLimit += 40;
         drawSearch(state.query, state.searchSeq);
         break;
-      case 'hadith-open': go('/hadith/' + el.dataset.book + '/' + el.dataset.i); break;
-      case 'hadith-prev': go('/hadith/' + el.dataset.book + '/' + Math.max(1, (parseInt(el.dataset.i, 10) || 1) - 1)); break;
-      case 'hadith-next': go('/hadith/' + el.dataset.book + '/' + Math.min(hBook(el.dataset.book).total, (parseInt(el.dataset.i, 10) || 1) + 1)); break;
+      case 'hadith-open': go('/hadith2/' + el.dataset.book + '/' + el.dataset.i); break;
+      case 'hadith-prev': go('/hadith2/' + el.dataset.book + '/' + Math.max(1, (parseInt(el.dataset.i, 10) || 1) - 1)); break;
+      case 'hadith-next': go('/hadith2/' + el.dataset.book + '/' + Math.min(hBook(el.dataset.book).total, (parseInt(el.dataset.i, 10) || 1) + 1)); break;
       case 'hadith-random': {
         var hid = HBOOKS[Math.floor(Math.random() * HBOOKS.length)], hb = hBook(hid);
-        go('/hadith/' + hid + '/' + (1 + Math.floor(Math.random() * hb.total)));
+        go('/hadith2/' + hid + '/' + (1 + Math.floor(Math.random() * hb.total)));
         break;
       }
       case 'hadith-bookmark': toggleHadithBookmark(el.dataset.book, parseInt(el.dataset.i, 10)); break;
@@ -2074,7 +2058,7 @@
         break;
       }
       case 'hadith-share':
-        copyText(location.origin + location.pathname + '#/hadith/' + el.dataset.book + '/' + el.dataset.i);
+        copyText(location.origin + location.pathname + '#/hadith2/' + el.dataset.book + '/' + el.dataset.i);
         toast('হাদিসের লিংক কপি হয়েছে');
         break;
     }
@@ -2096,13 +2080,13 @@
       var hv = hq ? hq.value.trim() : '';
       var hs = hb3 ? hb3.value : 'all';
       var gv = hg ? hg.value : 'all';
-      go('/hadith/search?q=' + encodeURIComponent(hv) + '&book=' + encodeURIComponent(hs) + '&grade=' + encodeURIComponent(gv));
+      go('/hadith2/search?q=' + encodeURIComponent(hv) + '&book=' + encodeURIComponent(hs) + '&grade=' + encodeURIComponent(gv));
     } else if (form.dataset.action === 'hadith-goto') {
       e.preventDefault();
       var hb2 = hBook(form.dataset.book);
       var hn = form.querySelector('input[name="n"]');
-      var hi = clamp(parseInt(asciiDigits(hn && hn.value || ''), 10) || 1, 1, hb2.total);
-      go('/hadith/' + form.dataset.book + '/' + hi);
+      var hi = parseInt(asciiDigits(hn && hn.value || ''), 10);
+      if (Number.isInteger(hi) && hi > 0) go('/hadith2/search?q=' + hi + '&book=' + form.dataset.book);
     } else if (form.dataset.action === 'jump') {
       e.preventDefault();
       var s = clamp(parseInt(form.dataset.s, 10), 1, 114);
