@@ -55,13 +55,13 @@ const server=http.createServer((req,res)=>{
   await ip.click('#v2 [data-action="audio"]');assert.equal(await ip.getAttribute('#v1 [data-action="audio"]','aria-pressed'),'false');
   assert.equal(await ip.evaluate(()=>window.__players.length),1);assert.equal(await ip.evaluate(()=>window.__players[0].src),'https://everyayah.com/data/Yasser_Ad-Dussary_128kbps/001002.mp3');
   await ip.click('[data-action="surah-audio"]');assert.equal(await ip.getAttribute('[data-action="surah-audio"]','aria-pressed'),'true');
-  assert.equal(await ip.evaluate(()=>window.__players[0].src),'https://everyayah.com/data/Yasser_Ad-Dussary_128kbps/001001.mp3');
-  await ip.evaluate(()=>window.__players[0].finish());assert.equal(await ip.evaluate(()=>window.__players[0].src),'https://everyayah.com/data/Yasser_Ad-Dussary_128kbps/001002.mp3');
-  assert((await ip.locator('#surahAudioStatus').innerText()).includes('আয়াত ২ / ৭'));
+  assert.equal(await ip.evaluate(()=>window.__players[0].src),'https://download.quranicaudio.com/quran/yasser_ad-dussary/001.mp3');
+  assert((await ip.locator('#surahAudioStatus').innerText()).includes('সম্পূর্ণ সূরা চলছে'));
   await ip.click('[data-action="surah-audio"]');assert(await ip.evaluate(()=>window.__players[0].paused));
   await ip.click('[data-action="surah-audio"]');assert(!(await ip.evaluate(()=>window.__players[0].paused)));
   await ip.evaluate(()=>location.hash='#/s/1/a/2');await ip.waitForFunction(()=>document.querySelector('#v2')?.classList.contains('is-target'));assert(!(await ip.evaluate(()=>window.__players[0].paused)));
-  await ip.evaluate(()=>{for(let i=0;i<6;i++)window.__players[0].finish()});assert((await ip.locator('#surahAudioStatus').innerText()).includes('শেষ হয়েছে'));
+  await ip.evaluate(()=>window.__players[0].finish());assert((await ip.locator('#surahAudioStatus').innerText()).includes('শেষ হয়েছে'));
+
 
   await ip.goto(base+'hadith.html#/hadith/bukhari/section/64');await ip.waitForSelector('.hadith-autoload');
   const first=ip.locator('#hadithList .hadith-card').first();await first.evaluate(e=>e.dataset.testIdentity='retained');
