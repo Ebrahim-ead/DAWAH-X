@@ -225,7 +225,7 @@ if(!ONLY||ONLY==='share'){
    if(plain(excerptHtml).length>EXCERPT)bodyHtml+='<p class="article-note">…লেখাটি এখানে সংক্ষেপে দেওয়া হলো।</p>';
    const desc=cut(plain(excerptHtml).replace(/^(প্রশ্ন|উত্তর)\s*[:ঃ]?\s*/,''),155)||'কুরআন ও সুন্নাহর আলোকে লেখা';
    const url=SITE+'s/'+d.k+'.html',isF=sideOf(d.s)==='f';
-   const sec=isF?'fatwa.html':'questions.html',secName=isF?'ফতোয়া':'প্রশ্নোত্তর';
+   const sec=isF?'fatwa.html':'questions.html',secName=isF?'ইসলামিক প্রশ্নোত্তর':'নাস্তিকতা বিষয়ক প্রশ্নোত্তর';
    const sp=seriesMap.get(d.k);let seriesNav='';
    if(sp){
     const {ser,idx}=sp,prev=ser.parts[idx-1],next=ser.parts[idx+1];
