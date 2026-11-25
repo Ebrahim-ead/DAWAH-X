@@ -37,7 +37,8 @@ async function go(w, hash) { w.location.hash=hash; await new Promise(r=>setTimeo
   vc.on('jsdomError', e=>errors.push(e.message)); vc.on('error', e=>errors.push(String(e)));
   async function open(file, hash='') {
     return JSDOM.fromURL(base+file+hash,{resources:'usable',runScripts:'dangerously',pretendToBeVisual:true,virtualConsole:vc,beforeParse(w){
-      w.scrollTo=()=>{};w.Element.prototype.scrollIntoView=()=>{};w.TextDecoder=TextDecoder;w.fetch=(url,opts)=>fetch(new URL(url,w.location.href),opts);
+      w.scrollTo=()=>{};w.Element.prototype.scrollIntoView=()=>{};w.TextDecoder=TextDecoder;
+      w.__copied='';Object.defineProperty(w.navigator,'clipboard',{value:{writeText:async t=>{w.__copied=t}}});w.fetch=(url,opts)=>fetch(new URL(url,w.location.href),opts);
       w.__audio=[];w.Audio=class extends w.EventTarget {
         constructor(){super();this._src='';this.paused=true;this.ended=false;this.error=null;this.loads=0;this.rejectNext=false;w.__audio.push(this)}
         get src(){return this._src} set src(v){this._src=v;this.ended=false;this.error=null}
@@ -146,6 +147,19 @@ async function go(w, hash) { w.location.hash=hash; await new Promise(r=>setTimeo
   await go(w,'/hadith/tirmidhi/2727');await waitFor(()=>$('.hadith-card .hadith-grade')?.textContent.includes('জাল'),'fabricated grade remains');
   assert.equal($('.hadith-grade-reason a').href,'https://ihadis.com/tirmidhi/hadith/2714','use edition number, not internal ID');
   await go(w,'/hadith/abudawud/3');await waitFor(()=>$('.hadith-card'),'unreviewed weak hadith');assert.equal($('.hadith-grade-reason'),null,'unknown reason is not invented');
+  await go(w,'/hadith/ibnmajah/21');await waitFor(()=>$('.hadith-grade-reason'),'grade difference');
+  assert($('.hadith-bn').textContent.includes('আমি যেন এমন লোককে না দেখি'));
+  assert($('.hadith-grade-reason').textContent.includes('মুনকার'));assert($('.hadith-grade-reason').textContent.includes('সংশোধিত'));
+  const r21=w.HADITH_DATA.ibnmajah[0].find(r=>r[0]===21), bn21=r21[3];
+  r21[3]='অপরিচিত অনুবাদ';await go(w,'/hadith/ibnmajah/22');await go(w,'/hadith/ibnmajah/21');
+  await waitFor(()=>$('.hadith-bn')?.textContent==='অপরিচিত অনুবাদ','reject unmatched original translation');
+  assert(!$('.hadith-grade-reason').textContent.includes('সংশোধিত'));r21[3]=bn21;
+  await go(w,'/hadith/ibnmajah/22');await go(w,'/hadith/ibnmajah/21');
+  await waitFor(()=>$('.hadith-bn')?.textContent.includes('আমি যেন এমন লোককে না দেখি'),'corrected text returns');
+  click(w,'[data-action=hadith-copy]');await waitFor(()=>w.__copied.includes('বাংলা বাক্যাংশ সংশোধিত'),'correction copy attribution');
+  assert(w.__copied.includes('আমি যেন এমন লোককে না দেখি'));assert(w.__copied.includes('মুনকার'));assert(w.__copied.includes('https://ihadis.com/ibn-majah/hadith/21'));
+  await go(w,'/hadith/search?q='+encodeURIComponent('আমি যেন এমন লোককে না দেখি')+'&book=ibnmajah');
+  await waitFor(()=>$('#hadithResults [data-i="21"]'),'corrected wording searchable');
   await go(w,'/hadith/ibnmajah/968');await waitFor(()=>$('.hadith-grade-reason'),'partial grading discussion');assert($('.hadith-grade-reason').textContent.includes('অতিরিক্ত অংশ'));
   for (const n of [2017,2018,2038,2051,2054,2057,2060,2097]) {
     await go(w,`/hadith/ibnmajah/${n}`);await waitFor(()=>$('.hadith-grade-reason a'),'verified reason '+n);

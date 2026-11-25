@@ -1331,7 +1331,7 @@
     ids.forEach(function (id) {
       hSections(id).forEach(function (s) {
         (hData(id, s.id) || []).forEach(function (r) {
-          var t = r[3] + ' ' + r[5] + ' ' + r[4];
+          var t = hadithBangla(id, r) + ' ' + r[5] + ' ' + r[4];
           out.push({ b: id, i: r[0], n: r[1], an: hNum(r[2]), k: norm(t).slice(0, 2000), gc: gradeCategory(id, r[7]) });
         });
       });
@@ -1388,12 +1388,24 @@
       '</form><p class="search-hint">' + bn(HTOTAL) + ' টি হাদিসে খোঁজা যায়। ' +
       'কিছু হাদিসের আরবি বা অনুবাদ উৎসে নেই; ফাঁকা ঘর বানিয়ে ভরাট করা হয়নি। সব গ্রন্থে খুঁজতে অনেক তথ্য ডাউনলোড হতে পারে।</p></div>';
   }
+  // Corrections are opt-in and require the exact source row, not just a number.
+  // Keep the compressed source unchanged; card, search and copy share this text.
+  function hadithCorrection(id, r) {
+    var item = (window.HADITH_REASON_NOTES || {})[id + ':' + r[0]];
+    if (!item || item.ar !== r[4] || item.originalBn !== r[3] || !item.correctedBn || !item.correctionNote ||
+        gradeCategory(id, r[7]) !== item.grade || !/^https:\/\/ihadis\.com\//.test(item.url)) return null;
+    return item;
+  }
+  function hadithBangla(id, r) {
+    var item = hadithCorrection(id, r);
+    return item ? item.correctedBn : r[3];
+  }
   // A commentary belongs to one identified chain, not every similar matn.
   function hadithReason(id, r) {
     var notes = window.HADITH_REASON_NOTES || {}, item = notes[id + ':' + r[0]];
     if (!item || item.ar !== r[4] || !['daif', 'mawdu'].includes(item.grade) || gradeCategory(id, r[7]) !== item.grade || !/^https:\/\/ihadis\.com\//.test(item.url)) return '';
     return '<aside class="hadith-grade-reason"><strong>সনদ সম্পর্কে iHadis-এর আলোচনা</strong>' +
-      '<p>' + esc(item.note) + '</p><a href="' + esc(item.url) + '" target="_blank" rel="noopener noreferrer">iHadis-এ বিস্তারিত ও উৎস ↗</a></aside>';
+      '<p>' + esc(item.note) + '</p>' + (hadithCorrection(id, r) ? '<p>' + esc(item.correctionNote) + '</p>' : '') + '<a href="' + esc(item.url) + '" target="_blank" rel="noopener noreferrer">iHadis-এ বিস্তারিত ও উৎস ↗</a></aside>';
   }
   function hadithCard(id, r) {
     var b = hBook(id), an = hNum(r[2]), sec = hSectionOf(id, r[0]);
@@ -1413,7 +1425,7 @@
       '</div>' +
       (r[4] ? '<p class="hadith-ar" lang="ar" dir="rtl">' + esc(r[4]) + '</p>' :
         '<p class="hadith-ar missing">এই হাদিসের আরবি মূল উৎসে নেই।</p>') +
-      (r[3] ? '<p class="hadith-bn">' + esc(r[3]) + '</p>' :
+      (r[3] ? '<p class="hadith-bn">' + esc(hadithBangla(id, r)) + '</p>' :
         '<p class="hadith-bn missing">এই হাদিসের বাংলা অনুবাদ উৎসে নেই।</p>') +
       hadithReason(id, r) +
       '<div class="hadith-foot">' +
@@ -1437,10 +1449,11 @@
     return 'বাংলা অনুবাদের মূল উৎস hadithbd.com · fawazahmed0/hadith-api@1 (Unlicense)';
   }
   function hadithCopyText(id, r) {
-    var b = hBook(id), an = hNum(r[2]);
+    var b = hBook(id), an = hNum(r[2]), correction = hadithCorrection(id, r);
     return b.short + ' ' + r[1] + (an ? ' (আন্তর্জাতিক ' + an + ')' : '') + '\n\n' +
-      (r[4] || '') + '\n\n' + (r[3] || '') + (r[5] ? '\n\n' + r[5] : '') +
-      '\n\n— ' + hadithSourceNote(id) + ' · লেখা অপরিবর্তিত';
+      (r[4] || '') + '\n\n' + (hadithBangla(id, r) || '') + (r[5] ? '\n\n' + r[5] : '') +
+      (correction ? '\n\nসনদ সম্পর্কে iHadis: ' + correction.note : '') +
+      '\n\n— ' + hadithSourceNote(id) + (correction ? ' · বাংলা বাক্যাংশ সংশোধিত: ' + correction.url : ' · লেখা অপরিবর্তিত');
   }
   function hadithKey(id, i) { return id + ':' + i; }
   function isHadithSaved(id, i) { return state.hadithBookmarks.indexOf(hadithKey(id, i)) !== -1; }
