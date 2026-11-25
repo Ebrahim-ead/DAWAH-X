@@ -879,12 +879,17 @@ html[data-theme="light"] .icon-sun { display: block; }
   white-space: nowrap;
 }
 .hadith-grade {
-  flex: 0 0 auto; padding: 5px 13px; border-radius: 999px; font-size: 12px; font-weight: 700;
-  white-space: nowrap; border: 1px solid transparent;
+  display: inline-block; flex: 0 1 auto; max-width: 100%; padding: 5px 10px;
+  border-radius: 5px; font-size: 12px; font-weight: 700; line-height: 1.5;
+  white-space: normal; overflow-wrap: anywhere;
 }
-.hadith-grade.ok { background: var(--ok-dim); border-color: var(--ok); color: var(--ok); }
-.hadith-grade.warn { background: var(--warn-dim); border-color: var(--warn); color: var(--warn); }
-.hadith-grade.muted { background: var(--surface-2); border-color: var(--line); color: var(--muted); }
+.hadith-grade.daif { background: #ff9000; color: #16110a; }
+.hadith-grade.hasan { background: #a3d86d; color: #101a0b; }
+.hadith-grade.sahih { background: #007400; color: #fff; }
+.hadith-grade.munkar { background: #ff69b4; color: #180b12; }
+.hadith-grade.other { background: #3569a8; color: #fff; }
+.hadith-grade.mawdu { background: #ef1010; color: #100808; }
+.hadith-source-grade { min-width: 0; max-width: 100%; color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
 .hadith-narrator {
   min-width: 0; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   padding: 5px 12px; border-radius: 999px; border: 1px solid var(--line);
