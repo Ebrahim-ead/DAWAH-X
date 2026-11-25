@@ -1,14 +1,14 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const root=path.resolve(__dirname,'..');
-const expected=['index.html','questions.html','topics.html','fatwa.html','videos.html','ask.html','about.html','services.html','contact.html'];
+const expected=['index.html','quran.html','hadith.html','questions.html','topics.html','fatwa.html','videos.html','ask.html','about.html','services.html','contact.html'];
 let pages=0;
 for(const name of fs.readdirSync(root).filter(f=>f.endsWith('.html'))){
  const html=fs.readFileSync(path.join(root,name),'utf8'),nav=html.match(/<nav\b[^>]*\bid="menu"[^>]*>([\s\S]*?)<\/nav>/);
- if(!nav){assert(['404.html','__forms.html','googleb9626bdb2e3f9082.html','quran.html','hadith.html'].includes(name),`${name}: expected shared navigation`);if(['quran.html','hadith.html'].includes(name))for(const target of ['index.html','quran.html','hadith.html'])assert(html.includes('href="'+target+'"'),`${name}: reader navigation to ${target}`);continue}
+ if(!nav){assert(['404.html','__forms.html','googleb9626bdb2e3f9082.html'].includes(name),`${name}: expected shared navigation`);continue}
  const links=[...nav[1].matchAll(/<a\b[^>]*href="([^"]+)"[^>]*>[\s\S]*?<\/a>/g)];
  assert.deepEqual(links.map(m=>m[1]),expected,`${name}: menu order`);
- if(['index.html','questions.html','fatwa.html','videos.html','ask.html','about.html','services.html','contact.html','topics.html'].includes(name)){
+ if(expected.includes(name)){
   const active=links.filter(([tag])=>tag.includes('aria-current="page"'));assert.equal(active.length,1,`${name}: active link`);assert.equal(active[0][1],name,`${name}: active page`);
  }
  pages++;

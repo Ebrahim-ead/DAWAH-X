@@ -64,7 +64,7 @@
 
   var state = {
     view: 'home',
-    theme: load('theme', 'dark'),
+    theme: document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark',
     qfs: Math.min(56, Math.max(20, Number(load('qfs', 32)) || 32)),
     mode: ['cards', 'mushaf', 'study', 'focus'].indexOf(load('mode2', 'cards')) !== -1 ? load('mode2', 'cards') : 'cards',
     showTranslation: load('showTranslation2', true) !== false,
@@ -383,10 +383,12 @@
     document.body.removeChild(ta);
   }
   function applyTheme() {
-    document.documentElement.setAttribute('data-theme', state.theme);
-    var meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute('content', state.theme === 'light' ? '#faf6ea' : '#0b0906');
+    if (window.dawahxReaderTheme) window.dawahxReaderTheme(state.theme);
+    else document.documentElement.setAttribute('data-theme', state.theme);
   }
+  window.addEventListener('dawahx-themechange', function () {
+    state.theme = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+  });
   function applyQfs() {
     document.documentElement.style.setProperty('--qfs', state.qfs + 'px');
     var out = document.getElementById('fsVal');
@@ -2062,7 +2064,6 @@
   }
 
   /* ------------------------------ boot ------------------------------ */
-  applyTheme();
   applyQfs();
   applyBfs();
   setBuildTag();
