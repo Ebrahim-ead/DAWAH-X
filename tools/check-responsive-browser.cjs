@@ -67,6 +67,9 @@ const checkOverflow=async(page,label)=>{
     assert.equal(await trigger.getAttribute('aria-expanded'),'false');
    };
    await visit('index.html');await checkAssistant();
+   assert(await page.locator('.home-scripture').isVisible(),'home Quran/Hadith section must be visible');
+   assert(await page.locator('.home-scripture .scripture-card[href="quran.html"]').isVisible());
+   assert(await page.locator('.home-scripture a[href="hadith.html"]').isVisible());
    await page.waitForFunction(()=>document.querySelector('[data-prayer="fajr"] time')?.textContent.includes('05:10'));
    assert.equal(await page.locator('.prayer-card time[datetime]').count(),6,'all prayer times load in browser');
    const aiLink=page.getByRole('link',{name:'DAWAH X AI',exact:true});

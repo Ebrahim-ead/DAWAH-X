@@ -9,7 +9,7 @@ const path = require('node:path');
 const { TextDecoder } = require('node:util');
 const { JSDOM, VirtualConsole } = require('jsdom');
 const root = path.resolve(__dirname, '..');
-let failChapter = false, encoded = false;
+let failChapter = false, encoded = false, delayIndexes = false;
 const server = http.createServer((req, res) => {
   const name = new URL(req.url, 'http://localhost').pathname.replace(/^\/project\//, '');
   if (!/^[-a-z0-9.]+$/.test(name)) { res.writeHead(404).end(); return; }
@@ -20,7 +20,8 @@ const server = http.createServer((req, res) => {
     else if (name.endsWith('.js')) res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
     else if (name.endsWith('.css')) res.setHeader('Content-Type', 'text/css; charset=utf-8');
     else if (encoded && name.endsWith('.gz')) res.setHeader('Content-Encoding', 'gzip');
-    res.end(data);
+    if (delayIndexes && ['scripture-bn-translation.js','scripture-en-translation.js'].includes(name)) setTimeout(()=>res.end(data),250);
+    else res.end(data);
   } catch (_) { res.writeHead(404).end(); }
 });
 async function waitFor(fn, label, ms=30000) {
@@ -61,6 +62,24 @@ async function go(w, hash) { w.location.hash=hash; await new Promise(r=>setTimeo
   form.dispatchEvent(new w.Event('submit',{bubbles:true,cancelable:true}));
   await waitFor(()=>w.document.querySelectorAll('.result-bn-snippet').length>0,'Quran search');
   dom.window.close();
+  // Input may change while the lazy indexes are still loading. Results must
+  // reflect the latest query, and English matching is case-insensitive.
+  delayIndexes=true; dom=await open('quran.html','#/search?q=a'); w=dom.window; $=s=>w.document.querySelector(s);
+  await waitFor(()=>$('#searchInput'),'search input');
+  $('#searchInput').value='MERCIFUL'; $('#searchInput').dispatchEvent(new w.Event('input',{bubbles:true}));
+  await waitFor(()=>$('#searchResults')?.textContent.includes('ইংরেজি অনুবাদে মিল'),'latest English query');
+  assert.ok($('#searchResults').textContent.includes('Merciful'));
+  assert.ok(!$('#searchResults').textContent.includes('লোড হচ্ছে'));
+  assert.ok(w.document.querySelector('#searchResults [data-s="1"][data-a="1"]'));
+  click(w,'#searchResults [data-s="1"][data-a="1"]'); await waitFor(()=>$('#v1'),'English result opens the correct ayah');
+  dom.window.close();
+  dom=await open('quran.html','#/search?q='+encodeURIComponent('সকল')); w=dom.window; $=s=>w.document.querySelector(s);
+  await waitFor(()=>$('#searchInput'),'Bengali search input');
+  $('#searchInput').value='রহমান'; $('#searchInput').dispatchEvent(new w.Event('input',{bubbles:true}));
+  await waitFor(()=>$('#searchResults')?.querySelector('.result-bn-snippet'),'latest Bengali query');
+  assert.ok(!$('#searchResults').textContent.includes('লোড হচ্ছে'));
+  assert.ok($('#searchResults').textContent.includes('রহমান'));
+  dom.window.close(); delayIndexes=false;
   dom=await open('hadith.html'); w=dom.window; $=s=>w.document.querySelector(s);
   await waitFor(()=>w.document.querySelectorAll('.hadith-book').length===9,'book catalogue'); assert.equal(w.location.hash,'#/hadith');
   const bn=n=>String(n).replace(/[0-9]/g,d=>'০১২৩৪৫৬৭৮৯'[+d]);

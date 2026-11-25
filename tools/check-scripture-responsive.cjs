@@ -56,7 +56,12 @@ const server=http.createServer((req,res)=>{
   assert.equal(await sharedPage.locator('#menu a[aria-current="page"]').getAttribute('href'),'hadith.html');
   await sharedPage.click('#burger'); await sharedPage.click('#menu a[href="index.html"]');
   await sharedPage.waitForFunction(()=>document.documentElement.getAttribute('data-theme')==='dark');
-  assert.equal(await sharedPage.evaluate(()=>localStorage.getItem('dawahx-theme')),'dark'); await shared.close();
+  assert.equal(await sharedPage.evaluate(()=>localStorage.getItem('dawahx-theme')),'dark');
+  await sharedPage.goto(base+'quran.html#/s/2/a/255'); await sharedPage.waitForSelector('#v255');
+  await sharedPage.goto(base+'index.html');
+  await sharedPage.waitForFunction(()=>document.querySelector('#scripture-resume')?.getAttribute('href')==='quran.html#/s/2/a/255');
+  await sharedPage.click('#scripture-resume'); await sharedPage.waitForSelector('#v255');
+  assert.equal(new URL(sharedPage.url()).hash,'#/s/2/a/255'); await shared.close();
   // A failed lazy translation is reported and can be retried without a reload.
   const retry=await browser.newContext({serviceWorkers:'block'}), retryPage=await retry.newPage();
   let rejectEnglish=true;
@@ -66,6 +71,27 @@ const server=http.createServer((req,res)=>{
   rejectEnglish=false; await retryPage.uncheck('#showEnglish'); await retryPage.check('#showEnglish');
   await retryPage.waitForFunction(()=>document.querySelector('#v1 .english-translation .tr-text')?.textContent==='Alif. Lam. Mim');
   await retry.close();
+  // Failed search indexes must not be presented as a complete search. Retry
+  // should recover both English and Bengali without reloading the reader.
+  const searchContext=await browser.newContext({serviceWorkers:'block'}), searchPage=await searchContext.newPage();
+  let failIndexes=true;
+  await searchPage.route(/scripture-(en|bn)-translation\.js$/,route=>failIndexes ? route.abort() : route.continue());
+  await searchPage.goto(base+'quran.html#/search?q=MERCIFUL');
+  await searchPage.waitForFunction(()=>document.querySelector('#searchResults')?.textContent.includes('ইংরেজি অনুবাদের ইনডেক্স লোড করা যায়নি'));
+  assert((await searchPage.locator('#searchResults').innerText()).includes('বাংলা অনুবাদের ইনডেক্স'));
+  assert(!(await searchPage.locator('#searchResults').innerText()).includes('কিছু পাওয়া যায়নি'));
+  failIndexes=false;await searchPage.click('[data-action="retry-search"]');
+  await searchPage.waitForFunction(()=>document.querySelector('#searchResults')?.textContent.includes('ইংরেজি অনুবাদে মিল'));
+  await searchPage.waitForFunction(()=>!document.querySelector('#searchResults')?.textContent.includes('লোড হচ্ছে'));
+  assert.equal(await searchPage.locator('#searchResults [data-s="1"][data-a="1"]').count(),1);
+  let failTafsir=true;
+  await searchPage.route('**/scripture-tafsir-7.js',route=>failTafsir ? route.abort() : route.continue());
+  await searchPage.check('#searchTafsir');
+  await searchPage.waitForFunction(()=>document.querySelector('#searchResults')?.textContent.includes('তাফসীরের ইনডেক্স লোড করা যায়নি'));
+  failTafsir=false; await searchPage.click('[data-action="retry-search"]');
+  await searchPage.waitForFunction(()=>!document.querySelector('#searchResults')?.textContent.includes('লোড হচ্ছে'));
+  assert(!(await searchPage.locator('#searchResults').innerText()).includes('লোড করা যায়নি'));
+  await searchContext.close();
   // A direct reader visit registers the existing site worker. Previously read
   // chapters may be available offline; this is not a full offline download.
   const offlineContext=await browser.newContext(); const offlinePage=await offlineContext.newPage();
@@ -81,6 +107,11 @@ const server=http.createServer((req,res)=>{
   await offlinePage.waitForFunction(async()=>!!(await caches.match('scripture-en-2.js')));
   await offlineContext.setOffline(true); await offlinePage.reload();
   await offlinePage.waitForFunction(()=>document.querySelector('#v1 .english-translation .tr-text')?.textContent==='Alif. Lam. Mim');
+  await offlineContext.setOffline(false); await offlinePage.goto(base+'quran.html#/search?q=MERCIFUL');
+  await offlinePage.waitForFunction(()=>document.querySelector('#searchResults')?.textContent.includes('ইংরেজি অনুবাদে মিল'));
+  await offlinePage.waitForFunction(async()=>!!(await caches.match('scripture-en-translation.js')));
+  await offlineContext.setOffline(true); await offlinePage.reload();
+  await offlinePage.waitForFunction(()=>document.querySelector('#searchResults')?.textContent.includes('ইংরেজি অনুবাদে মিল'));
   await offlineContext.close();
   console.log('scripture reader: Chromium responsive layouts, themes, navigation and previously read offline chapter pass');
  } finally {if(browser)await browser.close();server.close();}

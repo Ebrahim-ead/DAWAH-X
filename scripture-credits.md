@@ -7,7 +7,7 @@ gzip পড়তে ব্যবহৃত fflate 0.8.2-এর MIT লাইস�
 
 ## ইংরেজি কুরআন অনুবাদ
 
-মুহাম্মদ মারমাডিউক পিকথল, *The Meaning of the Glorious Koran* (1930): ১১৪ সূরা, ৬,২৩৬ আয়াত। উৎস: [risan/quran-json-এর english_pickthall snapshot](https://github.com/risan/quran-json/blob/6523a9ad3b73bb7e8cb3a9cdf0ea774b8bab3123/data/extra/english_pickthall.json), revision `6523a9ad3b73bb7e8cb3a9cdf0ea774b8bab3123`; উৎস ফাইলের SHA-256 `f93ecb2a50578c9cc4e5b89630e79fa9bcdd1d289b1a858f2aedf5aa55e8194a`। উৎস অনুযায়ী পিকথলের অনুবাদ পাবলিক ডোমেইন; সংগ্রহটি [CC BY-SA 4.0](scripture-license-quran-json-cc-by-sa-4.txt)-এর অধীনে প্রকাশিত। মূল পাঠ অপরিবর্তিত রেখে পাঠক-সুবিধায় সূরাভিত্তিক ফাইলে রূপান্তর করা হয়েছে; `tools/build-quran-english.py` দিয়ে তৈরি ও যাচাই করা যায়।
+মুহাম্মদ মারমাডিউক পিকথল, *The Meaning of the Glorious Koran* (1930): ১১৪ সূরা, ৬,২৩৬ আয়াত। উৎস: [risan/quran-json-এর english_pickthall snapshot](https://github.com/risan/quran-json/blob/6523a9ad3b73bb7e8cb3a9cdf0ea774b8bab3123/data/extra/english_pickthall.json), revision `6523a9ad3b73bb7e8cb3a9cdf0ea774b8bab3123`; উৎস ফাইলের SHA-256 `f93ecb2a50578c9cc4e5b89630e79fa9bcdd1d289b1a858f2aedf5aa55e8194a`। উৎস অনুযায়ী পিকথলের অনুবাদ পাবলিক ডোমেইন; সংগ্রহটি [CC BY-SA 4.0](scripture-license-quran-json-cc-by-sa-4.txt)-এর অধীনে প্রকাশিত। মূল পাঠ অপরিবর্তিত রেখে পাঠক-সুবিধায় সূরাভিত্তিক ফাইল এবং অনুসন্ধানের জন্য পূর্ণ সংগ্রহে রূপান্তর করা হয়েছে; `tools/build-quran-english.py` দিয়ে তৈরি ও যাচাই করা যায়।
 
 ---
 
