@@ -15,9 +15,15 @@ jobs:
           ref: arena/5adb3b96-dawah-x
       - name: Inspect HTTP responses
         run: |
+          {
           for url in https://www.hadithbd.com/ https://www.hadithbd.com/hadith/daif-jal-hadith/1 https://hadithbd.com/hadith/daif-jal-hadith/1; do
             for agent in 'curl/8.5.0' 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36'; do
               curl -L -sS --max-time 45 --compressed -A "$agent" -D /tmp/hdr -o /tmp/out -w 'http=%{http_code} size=%{size_download} redirects=%{num_redirects} final=%{url_effective}\n' "$url" || true
               head -30 /tmp/hdr; head -c 400 /tmp/out || true; echo
             done
           done
+          } > tools/hadithbd-http-diagnostic.txt 2>&1
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add tools/hadithbd-http-diagnostic.txt
+          git commit -m 'Record source HTTP diagnostic' && git push origin HEAD:arena/5adb3b96-dawah-x
