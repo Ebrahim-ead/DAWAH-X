@@ -63,11 +63,6 @@
     "sha256": "6ede1112cd0c62d5af0237229d9891281486ee55f0a9fe9f3d132068067b849a"
   },
   {
-    "slug": "targib-wattahrib",
-    "status": "failed",
-    "error": "Error: Missing translation or grade targib-wattahrib:18"
-  },
-  {
     "slug": "upodesh",
     "status": "complete",
     "count": 234,
@@ -80,5 +75,12 @@
     "count": 322,
     "chapters": 56,
     "sha256": "4106999d0c77ee3fd47884aab18925e2be0c00a4b110fc573d63a9f4e5d4f0f1"
+  },
+  {
+    "slug": "targib-wattahrib",
+    "status": "complete",
+    "count": 200,
+    "chapters": 4,
+    "sha256": "73a396e6a9184f7417a2d0327d3be9b2b3f09637fc801b0edab4d8f9d9d4ba25"
   }
 ]
