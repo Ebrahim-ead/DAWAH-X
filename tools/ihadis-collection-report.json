@@ -112,15 +112,15 @@
     "sha256": "d904d2ab8d0d328ffec341b09554f192cf63ee4d7ccbdb39dd77238cdfea7664"
   },
   {
-    "slug": "riyadus-salihin",
-    "status": "failed",
-    "error": "Error: Missing displayed number riyadus-salihin:941"
-  },
-  {
     "slug": "bulugul-maram",
     "status": "complete",
     "count": 1568,
     "chapters": 16,
     "sha256": "ce50f5f2fd8a331404dc3183a9477872285f7fb4c21cd079ebfd2439d928402a"
+  },
+  {
+    "slug": "riyadus-salihin",
+    "status": "failed",
+    "error": "TimeoutError: page.goto: Timeout 60000ms exceeded.\nCall log:\n  - navigating to \"https://ihadis.com/riyadus-salihin/hadith/942\", waiting until \"domcontentloaded\"\n"
   }
 ]
