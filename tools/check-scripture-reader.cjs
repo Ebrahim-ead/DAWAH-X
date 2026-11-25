@@ -40,7 +40,8 @@ async function go(w, hash) { w.location.hash=hash; await new Promise(r=>setTimeo
   let dom = await open('quran.html'), w=dom.window, $=s=>w.document.querySelector(s);
   await waitFor(()=>w.document.querySelectorAll('.surah-card').length===114,'surah catalogue');
   assert.equal(w.location.hash,'#/surahs');
-  assert.equal($('.main-nav a[data-nav="hadith"]').getAttribute('href'),'hadith.html');
+  assert.equal($('#menu a[href="hadith.html"]').getAttribute('href'),'hadith.html');
+  assert.equal($('#menu a[aria-current="page"]').getAttribute('href'),'quran.html');
   await go(w,'/s/1/a/1');
   await waitFor(()=>$('#v1 .verse-translation')?.textContent.includes('রহমান, রহীম'),'translation');
   click(w,'#v1 .fn-ref'); await waitFor(()=>$('#v1 .verse-tafsir .fn-anchor'),'Zakaria tafsir');

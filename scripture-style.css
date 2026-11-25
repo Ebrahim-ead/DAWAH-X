@@ -22,23 +22,23 @@
 }
 
 :root {
-  /* ব্ল্যাক অ্যান্ড গোল্ডেন — ডিফল্ট ডার্ক (টগলে আইভরি counterpart) */
-  --bg: #0b0906;
-  --bg-2: #100d08;
-  --surface: #151109;
-  --surface-2: #1c160c;
-  --surface-3: #251c0f;
-  --line: rgba(212, 175, 55, .22);
-  --line-soft: rgba(212, 175, 55, .10);
-  --text: #efe6d0;
-  --text-strong: #fff8e6;
-  --muted: #b6a67f;
-  --gold: #d4af37;
-  --gold-soft: #f2d888;
-  --gold-dim: rgba(212, 175, 55, .13);
-  --teal: #c9a227;
-  --teal-2: #a8841e;
-  --teal-dim: rgba(201, 162, 39, .14);
+  /* Main website palette, with dedicated reader surfaces. */
+  --bg: #040c10;
+  --bg-2: #08151a;
+  --surface: #102028;
+  --surface-2: #152b33;
+  --surface-3: #1c343b;
+  --line: rgba(173, 193, 215, .17);
+  --line-soft: rgba(173, 193, 215, .10);
+  --text: #eef2f8;
+  --text-strong: #f7fafc;
+  --muted: #a7b3c7;
+  --gold: #f6c453;
+  --gold-soft: #ffe09a;
+  --gold-dim: rgba(246, 196, 83, .13);
+  --teal: #35b79b;
+  --teal-2: #0e806e;
+  --teal-dim: rgba(53, 183, 155, .14);
   --on-accent: #1a1405;
   --on-gold: #1a1405;
   --ok: #57c39a; --ok-dim: rgba(87, 195, 154, .12);
@@ -47,29 +47,29 @@
   --radius: 16px;
   --qfs: 32px;
   --bfs: 15px;
-  --font-ui: "Noto Sans Bengali", "Hind Siliguri", "SolaimanLipi", "Kalpurush", "Bangla", "Segoe UI", system-ui, sans-serif;
+  --font-ui: "Hind Siliguri", "Noto Sans Bengali", "SolaimanLipi", "Kalpurush", "Bangla", "Segoe UI", system-ui, sans-serif;
   --font-ar: "Noto Naskh Arabic", "Amiri", "Traditional Arabic", "Geezah", "Segoe UI", Tahoma, serif;
   --font-quran: "Hafs Uthmanic", "Noto Naskh Arabic", "Traditional Arabic", serif;
 }
 
 html[data-theme="light"] {
   /* আইভরি · সোনালি — টগলের হালকা পাশ (একই সোনালি পরিবার) */
-  --bg: #faf6ea;
-  --bg-2: #f3ecd9;
-  --surface: #fffdf6;
-  --surface-2: #f8f1de;
-  --surface-3: #efe4c9;
-  --line: rgba(120, 90, 20, .22);
-  --line-soft: rgba(120, 90, 20, .11);
-  --text: #3a3018;
-  --text-strong: #211a0b;
-  --muted: #766542;
-  --gold: #8a6412;
-  --gold-soft: #5f440b;
+  --bg: #f6f5ef;
+  --bg-2: #eeeee7;
+  --surface: #fffdf8;
+  --surface-2: #f1f3ef;
+  --surface-3: #e5eae4;
+  --line: #d6dad3;
+  --line-soft: rgba(23, 36, 44, .11);
+  --text: #17242c;
+  --text-strong: #17242c;
+  --muted: #5b6b77;
+  --gold: #8a5a00;
+  --gold-soft: #704600;
   --gold-dim: rgba(138, 100, 18, .11);
-  --teal: #7a5c13;
-  --teal-2: #60470e;
-  --teal-dim: rgba(122, 92, 19, .12);
+  --teal: #086e5a;
+  --teal-2: #075645;
+  --teal-dim: rgba(35, 100, 82, .12);
   --on-accent: #fffaf0;
   --on-gold: #fffaf0;
   --ok: #1f7a58; --ok-dim: rgba(31, 122, 88, .10);
@@ -736,7 +736,7 @@ html[data-theme="light"] .icon-sun { display: block; }
   padding: 92px 0 54px; margin: 0 0 26px;
   text-align: center; border: 1px solid var(--line); border-radius: 28px;
   background:
-    linear-gradient(145deg, rgba(212, 175, 55, .10), transparent 38%),
+    linear-gradient(145deg, rgba(173, 193, 215, .10), transparent 38%),
     radial-gradient(circle at 50% 0%, var(--gold-dim), transparent 56%),
     var(--surface);
   box-shadow: var(--shadow);
@@ -942,3 +942,14 @@ html[data-theme="light"] .icon-sun { display: block; }
   .hadith-search-form .select { flex: 1 1 auto; max-width: none; }
   .hadith-search-form .btn { flex: 0 0 auto; }
 }
+
+/* The reader shares the website chrome and palette; confine reader-specific
+   layout adjustments to the reading area rather than changing the menu. */
+body.scripture-page { background:radial-gradient(ellipse at 85% 8%,rgba(31,103,91,.15),transparent 32%),radial-gradient(ellipse at 8% 55%,rgba(245,184,28,.075),transparent 28%),var(--bg); }
+html[data-theme="light"] body.scripture-page { background:radial-gradient(ellipse at 85% 6%,rgba(31,103,91,.06),transparent 34%),radial-gradient(ellipse at 6% 52%,rgba(245,184,28,.10),transparent 30%),var(--bg); }
+.scripture-page .bg-pattern { display:none; }
+.scripture-page { padding-bottom:0; }
+.scripture-page #app section { padding:0; }
+.scripture-page #app .verse { margin:0;color:var(--text);font-weight:400; }
+.scripture-page #app .btn,.scripture-page .footer-tools .btn { min-height:44px;width:auto; }
+@media(max-width:560px){.scripture-page #app .btn,.scripture-page .footer-tools .btn{width:auto}}

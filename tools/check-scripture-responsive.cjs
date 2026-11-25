@@ -18,15 +18,38 @@ const server=http.createServer((req,res)=>{
   for(const width of [320,390,768,1280]) for(const theme of ['light','dark']) {
    const context=await browser.newContext({viewport:{width,height:900},serviceWorkers:'block',reducedMotion:'reduce'});
    const page=await context.newPage(), errors=[];page.on('pageerror',e=>errors.push(e.message));
-   await context.addInitScript(t=>localStorage.setItem('dawahx-quran:theme',JSON.stringify(t)),theme);
+   await context.addInitScript(t=>localStorage.setItem('dawahx-theme',t),theme);
    const check=async(label)=>{await page.evaluate(()=>document.fonts.ready);const s=await page.evaluate(()=>({client:document.documentElement.clientWidth,scroll:document.documentElement.scrollWidth}));if(s.scroll>s.client+1)console.log(await page.evaluate(()=>Array.from(document.querySelectorAll('*')).map(e=>[e.tagName,e.className,e.getBoundingClientRect().right,e.scrollWidth,e.clientWidth]).filter(r=>r[2]>document.documentElement.clientWidth+1).slice(0,20)));assert(s.scroll<=s.client+1,`${width} ${theme} ${label}: overflow ${s.scroll-s.client}px`)};
    await page.goto(base+'quran.html');await page.waitForSelector('.surah-card');assert.equal(await page.locator('.surah-card').count(),114);await check('surahs');
    await page.goto(base+'quran.html#/s/1/a/1');await page.waitForFunction(()=>document.querySelector('#v1 .verse-translation')?.textContent.includes('রহমান, রহীম'));await check('verse');
    await page.goto(base+'hadith.html');await page.waitForSelector('.hadith-book');assert.equal(await page.locator('.hadith-book').count(),9);await check('books');
    await page.goto(base+'hadith.html#/hadith/bukhari/section/1');await page.waitForSelector('.hadith-card');await check('hadith');
-   await page.locator('.main-nav a[href="quran.html"]').click();await page.waitForSelector('.surah-card');assert.equal(new URL(page.url()).pathname,'/DAWAH-X/quran.html');
+   if(width<1100) await page.click('#burger');
+   await page.locator('#menu a[href="quran.html"]').click();await page.waitForSelector('.surah-card');assert.equal(new URL(page.url()).pathname,'/DAWAH-X/quran.html');
+   assert.equal(await page.getAttribute('html','data-theme'),theme);
+   await page.click('#theme-toggle'); assert.notEqual(await page.getAttribute('html','data-theme'),theme);
+   assert.equal(await page.evaluate(()=>localStorage.getItem('dawahx-theme')), theme==='dark'?'light':'dark');
    assert.deepEqual(errors,[]);await context.close();
   }
+  // Theme and navigation remain consistent when moving from the existing site
+  // into both readers and back, including the shared mobile menu.
+  const shared=await browser.newContext({viewport:{width:390,height:900},serviceWorkers:'block',reducedMotion:'reduce'});
+  const sharedPage=await shared.newPage(); await sharedPage.goto(base+'index.html');
+  await sharedPage.evaluate(()=>localStorage.setItem('dawahx-theme','light')); await sharedPage.reload();
+  const lightBg=await sharedPage.evaluate(()=>getComputedStyle(document.documentElement).getPropertyValue('--bg').trim());
+  await sharedPage.click('#burger'); await sharedPage.click('#menu a[href="quran.html"]');
+  await sharedPage.waitForSelector('.surah-card'); assert.equal(await sharedPage.getAttribute('html','data-theme'),'light');
+  assert.equal(await sharedPage.evaluate(()=>getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()),lightBg);
+  assert.equal(await sharedPage.locator('#menu a[aria-current="page"]').getAttribute('href'),'quran.html');
+  await sharedPage.click('#theme-toggle'); assert.equal(await sharedPage.getAttribute('html','data-theme'),'dark');
+  await sharedPage.click('#burger'); assert.equal(await sharedPage.getAttribute('#burger','aria-expanded'),'true');
+  await sharedPage.keyboard.press('Escape'); assert.equal(await sharedPage.getAttribute('#burger','aria-expanded'),'false');
+  await sharedPage.click('#burger'); await sharedPage.click('#menu a[href="hadith.html"]');
+  await sharedPage.waitForSelector('.hadith-book'); assert.equal(await sharedPage.getAttribute('html','data-theme'),'dark');
+  assert.equal(await sharedPage.locator('#menu a[aria-current="page"]').getAttribute('href'),'hadith.html');
+  await sharedPage.click('#burger'); await sharedPage.click('#menu a[href="index.html"]');
+  await sharedPage.waitForFunction(()=>document.documentElement.getAttribute('data-theme')==='dark');
+  assert.equal(await sharedPage.evaluate(()=>localStorage.getItem('dawahx-theme')),'dark'); await shared.close();
   // A direct reader visit registers the existing site worker. Previously read
   // chapters may be available offline; this is not a full offline download.
   const offlineContext=await browser.newContext(); const offlinePage=await offlineContext.newPage();
