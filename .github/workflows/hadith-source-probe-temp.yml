@@ -10,24 +10,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Check alternative public sources
+      - name: Inspect one public source page
         shell: bash
         run: |
-          set -u
+          set -euo pipefail
           mkdir -p .source-probe
-          urls=(
-            'https://www.hadithbd.net/hadith/fullbook/?pageNum_mainHadith=172&totalRows_mainHadith=3542&book=21'
-            'https://hadithbd.net/hadith/fullbook/?pageNum_mainHadith=109&totalRows_mainHadith=3902&book=27'
-            'https://www.tauhiderdak.com/'
-          )
-          : > .source-probe/result.txt
-          for url in "${urls[@]}"; do
-            echo "URL $url" >> .source-probe/result.txt
-            curl --silent --show-error --location --max-time 25 --output /tmp/probe-body --write-out 'status=%{http_code} effective=%{url_effective} bytes=%{size_download}\n' "$url" >> .source-probe/result.txt 2>&1 || echo 'curl failed' >> .source-probe/result.txt
-            if test -f /tmp/probe-body; then head -c 180 /tmp/probe-body | tr '\n' ' ' >> .source-probe/result.txt; echo >> .source-probe/result.txt; rm /tmp/probe-body; fi
-          done
+          curl --fail --silent --show-error --location --max-time 40 'https://www.tauhiderdak.com/%E0%A6%A6%E0%A6%BE%E0%A6%B0%E0%A7%87%E0%A6%AE%E0%A7%80-%E0%A6%89%E0%A6%A4%E0%A7%8D%E0%A6%A4%E0%A6%B0%E0%A6%BE%E0%A6%A7%E0%A6%BF%E0%A6%95%E0%A6%BE%E0%A6%B0-%E0%A7%A8' -o /tmp/page.html
+          gzip -n -9 < /tmp/page.html > .source-probe/sample.html.gz
           git config user.name github-actions\[bot\]
           git config user.email 41898282+github-actions\[bot\]@users.noreply.github.com
-          git add .source-probe/result.txt
-          git commit -m 'Temporary source availability results'
+          git add .source-probe/sample.html.gz
+          git commit -m 'Temporary source page sample'
           git push origin HEAD:${{ github.ref_name }}
