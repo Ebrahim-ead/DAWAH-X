@@ -29,8 +29,8 @@ const server=http.createServer((req,res)=>{
    assert(columns[1]>columns[0],`${width}: quick links should have two columns`);
    await page.goto(base+'quran.html#/s/1/a/1');await page.waitForFunction(()=>document.querySelector('#v1 .verse-translation')?.textContent.includes('রহমান, রহীম'));
    await page.waitForFunction(()=>document.querySelector('#v1 .english-translation .tr-text')?.textContent==='(1) In the name of Allāh,[2] the Entirely Merciful, the Especially Merciful.[3]');await check('verse');
-   await page.goto(base+'hadith.html');await page.waitForSelector('.hadith-book');assert.equal(await page.locator('.hadith-book').count(),9);assert.equal(await page.locator('footer .qlinks li').count(),13);await check('books');
-   await page.goto(base+'hadith.html#/hadith/bukhari/section/1');await page.waitForSelector('.hadith-card');await check('hadith');
+   await page.goto(base+'hadith.html');await page.waitForSelector('.hadith-book');assert.equal(await page.locator('.hadith-book').count(),7);assert.equal(await page.locator('footer .qlinks li').count(),13);await check('books');
+   await page.goto(base+'hadith.html#/hadith2/bukhari/section/1');await page.waitForSelector('.hadith-card');await check('hadith');
    if(width<1100) await page.click('#burger');
    await page.locator('#menu a[href="quran.html"]').click();await page.waitForSelector('.surah-card');assert.equal(new URL(page.url()).pathname,'/DAWAH-X/quran.html');
    assert.equal(await page.getAttribute('html','data-theme'),theme);
@@ -63,12 +63,12 @@ const server=http.createServer((req,res)=>{
   await ip.evaluate(()=>window.__players[0].finish());assert((await ip.locator('#surahAudioStatus').innerText()).includes('শেষ হয়েছে'));
 
 
-  await ip.goto(base+'hadith.html#/hadith/bukhari/section/64');await ip.waitForSelector('.hadith-autoload');
+  await ip.goto(base+'hadith.html#/hadith2/bukhari/section/64');await ip.waitForSelector('.hadith-autoload');
   const first=ip.locator('#hadithList .hadith-card').first();await first.evaluate(e=>e.dataset.testIdentity='retained');
   await ip.locator('.hadith-autoload').scrollIntoViewIfNeeded();await ip.waitForFunction(()=>document.querySelectorAll('#hadithList .hadith-card').length>20);
   assert.equal(await first.getAttribute('data-test-identity'),'retained');assert.equal(await ip.locator('#hadithList button.more-btn').count(),0);
-  await ip.goto(base+'hadith.html#/hadith/abudawud/594');await ip.waitForSelector('.hadith-card .hadith-grade');
-  assert((await ip.locator('.hadith-grade').innerText()).includes('যঈফ'));assert.equal(await ip.locator('.hadith-grade-reason').count(),0);await interaction.close();
+  await ip.goto(base+'hadith.html#/hadith2/abudawud/3');await ip.waitForSelector('.hadith-card .hadith-grade-reason');
+  assert((await ip.locator('.hadith-grade-reason').innerText()).includes('ব্যাখ্যা'));await interaction.close();
   // Theme and navigation remain consistent when moving from the existing site
   // into both readers and back, including the shared mobile menu.
   const shared=await browser.newContext({viewport:{width:390,height:900},serviceWorkers:'block',reducedMotion:'reduce'});
@@ -126,7 +126,7 @@ const server=http.createServer((req,res)=>{
   // A direct reader visit registers the existing site worker. Previously read
   // chapters may be available offline; this is not a full offline download.
   const offlineContext=await browser.newContext(); const offlinePage=await offlineContext.newPage();
-  await offlinePage.goto(base+'hadith.html#/hadith/bukhari/section/1');
+  await offlinePage.goto(base+'hadith.html#/hadith2/bukhari/section/1');
   await offlinePage.waitForSelector('.hadith-card');
   await offlinePage.evaluate(()=>navigator.serviceWorker.ready);
   await offlinePage.reload(); await offlinePage.waitForSelector('.hadith-card');

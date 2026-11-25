@@ -44,10 +44,6 @@
     link('['+item.number+'] '+item.title+' · Ebrahim Ead', 'https://ebrahim-ead.github.io/ead/quran.html#'+item.surah+':'+item.verse);
     snapshot(item,'ead','assets/quran/data/suras/'+item.surah+'.json');link('একই আয়াত Quran.com-এ দেখুন (ভিন্ন অনুবাদ হতে পারে)','https://quran.com/'+item.surah+'/'+item.verse);continue;
    }
-   if(item.type==='hadith'&&item.origin==='dawahx'&&['malik','nawawi'].includes(item.book)&&Number.isInteger(item.chapter)&&item.chapter>=0&&item.chapter<=200&&Number.isInteger(item.hadith)&&item.hadith>=1&&item.hadith<=20000&&Number.isInteger(item.readerIndex)&&item.readerIndex>=1&&item.readerIndex<=20000){
-    link('['+item.number+'] '+item.title+' · DAWAH X',url('hadith.html#/hadith/'+item.book+'/'+item.readerIndex));
-    snapshot(item,'DAWAH-X','scripture-hadith-'+item.book+'-'+item.chapter+'.json.gz');continue;
-   }
    if(item.type==='hadith'&&Object.prototype.hasOwnProperty.call(books,item.book)&&Number.isInteger(item.chapter)&&item.chapter>=0&&item.chapter<=200&&Number.isInteger(item.hadith)&&item.hadith>=1&&item.hadith<=20000){
     link('['+item.number+'] '+item.title+' · Ebrahim Ead','https://ebrahim-ead.github.io/ead/hadith.html#'+item.book+':'+item.chapter+':'+item.hadith);
     snapshot(item,'ead','assets/hadith/data/'+item.book+'/'+item.chapter+'.json');link('HadithBD-তে খুঁজুন (সংস্করণ ও নম্বর মিলিয়ে দেখুন)','https://www.hadithbd.com/search/?q='+encodeURIComponent(books[item.book]+' '+item.hadith));continue;
