@@ -1388,6 +1388,13 @@
       '</form><p class="search-hint">' + bn(HTOTAL) + ' টি হাদিসে খোঁজা যায়। ' +
       'কিছু হাদিসের আরবি বা অনুবাদ উৎসে নেই; ফাঁকা ঘর বানিয়ে ভরাট করা হয়নি। সব গ্রন্থে খুঁজতে অনেক তথ্য ডাউনলোড হতে পারে।</p></div>';
   }
+  // A commentary belongs to one identified chain, not every similar matn.
+  function hadithReason(id, r) {
+    var notes = window.HADITH_REASON_NOTES || {}, item = notes[id + ':' + r[0]];
+    if (!item || item.ar !== r[4] || gradeCategory(id, r[7]) !== 'daif' || !/^https:\/\/ihadis\.com\//.test(item.url)) return '';
+    return '<aside class="hadith-grade-reason"><strong>সনদ সম্পর্কে iHadis-এর আলোচনা</strong>' +
+      '<p>' + esc(item.note) + '</p><a href="' + esc(item.url) + '" target="_blank" rel="noopener noreferrer">iHadis-এ বিস্তারিত ও উৎস ↗</a></aside>';
+  }
   function hadithCard(id, r) {
     var b = hBook(id), an = hNum(r[2]), sec = hSectionOf(id, r[0]);
     var gl = gradeLabel(id, r[7]), gcls = gradeClass(gl);
@@ -1408,6 +1415,7 @@
         '<p class="hadith-ar missing">এই হাদিসের আরবি মূল উৎসে নেই।</p>') +
       (r[3] ? '<p class="hadith-bn">' + esc(r[3]) + '</p>' :
         '<p class="hadith-bn missing">এই হাদিসের বাংলা অনুবাদ উৎসে নেই।</p>') +
+      hadithReason(id, r) +
       '<div class="hadith-foot">' +
         '<div class="hadith-ref">' +
           (an ? 'আন্তর্জাতিক নম্বর ' + esc(an) + ' · ' : '') +

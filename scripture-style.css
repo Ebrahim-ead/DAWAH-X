@@ -986,3 +986,8 @@ html[data-theme="light"] body.scripture-page { background:radial-gradient(ellips
 .english-notes p { white-space: pre-wrap; line-height: 1.6; }
 .audio-btn[aria-pressed="true"] { color: var(--gold); border-color: var(--gold); }
 .hadith-autoload { margin: 18px auto; color: var(--muted); text-align: center; font-size: 13px; }
+
+/* Source-attributed discussion for individually checked narrations. */
+.hadith-grade-reason { margin: 1rem 0; padding: .9rem 1rem; border: 1px solid var(--border, #806b46); border-inline-start: 3px solid #b89042; border-radius: .6rem; line-height: 1.8; }
+.hadith-grade-reason p { margin: .45rem 0; }
+.hadith-grade-reason a { text-decoration: underline; }

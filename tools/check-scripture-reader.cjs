@@ -141,10 +141,17 @@ async function go(w, hash) { w.location.hash=hash; await new Promise(r=>setTimeo
   assert.equal(w.document.querySelectorAll('#hadithList button.more-btn').length,0);let ob=w.__observers.findLast(x=>!x.disconnected);assert(ob,'automatic observer');let kept=$('#hadithList .hadith-card');let focus=kept.querySelector('button');focus.focus();ob.trigger();
   await waitFor(()=>w.document.querySelectorAll('#hadithList .hadith-card').length===60,'automatic next batch');assert.equal(w.document.querySelectorAll('#hadithList .hadith-num').length,60);assert.equal($('#hadithList .hadith-card'),kept,'automatic batch preserves existing cards');assert.equal(w.document.activeElement,focus,'automatic batch preserves focus');
   await go(w,'/hadith/grade/daif');await waitFor(()=>$('#hadithGradeResults .hadith-card .hadith-grade'),'weak-grade cards');
-  assert.match($('#hadithGradeResults .hadith-grade').textContent,/যঈফ/);assert.equal(w.document.querySelectorAll('#hadithGradeResults .hadith-grade-reason, #hadithGradeResults button.more-btn').length,0);
+  assert.match($('#hadithGradeResults .hadith-grade').textContent,/যঈফ/);assert.equal(w.document.querySelectorAll('#hadithGradeResults button.more-btn').length,0);
   ob=w.__observers.findLast(x=>!x.disconnected);assert(ob,'grade observer');kept=$('#hadithGradeResults .hadith-card');ob.trigger();await waitFor(()=>w.document.querySelectorAll('#hadithGradeResults .hadith-card').length>20,'automatic grade batch');assert.equal($('#hadithGradeResults .hadith-card'),kept,'grade batch preserves existing cards');
   await go(w,'/hadith/tirmidhi/2727');await waitFor(()=>$('.hadith-card .hadith-grade')?.textContent.includes('জাল'),'fabricated grade remains');
-  assert.equal(w.document.querySelectorAll('.hadith-grade-reason').length,0,'no separate grade-reason panel');
+  assert.equal(w.document.querySelectorAll('.hadith-grade-reason').length,0,'unknown reason is not invented');
+  for (const n of [2017,2018,2038,2051,2054,2057,2060,2097]) {
+    await go(w,`/hadith/ibnmajah/${n}`);await waitFor(()=>$('.hadith-grade-reason a'),'verified reason '+n);
+    assert.equal($('.hadith-grade-reason a').href,`https://ihadis.com/ibn-majah/hadith/${n}`);
+  }
+  const record=w.HADITH_DATA.ibnmajah[11].find(r=>r[0]===2097), original=record[4];
+  record[4]='different chain';await go(w,'/hadith/ibnmajah/2096');await go(w,'/hadith/ibnmajah/2097');
+  await waitFor(()=>$('.hadith-card'),'changed text loads');assert.equal($('.hadith-grade-reason'),null,'reject mismatched narration');record[4]=original;
   await go(w,'/hadith/bukhari/1'); await waitFor(()=>$('.hadith-card .hadith-bn')?.textContent.includes('নিয়্যাত'),'Bukhari direct link');
   click(w,'[data-action="hadith-bookmark"]'); await go(w,'/hadith/saved'); await waitFor(()=>$('#hadithSaved .hadith-card'),'saved hadith');
   await go(w,'/hadith/search?q='+encodeURIComponent('নিয়্যাত')+'&book=bukhari');

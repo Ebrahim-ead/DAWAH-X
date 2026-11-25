@@ -68,7 +68,9 @@ const server=http.createServer((req,res)=>{
   await ip.locator('.hadith-autoload').scrollIntoViewIfNeeded();await ip.waitForFunction(()=>document.querySelectorAll('#hadithList .hadith-card').length>20);
   assert.equal(await first.getAttribute('data-test-identity'),'retained');assert.equal(await ip.locator('#hadithList button.more-btn').count(),0);
   await ip.goto(base+'hadith.html#/hadith/abudawud/594');await ip.waitForSelector('.hadith-card .hadith-grade');
-  assert((await ip.locator('.hadith-grade').innerText()).includes('যঈফ'));assert.equal(await ip.locator('.hadith-grade-reason').count(),0);await interaction.close();
+  assert((await ip.locator('.hadith-grade').innerText()).includes('যঈফ'));assert.equal(await ip.locator('.hadith-grade-reason').count(),0);
+  await ip.goto(base+'hadith.html#/hadith/ibnmajah/2018');await ip.waitForSelector('.hadith-grade-reason');
+  assert.equal(await ip.locator('.hadith-grade-reason a').getAttribute('href'),'https://ihadis.com/ibn-majah/hadith/2018');await interaction.close();
   // Theme and navigation remain consistent when moving from the existing site
   // into both readers and back, including the shared mobile menu.
   const shared=await browser.newContext({viewport:{width:390,height:900},serviceWorkers:'block',reducedMotion:'reduce'});
