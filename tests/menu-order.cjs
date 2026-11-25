@@ -5,7 +5,7 @@ const expected=['index.html','questions.html','topics.html','fatwa.html','videos
 let pages=0;
 for(const name of fs.readdirSync(root).filter(f=>f.endsWith('.html'))){
  const html=fs.readFileSync(path.join(root,name),'utf8'),nav=html.match(/<nav\b[^>]*\bid="menu"[^>]*>([\s\S]*?)<\/nav>/);
- if(!nav){assert(['404.html','__forms.html','googleb9626bdb2e3f9082.html'].includes(name),`${name}: expected shared navigation`);continue}
+ if(!nav){assert(['404.html','__forms.html','googleb9626bdb2e3f9082.html','quran.html','hadith.html'].includes(name),`${name}: expected shared navigation`);if(['quran.html','hadith.html'].includes(name))for(const target of ['index.html','quran.html','hadith.html'])assert(html.includes('href="'+target+'"'),`${name}: reader navigation to ${target}`);continue}
  const links=[...nav[1].matchAll(/<a\b[^>]*href="([^"]+)"[^>]*>[\s\S]*?<\/a>/g)];
  assert.deepEqual(links.map(m=>m[1]),expected,`${name}: menu order`);
  if(['index.html','questions.html','fatwa.html','videos.html','ask.html','about.html','services.html','contact.html','topics.html'].includes(name)){
