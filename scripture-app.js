@@ -52,10 +52,10 @@
     book: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/><path d="M9 7h7M9 11h5"/></svg>'
   };
 
-  // A single player is shared by a verse and a complete-surah sequence.
-  // Sequential playback starts only after a click and fetches each ayah on demand.
-  var ayahAudio = null, audioKey = '', audioPlaying = false, audioAttempt = 0;
-  var audioSurah = 0, audioAyah = 0, sequenceSurah = 0, audioMessage = '', audioFailed = false;
+  // One on-demand player: individual verses or one continuous full-surah recording.
+  // No audio is requested until a listener presses play.
+  var ayahAudio = null, audioKey = '', audioPlaying = false, audioAttempt = 0, audioSource = 0;
+  var sequenceSurah = 0, audioMessage = '', audioFailed = false;
   function audioButton(s, a) {
     return '<button type="button" class="act-btn audio-btn" data-action="audio" data-s="' + s + '" data-a="' + a + '" aria-label="ইয়াসির আদ-দুসারির তিলাওয়াত শুনুন" title="ইয়াসির আদ-দুসারির তিলাওয়াত শুনুন" aria-pressed="false">' + ICON.play + '</button>';
   }
@@ -75,13 +75,13 @@
     });
     var status = document.getElementById('surahAudioStatus');
     if (status) {
-      status.textContent = sequenceSurah ? (audioPlaying ? 'চলছে' : 'বিরতি') + ' · আয়াত ' + bn(audioAyah) + ' / ' + bn(Q.counts[sequenceSurah - 1]) + ' · ইয়াসির আদ-দুসারি' :
+      status.textContent = sequenceSurah ? (audioPlaying ? 'সম্পূর্ণ সূরা চলছে' : 'সম্পূর্ণ সূরা বিরতি') + ' · ইয়াসির আদ-দুসারি' :
         (audioMessage || 'ইয়াসির আদ-দুসারি · ইন্টারনেট প্রয়োজন');
     }
   }
   function stopAudio() {
-    audioAttempt++; if (ayahAudio) { ayahAudio.pause(); ayahAudio.removeAttribute('src'); ayahAudio.load(); }
-    audioKey = ''; audioSurah = 0; audioAyah = 0; sequenceSurah = 0; audioMessage = ''; audioFailed = false; audioPlaying = false; syncAudioButtons();
+    audioAttempt++; audioSource++; if (ayahAudio) { ayahAudio.pause(); ayahAudio.removeAttribute('src'); ayahAudio.load(); }
+    audioKey = ''; sequenceSurah = 0; audioMessage = ''; audioFailed = false; audioPlaying = false; syncAudioButtons();
   }
   function audioFailure(attempt) {
     if (attempt !== audioAttempt || !audioPlaying) return;
@@ -94,27 +94,33 @@
     ayahAudio.addEventListener('ended', function () {
       // Ignore an old queued event after a new source has been selected.
       if (!audioPlaying || !ayahAudio.ended) return;
-      if (sequenceSurah && audioSurah === sequenceSurah && audioAyah < Q.counts[sequenceSurah - 1]) {
-        playAyah(sequenceSurah, audioAyah + 1);
-      } else {
-        if (sequenceSurah) audioMessage = 'সম্পূর্ণ সূরার তিলাওয়াত শেষ হয়েছে।';
-        sequenceSurah = 0; audioPlaying = false; syncAudioButtons();
-      }
+      if (sequenceSurah) audioMessage = 'সম্পূর্ণ সূরার তিলাওয়াত শেষ হয়েছে।';
+      sequenceSurah = 0; audioPlaying = false; syncAudioButtons();
     });
     ayahAudio.addEventListener('error', function () { if (audioKey && ayahAudio.error) audioFailure(audioAttempt); });
   }
-  function playAyah(s, a, restart) {
+  function playAudio(s, a, restart) {
     ensureAudio();
-    var key = refKey(s, a);
+    var key = a ? refKey(s, a) : 'surah:' + s;
+    var url = a ? 'https://everyayah.com/data/Yasser_Ad-Dussary_128kbps/' + String(s).padStart(3, '0') + String(a).padStart(3, '0') + '.mp3' :
+      'https://download.quranicaudio.com/quran/yasser_ad-dussary/' + String(s).padStart(3, '0') + '.mp3';
     if (audioKey !== key || restart) {
-      ayahAudio.pause(); audioKey = key;
-      ayahAudio.src = 'https://everyayah.com/data/Yasser_Ad-Dussary_128kbps/' + String(s).padStart(3, '0') + String(a).padStart(3, '0') + '.mp3';
+      ayahAudio.pause(); audioSource++; audioKey = key; ayahAudio.src = url;
     } else if (audioFailed) {
+      // Reload a failed stream. Restore its position once metadata is available.
+      var position = Number.isFinite(ayahAudio.currentTime) ? ayahAudio.currentTime : 0;
+      var retryKey = key, retrySource = ++audioSource;
+      ayahAudio.addEventListener('loadedmetadata', function restorePosition() {
+        ayahAudio.removeEventListener('loadedmetadata', restorePosition);
+        if (audioSource === retrySource && audioKey === retryKey && position > 0) {
+          try { ayahAudio.currentTime = position; } catch (e) { /* server may not support seeking */ }
+        }
+      });
       ayahAudio.load();
     } else if (ayahAudio.ended) {
       try { ayahAudio.currentTime = 0; } catch (e) { /* media may not be seekable yet */ }
     }
-    audioSurah = s; audioAyah = a; audioMessage = ''; audioFailed = false;
+    audioMessage = ''; audioFailed = false;
     var attempt = ++audioAttempt; audioPlaying = true; syncAudioButtons();
     try {
       var promise = ayahAudio.play();
@@ -126,14 +132,14 @@
     if (!Number.isInteger(s) || s < 1 || s > 114 || !Number.isInteger(a) || a < 1 || a > Q.counts[s - 1]) return;
     sequenceSurah = 0; audioMessage = '';
     if (ayahAudio && audioKey === refKey(s, a) && audioPlaying) { pauseAudio(); return; }
-    playAyah(s, a);
+    playAudio(s, a);
   }
   function toggleSurahAudio(s) {
     if (!Number.isInteger(s) || s < 1 || s > 114) return;
     if (sequenceSurah === s) {
-      if (audioPlaying) pauseAudio(); else playAyah(s, audioAyah);
+      if (audioPlaying) pauseAudio(); else playAudio(s, 0);
     } else {
-      sequenceSurah = s; playAyah(s, 1, true);
+      sequenceSurah = s; playAudio(s, 0, true);
     }
   }
 
@@ -838,7 +844,7 @@
         '</div>' : '') +
         '<p class="source-note">' + (state.tafsirSource === 'ibn-kathir' ? IBN_KATHIR_LINE : SOURCE_LINE) +
         (state.showEnglish && !mushaf ? ' · English: Saheeh International, Noor International Center · <a href="https://quranenc.com/en/browse/english_saheeh" target="_blank" rel="noopener noreferrer">QuranEnc.com</a> v1.1.2' : '') +
-        ' · তিলাওয়াত: ইয়াসির আদ-দুসারি · <a href="https://everyayah.com/" target="_blank" rel="noopener noreferrer">EveryAyah</a> (ইন্টারনেট প্রয়োজন)' +
+        ' · তিলাওয়াত: ইয়াসির আদ-দুসারি · আয়াত: <a href="https://everyayah.com/" target="_blank" rel="noopener noreferrer">EveryAyah</a> · সম্পূর্ণ সূরা: <a href="https://quranicaudio.com/quran/97" target="_blank" rel="noopener noreferrer">QuranicAudio</a> (ইন্টারনেট প্রয়োজন)' +
         ' · <a href="scripture-credits.md">ক্রেডিট</a></p>' +
 
         '<div class="reader-bottom">' +

@@ -1,5 +1,5 @@
 name: Quran audio source check
-# Optional check of public file names and four small responses. No user data.
+# Optional check of public file names and sample streams. No user data.
 on:
   workflow_dispatch:
   push:
