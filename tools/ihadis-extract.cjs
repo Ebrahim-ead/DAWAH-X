@@ -1,0 +1,34 @@
+'use strict';
+// Parse the public Bangla book/chapter HTML, never guess missing fields.
+const cheerio=require('cheerio');
+const ascii=s=>String(s||'').replace(/[০-৯]/g,c=>String(c.charCodeAt(0)-0x9e6));
+const tidy=s=>String(s||'').trim();
+function paragraphs($,el){const spans=$(el).children('span');return spans.length?spans.map((_,s)=>tidy($(s).text())).get().filter(Boolean).join('\n\n'):tidy($(el).text())}
+function index(html,slug){
+ const $=cheerio.load(html), title=tidy($('main h1').first().text()), head=ascii($('main h1').first().parent().text());
+ const m=head.match(/মোট অধ্যায়\s*(\d+).*?মোট হাদিস\s*(\d+)/u);
+ if(!title||!m)throw Error('Missing book metadata '+slug);
+ const chapters=new Map();$('main a[href]').each((_,a)=>{const link=$(a).attr('href'),match=link.match(new RegExp('^/'+slug+'/(\\d+)$'));if(!match)return;
+  const id=+match[1], name=tidy($(a).find('p.line-clamp-1').first().text());if(!name)throw Error('Missing chapter title '+link);if(chapters.has(id)&&chapters.get(id).name!==name)throw Error('Conflicting chapter '+link);chapters.set(id,{id,name});});
+ if(chapters.size!==+m[1])throw Error('Chapter count mismatch '+slug+' '+chapters.size+'/'+m[1]);
+ return {slug,title,expected:+m[2],chapters:[...chapters.values()].sort((a,b)=>a.id-b.id)};
+}
+function chapter(html,slug,id){
+ const $=cheerio.load(html), cards=$('[id^="hadith-"]'), rows=[];
+ cards.each((_,el)=>{const card=$(el), url=card.find('h3 a[href]').first().attr('href');const match=(url||'').match(new RegExp('^/'+slug+'/hadith/(\\d+)$'));if(!match)throw Error('Invalid hadith link '+slug+'/'+id+' '+url);
+  const header=tidy(card.find('h3').first().text()), n=ascii(header).match(/:\s*(\d+)\s*$/); if(!n)throw Error('Missing displayed number '+url);
+  const grade=tidy(card.find('button[style] span').first().text());
+  const narr=tidy(card.find('h4').first().text());
+  const ar=card.find('p[dir="rtl"]').map((_,p)=>paragraphs($,p)).get().filter(Boolean).join('\n\n');
+  const bnp=card.find('h4').first().parent().find('p').first();
+  const bn=bnp.length?paragraphs($,bnp):'';
+  const notes=[];card.find('p').each((_,p)=>{let q=$(p);if(q.attr('dir')==='rtl'||q.closest('h4').length||p===bnp[0]||q.closest('h3').length||q.attr('class')?.includes('tablet:hidden'))return;
+   if(q.closest('button').length||q.closest('a').length)return;const t=paragraphs($,p);if(t)notes.push(t);
+  });
+  if(!bn||!grade)throw Error('Missing translation or grade '+url);
+  rows.push({id:+match[1],number:+n[1],bn,ar,narrator:narr,grade,notes:notes.join('\n\n')});
+ });
+ if(!rows.length)throw Error('No hadith cards '+slug+'/'+id);
+ return rows;
+}
+module.exports={index,chapter};

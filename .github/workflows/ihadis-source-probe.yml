@@ -16,21 +16,24 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Save bounded public page samples for importer development
+      - name: Inspect client asset routes and individual page
         run: |
           node - <<'NODE'
           const fs=require('fs');
           (async()=>{
-            let result=[];
-            for(const path of ['/40-hadith/1','/dhaif-hadis-sirij/1','/riyadus-salihin']) {
-              try {const r=await fetch('https://ihadis.com'+path,{signal:AbortSignal.timeout(30000),headers:{'User-Agent':'DAWAHX-HadithImporter/1.0 (research; contact: https://ebrahim-ead.github.io/DAWAH-X/contact.html)'}}); const text=await r.text();const filename='tools/ihadis-probe-'+(path.split('/')[1])+'.html';if(r.ok && text.length<5000000)fs.writeFileSync(filename,text);result.push({path,status:r.status,length:text.length,filename:r.ok?filename:null})}catch(e){result.push({path,error:String(e)})}
+            const html=fs.readFileSync('tools/ihadis-probe-40-hadith.html','utf8');
+            const paths=[...new Set([...html.matchAll(/<script[^>]+src="(\/_next\/static\/chunks\/[^"?]+\.js)/g)].map(m=>m[1]))];
+            const results=[];
+            for(const path of paths){
+              try{const r=await fetch('https://ihadis.com'+path,{signal:AbortSignal.timeout(30000)});if(!r.ok){results.push({path,status:r.status});continue};const text=await r.text();const snippets=[];const re=/.{0,220}(?:\/api\/|https?:\/\/[^"'` ]+|hadithByChapter|hadithsByChapter|hadith\/chapter).{0,220}/gi;for(const m of text.matchAll(re)){if(snippets.length>=40)break;snippets.push(m[0]);}if(snippets.length)results.push({path,snippets});await new Promise(r=>setTimeout(r,300));}catch(e){results.push({path,error:String(e)})}
             }
-            fs.writeFileSync('tools/ihadis-probe-result.json',JSON.stringify(result,null,2));
-          })();
+            const r=await fetch('https://ihadis.com/40-hadith/hadith/11',{signal:AbortSignal.timeout(30000)});if(r.ok)fs.writeFileSync('tools/ihadis-probe-single.html',await r.text());results.push({single:r.status});
+            fs.writeFileSync('tools/ihadis-assets-result.json',JSON.stringify(results,null,2));
+          })().catch(e=>{fs.writeFileSync('tools/ihadis-assets-result.json',JSON.stringify({error:String(e)}))});
           NODE
       - name: Save results on this session branch only
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add tools/ihadis-probe-*.html tools/ihadis-probe-result.json 2>/dev/null || git add tools/ihadis-probe-result.json
+          git add tools/ihadis-probe-single.html tools/ihadis-assets-result.json 2>/dev/null || git add tools/ihadis-assets-result.json
           git commit -m 'Inspect iHadis source response for import' && git push origin HEAD:arena/571b6185-dawah-x
