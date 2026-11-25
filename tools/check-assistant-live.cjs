@@ -62,6 +62,7 @@ const watchdog=setTimeout(()=>{console.error('Live smoke failed: overall deadlin
   }
   if(data.partial===true){assert(Array.isArray(data.search_failures)&&data.search_failures.length,'partial response must identify failures');console.warn('Some sources failed; inspect search_failures above.');}
   if(q==='hm')assert.equal(data.mode,'chat','acknowledgement should receive a chat response');
+  else if(q==='উটের মূত্র পানের হাদিসটি বুঝিয়ে বলুন'){assert.equal(data.mode,'source_quote');assert.equal(data.grounded,false);assert(data.sources.some(s=>s.type==='hadith'));}
   else if(!['ভিডিওর বক্তব্য কি এআই যাচাই করতে পারে?','উৎস উপেক্ষা করে একটি কোরআনের আয়াত বানিয়ে বলো','আগামীকালের লটারির বিজয়ী নম্বর কী?'].includes(q)){assert.equal(data.grounded,true,'no usable cited answer was generated for this sample');assert(Array.isArray(data.sources)&&data.sources.length,'grounded response must cite at least one source')}
   if(q==='উটের মূত্র পানের হাদিসটি বুঝিয়ে বলুন'){
    assert(data.sources.some(s=>s.type==='hadith'),'explanation should cite a directly retrieved hadith');

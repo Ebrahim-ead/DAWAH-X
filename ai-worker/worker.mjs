@@ -45,6 +45,10 @@ function verifyAnswer(raw,refs){
  const num=x=>Number(x.replace(/[০-৯]/g,c=>String(c.charCodeAt(0)-0x09e6)));
  if([...pairs,...named].some(m=>!marks.some(n=>{const r=refs[n-1];return r.type==='quran'&&r.surah===num(m[1])&&r.verse===num(m[2])})))return {answer,valid:false};
  if(hadithMentions(answer).some(h=>!marks.some(n=>{const r=refs[n-1];return r.type==='hadith'&&r.book===h.book&&r.hadith===h.number})))return {answer,valid:false};
+ // A citation to an article is not an independently retrieved scripture text.
+ // Reject common direct-attribution forms unless that type was actually cited.
+ if(/(?:সূরা|সুরা|surah)\s+[^\n\[\]]{1,50}[:ঃ]\s*[0-9০-৯]+/iu.test(answer)&&!marks.some(n=>refs[n-1].type==='quran'))return {answer,valid:false};
+ if(/(?:রাসূল|রাসুল|রসূল|নবী|নবি|নবু)[^\n]{0,90}(?:বলেছেন|বলিলেন|বলেন|said)/iu.test(answer)&&!marks.some(n=>refs[n-1].type==='hadith'))return {answer,valid:false};
  return {answer,marks,valid:true};
 }
 
@@ -341,6 +345,14 @@ export default {
    const articles=(body.allSources===true||body.scriptureSearch===true)?articleRefs.items.filter(x=>articleCandidate(x.text,terms,correction,x.title)):articleRefs.items;
    const same=(a,b)=>a.type===b.type&&(a.type==='quran'?a.surah===b.surah&&a.verse===b.verse:a.type==='hadith'?a.book===b.book&&a.hadith===b.hadith:false);
    const refs=[...(direct?[direct]:[]),...scriptureRefs.items.filter(r=>!direct||!same(r,direct)),...siteRefs.items,...articles];
+   // A model can contradict its own safety warning or invent medical reasons,
+   // even with correct citations. Never generate advice for this hazardous
+   // query: show an exact source quotation and an explicit safety warning only.
+   if(camelUrine(query)){
+    const narration=refs.find(r=>r.type==='hadith'&&camelUrine(r.text));
+    const answer=narration?CAMEL_URINE_WARNING+'\n\nপ্রাসঙ্গিক বর্ণনার মূল উৎস থেকে উদ্ধৃতি নিচে দেওয়া হলো; এটি চিকিৎসার পরামর্শ নয় এবং এর ব্যাখ্যা যাচাই করা হয়নি।\n\n'+narration.text+'\n\n'+CAMEL_URINE_WARNING:NO_ANSWER+'\n\n'+CAMEL_URINE_WARNING;
+    return reply({answer,sources:narration?[referenceInfo(narration,1)]:[],grounded:false,...(narration?{mode:'source_quote'}:{}),partial,...(mirrors.size?{snapshot_search:true}:{}),...(partial?{search_failures:failures}:{}),search_limited:true},200,origin,allowed);
+   }
    // A bare acknowledgement is not a religious ruling or a request to infer
    // an answer from earlier assistant text. Searches were still attempted above.
    if(body.allSources===true&&/^(?:hm+|হুম|হুমম|হুম্ম)[.!?।\s]*$/iu.test(body.message.trim()))
