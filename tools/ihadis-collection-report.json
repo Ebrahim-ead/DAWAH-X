@@ -66,5 +66,10 @@
     "slug": "targib-wattahrib",
     "status": "failed",
     "error": "Error: Missing translation or grade targib-wattahrib:18"
+  },
+  {
+    "slug": "upodesh",
+    "status": "failed",
+    "error": "Error: Missing translation or grade upodesh:68"
   }
 ]
