@@ -22,3 +22,11 @@ jobs:
         env:
           ASSISTANT_LIVE_FOCUS: ${{ contains(github.event.head_commit.message, '[assistant-focus-check]') && 'camel' || '' }}
         run: node tools/check-assistant-live.cjs
+      - name: Save fixed public questions and responses for manual source review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: assistant-live-review
+          path: assistant-live-review.json
+          if-no-files-found: warn
+          retention-days: 7

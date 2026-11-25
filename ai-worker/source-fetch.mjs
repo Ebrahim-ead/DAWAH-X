@@ -2,19 +2,22 @@
 // are an outage fallback and can lag behind the published sites. Keep them in
 // sync with reviewed site/corpus updates; evidence from them is labelled.
 export const EAD_SNAPSHOT='90aa8a8ae268faf8f615ccfbb642a66d17ca21f9';
-export const SITE_SNAPSHOT='cd22f7faf79127d58b1fb927e24b67ad45ae25ac';
+export const SITE_SNAPSHOT='7b763a83ae1591b9ae99a786cd2346bd3103fade';
 function mirrorFor(url){
  let u;try{u=new URL(url)}catch(_){return null}
  if(u.origin!=='https://ebrahim-ead.github.io'||u.search||u.hash)return null;
  const ead=u.pathname.match(/^\/ead\/(assets\/(?:search-ayahs\.js|quran\/data\/(?:index\.json|suras\/\d{1,3}\.json)|hadith\/data\/(?:index\.json|(?:bukhari|muslim|abu-dawud|tirmidhi|nasai|ibn-majah|mishkat)\/\d{1,3}\.json)))$/);
  if(ead)return 'https://raw.githubusercontent.com/Ebrahim-ead/ead/'+EAD_SNAPSHOT+'/'+ead[1];
- const site=u.pathname.match(/^\/DAWAH-X\/((?:texts\/[a-f0-9]{3}\.json|hadith-search\/(?:meta|\d{2})\.json|(?:about|services|contact|policy)\.html))$/);
+ const site=u.pathname.match(/^\/DAWAH-X\/((?:texts\/[a-f0-9]{3}\.json|hadith-search\/(?:meta|\d{2})\.json|scripture-hadith-(?:malik|nawawi)-\d{1,3}\.json\.gz|(?:index|questions|fatwa|about|services|contact|policy)\.html))$/);
  return site?'https://raw.githubusercontent.com/Ebrahim-ead/DAWAH-X/'+SITE_SNAPSHOT+'/'+site[1]:null;
 }
 // Do not log URLs, questions, exception text, IP addresses or response bodies.
 // Fixed codes aid diagnosis in Worker logs without recording user content.
-function report(url,kind,reason,trace){const category=url.includes('/ead/assets/quran/')||url.endsWith('/assets/search-ayahs.js')?'quran':url.includes('/hadith')?'hadith':url.includes('/texts/')?'articles':'pages';console.warn('assistant-source',category,kind,reason);if(trace?.diagnostics&&trace.diagnostics.length<12)trace.diagnostics.push({category,origin:kind,reason})}
+function report(url,kind,reason,trace){const category=url.includes('/ead/assets/quran/')||url.endsWith('/assets/search-ayahs.js')?'quran':url.includes('/hadith')||url.includes('/scripture-hadith-')?'hadith':url.includes('/texts/')?'articles':'pages';console.warn('assistant-source',category,kind,reason);if(trace?.diagnostics&&trace.diagnostics.length<12)trace.diagnostics.push({category,origin:kind,reason})}
 export async function sourceText(url,maxBytes,mirrors){
+ return new TextDecoder().decode(await sourceBytes(url,maxBytes,mirrors));
+}
+export async function sourceBytes(url,maxBytes,mirrors){
  const mirror=mirrorFor(url);
  try{const result=await readSource(url,maxBytes,2);mirrors?.delete(url);return result}catch(error){
   if(!mirror)throw error;
@@ -49,7 +52,7 @@ async function readSource(url,maxBytes,attempts){
     }
    }catch(error){if(attempt+1<attempts&&error?.code!=='size')continue;if(error?.code==='size')throw error;throw sourceError(controller.signal.aborted?'timeout':'stream')}
    const bytes=new Uint8Array(size);let pos=0;for(const part of parts){bytes.set(part,pos);pos+=part.length}
-   return new TextDecoder().decode(bytes);
+   return bytes;
   }finally{clearTimeout(timer);controller.abort()}
  }
  throw sourceError('network');

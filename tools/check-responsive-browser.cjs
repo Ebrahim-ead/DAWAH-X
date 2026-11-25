@@ -86,7 +86,7 @@ const checkOverflow=async(page,label)=>{
     await page.click('.dxa-trigger');await page.fill('#dxa-input','নামাজের সময় কী?');await page.locator('.dxa-form button').click();
     await page.waitForFunction(()=>document.querySelector('.dxa-chat').textContent.includes('হাদিস, সাইটের লেখা খোঁজা'));
     assert.equal(await page.evaluate(()=>window.testSearchCalls),2,'temporary client search error should be retried');
-    assert.equal(assistantRequests.length,2);assert.equal(assistantRequests[1].siteSearchFailed,false);
+    assert.equal(assistantRequests.length,1);assert.equal(assistantRequests[0].siteSearchFailed,false);
     await page.fill('#dxa-input','তাওহীদ');await page.locator('.dxa-form button').click();
     await page.waitForFunction(()=>document.querySelector('.dxa-chat').textContent.includes('সরাসরি কুরআন ও হাদিসের পাঠ মেলেনি'));
 
@@ -140,9 +140,9 @@ const checkOverflow=async(page,label)=>{
      let data;if(!sent.lookupComplete)data={needs_sources:true,all_sources:true,...(['কুরআন ২:২৫৫','বুখারী ৮','quran er 2 number surah ki'].includes(sent.message)?{direct_lookup:true}:{})};
      else if(sent.siteSearchFailed)data={answer:'প্রাপ্ত উৎসের তথ্য [1]',grounded:true,partial:true,search_failures:['site_search'],snapshot_search:true,sources:[{number:1,type:'quran',surah:2,verse:43,title:'সূরা আল-বাকারা · 2:43',snapshot:'90aa8a8ae268faf8f615ccfbb642a66d17ca21f9'}]};
      else if(sent.message==='হ্যালো')data={answer:'হ্যালো! কেমন আছেন?',grounded:false,mode:'chat',sources:[]};
-     else if(sent.message==='quran er 2 number surah ki')data={answer:'কুরআনের 2 নম্বর সূরা হলো আল-বাকারা। [1]',grounded:true,sources:[{number:1,type:'quran-surah',surah:2,title:'সূরা আল-বাকারা · সূরা নম্বর 2'}]};
-     else if(sent.message==='কুরআন ২:২৫৫')data={answer:'আয়াত 2:255 [1]',grounded:true,sources:[{number:1,type:'quran',surah:2,verse:255,title:'সূরা আল-বাকারা · 2:255'}]};
-     else if(sent.message==='বুখারী ৮')data={answer:'বুখারী 8 [1]',grounded:true,sources:[{number:1,type:'hadith',book:'bukhari',chapter:2,hadith:8,title:'সহীহ বুখারী · হাদিস 8'}]};
+     else if(sent.message==='quran er 2 number surah ki')data={answer:'কুরআনের 2 নম্বর সূরা হলো আল-বাকারা। [1]',grounded:true,direct_lookup:true,sources:[{number:1,type:'quran-surah',surah:2,title:'সূরা আল-বাকারা · সূরা নম্বর 2'}]};
+     else if(sent.message==='কুরআন ২:২৫৫')data={answer:'আয়াত 2:255 [1]',grounded:true,direct_lookup:true,sources:[{number:1,type:'quran',surah:2,verse:255,title:'সূরা আল-বাকারা · 2:255'}]};
+     else if(sent.message==='বুখারী ৮')data={answer:'বুখারী 8 [1]',grounded:true,direct_lookup:true,sources:[{number:1,type:'hadith',book:'bukhari',chapter:2,hadith:8,title:'সহীহ বুখারী · হাদিস 8'}]};
      else if(sent.message==='দীর্ঘ উত্তর পরীক্ষা')data={answer:'শুরু '+('বিস্তারিত কথা। '.repeat(250))+'শেষ [1]',grounded:true,incomplete:true,sources:[{number:1,key:'034d218703d000',title:'উৎস লেখা'}]};
      else if(sent.message==='নামাজের গুরুত্ব কী?')data={answer:'কুরআন ও হাদিস [1] [2]',grounded:true,partial:true,sources:[{number:1,type:'quran',surah:2,verse:43,title:'সূরা আল-বাকারা · 2:43'},{number:2,type:'hadith',book:'bukhari',chapter:8,hadith:350,title:'সহীহ বুখারী · হাদিস 350'}]};
      else {const sources=sent.pages.includes('about.html')?[{number:1,path:'about.html',title:'আমাদের সম্পর্কে'}]:[{number:1,key:'034d218703d000',title:'উৎস লেখা'}];data={answer:'পরীক্ষিত উত্তর [1]',grounded:true,sources}}
@@ -151,7 +151,7 @@ const checkOverflow=async(page,label)=>{
     await page.evaluate(()=>{window.assistantSearchCalls=0;window.assistantQueries=[];window.dawahxAssistantSearch=async q=>{window.assistantSearchCalls++;window.assistantQueries.push(q);return {texts:[],videos:new Promise(()=>{})}}});
     await page.locator('.dxa-trigger').click();await page.locator('#dxa-input').fill('হ্যালো');await page.locator('.dxa-form button').click();
     await page.waitForFunction(()=>document.querySelector('.dxa-message.assistant')?.textContent==='হ্যালো! কেমন আছেন?');
-    assert.equal(requests.length,2);assert.equal(requests[0].lookupComplete,false);assert.equal(requests[1].allSources,true);assert.equal(await page.evaluate(()=>window.assistantSearchCalls),1);assert((await page.locator('.dxa-mode').first().textContent()).includes('সাধারণ আলাপ'));
+    assert.equal(requests.length,1);assert.equal(requests[0].lookupComplete,true);assert.equal(requests[0].allSources,true);assert.equal(await page.evaluate(()=>window.assistantSearchCalls),1);assert((await page.locator('.dxa-mode').first().textContent()).includes('সাধারণ আলাপ'));
     await page.locator('#dxa-input').fill('একটি প্রশ্ন');await page.locator('.dxa-form button').click();
     await page.waitForFunction(()=>document.querySelectorAll('.dxa-message.assistant').length===2);
     assert.equal(sent.message,'একটি প্রশ্ন');assert.equal(sent.lookupComplete,true);assert.deepEqual(sent.ids,[]);assert.deepEqual(sent.pages,[]);assert.equal(sent.scriptureSearch,true);assert.equal(sent.history.length,2);assert.equal(await page.locator('.dxa-sources a').first().getAttribute('href'),base+'read.html?k=034d218703d000');
@@ -161,7 +161,7 @@ const checkOverflow=async(page,label)=>{
     await page.locator('#dxa-input').fill('আজ রান্নার উপায় কী?');await page.locator('.dxa-form button').click();await page.waitForFunction(()=>document.querySelectorAll('.dxa-message.assistant').length===6);assert.equal(await page.evaluate(()=>window.assistantQueries.at(-1)),'আজ রান্নার উপায় কী?');assert.deepEqual(sent.pages,[],'a new subject does not keep old site context');
     const searchCount=await page.evaluate(()=>window.assistantSearchCalls);
     await page.locator('#dxa-input').fill('কুরআন ২:২৫৫');await page.locator('.dxa-form button').click();await page.waitForFunction(()=>document.querySelectorAll('.dxa-message.assistant').length===7);
-    assert.equal(await page.evaluate(()=>window.assistantSearchCalls),searchCount,'direct lookup skips unrelated site search');
+    assert.equal(await page.evaluate(()=>window.assistantSearchCalls),searchCount+1,'single request does local search before the Worker resolves the exact lookup');
     assert.equal(await page.locator('.dxa-sources a').nth(-2).getAttribute('href'),'https://ebrahim-ead.github.io/ead/quran.html#2:255');assert.equal(await page.locator('.dxa-sources a').last().getAttribute('href'),'https://quran.com/2/255');
     await page.locator('#dxa-input').fill('বুখারী ৮');await page.locator('.dxa-form button').click();await page.waitForFunction(()=>document.querySelectorAll('.dxa-message.assistant').length===8);
     assert.equal(await page.locator('.dxa-sources a').nth(-2).getAttribute('href'),'https://ebrahim-ead.github.io/ead/hadith.html#bukhari:2:8');assert((await page.locator('.dxa-sources a').last().getAttribute('href')).startsWith('https://www.hadithbd.com/search/?q='));

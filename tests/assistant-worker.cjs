@@ -57,7 +57,7 @@ const assert=require('node:assert/strict');
   const chatEnv={...env,AI:{run:async(model,args)=>{routeCalls.push({model,args});return {response:model==='@cf/openai/gpt-oss-20b'?'CHAT':'আমি ভালো আছি। আপনি কেমন আছেন?'}}}};
   global.fetch=async()=>{chatFetches++;throw Error('chat must not retrieve site sources')};
   const phase=(message,history=[])=>({message,ids:[],pages:[],history,lookupComplete:false});
-  res=await worker.fetch(req(phase('আজ মনটা ভালো নেই')),chatEnv);data=await res.json();assert.equal(data.mode,'chat');assert.equal(data.grounded,false);assert.equal(data.answer,'আমি ভালো আছি। আপনি কেমন আছেন?');assert.equal(chatFetches,0);assert.equal(routeCalls.length,2);assert.match(routeCalls[1].args.messages[0].content,/Do not answer questions about Islam/);
+  res=await worker.fetch(req(phase('আজ মনটা ভালো নেই')),chatEnv);data=await res.json();assert.equal(data.mode,'chat');assert.equal(data.grounded,false);assert.equal(data.answer,'আমি ভালো আছি। আপনি কেমন আছেন?');assert.equal(chatFetches,0);assert.equal(routeCalls.length,2);assert.match(routeCalls[1].args.messages[0].content,/Do not answer factual questions/);
   for(const text of ['নামাজের নিয়ম কী?', 'Is this halal?', 'রোজা ভাঙলে কী হবে?', 'DAWAH X কী?', 'namaz ki?', 'namajer gurutto ki?', 'রোজা rekhe injection nile ki roja venge jay?', 'ইফতারের সময় কী?', 'রুকুতে কী পড়তে হয়?', 'ramadan rules?']){
    routeCalls=[];res=await worker.fetch(req(phase(text)),chatEnv);data=await res.json();assert.equal(data.needs_sources,true,`religious/site question must request sources: ${text}`);assert.equal(routeCalls.length,0,'hard guard must not run chat model');
   }
