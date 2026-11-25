@@ -115,5 +115,10 @@
     "count": 2013,
     "chapters": 20,
     "sha256": "d904d2ab8d0d328ffec341b09554f192cf63ee4d7ccbdb39dd77238cdfea7664"
+  },
+  {
+    "slug": "riyadus-salihin",
+    "status": "failed",
+    "error": "Error: Missing displayed number riyadus-salihin:941"
   }
 ]
