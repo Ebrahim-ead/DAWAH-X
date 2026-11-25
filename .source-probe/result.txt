@@ -1,0 +1,9 @@
+URL https://www.hadithbd.net/hadith/fullbook/?pageNum_mainHadith=172&totalRows_mainHadith=3542&book=21
+status=404 effective=https://www.hadithbd.net/hadith/fullbook/?pageNum_mainHadith=172&totalRows_mainHadith=3542&book=21 bytes=796
+<!DOCTYPE html> <html style="height:100%"> <head> <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" /> <title> 404 Not Found </title><style>@me
+URL https://hadithbd.net/hadith/fullbook/?pageNum_mainHadith=109&totalRows_mainHadith=3902&book=27
+status=404 effective=https://hadithbd.net/hadith/fullbook/?pageNum_mainHadith=109&totalRows_mainHadith=3902&book=27 bytes=796
+<!DOCTYPE html> <html style="height:100%"> <head> <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" /> <title> 404 Not Found </title><style>@me
+URL https://www.tauhiderdak.com/
+status=200 effective=https://www.tauhiderdak.com/ bytes=272022
+<!DOCTYPE html> <html lang="bn-BD"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1"> 	<link rel="profile" href="https://gmpg.org/x
