@@ -91,11 +91,6 @@
     "sha256": "d3b9a00b5b66f3f233c8409a862c36aa58e2104a030270086b90fa06632cf410"
   },
   {
-    "slug": "bulugul-maram",
-    "status": "failed",
-    "error": "Error: Missing displayed number bulugul-maram:1448"
-  },
-  {
     "slug": "muwatta-malik",
     "status": "complete",
     "count": 1830,
@@ -120,5 +115,12 @@
     "slug": "riyadus-salihin",
     "status": "failed",
     "error": "Error: Missing displayed number riyadus-salihin:941"
+  },
+  {
+    "slug": "bulugul-maram",
+    "status": "complete",
+    "count": 1568,
+    "chapters": 16,
+    "sha256": "ce50f5f2fd8a331404dc3183a9477872285f7fb4c21cd079ebfd2439d928402a"
   }
 ]
