@@ -1451,7 +1451,7 @@ html[data-theme="light"] .prayer-disclaimer{background:rgba(23,36,44,.025);borde
 /* Dedicated Quran and Hadith readers on the home page. */
 .home-scripture{padding:clamp(30px,5vw,62px) 0}.home-scripture-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:20px}.scripture-card{display:flex;align-items:center;gap:15px;min-height:104px;padding:20px;border:1px solid var(--line);border-radius:18px;background:var(--card);color:var(--text);text-decoration:none;transition:border-color .2s,transform .2s}.scripture-card:hover{border-color:var(--gold);transform:translateY(-2px)}.scripture-card:focus-visible{outline:2px solid var(--gold);outline-offset:3px}.scripture-card>span:nth-child(2){flex:1;min-width:0}.scripture-card strong,.scripture-card small{display:block}.scripture-card strong{font-size:19px;color:var(--gold2)}.scripture-card small{font-size:13px;margin-top:4px;color:var(--muted)}.scripture-card-icon{display:grid;place-items:center;width:50px;height:50px;flex:0 0 50px;border-radius:14px;color:var(--gold2);background:rgba(212,175,55,.12);font-size:25px}@media(max-width:560px){.home-scripture-grid{grid-template-columns:1fr}.scripture-card{min-height:92px}}
 
-/* Keep the eleven main sections visible on desktop without horizontal overflow. */
+/* Keep the ten main sections visible on desktop without horizontal overflow. */
 @media(min-width:1100px){
  header.top .bar{max-width:1500px;width:100%;gap:8px;padding-inline:16px}
  #menu{flex:1 1 auto;min-width:0;gap:2px;justify-content:space-between}

@@ -93,8 +93,9 @@ const checkOverflow=async(page,label)=>{
     await page.locator('.dxa-close').click();
    }
 
-   const expectedMenu=['index.html','quran.html','hadith.html','questions.html','topics.html','fatwa.html','videos.html','ask.html','about.html','services.html','contact.html'];
+   const expectedMenu=['index.html','quran.html','hadith.html','questions.html','topics.html','fatwa.html','videos.html','ask.html','about.html','contact.html'];
    assert.deepEqual(await page.locator('#menu a').evaluateAll(links=>links.map(a=>a.getAttribute('href'))),expectedMenu);
+   assert.equal(await page.locator('footer .qlinks a[href="services.html"]').count(),1);
    await page.click('#theme-toggle');assert.notEqual(await page.getAttribute('html','data-theme'),theme);await page.reload();assert.notEqual(await page.getAttribute('html','data-theme'),theme);await page.click('#theme-toggle');
    if(width<1100){await page.click('#burger');assert.equal(await page.getAttribute('#burger','aria-expanded'),'true');await page.keyboard.press('Escape');assert.equal(await page.getAttribute('#burger','aria-expanded'),'false')}
    await page.evaluate(()=>scrollTo(0,1200));await page.waitForFunction(()=>document.querySelector('#back-to-top')?.classList.contains('is-visible'));await page.click('#back-to-top');await page.waitForFunction(()=>scrollY===0);
@@ -201,7 +202,7 @@ const checkOverflow=async(page,label)=>{
    if(fallback)await context.route('**/fonts/**',route=>route.abort());
    page=await context.newPage();await page.goto(base+'index.html',{waitUntil:'domcontentloaded'});await page.evaluate(()=>document.fonts.ready);
    const bounds=await page.locator('#menu a').evaluateAll(links=>links.map(link=>{const b=link.getBoundingClientRect();return {left:b.left,right:b.right,top:b.top,bottom:b.bottom,scroll:link.scrollWidth,client:link.clientWidth}}));
-   assert.equal(bounds.length,11);for(let i=0;i<bounds.length;i++){assert(bounds[i].scroll<=bounds[i].client+1,`${width}px fallback=${fallback}: clipped navigation text`);if(i){assert(bounds[i].left>=bounds[i-1].right-1,`${width}px: overlapping navigation links`);assert(Math.abs(bounds[i].top-bounds[0].top)<2,`${width}px: wrapped navigation`)}}
+   assert.equal(bounds.length,10);for(let i=0;i<bounds.length;i++){assert(bounds[i].scroll<=bounds[i].client+1,`${width}px fallback=${fallback}: clipped navigation text`);if(i){assert(bounds[i].left>=bounds[i-1].right-1,`${width}px: overlapping navigation links`);assert(Math.abs(bounds[i].top-bounds[0].top)<2,`${width}px: wrapped navigation`)}}
    const acts=await page.locator('.acts').boundingBox();assert(bounds.at(-1).right<=acts.x+1,`${width}px: navigation overlaps actions`);
    await checkOverflow(page,`${width}px desktop navigation`);await context.close();page=null;
   }
