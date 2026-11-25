@@ -8,12 +8,16 @@
     root.setAttribute('data-theme', light ? 'light' : 'dark');
     if (meta) meta.setAttribute('content', light ? '#f6f5ef' : '#08151a');
     if (logo) logo.setAttribute('src', light ? 'logo-dark.webp' : 'logo.webp');
+    var footerLogo = document.querySelector('footer .word');
+    if (footerLogo) footerLogo.setAttribute('src', light ? 'logo-dark.webp' : 'logo.webp');
     if (button) { button.setAttribute('aria-pressed', String(light)); button.setAttribute('aria-label', light ? 'রাতের মোডে ফিরে যান' : 'দিনের আলোয় দেখুন'); }
     if (persist) try { localStorage.setItem('dawahx-theme', light ? 'light' : 'dark'); } catch (_) {}
     window.dispatchEvent(new Event('dawahx-themechange'));
   }
   window.dawahxReaderTheme = function (theme) { paint(theme === 'light', true); };
   paint(root.getAttribute('data-theme') === 'light', false);
+  var year = document.getElementById('yr');
+  if (year) year.textContent = new Date().getFullYear();
   if (button) button.addEventListener('click', function () { paint(root.getAttribute('data-theme') !== 'light', true); });
   var media = window.matchMedia ? window.matchMedia('(prefers-color-scheme: light)') : null;
   function followSystem() { try { if (!localStorage.getItem('dawahx-theme') && media) paint(media.matches, false); } catch (_) {} }

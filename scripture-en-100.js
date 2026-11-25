@@ -1,0 +1,3 @@
+/* Pickthall 1930; quran-json snapshot, see scripture-credits.md. */
+window.EN_SURAHS = window.EN_SURAHS || {};
+window.EN_SURAHS[100] = ["By the snorting courses","Striking sparks of fire","And scouring to the raid at dawn","Then, therewith, with their trail of dust","Cleaving, as one, the centre (of the foe)","Lo! man is an ingrate unto his Lord","And lo! he is a witness unto that","And lo! in the love of wealth he is violent","Knoweth he not that, when the contents of the graves are poured forth","And the secrets of the breasts are made known","On that day will their Lord be perfectly informed concerning them"];

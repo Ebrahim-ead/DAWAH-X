@@ -1,0 +1,3 @@
+/* Pickthall 1930; quran-json snapshot, see scripture-credits.md. */
+window.EN_SURAHS = window.EN_SURAHS || {};
+window.EN_SURAHS[99] = ["When Earth is shaken with her (final) earthquake","And Earth yieldeth up her burdens","And man saith: What aileth her","That day she will relate her chronicles","Because thy Lord inspireth her","That day mankind will issue forth in scattered groups to be shown their deeds","And whoso doeth good an atom's weight will see it then","And whoso doeth ill an atom's weight will see it then"];

@@ -44,6 +44,13 @@ async function go(w, hash) { w.location.hash=hash; await new Promise(r=>setTimeo
   assert.equal($('#menu a[aria-current="page"]').getAttribute('href'),'quran.html');
   await go(w,'/s/1/a/1');
   await waitFor(()=>$('#v1 .verse-translation')?.textContent.includes('রহমান, রহীম'),'translation');
+  await waitFor(()=>$('#v1 .english-translation .tr-text')?.textContent === 'In the name of Allah, the Beneficent, the Merciful','English translation');
+  assert.ok($('.source-note').textContent.includes('Pickthall'));
+  assert.equal(w.document.querySelectorAll('footer .qlinks li').length,13);
+  click(w,'#showEnglish'); assert.equal($('#v1 .english-translation'),null);
+  click(w,'#showEnglish'); await waitFor(()=>$('#v1 .english-translation .tr-text')?.textContent.startsWith('In the name'), 'English translation re-enabled');
+  await go(w,'/s/114/a/6'); await waitFor(()=>$('#v6 .english-translation .tr-text')?.textContent==='Of the jinn and of mankind','last English verse');
+  await go(w,'/s/1/a/1'); await waitFor(()=>$('#v1 .fn-ref'),'first surah restored');
   click(w,'#v1 .fn-ref'); await waitFor(()=>$('#v1 .verse-tafsir .fn-anchor'),'Zakaria tafsir');
   let select=$('#tafsirSourceSelect'); select.value='ibn-kathir'; select.dispatchEvent(new w.Event('change',{bubbles:true}));
   click(w,'[data-action="mode"][data-mode="study"]'); await waitFor(()=>$('#v1 .tafsir-body'),'Ibn Kathir tafsir');
