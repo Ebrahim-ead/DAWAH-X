@@ -1358,7 +1358,7 @@
     return 'muted';
   }
   function hadithCredit() {
-    return '<p class="meta-credit hadith-credit">হাদিসের উৎস: <a href="https://ebrahim-ead.github.io/ead/hadith.html" target="_blank" rel="noopener noreferrer">Ebrahim Ead</a> · ছয় গ্রন্থ: আল-হাদিস (iHadis) · মিশকাত: মুসলিম বাংলা · <a href="scripture-credits.md">ক্রেডিট</a></p>';
+    return '<p class="meta-credit hadith-credit">হাদিসের উৎস: <a href="https://ebrahim-ead.github.io/ead/hadith.html" target="_blank" rel="noopener noreferrer">Ebrahim Ead</a> ও <a href="https://ihadis.com/hadith-books" target="_blank" rel="noopener noreferrer">iHadis</a> · মিশকাত: মুসলিম বাংলা · <a href="scripture-credits.md">ক্রেডিট</a></p>';
   }
   function hadithSearchForm(q, scope, grade) {
     var opts = '<option value="all"' + (scope === 'all' ? ' selected' : '') + '>সব গ্রন্থ</option>' +
@@ -1399,9 +1399,9 @@
         '</div>' +
       '</div>' +
       (r[10] ? '<p class="hadith-ref">' + esc(r[10]) + '</p>' : '') +
-      (r[4] ? '<p class="hadith-ar" lang="ar" dir="rtl">' + esc(r[4]) + '</p>' :
+      (r[4] ? '<p class="hadith-ar" lang="ar" dir="rtl">' + esc(r[4]).replace(/\n/g, '<br>') + '</p>' :
         '<p class="hadith-ar missing">এই হাদিসের আরবি মূল উৎসে নেই।</p>') +
-      (r[3] ? '<p class="hadith-bn">' + esc(r[3]) + '</p>' :
+      (r[3] ? '<p class="hadith-bn">' + esc(r[3]).replace(/\n/g, '<br>') + '</p>' :
         '<p class="hadith-bn missing">এই হাদিসের বাংলা অনুবাদ উৎসে নেই।</p>') +
       hadithReason(id, r) +
       '<div class="hadith-foot">' +
@@ -1413,12 +1413,13 @@
         '<div class="hadith-actions">' +
           '<button type="button" class="btn btn-sm" data-action="hadith-open" data-book="' + id + '" data-i="' + r[0] + '">একক পাতা ' + ICON.arrow + '</button>' +
           '<button type="button" class="btn btn-sm btn-ghost" data-action="hadith-share" data-book="' + id + '" data-i="' + r[0] + '">লিংক কপি</button>' +
-          '<a class="btn btn-sm btn-ghost" href="' + esc('https://ebrahim-ead.github.io/ead/hadith.html#' + b.slug + ':' + (sec ? sec.id : 1) + ':' + r[1]) + '" target="_blank" rel="noopener noreferrer">উৎস ↗</a>' +
+          '<a class="btn btn-sm btn-ghost" href="' + esc(b.source === 'ihadis-direct' ? b.site + '/hadith/' + r[1] : 'https://ebrahim-ead.github.io/ead/hadith.html#' + b.slug + ':' + (sec ? sec.id : 1) + ':' + r[1]) + '" target="_blank" rel="noopener noreferrer">উৎস ↗</a>' +
         '</div>' +
       '</div>' +
     '</article>';
   }
   function hadithSourceNote(id) {
+    if (hBook(id).source === 'ihadis-direct') return 'iHadis · ' + hBook(id).edition + ' · ' + hBook(id).site;
     return hBook(id).source === 'mishkat' ? 'মিশকাত: মুসলিম বাংলা, Ebrahim Ead সংগ্রহ' : 'আল-হাদিস (iHadis), Ebrahim Ead সংগ্রহ';
   }
   function hadithCopyText(id, r) {
@@ -1470,13 +1471,13 @@
       return '<a class="card-panel hadith-book" href="#/hadith2/' + id + '">' +
         '<span class="hadith-book-ar" lang="ar" dir="rtl">' + esc(b.ar) + '</span>' +
         '<h3>' + esc(b.bn) + '</h3>' +
-        '<p class="hadith-book-en">' + esc(b.en) + ' · ' + esc(b.edition) + '</p>' +
+        '<p class="hadith-book-en">' + (b.en ? esc(b.en) + ' · ' : '') + esc(b.edition) + '</p>' +
         '<p class="hadith-book-count"><b>' + bn(b.total) + '</b> টি হাদিস · <b>' + bn(b.shards) + '</b> টি অধ্যায়</p>' +
         '<span class="card-arrow">পড়ুন →</span></a>';
     }).join('');
     app.innerHTML =
       '<section class="page-head"><div class="eyebrow">' + bn(HBOOKS.length) + ' টি গ্রন্থ</div><h1>হাদিস</h1>' +
-      '<p>বুখারী, মুসলিম, চার সুনান ও মিশকাত — ' +
+      '<p>বুখারী, মুসলিম, চার সুনান, মিশকাত ও অন্যান্য গ্রন্থ — ' +
       bn(HTOTAL) + 'টি হাদিস: আরবি মূল প্রথমে, তার নিচে বাংলা। ' +
       'যে ঘরে উৎসে লেখা নেই সেখানে স্পষ্ট নোট; হাদিস-পাঠ বানানো হয়নি।</p></section>' +
       hadithSearchForm('', 'all', 'all') +
@@ -1506,7 +1507,7 @@
     }).join('');
     app.innerHTML =
       '<section class="page-head"><div class="eyebrow"><a href="#/hadith" class="back-link">← হাদিস</a></div>' +
-      '<h1>' + esc(b.bn) + '</h1><p>' + esc(b.en) + ' · ' + esc(b.edition) + ' · ' + bn(b.total) + ' টি হাদিস' +
+      '<h1>' + esc(b.bn) + '</h1><p>' + (b.en ? esc(b.en) + ' · ' : '') + esc(b.edition) + ' · ' + bn(b.total) + ' টি হাদিস' +
       (b.langs && b.langs.bn ? '' : ' · <b>আরবি মূল; বাংলা/ইংরেজি অনুবাদ উৎসে নেই</b>') +
       ' · নম্বর উৎসের সংস্করণ অনুযায়ী' + '</p></section>' +
       '<div class="card-panel search-panel">' +

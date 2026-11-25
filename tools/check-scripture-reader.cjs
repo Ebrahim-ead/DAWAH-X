@@ -128,7 +128,7 @@ async function go(w, hash) { w.location.hash=hash; await new Promise(r=>setTimeo
   assert.ok($('#searchResults').textContent.includes('রহমান'));
   dom.window.close(); delayIndexes=false;
   dom=await open('hadith.html'); w=dom.window; $=s=>w.document.querySelector(s);
-  await waitFor(()=>w.document.querySelectorAll('.hadith-book').length===7,'book catalogue'); assert.equal(w.location.hash,'#/hadith');
+  await waitFor(()=>w.document.querySelectorAll('.hadith-book').length===10,'book catalogue'); assert.equal(w.location.hash,'#/hadith');
   const bn=n=>String(n).replace(/[0-9]/g,d=>'০১২৩৪৫৬৭৮৯'[+d]);
   const grades=w.document.querySelectorAll('.grade-card');
   assert.ok(grades[0].textContent.includes(bn(w.HADITH_GRADE_INDEX.daif.length)));
@@ -145,6 +145,10 @@ async function go(w, hash) { w.location.hash=hash; await new Promise(r=>setTimeo
   assert.match($('#hadithGradeResults .hadith-grade').textContent,/যঈফ|দুর্বল/);assert.equal(w.document.querySelectorAll('#hadithGradeResults button.more-btn').length,0);
   ob=w.__observers.findLast(x=>!x.disconnected);assert(ob,'grade observer');kept=$('#hadithGradeResults .hadith-card');ob.trigger();await waitFor(()=>w.document.querySelectorAll('#hadithGradeResults .hadith-card').length>20,'automatic grade batch');assert.equal($('#hadithGradeResults .hadith-card'),kept,'grade batch preserves existing cards');
   await go(w,'/hadith/bukhari/1');assert(w.document.body.textContent.includes('সংগ্রহ পরিবর্তিত হয়েছে'),'old links do not change meaning');
+  await go(w,'/hadith2/daifseries/14');await waitFor(()=>$('.hadith-card .hadith-grade-reason'),'iHadis direct edition');
+  assert.match($('.hadith-card .hadith-grade').textContent,/দুর্বল/);assert.ok($('.hadith-ar.missing'));assert.match($('.hadith-grade-reason').textContent,/ওয়াকেদী/);
+  assert.equal($('.hadith-actions a').href,'https://ihadis.com/dhaif-hadis-sirij/hadith/14');
+  await go(w,'/hadith2/nawawi/11');await waitFor(()=>$('.hadith-card .hadith-grade')?.textContent.includes('হাসান সহিহ'),'iHadis full individual source');assert.match($('.hadith-card .hadith-ar').textContent,/الْحَسَنِ/);
   await go(w,'/hadith2/abudawud/1');await waitFor(()=>$('.hadith-card .hadith-bn'),'EAD first hadith');
   const source=w.HADITH_DATA.abudawud[1][0];assert.equal($('.hadith-bn').textContent,source[3]);assert.equal($('.hadith-grade').textContent,source[7]);assert.equal($('.hadith-actions a').href,'https://ebrahim-ead.github.io/ead/hadith.html#abu-dawud:1:1');
   await go(w,'/hadith2/abudawud/3');await waitFor(()=>$('.hadith-grade-reason p'),'source note');assert.equal($('.hadith-grade-reason p').textContent,w.HADITH_DATA.abudawud[1][2][8]);
@@ -168,5 +172,5 @@ async function go(w, hash) { w.location.hash=hash; await new Promise(r=>setTimeo
   await waitFor(()=>$('#hadithResults')?.textContent.includes('অনুসন্ধান সম্পূর্ণ হয়নি'),'failed search notice');
   assert.ok(!$('#hadithResults').textContent.includes('কিছু পাওয়া যায়নি'));
   dom.window.close(); assert.deepEqual(errors,[]);
-  console.log('scripture reader: project-relative routes, surahs, tafsir, search, all 7 books, bookmarks, gzip modes and errors pass (jsdom)');
+  console.log('scripture reader: project-relative routes, surahs, tafsir, search, all 10 books, bookmarks, gzip modes and errors pass (jsdom)');
 })().catch(e=>{console.error(e);process.exitCode=1;}).finally(()=>server.close());
