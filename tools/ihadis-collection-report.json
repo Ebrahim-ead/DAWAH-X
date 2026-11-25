@@ -50,7 +50,9 @@
   },
   {
     "slug": "fazayele-amal",
-    "status": "failed",
-    "error": "Error: Missing rendered cards 1: 11,12,13"
+    "status": "complete",
+    "count": 151,
+    "chapters": 3,
+    "sha256": "8e8e62d6cdcb95647291d93bc68ce080c4e3f9ca63747be6e882e1c32dba0fe1"
   }
 ]
