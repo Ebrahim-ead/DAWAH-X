@@ -9,7 +9,7 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 (async()=>{const reportFile='tools/ihadis-collection-report.json',report=JSON.parse(fs.readFileSync(reportFile)).filter(r=>r.slug!==slug);let browser, page,block=[];
  try {
   browser=await chromium.launch({executablePath:process.env.CHROME_PATH||'/usr/bin/google-chrome',args:['--no-sandbox']});
-  page=await browser.newPage({viewport:{width:1200,height:9000},serviceWorkers:'block'});
+  page=await browser.newPage({viewport:{width:1200,height:6000},serviceWorkers:'block'});
   page.on('response',r=>{if(r.url().startsWith('https://ihadis.com/')&&[403,429,500,502,503].includes(r.status()))block.push({status:r.status(),path:new URL(r.url()).pathname})});
   await page.route('**/*',route=>{const u=new URL(route.request().url());return u.hostname!=='ihadis.com'||['image','media','font'].includes(route.request().resourceType())?route.abort():route.continue()});
   async function open(path){await sleep(1200);const r=await page.goto('https://ihadis.com'+path,{waitUntil:'domcontentloaded',timeout:60000});if(!r||r.status()!==200||block.length)throw Error('HTTP or site failure '+path+' '+JSON.stringify(block));return r.text()}
@@ -24,9 +24,13 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
     for(const html of state.cards){let row=x.chapter(html,slug,ch.id).rows[0];if(!row||!expected.has(row.id))throw Error('Unexpected rendered card '+ch.id+':'+row?.id);if(rows.has(row.id)&&JSON.stringify(rows.get(row.id))!==JSON.stringify(row))throw Error('Rendered/source mismatch '+ch.id+':'+row.id);rows.set(row.id,row)}
     if(rows.size===expected.size)break;
     if(++steps>1200)throw Error('Chapter scroll limit '+ch.id);
-    if(state.y+state.h>=state.height-5){if(++sweeps>2)throw Error('Missing rendered cards '+ch.id+': '+[...expected].filter(id=>!rows.has(id)).join(','));await page.evaluate(()=>window.scrollTo(0,0));await page.waitForTimeout(4000)}
+    if(state.y+state.h>=state.height-5){if(++sweeps>2)break;await page.evaluate(()=>window.scrollTo(0,0));await page.waitForTimeout(4000)}
     else {await page.evaluate(()=>window.scrollBy(0,4500));await page.waitForTimeout(1500)}
    }
+   const missing=[...expected].filter(id=>!rows.has(id));
+   if(missing.length>50)throw Error('Too many missing rendered cards '+ch.id+': '+missing.length);
+   for(const id of missing){const html=await open('/'+slug+'/hadith/'+id);const row=x.single(html,slug,id);rows.set(id,row)}
+   if(rows.size!==expected.size)throw Error('Incomplete chapter '+ch.id);
    let ordered=[...rows.values()].sort((a,b)=>a.id-b.id);for(const row of ordered){if(all.has(row.id))throw Error('Repeated identity '+row.id);all.add(row.id)}
    sections.push({id:ch.id,name:ch.name,chapterSha256:base.sha256,rows:ordered});console.log('Chapter',slug,ch.id,'complete',ordered.length,'scrolls',steps);
   }
