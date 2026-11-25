@@ -1327,6 +1327,22 @@
       '</form><p class="search-hint">' + bn(HTOTAL) + ' টি হাদিসে খোঁজা যায়। ' +
       'কিছু হাদিসের আরবি বা অনুবাদ উৎসে নেই; ফাঁকা ঘর বানিয়ে ভরাট করা হয়নি। সব গ্রন্থে খুঁজতে অনেক তথ্য ডাউনলোড হতে পারে।</p></div>';
   }
+  // Individually reviewed explanations only: collection, edition number and
+  // distinctive Arabic chain must all match. Do not infer causes from grade.
+  function hadithGradeReason(id, r) {
+    var category = gradeCategory(id, r[7]);
+    if (category !== 'daif' && category !== 'mawdu') return '';
+    var reason = '', link = '';
+    if (id === 'abudawud' && r[0] === 594 && r[1] === 594 && category === 'daif' && r[4].includes('عَنْ مَكْحُولٍ، عَنْ أَبِي هُرَيْرَةَ')) {
+      reason = 'ইমাম দারাকুতনীর মতে, মাকহূল আবূ হুরাইরাহ (রাঃ) থেকে এই বর্ণনাটি শোনেননি; তাই এই সনদটি বিচ্ছিন্ন।';
+      link = 'https://www.hadithbd.com/hadith/abu-dawud/594';
+    } else if (id === 'abudawud' && r[0] === 756 && r[1] === 756 && category === 'daif' && r[4].includes('عَبْدِ الرَّحْمَنِ بْنِ إِسْحَاقَ، عَنْ زِيَادِ بْنِ زَيْدٍ')) {
+      reason = 'শায়খ আলবানীর আলোচনায় সনদের বর্ণনাকারী আবদুর রহমান ইবনু ইসহাক আল-ওয়াসিতীকে দুর্বল এবং সনদের বর্ণনায় অসঙ্গতিকে ত্রুটি হিসেবে উল্লেখ করা হয়েছে।';
+      link = 'https://www.hadithbd.com/hadith/abu-dawud/756';
+    }
+    if (reason) return '<p class="hadith-grade-reason"><strong>মানের কারণ:</strong> ' + esc(reason) + ' <a href="' + esc(link) + '" target="_blank" rel="noopener noreferrer">বিস্তারিত তাহকীক ও উৎস ↗</a>। গ্রেডার ও সংস্করণভেদে মত ভিন্ন হতে পারে।</p>';
+    return '<p class="hadith-grade-reason">এই মানটি উৎসের তাহকীক থেকে দেখানো হয়েছে। এই নির্দিষ্ট বর্ণনাটির যাচাইকৃত কারণ এখানে এখনও যুক্ত করা হয়নি; মূল পাঠ ও বিস্তারিত তাহকীক দেখুন এবং যোগ্য মুহাদ্দিসের কাছে যাচাই করুন। অনুমান করে কারণ দেখানো হচ্ছে না।</p>';
+  }
   function hadithCard(id, r) {
     var b = hBook(id), an = hNum(r[2]), sec = hSectionOf(id, r[0]);
     var gl = gradeLabel(id, r[7]), gcls = gradeClass(gl);
@@ -1347,7 +1363,7 @@
         '<p class="hadith-ar missing">এই হাদিসের আরবি মূল উৎসে নেই।</p>') +
       (r[3] ? '<p class="hadith-bn">' + esc(r[3]) + '</p>' :
         '<p class="hadith-bn missing">এই হাদিসের বাংলা অনুবাদ উৎসে নেই।</p>') +
-      ((gradeCategory(id, r[7]) === 'daif' || gradeCategory(id, r[7]) === 'mawdu') ? '<p class="hadith-grade-reason">এই মানটি উৎসের তাহকীক থেকে দেখানো হয়েছে। এই নির্দিষ্ট বর্ণনাটি কেন ' + (gradeCategory(id, r[7]) === 'mawdu' ? 'জাল' : 'যঈফ') + ' বলা হয়েছে তার কারণ ডেটাসেটে নেই; অনুমান করে কারণ দেখানো হচ্ছে না। মূল তাহকীক ও যোগ্য মুহাদ্দিসের কাছে যাচাই করুন।</p>' : '') +
+      hadithGradeReason(id, r) +
       '<div class="hadith-foot">' +
         '<div class="hadith-ref">' +
           (an ? 'আন্তর্জাতিক নম্বর ' + esc(an) + ' · ' : '') +
@@ -1472,10 +1488,10 @@
     marker.textContent = 'পরবর্তী হাদিস আসছে…'; box.appendChild(marker);
     var active = true, observer = null;
     function cleanup() { if (!active) return; active = false; if (observer) observer.disconnect(); window.removeEventListener('scroll', check); window.removeEventListener('resize', check); }
-    function next() { if (!active || !marker.isConnected) { cleanup(); return; } cleanup(); hadithAutoStop = null; loadNext(); }
+    function next() { if (!active || !marker.isConnected) { cleanup(); return; } cleanup(); marker.remove(); hadithAutoStop = null; loadNext(); }
     function check() { if (marker.isConnected && marker.getBoundingClientRect().top < window.innerHeight + 400) next(); }
     if ('IntersectionObserver' in window) { observer = new IntersectionObserver(function (entries) { if (entries.some(function (entry) { return entry.isIntersecting; })) next(); }, { rootMargin: '400px' }); observer.observe(marker); }
-    else { window.addEventListener('scroll', check, { passive: true }); window.addEventListener('resize', check); }
+    else { window.addEventListener('scroll', check, { passive: true }); window.addEventListener('resize', check); window.requestAnimationFrame(check); }
     hadithAutoStop = cleanup;
   }
   function renderHadithSection(id, secId) {
@@ -1499,13 +1515,16 @@
   function drawHadithSection(id, secId) {
     var box = document.getElementById('hadithList');
     if (!box) return;
-    var arr = hData(id, secId) || [];
-    var html = '<div class="hadith-list">' + arr.slice(0, state.hadithLimit).map(function (r) {
-      return hadithCard(id, r);
-    }).join('') + '</div>';
-    if (!arr.length) html = '<div class="empty-state"><h3>লোড করা যায়নি</h3><p>সংযোগ পরীক্ষা করে পাতা রিফ্রেশ করুন।</p></div>';
-    box.innerHTML = html;
-    if (arr.length > state.hadithLimit) watchHadithMore(box, function () { state.hadithLimit += 40; drawHadithSection(id, secId); });
+    var arr = hData(id, secId) || [], shown = 0;
+    if (!arr.length) { box.innerHTML = '<div class="empty-state"><h3>লোড করা যায়নি</h3><p>সংযোগ পরীক্ষা করে পাতা রিফ্রেশ করুন।</p></div>'; return; }
+    box.innerHTML = '<div class="hadith-list"></div>';
+    function appendBatch() {
+      var end = Math.min(arr.length, shown + (shown ? 40 : 20));
+      box.querySelector('.hadith-list').insertAdjacentHTML('beforeend', arr.slice(shown, end).map(function (r) { return hadithCard(id, r); }).join(''));
+      shown = end;
+      if (shown < arr.length) watchHadithMore(box, appendBatch);
+    }
+    appendBatch();
   }
   function renderHadithOne(id, i) {
     state.view = 'hadith'; var b = hBook(id), sec = hSectionOf(id, i);
@@ -1552,20 +1571,24 @@
     var gi = window.HADITH_GRADE_INDEX || { daif: [], mawdu: [] };
     var list = (state.hadithGradeKey === 'mawdu' ? gi.mawdu : gi.daif) || [];
     if (!box) return;
-    var seq = state.hadithSeq, slice = list.slice(0, state.hadithGradeLimit);
-    box.innerHTML = '<div class="search-progress">হাদিস লোড হচ্ছে…</div>';
-    var pairs = slice.map(function (x) { return [x[0], x[2]]; });
-    loadHadithMany(pairs, function (complete) {
-      if (state.view !== 'hadith' || seq !== state.hadithSeq || !document.getElementById('hadithGradeResults')) return;
-      var cards = slice.map(function (x) {
-        var r = hFind(x[0], x[1]);
-        return r ? hadithCard(x[0], r) : '';
-      }).filter(Boolean).join('');
-      box.innerHTML = (complete ? '' : '<p class="search-progress">কিছু হাদিস লোড করা যায়নি। সংযোগ পরীক্ষা করে পাতা রিফ্রেশ করুন।</p>') +
-        '<p class="result-meta">' + bn(list.length) + ' টির মধ্যে ' + bn(slice.length) + ' টি চাওয়া হয়েছে</p>' +
-        '<div class="hadith-list">' + (cards || '<div class="empty-state"><h3>কিছু পাওয়া যায়নি</h3></div>') + '</div>';
-      if (complete && list.length > slice.length) watchHadithMore(box, function () { state.hadithGradeLimit += 40; drawHadithGrade(); });
-    });
+    var seq = state.hadithSeq, shown = 0;
+    box.innerHTML = '<p class="result-meta"></p><div class="hadith-list"></div><div class="search-progress">হাদিস লোড হচ্ছে…</div>';
+    function appendBatch() {
+      var end = Math.min(list.length, shown + (shown ? 40 : 20)), slice = list.slice(shown, end);
+      var pairs = slice.map(function (x) { return [x[0], x[2]]; });
+      loadHadithMany(pairs, function (complete) {
+        if (state.view !== 'hadith' || seq !== state.hadithSeq || !box.isConnected) return;
+        var progress = box.querySelector('.search-progress'); if (progress) progress.remove();
+        var cards = slice.map(function (x) { var r = hFind(x[0], x[1]); return r ? hadithCard(x[0], r) : ''; }).join('');
+        box.querySelector('.hadith-list').insertAdjacentHTML('beforeend', cards);
+        shown = end;
+        box.querySelector('.result-meta').textContent = bn(list.length) + ' টির মধ্যে ' + bn(shown) + ' টি চাওয়া হয়েছে';
+        if (!complete) box.insertAdjacentHTML('beforeend', '<p class="search-progress">কিছু হাদিস লোড করা যায়নি। সংযোগ পরীক্ষা করে পাতা রিফ্রেশ করুন।</p>');
+        else if (shown < list.length) watchHadithMore(box, appendBatch);
+        else if (!shown) box.querySelector('.hadith-list').innerHTML = '<div class="empty-state"><h3>কিছু পাওয়া যায়নি</h3></div>';
+      });
+    }
+    appendBatch();
   }
   function renderHadithSaved() {
     state.view = 'hadith'; setTitle('সংরক্ষিত হাদিস'); setNav('hadith');
@@ -1649,20 +1672,24 @@
     });
     var html = '<p class="result-meta">' + bn(matches.length) + ' টি ফল · «' + esc(q) + '»' +
       ' · ' + (scope === 'all' ? 'সব গ্রন্থ' : esc(hBook(scope).short)) + '</p>';
-    if (matches.length) {
-      html += '<div class="result-list">' + matches.slice(0, state.hadithSearchLimit).map(function (x) {
+    if (!matches.length) {
+      box.innerHTML = html + '<div class="empty-state"><span class="empty-icon">⌕</span><h3>কিছু পাওয়া যায়নি</h3><p>বানান বদলে বা অন্য গ্রন্থ বেছে আবার চেষ্টা করুন।</p></div>'; return;
+    }
+    box.innerHTML = html + '<div class="result-list"></div>';
+    var shown = 0;
+    function appendBatch() {
+      var end = Math.min(matches.length, shown + (shown ? 80 : 40));
+      var rows = matches.slice(shown, end).map(function (x) {
         var b = hBook(x.b), snip = snippetAround(x.k, q);
         return '<button type="button" class="result-item" data-action="hadith-open" data-book="' + x.b + '" data-i="' + x.i + '">' +
           '<div class="result-ref"><span class="dot"></span> ' + esc(b.short) + ' ' + bn(x.n) +
           (x.an ? ' <span style="color:var(--muted);font-weight:400">(আন্তর্জাতিক ' + esc(x.an) + ')</span>' : '') + '</div>' +
           '<div class="result-snippet">' + esc(snip) + '</div></button>';
-      }).join('') + '</div>';
-
-    } else {
-      html += '<div class="empty-state"><span class="empty-icon">⌕</span><h3>কিছু পাওয়া যায়নি</h3><p>বানান বদলে বা অন্য গ্রন্থ বেছে আবার চেষ্টা করুন।</p></div>';
+      }).join('');
+      box.querySelector('.result-list').insertAdjacentHTML('beforeend', rows);
+      shown = end; if (shown < matches.length) watchHadithMore(box, appendBatch);
     }
-    box.innerHTML = html;
-    if (matches.length > state.hadithSearchLimit) watchHadithMore(box, function () { state.hadithSearchLimit += 80; drawHadithSearch(q, scope); });
+    appendBatch();
   }
 
   /* ------------------------------ footnote links ------------------------------ */

@@ -38,6 +38,26 @@ const server=http.createServer((req,res)=>{
    assert.equal(await page.evaluate(()=>localStorage.getItem('dawahx-theme')), theme==='dark'?'light':'dark');
    assert.deepEqual(errors,[]);await context.close();
   }
+  // Real Chromium interaction with a deterministic media mock: streaming is
+  // independently checked by the optional source workflow, not downloaded here.
+  const interaction=await browser.newContext({serviceWorkers:'block'}), ip=await interaction.newPage();
+  await interaction.addInitScript(()=>{
+    window.__players=[];
+    window.Audio=class extends EventTarget { constructor(){super();this.src='';this.paused=true;window.__players.push(this)}
+      play(){this.paused=false;return Promise.resolve()} pause(){this.paused=true}
+      removeAttribute(name){if(name==='src')this.src=''} load(){} };
+  });
+  await ip.goto(base+'quran.html#/s/1/a/1');await ip.waitForSelector('#v1 [data-action="audio"]');
+  await ip.click('#v1 [data-action="audio"]');assert.equal(await ip.getAttribute('#v1 [data-action="audio"]','aria-pressed'),'true');
+  assert.equal(await ip.evaluate(()=>window.__players[0].src),'https://everyayah.com/data/Yasser_Ad-Dussary_128kbps/001001.mp3');
+  await ip.click('#v2 [data-action="audio"]');assert.equal(await ip.getAttribute('#v1 [data-action="audio"]','aria-pressed'),'false');
+  assert.equal(await ip.evaluate(()=>window.__players.length),1);assert.equal(await ip.evaluate(()=>window.__players[0].src),'https://everyayah.com/data/Yasser_Ad-Dussary_128kbps/001002.mp3');
+  await ip.goto(base+'hadith.html#/hadith/bukhari/section/64');await ip.waitForSelector('.hadith-autoload');
+  const first=ip.locator('#hadithList .hadith-card').first();await first.evaluate(e=>e.dataset.testIdentity='retained');
+  await ip.locator('.hadith-autoload').scrollIntoViewIfNeeded();await ip.waitForFunction(()=>document.querySelectorAll('#hadithList .hadith-card').length>20);
+  assert.equal(await first.getAttribute('data-test-identity'),'retained');assert.equal(await ip.locator('#hadithList button.more-btn').count(),0);
+  await ip.goto(base+'hadith.html#/hadith/abudawud/594');await ip.waitForSelector('.hadith-grade-reason a');
+  assert.equal(await ip.getAttribute('.hadith-grade-reason a','href'),'https://www.hadithbd.com/hadith/abu-dawud/594');await interaction.close();
   // Theme and navigation remain consistent when moving from the existing site
   // into both readers and back, including the shared mobile menu.
   const shared=await browser.newContext({viewport:{width:390,height:900},serviceWorkers:'block',reducedMotion:'reduce'});

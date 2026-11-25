@@ -103,18 +103,22 @@ async function go(w, hash) { w.location.hash=hash; await new Promise(r=>setTimeo
     assert.ok($('.hadith-card'),book+' rendered');
   }
   await go(w,'/hadith/bukhari/section/64');await waitFor(()=>w.document.querySelectorAll('#hadithList .hadith-card').length===20,'first automatic batch');
-  assert.equal(w.document.querySelectorAll('#hadithList button.more-btn').length,0);let ob=w.__observers.findLast(x=>!x.disconnected);assert(ob,'automatic observer');ob.trigger();
-  await waitFor(()=>w.document.querySelectorAll('#hadithList .hadith-card').length===60,'automatic next batch');assert.equal(w.document.querySelectorAll('#hadithList .hadith-num').length,60);
+  assert.equal(w.document.querySelectorAll('#hadithList button.more-btn').length,0);let ob=w.__observers.findLast(x=>!x.disconnected);assert(ob,'automatic observer');let kept=$('#hadithList .hadith-card');let focus=kept.querySelector('button');focus.focus();ob.trigger();
+  await waitFor(()=>w.document.querySelectorAll('#hadithList .hadith-card').length===60,'automatic next batch');assert.equal(w.document.querySelectorAll('#hadithList .hadith-num').length,60);assert.equal($('#hadithList .hadith-card'),kept,'automatic batch preserves existing cards');assert.equal(w.document.activeElement,focus,'automatic batch preserves focus');
   await go(w,'/hadith/grade/daif');await waitFor(()=>$('#hadithGradeResults .hadith-grade-reason'),'weak-grade provenance notice');
-  assert.match($('#hadithGradeResults .hadith-grade-reason').textContent,/কারণ ডেটাসেটে নেই/);assert.equal(w.document.querySelectorAll('#hadithGradeResults button.more-btn').length,0);
-  ob=w.__observers.findLast(x=>!x.disconnected);assert(ob,'grade observer');ob.trigger();await waitFor(()=>w.document.querySelectorAll('#hadithGradeResults .hadith-card').length>20,'automatic grade batch');
+  assert.match($('#hadithGradeResults .hadith-grade-reason').textContent,/যাচাইকৃত কারণ এখানে এখনও যুক্ত করা হয়নি/);assert.equal(w.document.querySelectorAll('#hadithGradeResults button.more-btn').length,0);
+  ob=w.__observers.findLast(x=>!x.disconnected);assert(ob,'grade observer');kept=$('#hadithGradeResults .hadith-card');ob.trigger();await waitFor(()=>w.document.querySelectorAll('#hadithGradeResults .hadith-card').length>20,'automatic grade batch');assert.equal($('#hadithGradeResults .hadith-card'),kept,'grade batch preserves existing cards');
+  await go(w,'/hadith/abudawud/594');await waitFor(()=>$('.hadith-grade-reason')?.textContent.includes('মাকহূল'), 'reviewed chain reason 594');
+  assert.equal($('.hadith-grade-reason a').getAttribute('href'),'https://www.hadithbd.com/hadith/abu-dawud/594');
+  await go(w,'/hadith/abudawud/756');await waitFor(()=>$('.hadith-grade-reason')?.textContent.includes('ওয়াসিতী'), 'reviewed chain reason 756');
+  assert.equal($('.hadith-grade-reason a').getAttribute('href'),'https://www.hadithbd.com/hadith/abu-dawud/756');
   await go(w,'/hadith/bukhari/1'); await waitFor(()=>$('.hadith-card .hadith-bn')?.textContent.includes('নিয়্যাত'),'Bukhari direct link');
   click(w,'[data-action="hadith-bookmark"]'); await go(w,'/hadith/saved'); await waitFor(()=>$('#hadithSaved .hadith-card'),'saved hadith');
   await go(w,'/hadith/search?q='+encodeURIComponent('নিয়্যাত')+'&book=bukhari');
   await waitFor(()=>w.document.querySelectorAll('#hadithResults .result-item').length>0,'scoped hadith search');
   await go(w,'/hadith/search?q='+encodeURIComponent('আল্লাহ')+'&book=bukhari');
   await waitFor(()=>w.document.querySelectorAll('#hadithResults .result-item').length===40,'first search batch');
-  assert.equal(w.document.querySelectorAll('#hadithResults button.more-btn').length,0);ob=w.__observers.findLast(x=>!x.disconnected);assert(ob,'search observer');ob.trigger();await waitFor(()=>w.document.querySelectorAll('#hadithResults .result-item').length>40,'automatic search batch');
+  assert.equal(w.document.querySelectorAll('#hadithResults button.more-btn').length,0);ob=w.__observers.findLast(x=>!x.disconnected);assert(ob,'search observer');kept=$('#hadithResults .result-item');kept.focus();ob.trigger();await waitFor(()=>w.document.querySelectorAll('#hadithResults .result-item').length>40,'automatic search batch');assert.equal($('#hadithResults .result-item'),kept);assert.equal(w.document.activeElement,kept);
   dom.window.close();
   encoded=true; dom=await open('hadith.html','#/hadith/nawawi/42'); w=dom.window; $=s=>w.document.querySelector(s);
   await waitFor(()=>$('.hadith-card'),'HTTP-decoded gzip direct link'); assert.ok($('[data-action="hadith-next"]').disabled); dom.window.close();
