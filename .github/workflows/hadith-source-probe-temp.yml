@@ -1,0 +1,25 @@
+name: Temporary hadith source availability probe
+on:
+  push:
+    paths:
+      - '.github/workflows/hadith-source-probe-temp.yml'
+permissions:
+  contents: write
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Retrieve public Darimi category snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .source-probe
+          curl --fail --silent --show-error --location --max-time 180 'https://www.tauhiderdak.com/wp-json/wp/v2/posts?categories=1814&per_page=100&_fields=id,link,title,content' -o /tmp/posts.json
+          python3 -c 'import json; d=json.load(open("/tmp/posts.json")); assert isinstance(d,list) and len(d)==60, "unexpected source response"; print("Posts:",len(d))'
+          gzip -n -9 < /tmp/posts.json > .source-probe/darimi-posts.json.gz
+          git config user.name github-actions\[bot\]
+          git config user.email 41898282+github-actions\[bot\]@users.noreply.github.com
+          git add .source-probe/darimi-posts.json.gz
+          git commit -m 'Temporary Darimi source snapshot for analysis'
+          git push origin HEAD:${{ github.ref_name }}
