@@ -14,13 +14,15 @@ function index(html,slug){
  return {slug,title,expected:+m[2],chapters:[...chapters.values()].sort((a,b)=>a.id-b.id)};
 }
 function extractCard($,card,slug,expectedId){
- const header=tidy(card.find('h3,h2').first().text()), n=ascii(header).match(/:\s*(\d+)\s*$/);if(!n)throw Error('Missing displayed number '+slug+':'+expectedId);
+ const header=tidy(card.find('h3,h2').first().text()), n=ascii(header).match(/:\s*(?:(\d+)\s*\/\s*)?(\d+)\s*$/);if(!n)throw Error('Missing displayed number '+slug+':'+expectedId);
  const grade=tidy(card.find('button[style] span').first().text()), narr=tidy(card.find('h4').first().text());
  const ar=card.find('p[dir="rtl"]').map((_,p)=>paragraphs($,p)).get().filter(Boolean).join('\n\n');
  const bnp=card.find('h4').first().parent().find('p').first(),bn=bnp.length?paragraphs($,bnp):'';
  const notes=[];card.find('p').each((_,p)=>{const q=$(p);if(q.attr('dir')==='rtl'||p===bnp[0]||q.closest('h3').length||q.attr('class')?.includes('tablet:hidden')||q.closest('button').length||q.closest('a').length)return;const t=paragraphs($,p);if(t)notes.push(t)});
  if(!bn||!grade)throw Error('Missing translation or grade '+slug+':'+expectedId);
- return {id:expectedId,number:+n[1],bn,ar,narrator:narr,grade,notes:notes.join('\n\n')};
+ const row={id:expectedId,number:+n[2],bn,ar,narrator:narr,grade,notes:notes.join('\n\n')};
+ if(n[1])row.sourceRef=tidy(header);
+ return row;
 }
 function chapter(html,slug,id){
  const $=cheerio.load(html), rows=[], missing=[];
