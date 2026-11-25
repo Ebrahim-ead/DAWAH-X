@@ -79,9 +79,11 @@ section{padding:56px 0}
 @media(prefers-reduced-motion:reduce){.home-ai-link a{transition:none}}
 /* footer */
 footer{border-top:1px solid var(--line);padding:30px 0 20px;font-size:14px}
-.fg{display:grid;grid-template-columns:1.1fr 1fr 1fr 1.3fr;gap:28px;align-items:start}
+.fg{display:grid;grid-template-columns:1.1fr 2fr 1fr 1.3fr;gap:28px;align-items:start}
 .fg h2{font-size:16px;margin-bottom:10px}
 .fg ul{list-style:none;padding:0}
+.fg ul.qlinks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:14px;row-gap:0}
+.fg ul.qlinks li{min-width:0;overflow-wrap:anywhere}
 .fg li a{color:var(--muted)}.fg li a:hover{color:var(--gold)}
 .fg li::before{content:"›";color:var(--gold);margin-right:8px}
 .fg .word{height:64px;width:auto}
@@ -531,12 +533,8 @@ a,button,input,select,textarea,.chip,.qcard{touch-action:manipulation;-webkit-ta
 /* Footer quick links: comfortable tap height */
 .fg li a{display:inline-block;padding:1px 0}
 @media(max-width:700px){.fg li a{padding:5px 0}}
-/* Footer quick links on phones: two columns — eleven stacked rows ran taller than the rest of the footer.
-   Row-major (grid) so the short and long labels pair up instead of piling into one column.
-   Below 360px each column is ~130px, so the label drops to 14px there. */
-@media(max-width:560px){.fg ul.qlinks{display:grid;grid-template-columns:1fr 1fr;column-gap:14px;row-gap:0}
- .fg ul.qlinks li{min-width:0}
- .fg ul.qlinks li a{font-size:15px}}
+/* Keep quick-link labels comfortable in the two-column layout on small screens. */
+@media(max-width:560px){.fg ul.qlinks li a{font-size:15px}}
 @media(max-width:360px){.fg ul.qlinks li a{font-size:14px}}
 /* Hero buttons: keep each label on one line on wide screens (the longest label was wrapping) */
 @media(min-width:561px){.hero .btns>.btn{flex:1 1 auto}.hero .btns>.btn .tx b{white-space:nowrap}}
