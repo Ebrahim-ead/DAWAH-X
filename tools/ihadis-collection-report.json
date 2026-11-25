@@ -82,5 +82,12 @@
     "count": 200,
     "chapters": 4,
     "sha256": "73a396e6a9184f7417a2d0327d3be9b2b3f09637fc801b0edab4d8f9d9d4ba25"
+  },
+  {
+    "slug": "adabul-mufrad",
+    "status": "complete",
+    "count": 1336,
+    "chapters": 22,
+    "sha256": "d3b9a00b5b66f3f233c8409a862c36aa58e2104a030270086b90fa06632cf410"
   }
 ]
