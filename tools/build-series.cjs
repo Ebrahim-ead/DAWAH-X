@@ -13,7 +13,7 @@ const indexSection=`<section id="series" style="padding-top:0"><div class="wrap"
 <div class="title" data-reveal=""><h1>লেখার সিরিজ</h1><p>${list.length}টি ধারাবাহিক লেখা এক জায়গায় — সংগ্রহে শনাক্ত পর্বগুলো খুঁজে নিন।</p></div>
 <p class="series-index-note">পর্বের নম্বর শিরোনাম থেকে স্বয়ংক্রিয়ভাবে সাজানো হয়েছে। শিরোনামে পর্বের নম্বর না থাকলে বা একই নম্বর একাধিকবার থাকলে কিছু লেখা বাদ পড়তে পারে।</p>
 <ol aria-label="লেখার সিরিজের তালিকা" class="series-index-list">${indexRows}</ol>
-<p class="qnote">আরও লেখা খুঁজুন <a href="questions.html">প্রশ্নোত্তর</a>, <a href="fatwa.html">ফতোয়া</a> ও <a href="topics.html">বিষয়ভিত্তিক</a> পাতায়।</p>
+<p class="qnote">আরও লেখা খুঁজুন <a href="questions.html">নাস্তিকতা বিষয়ক প্রশ্নোত্তর</a>, <a href="fatwa.html">ইসলামিক প্রশ্নোত্তর</a> ও <a href="topics.html">বিষয়ভিত্তিক</a> পাতায়।</p>
 </div></section>`;
 const indexUrl=SITE+'series.html';
 const indexLd={'@context':'https://schema.org','@type':'CollectionPage',name:'লেখার সিরিজ — DAWAH X',description:'DAWAH X-এর ধারাবাহিক লেখা ও পর্বের সূচি।',url:indexUrl,inLanguage:'bn',mainEntity:{'@type':'ItemList',numberOfItems:list.length,itemListElement:list.map((sr,i)=>({'@type':'ListItem',position:i+1,name:sr.t,url:SITE+'series-'+sr.id+'.html'}))}};

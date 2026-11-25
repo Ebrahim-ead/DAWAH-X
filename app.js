@@ -83,7 +83,7 @@ const readTitle=$("read-title");
 if(readTitle){
  const P=new URLSearchParams(location.search),key=(P.get("k")||"").toLowerCase(),vid=P.get("v")||"",from=P.get("from")==="f"?"f":"q";
  const back=$("read-back"),body=$("read-body"),nav=document.querySelector("[data-read-nav]");
- const backHref=from==="f"?"fatwa.html":"questions.html",backLabel=from==="f"?"ফতোয়া":"প্রশ্নোত্তর";
+ const backHref=from==="f"?"fatwa.html":"questions.html",backLabel=from==="f"?"ইসলামিক প্রশ্নোত্তর":"নাস্তিকতা বিষয়ক প্রশ্নোত্তর";
  /* তালিকায় পাঠক যে বিভাগ / খোঁজ / পৃষ্ঠায় ছিলেন, "ফিরে যান" লিংক সেখানেই ফেরায় */
  let backTo=backHref;try{const s=sessionStorage.getItem("dawahx-list-"+from);if(s)backTo+="?"+s}catch(e){}
  if(back){back.href=backTo;back.textContent=backLabel}
@@ -1347,7 +1347,7 @@ if(readTools){
 /* ===== সাইট জুড়ে সার্চ (⌘K / Ctrl+K, হেডারের খোঁজা বোতাম, অথবা "/") =====
    শিরোনামের সূচি (search/titles.json + search/tNN.json) দিয়ে সঙ্গে সঙ্গে ফল দেখানো হয়;
    পূর্ণ লেখার ভেতরে খুঁজতে "সব ফলাফল দেখুন" — সেটি প্রশ্নোত্তর পাতার নিজের সার্চে নিয়ে যায় (?s=শব্দ)। */
-const DXP_SIDE={q:"প্রশ্নোত্তর",f:"ফতোয়া"};
+const DXP_SIDE={q:"নাস্তিকতা বিষয়ক প্রশ্নোত্তর",f:"ইসলামিক প্রশ্নোত্তর"};
 const DXP_HINTS=["নামাজ","রোজা","তাকদীর","যাকাত","হিজাব","জুমা","কুরআন","তাওহীদ","কুরবানি","দো‘আ"];
 const DXP={
  dlg:null,input:null,body:null,count:null,all:null,items:[],active:-1,timer:0,seq:0,

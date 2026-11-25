@@ -722,7 +722,6 @@ a,button,input,select,textarea,.chip,.qcard{touch-action:manipulation;-webkit-ta
    হিসাব: পর্দা − ৪০ (দুই পাশ) − ১৮০ (লোগো) − ৩২ (ফাঁক) − ডানের বোতাম = মেনুর জায়গা। নতুন লিংক যোগ করলে ৯০১, ১০৬০ ও ১১৮০px-এ মেপে দেখুন। */
 .menu a,.fbp span{white-space:nowrap}
 @media(min-width:1100px){#menu{flex:0 1 730px;justify-content:space-between;gap:4px}#menu a{padding:7px}}
-@media(min-width:1100px) and (max-width:1279px){.fbp span{display:none}}
 
 
 
@@ -922,7 +921,6 @@ body.dxp-open{overflow:hidden}
    ছোট পর্দার মতোই ফেসবুক বোতামের লেখা লুকিয়ে ঠিক রাখা হয় (হিজরি তারিখ ও সার্চ বোতামও তখন অটুট থাকে) */
 @media(min-width:1180px) and (max-width:1560px){.fbp span{display:none}}
 @media(min-width:1180px) and (max-width:1279px){#menu a{padding:7px 4px}}
-@media(min-width:1100px) and (max-width:1179px){#menu a{font-size:14px;padding:7px 4px}}
 
 /* ===== কাগজে পড়া: read.html-এ উষ্ণ কাগজের পৃষ্ঠা (বাকি সাইট আগের মতোই) =====
    চোখের আরামের জন্য লেখার অংশ হালকা হয়; হেডার-ফুটার অন্ধকারই থাকে, তাই ব্র্যান্ড অটুট */
@@ -1460,8 +1458,6 @@ html[data-theme="light"] .prayer-disclaimer{background:rgba(23,36,44,.025);borde
  #menu a{font-size:clamp(14px,1.25vw,16px);padding:7px 3px;flex-shrink:0}
  .bar .word{height:clamp(34px,3.4vw,46px)}
 }
-@media(min-width:1100px) and (max-width:1559px){.fbp span{display:none}}
-@media(min-width:1100px) and (max-width:1179px){.bar .word{height:32px}#menu{gap:1px}#menu a{padding-inline:2px}}
 
 /* Resume the last explicitly opened Quran ayah, stored only in this browser. */
 .scripture-resume{display:flex;align-items:center;justify-content:center;gap:8px;min-height:48px;margin:14px auto 0;padding:10px 18px;width:fit-content;max-width:100%;border:1px solid var(--line);border-radius:999px;background:var(--card);color:var(--gold2);font-weight:600;text-align:center;transition:border-color .2s,background .2s}
@@ -1471,3 +1467,6 @@ html[data-theme="light"] .prayer-disclaimer{background:rgba(23,36,44,.025);borde
 /* Bengali headings use the site's bundled font; icons do not depend on glyph availability. */
 .guidance-heading>span{font-family:"Hind Siliguri",system-ui,sans-serif;letter-spacing:.04em}
 .scripture-card-icon .i{width:25px;height:25px}
+/* Long Bengali section names may wrap within their own desktop menu item. */
+@media(min-width:1100px){#menu a[href="questions.html"],#menu a[href="fatwa.html"]{white-space:normal;max-width:110px;line-height:1.2;text-align:center;overflow-wrap:anywhere}}
+@media(min-width:1100px) and (max-width:1559px){.fbp span{display:none} #menu a{font-size:13px;padding-inline:2px} .bar .word{height:32px}}

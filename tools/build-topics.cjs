@@ -24,7 +24,7 @@ const main=`<section id="topics" style="padding-top:0"><div class="wrap">
 <div class="title" data-reveal=""><h1>বিষয় ধরে পড়ুন</h1><p>কোথা থেকে শুরু করবেন বুঝতে পারছেন না? নিচের ${cfg.topics.length}টি বিষয়ে বাছাই করা ${total}টি লেখা সাজানো আছে — প্রতিটি এই সাইটেই পড়া যায়।</p></div>
 <nav aria-label="বিষয়ের তালিকা" class="qchips topic-nav">${chips}</nav>
 ${sections.join('\n')}
-<p class="qnote">আরও লেখা খুঁজতে <a href="questions.html">প্রশ্নোত্তর লাইব্রেরি</a> ও <a href="fatwa.html">ফতোয়া</a> পাতার সার্চ ব্যবহার করুন — সার্চ এখন লেখার ভেতরেও খোঁজে। নিজের প্রশ্ন থাকলে <a href="ask.html">প্রশ্ন করুন</a>।</p>
+<p class="qnote">আরও লেখা খুঁজতে <a href="questions.html">নাস্তিকতা বিষয়ক প্রশ্নোত্তর</a> ও <a href="fatwa.html">ইসলামিক প্রশ্নোত্তর</a> পাতার সার্চ ব্যবহার করুন — সার্চ এখন লেখার ভেতরেও খোঁজে। নিজের প্রশ্ন থাকলে <a href="ask.html">প্রশ্ন করুন</a>।</p>
 </div></section>
 `;
 let h=fs.readFileSync(path.join(ROOT,'questions.html'),'utf8');

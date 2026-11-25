@@ -8,10 +8,12 @@
  const trigger=document.createElement('button');trigger.type='button';trigger.className='dxa-trigger';trigger.setAttribute('aria-label','এআই সহকারী চ্যাট খুলুন');trigger.setAttribute('aria-expanded','false');trigger.setAttribute('aria-controls','dxa-panel');
  const logo=document.createElement('img');logo.src=url('assistant-logo.webp');logo.alt='';logo.width=72;logo.height=72;trigger.appendChild(logo);
  const panel=document.createElement('aside');panel.id='dxa-panel';panel.className='dxa-panel';panel.hidden=true;panel.setAttribute('aria-label','DAWAH X এআই সহকারী');
- panel.innerHTML='<header class="dxa-head"><div><span class="dxa-mark" aria-hidden="true">✦</span><div><strong>DAWAH X সহকারী</strong><small>জানুন, বুঝুন, উৎস খুঁজুন</small></div></div><button class="dxa-close" type="button" aria-label="চ্যাট বন্ধ করুন">×</button></header><div class="dxa-chat" role="log" aria-live="polite" aria-relevant="additions"><div class="dxa-welcome"><span>আসসালামু আলাইকুম</span><h2>কী জানতে চান?</h2><p>দৈনন্দিন বিষয়ে গল্প করুন। ইসলাম নিয়ে প্রশ্ন করলে কুরআন, হাদিস ও সাইটের লেখা থেকে প্রাসঙ্গিক তথ্য খুঁজব। নির্দিষ্ট আয়াত বা হাদিস জানতে সূরা ও আয়াত নম্বর, অথবা কিতাব ও হাদিস নম্বর লিখুন। অনুসন্ধান সীমিত: বাছাই করা উৎসের অংশ ব্যবহার হয়; ভিডিওর শুধু শিরোনাম খোঁজা হয়, বক্তব্য নয়। এআই ভুল করতে পারে—মূল উৎস যাচাই করুন; ব্যক্তিগত ফতোয়ার জন্য যোগ্য আলেমের পরামর্শ নিন।</p><div class="dxa-prompts"><button type="button">সালাতের গুরুত্ব কী?</button><button type="button">রোজা সম্পর্কে জানতে চাই</button></div></div></div><div class="dxa-bottom"><p class="dxa-privacy">প্রশ্ন ও সাম্প্রতিক কথোপকথন Cloudflare-এর এআই সেবায় পাঠানো হয়। সংবেদনশীল তথ্য দেবেন না।</p><form class="dxa-form"><label class="dxa-sr" for="dxa-input">আপনার প্রশ্ন</label><textarea id="dxa-input" rows="1" maxlength="2000" placeholder="আপনার প্রশ্ন লিখুন…" required></textarea><button type="submit" aria-label="প্রশ্ন পাঠান">➜</button></form><div class="dxa-footer"><span>এআই-এর উত্তর যাচাই করুন</span><a href="'+url('ask.html')+'">টিমকে প্রশ্ন করুন ↗</a></div></div>';
+ panel.innerHTML='<header class="dxa-head"><div><span class="dxa-mark" aria-hidden="true">✦</span><div><strong>DAWAH X সহকারী</strong><small>জানুন, বুঝুন, উৎস খুঁজুন</small></div></div><button class="dxa-close" type="button" aria-label="চ্যাট বন্ধ করুন">×</button></header><div class="dxa-chat" role="log" aria-live="polite" aria-relevant="additions"><div class="dxa-welcome"><span>আসসালামু আলাইকুম</span><h2>কী জানতে চান?</h2><p>দৈনন্দিন বিষয়ে গল্প করুন। ইসলাম নিয়ে প্রশ্ন করলে কুরআন, হাদিস ও সাইটের লেখা থেকে প্রাসঙ্গিক তথ্য খুঁজব। নির্দিষ্ট আয়াত বা হাদিস জানতে সূরা ও আয়াত নম্বর, অথবা কিতাব ও হাদিস নম্বর লিখুন। অনুসন্ধান সীমিত: বাছাই করা উৎসের অংশ ব্যবহার হয়; ভিডিওর শুধু শিরোনাম খোঁজা হয়, বক্তব্য নয়। এআই ভুল করতে পারে—মূল উৎস যাচাই করুন; ব্যক্তিগত ফতোয়ার জন্য যোগ্য আলেমের পরামর্শ নিন।</p><div class="dxa-prompts"><button type="button">সালাতের গুরুত্ব কী?</button><button type="button">রোজা সম্পর্কে জানতে চাই</button></div></div></div><div class="dxa-bottom"><p class="dxa-privacy">প্রশ্ন ও সাম্প্রতিক কথোপকথন Cloudflare-এর এআই সেবায় পাঠানো হয়। সংবেদনশীল তথ্য দেবেন না।</p><form class="dxa-form"><label class="dxa-sr" for="dxa-input">আপনার প্রশ্ন</label><textarea id="dxa-input" rows="1" maxlength="2000" placeholder="আপনার প্রশ্ন লিখুন…" required></textarea><button type="submit" aria-label="প্রশ্ন পাঠান">➜</button></form><div class="dxa-footer"><button type="button" class="dxa-reset">নতুন কথোপকথন</button><span>এআই-এর উত্তর যাচাই করুন</span><a href="'+url('ask.html')+'">টিমকে প্রশ্ন করুন ↗</a></div></div>';
  document.body.append(trigger,panel);
  const chat=panel.querySelector('.dxa-chat'),form=panel.querySelector('form'),input=panel.querySelector('textarea'),send=form.querySelector('button'),close=panel.querySelector('.dxa-close');
  let history=[],busy=false;
+ const reset=panel.querySelector('.dxa-reset');
+ if(reset)reset.addEventListener('click',()=>{if(busy)return;history=[];chat.replaceChildren();input.value='';bubble('নতুন কথোপকথন শুরু হয়েছে। কী জানতে চান?','status');input.focus()});
  function open(){panel.hidden=false;trigger.setAttribute('aria-expanded','true');input.focus()}
  function shut(){panel.hidden=true;trigger.setAttribute('aria-expanded','false');trigger.focus()}
  trigger.addEventListener('click',()=>panel.hidden?open():shut());close.addEventListener('click',shut);panel.addEventListener('keydown',e=>{if(e.key==='Escape')shut()});
@@ -19,7 +21,7 @@
  function sources(found,videoTask){
   if(!found.length&&!videoTask)return;
   const box=document.createElement('div');box.className='dxa-sources';const title=document.createElement('strong');title.textContent='খুঁজে পাওয়া সংশ্লিষ্ট লেখা ও ভিডিও (উৎস হিসেবে যাচাইকৃত নয়)';box.append(title);
-  function add(item){const a=document.createElement('a');a.textContent=(item.id?'ভিডিও · ':item.side==='f'?'ফতোয়া · ':'প্রশ্নোত্তর · ')+item.title;a.href=item.id?url('read.html?v='+encodeURIComponent(item.id)):url('read.html?k='+encodeURIComponent(item.k));a.target='_blank';a.rel='noopener noreferrer';box.append(a)}
+  function add(item){const a=document.createElement('a');a.textContent=(item.id?'ভিডিও · ':item.side==='f'?'ইসলামিক প্রশ্নোত্তর · ':'নাস্তিকতা বিষয়ক প্রশ্নোত্তর · ')+item.title;a.href=item.id?url('read.html?v='+encodeURIComponent(item.id)):url('read.html?k='+encodeURIComponent(item.k));a.target='_blank';a.rel='noopener noreferrer';box.append(a)}
   found.forEach(add);chat.append(box);
   if(videoTask){const pending=document.createElement('span');pending.className='dxa-video-pending';pending.textContent='ভিডিও খোঁজা হচ্ছে…';box.append(pending);
    Promise.resolve(videoTask).then(items=>{const nearBottom=chat.scrollHeight-chat.scrollTop-chat.clientHeight<100;pending.remove();const videos=Array.isArray(items)?items.slice(0,2):[];videos.forEach(add);if(!found.length&&!videos.length)box.remove();if(nearBottom)chat.scrollTop=chat.scrollHeight}).catch(()=>{pending.remove();if(!found.length)box.remove()})}
@@ -61,7 +63,7 @@
   }return res.json();
  }
  function modeLabel(mode){const el=document.createElement('div');el.className='dxa-mode';el.textContent=mode==='chat'?'সাধারণ আলাপ · সাইটের উৎসভিত্তিক নয়':mode==='source_quote'?'কাছাকাছি প্রশ্নের মূল লেখা · প্রযোজ্যতা যাচাই করা হয়নি':mode==='failed'?'উৎস অনুসন্ধান সম্পূর্ণ হয়নি':mode==='verification'?'উত্তর যাচাই করা যায়নি':mode==='no-source'?'খুঁজে পাওয়া উৎসে পর্যাপ্ত তথ্য নেই':'প্রাপ্ত উৎসভিত্তিক উত্তর';chat.append(el)}
- async function submit(q){q=q.trim();if(!q||busy)return;busy=true;send.disabled=true;input.value='';bubble(q,'user');const status=bubble('উত্তর তৈরি হচ্ছে…','status');
+ async function submit(q){q=q.trim();if(!q||busy)return;busy=true;send.disabled=true;if(reset)reset.disabled=true;input.value='';bubble(q,'user');const status=bubble('উত্তর তৈরি হচ্ছে…','status');
   try{
    if(!API_URL)throw Error('unsupported');
    // Ask the Worker whether local search is needed; direct numbered lookups bypass it.
@@ -94,7 +96,7 @@
     citations(e.candidates||[],true);if(e.partial)bubble('কিছু উৎসে অনুসন্ধান সম্পূর্ণ হয়নি।','status');
    }else bubble(e.message==='429'?'অনেকগুলো অনুরোধ এসেছে। একটু পরে আবার চেষ্টা করুন।':e.message==='search'?'সাইটের লেখা এখন খোঁজা যাচ্ছে না। সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।':e.message==='unsupported'?'এআই সেবা এখনো হালনাগাদ হয়নি। পরে আবার চেষ্টা করুন, অথবা টিমকে প্রশ্ন পাঠান।':'এখন উত্তর পাওয়া যাচ্ছে না। সংযোগ পরীক্ষা করে আবার চেষ্টা করুন, অথবা টিমকে প্রশ্ন পাঠান।','assistant')}
 
-  finally{busy=false;send.disabled=false;if(!panel.hidden)input.focus()}
+  finally{busy=false;send.disabled=false;if(reset)reset.disabled=false;if(!panel.hidden)input.focus()}
  }
  form.addEventListener('submit',e=>{e.preventDefault();submit(input.value)});
  input.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();form.requestSubmit()}});

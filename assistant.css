@@ -4,3 +4,7 @@
 .dxa-mode{align-self:flex-start;color:#68796f;font-size:11px;font-weight:700;margin:0 2px -7px}
 
 .dxa-video-pending{display:block;color:#64756c;font-size:12px;margin-top:6px}
+/* An explicit reset keeps unrelated questions out of subsequent context. */
+.dxa-reset{background:none;border:0;padding:4px 0;color:inherit;font:inherit;text-decoration:underline;cursor:pointer}
+.dxa-reset:disabled{opacity:.5;cursor:wait}
+.dxa-reset:focus-visible{outline:2px solid currentColor;outline-offset:2px}

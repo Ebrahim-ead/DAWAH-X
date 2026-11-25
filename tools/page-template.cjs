@@ -20,7 +20,7 @@ function fromQuestions({sectionId,section,title,description,url,pageId,structure
  html=html.replace(/<link\b[^>]*\brel="canonical"[^>]*>/i,tag=>tag.replace(/\bhref="[^"]*"/i,'href="'+esc(url)+'"'));
  html=html.replaceAll(SITE+'questions.html',url);
  html=html.replace('<body data-page="qa">','<body data-page="'+esc(pageId||sectionId)+'">');
- html=html.replace('<a aria-current="page" class="on" href="questions.html">প্রশ্নোত্তর</a>','<a href="questions.html">প্রশ্নোত্তর</a>');
+ html=html.replace('<a aria-current="page" class="on" href="questions.html">নাস্তিকতা বিষয়ক প্রশ্নোত্তর</a>','<a href="questions.html">নাস্তিকতা বিষয়ক প্রশ্নোত্তর</a>');
  if(structuredData){
   const json=JSON.stringify(structuredData).replace(/</g,'\\u003c');
   const script='<script type="application/ld+json">'+json+'</script>';
