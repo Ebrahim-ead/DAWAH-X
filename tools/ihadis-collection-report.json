@@ -69,7 +69,9 @@
   },
   {
     "slug": "upodesh",
-    "status": "failed",
-    "error": "Error: Missing translation or grade upodesh:68"
+    "status": "complete",
+    "count": 234,
+    "chapters": 16,
+    "sha256": "45281a1e957e8884ed40d516d8bb6d23b03d7324e53f81e9a7a76fff0cb88304"
   }
 ]
