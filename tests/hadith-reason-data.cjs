@@ -7,6 +7,6 @@ for(const sh of manifest.shards){const rows=JSON.parse(zlib.gunzipSync(fs.readFi
  if(/জাল|মাওদু|মাওযূ/.test(r[7]))grades.mawdu.push([sh.book,r[0],sh.section,r[1],r[7]]);
  else if(/দুর্বল|যঈফ/.test(r[7]))grades.daif.push([sh.book,r[0],sh.section,r[1],r[7]]);
 }}
-assert.equal(missing,1038);assert.equal(notes,21218);assert.equal(JSON.stringify(c.window.HADITH_GRADE_INDEX),JSON.stringify(grades));
+assert.equal(missing,1038);assert.equal(notes,24760);assert.equal(JSON.stringify(c.window.HADITH_GRADE_INDEX),JSON.stringify(grades));
 const m=idx.books.mishkat.sections.find(s=>s.hadithFirst<=4457&&s.hadithLast>=4457);if(m){const r=JSON.parse(zlib.gunzipSync(fs.readFileSync(`scripture-hadith-mishkat-${m.id}.json.gz`)));assert(!r.some(x=>x[1]===4457));}
 console.log('EAD notes, source grades, Arabic gaps and missing Mishkat 4457 verified');

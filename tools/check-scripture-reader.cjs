@@ -128,7 +128,19 @@ async function go(w, hash) { w.location.hash=hash; await new Promise(r=>setTimeo
   assert.ok($('#searchResults').textContent.includes('রহমান'));
   dom.window.close(); delayIndexes=false;
   dom=await open('hadith.html'); w=dom.window; $=s=>w.document.querySelector(s);
-  await waitFor(()=>w.document.querySelectorAll('.hadith-book').length===25,'book catalogue'); assert.equal(w.location.hash,'#/hadith');
+  await waitFor(()=>w.document.querySelectorAll('.hadith-book').length===26,'book catalogue'); assert.equal(w.location.hash,'#/hadith');
+  await go(w,'/hadith2/darimimirror');
+  assert.match(w.document.querySelector('#app').textContent,/বর্তমান HadithBD-এর ৩৫৪৬ রেকর্ডের সম্পূর্ণ সংস্করণ নয়/);
+  await go(w,'/hadith2/darimimirror/1');
+  await waitFor(()=>w.document.querySelector('.hadith-card'),'Darimi mirror record');
+  assert.match(w.document.querySelector('.hadith-card').textContent,/বর্তমান সংস্করণ সম্পূর্ণ নয়/);
+  assert.match(w.document.querySelector('.hadith-card .hadith-grade-reason').textContent,/উৎসের সম্পূর্ণ পাঠ ও টীকা/);
+  assert.equal(new URL(w.document.querySelector('.hadith-card a[href^="https://www.tauhiderdak.com/"]').href).hostname,'www.tauhiderdak.com');
+  await go(w,'/hadith2/search?q=113&book=darimimirror');
+  await waitFor(()=>w.document.querySelectorAll('#hadithResults .result-item').length===2,'both source records numbered 113');
+  await go(w,'/hadith2/search?q=114&book=darimimirror');
+  await waitFor(()=>w.document.querySelector('#hadithResults .empty-state h3')?.textContent.includes('কিছু পাওয়া যায়নি'),'missing mirror heading does not resolve to another record');
+  await go(w,'/hadith');
   const bn=n=>String(n).replace(/[0-9]/g,d=>'০১২৩৪৫৬৭৮৯'[+d]);
   const grades=w.document.querySelectorAll('.grade-card');
   assert.ok(grades[0].textContent.includes(bn(w.HADITH_GRADE_INDEX.daif.length)));
@@ -208,5 +220,5 @@ async function go(w, hash) { w.location.hash=hash; await new Promise(r=>setTimeo
   await waitFor(()=>$('#hadithResults')?.textContent.includes('অনুসন্ধান সম্পূর্ণ হয়নি'),'failed search notice');
   assert.ok(!$('#hadithResults').textContent.includes('কিছু পাওয়া যায়নি'));
   dom.window.close(); assert.deepEqual(errors,[]);
-  console.log('scripture reader: project-relative routes, surahs, tafsir, search, all 25 books, bookmarks, gzip modes and errors pass (jsdom)');
+  console.log('scripture reader: project-relative routes, surahs, tafsir, search, all 26 collections, bookmarks, gzip modes and errors pass (jsdom)');
 })().catch(e=>{console.error(e);process.exitCode=1;}).finally(()=>server.close());
