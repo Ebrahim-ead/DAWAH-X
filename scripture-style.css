@@ -981,4 +981,3 @@ html[data-theme="light"] body.scripture-page { background:radial-gradient(ellips
 .english-notes p { white-space: pre-wrap; line-height: 1.6; }
 .audio-btn[aria-pressed="true"] { color: var(--gold); border-color: var(--gold); }
 .hadith-autoload { margin: 18px auto; color: var(--muted); text-align: center; font-size: 13px; }
-.hadith-grade-reason { margin: 12px 0; padding: 12px 14px; border-inline-start: 3px solid var(--warn); color: var(--muted); line-height: 1.7; font-size: 13px; }

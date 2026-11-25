@@ -1327,43 +1327,6 @@
       '</form><p class="search-hint">' + bn(HTOTAL) + ' টি হাদিসে খোঁজা যায়। ' +
       'কিছু হাদিসের আরবি বা অনুবাদ উৎসে নেই; ফাঁকা ঘর বানিয়ে ভরাট করা হয়নি। সব গ্রন্থে খুঁজতে অনেক তথ্য ডাউনলোড হতে পারে।</p></div>';
   }
-  // Individually reviewed explanations only: collection, edition number and
-  // distinctive Arabic chain must all match. Do not infer causes from grade.
-  function hadithGradeReason(id, r) {
-    var category = gradeCategory(id, r[7]);
-    if (category !== 'daif' && category !== 'mawdu') return '';
-    var reason = '', link = '';
-    if (id === 'abudawud' && r[0] === 29 && r[1] === 29 && category === 'daif' && r[4].includes('عَنْ قَتَادَةَ، عَنْ عَبْدِ اللَّهِ بْنِ سَرْجِسَ')) {
-      reason = 'ইরওয়াউল গালীলের আলোচনার বরাতে উৎসের টীকায় কাতাদাহ আবদুল্লাহ ইবনু সারজিস থেকে বর্ণনাটি শোনেননি বলে সনদ বিচ্ছিন্ন উল্লেখ করা হয়েছে।';
-      link = 'https://www.hadithbd.com/hadith/abu-dawud/29';
-    } else if (id === 'abudawud' && r[0] === 752 && r[1] === 752 && category === 'daif' && r[4].includes('عَنِ ابْنِ أَبِي لَيْلَى، عَنْ أَخِيهِ، عِيسَى')) {
-      reason = 'উৎসের টীকায় মুনযিরীর মতে সনদের ইবনু আবূ লায়লাহ দুর্বল; আত-তাকরীবের উদ্ধৃতিতে তাঁর স্মরণশক্তি খুবই মন্দ বলা হয়েছে।';
-      link = 'https://www.hadithbd.com/hadith/abu-dawud/752';
-    } else if (id === 'abudawud' && r[0] === 2128 && r[1] === 2128 && category === 'daif' && r[4].includes('عَنْ خَيْثَمَةَ، عَنْ عَائِشَةَ')) {
-      reason = 'ইমাম আবূ দাউদ বলেছেন, খায়সামাহ আয়িশাহ (রাঃ) থেকে হাদিস শোনেননি। উৎসের টীকায় সনদের বিচ্ছিন্নতা ও শারীকের স্মরণশক্তির দুর্বলতা উল্লেখ আছে।';
-      link = 'https://www.hadithbd.com/hadith/abu-dawud/2128';
-    } else if (id === 'tirmidhi' && r[0] === 358 && r[1] === 358 && category === 'daif' && r[4].includes('مُحَمَّدُ بْنُ الْقَاسِمِ الأَسَدِيُّ، عَنِ الْفَضْلِ بْنِ دَلْهَمٍ')) {
-      reason = 'তিরমিযীর মন্তব্যে হাসান থেকে মুরসাল বর্ণনার কথা আছে; তিনি জানান, ইমাম আহমাদ বর্ণনাকারী মুহাম্মাদ ইবনুল কাসিমকে দুর্বল বলেছেন এবং তাঁর স্মরণশক্তির সমালোচনা করেছেন।';
-      link = 'https://www.hadithbd.com/hadith/tirmidhi/358';
-    } else if (id === 'tirmidhi' && r[0] === 727 && r[1] === 726 && category === 'daif' && r[4].includes('حَدَّثَنَا أَبُو عَاتِكَةَ، عَنْ أَنَسِ بْنِ مَالِكٍ')) {
-      reason = 'ইমাম তিরমিযী এই সনদকে শক্তিশালী বলেননি এবং বর্ণনাকারী আবূ আতিকা দুর্বল বলে উল্লেখ করেছেন।';
-      link = 'https://www.hadithbd.com/hadith/tirmidhi/726';
-    } else if (id === 'abudawud' && r[0] === 594 && r[1] === 594 && category === 'daif' && r[4].includes('عَنْ مَكْحُولٍ، عَنْ أَبِي هُرَيْرَةَ')) {
-      reason = 'ইমাম দারাকুতনীর মতে, মাকহূল আবূ হুরাইরাহ (রাঃ) থেকে এই বর্ণনাটি শোনেননি; তাই এই সনদটি বিচ্ছিন্ন।';
-      link = 'https://www.hadithbd.com/hadith/abu-dawud/594';
-    } else if (id === 'abudawud' && r[0] === 756 && r[1] === 756 && category === 'daif' && r[4].includes('عَبْدِ الرَّحْمَنِ بْنِ إِسْحَاقَ، عَنْ زِيَادِ بْنِ زَيْدٍ')) {
-      reason = 'শায়খ আলবানীর আলোচনায় সনদের বর্ণনাকারী আবদুর রহমান ইবনু ইসহাক আল-ওয়াসিতীকে দুর্বল এবং সনদের বর্ণনায় অসঙ্গতিকে ত্রুটি হিসেবে উল্লেখ করা হয়েছে।';
-      link = 'https://www.hadithbd.com/hadith/abu-dawud/756';
-    } else if (id === 'tirmidhi' && r[0] === 2726 && r[1] === 2713 && category === 'daif' && r[4].includes('عَنْ حَمْزَةَ، عَنْ أَبِي الزُّبَيْرِ، عَنْ جَابِرٍ')) {
-      reason = 'ইমাম তিরমিযীর মন্তব্য অনুযায়ী, তাঁর মতে বর্ণনাকারী হামযা ইবনু আমর আন-নাসীবী হাদিস বর্ণনায় দুর্বল; তিনি এই হাদিসটিকে মুনকার বলেছেন।';
-      link = 'https://www.hadithbd.com/hadith/tirmidhi/2713';
-    } else if (id === 'tirmidhi' && r[0] === 2727 && r[1] === 2714 && category === 'mawdu' && r[4].includes('عَنْ عَنْبَسَةَ، عَنْ مُحَمَّدِ بْنِ زَاذَانَ')) {
-      reason = 'hadithbd-র মিশকাত ৪৬৫৮-এর টীকায় মাওযূ বলার কারণ হিসেবে সনদে আমবাসাহ ইবনু আবদুর রহমানের বিরুদ্ধে হাদিস জালের অভিযোগ ও মুহাম্মাদ নামের বর্ণনাকারীর দুর্বলতা উল্লেখ আছে। ইমাম তিরমিযী নিজে এই সনদকে দুর্বল বলেছেন।';
-      link = 'https://www.hadithbd.com/hadith/mishkat/4658';
-    }
-    if (reason) return '<p class="hadith-grade-reason"><strong>মানের কারণ:</strong> ' + esc(reason) + ' <a href="' + esc(link) + '" target="_blank" rel="noopener noreferrer">বিস্তারিত তাহকীক ও উৎস ↗</a>। গ্রেডার ও সংস্করণভেদে মত ভিন্ন হতে পারে।</p>';
-    return '<p class="hadith-grade-reason">এই মানটি উৎসের তাহকীক থেকে দেখানো হয়েছে। এই নির্দিষ্ট বর্ণনাটির যাচাইকৃত কারণ এখানে এখনও যুক্ত করা হয়নি; মূল পাঠ ও বিস্তারিত তাহকীক দেখুন এবং যোগ্য মুহাদ্দিসের কাছে যাচাই করুন। অনুমান করে কারণ দেখানো হচ্ছে না।</p>';
-  }
   function hadithCard(id, r) {
     var b = hBook(id), an = hNum(r[2]), sec = hSectionOf(id, r[0]);
     var gl = gradeLabel(id, r[7]), gcls = gradeClass(gl);
@@ -1384,7 +1347,6 @@
         '<p class="hadith-ar missing">এই হাদিসের আরবি মূল উৎসে নেই।</p>') +
       (r[3] ? '<p class="hadith-bn">' + esc(r[3]) + '</p>' :
         '<p class="hadith-bn missing">এই হাদিসের বাংলা অনুবাদ উৎসে নেই।</p>') +
-      hadithGradeReason(id, r) +
       '<div class="hadith-foot">' +
         '<div class="hadith-ref">' +
           (an ? 'আন্তর্জাতিক নম্বর ' + esc(an) + ' · ' : '') +
