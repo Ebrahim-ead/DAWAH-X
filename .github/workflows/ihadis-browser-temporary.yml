@@ -8,7 +8,7 @@ permissions:
 jobs:
   browser:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
@@ -17,16 +17,9 @@ jobs:
         with:
           node-version: 20
       - run: npm install --prefix /tmp/ihadis-browser playwright-core@1.56.1 cheerio@1.0.0 --no-audit --no-fund
-      - name: Collect and checkpoint complete books
-        run: |
+      - run: NODE_PATH=/tmp/ihadis-browser/node_modules node tools/ihadis-remaining-probe.cjs
+      - run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          for book in muwatta-malik luluwal-marjan hadis-somvar riyadus-salihin; do
-            status=0
-            NODE_PATH=/tmp/ihadis-browser/node_modules node tools/collect-ihadis-browser.cjs "$book" || status=$?
-            git add tools/ihadis-*-snapshot.json.gz tools/ihadis-collection-report.json
-            git commit -m "Record collection result for $book" && git push origin HEAD:arena/983d824f-dawah-x
-            if [ "$status" -ne 0 ]; then exit "$status"; fi
-          done
-
-# Fall back to individual pages for a small number of unrendered cards.
+          git add tools/ihadis-probe-*.html
+          git commit -m 'Record remaining source card diagnostics' && git push origin HEAD:arena/983d824f-dawah-x

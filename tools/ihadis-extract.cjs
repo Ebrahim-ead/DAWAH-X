@@ -14,7 +14,7 @@ function index(html,slug){
  return {slug,title,expected:+m[2],chapters:[...chapters.values()].sort((a,b)=>a.id-b.id)};
 }
 function extractCard($,card,slug,expectedId){
- const header=tidy(card.find('h3,h2').first().text()), n=ascii(header).match(/:\s*(?:(\d+)\s*\/\s*)?(\d+)\s*$/);if(!n)throw Error('Missing displayed number '+slug+':'+expectedId);
+ const header=tidy(card.find('h3 a[href]').first().text() || card.find('h2,h3').first().text()), n=ascii(header).match(/:\s*(?:(\d+)\s*\/\s*)?(\d+)\s*$/);if(!n)throw Error('Missing displayed number '+slug+':'+expectedId);
  const grade=tidy(card.find('button[style] span').first().text()), narr=tidy(card.find('h4').first().text());
  const ar=card.find('p[dir="rtl"]').map((_,p)=>paragraphs($,p)).get().filter(Boolean).join('\n\n');
  const bnp=card.find('h4').length ? card.find('h4').first().parent().find('p').first() : card.find('p.font-normal').first(),bn=bnp.length?paragraphs($,bnp):'';
