@@ -76,14 +76,14 @@
     if (!ayahAudio) {
       ayahAudio = new Audio(); ayahAudio.preload = 'none';
       ayahAudio.addEventListener('ended', function () { audioPlaying = false; syncAudioButtons(); });
-      ayahAudio.addEventListener('error', function () { if (audioKey) { audioPlaying = false; syncAudioButtons(); toast('তিলাওয়াত চালানো যায়নি। ইন্টারনেট পরীক্ষা করে আবার চেষ্টা করুন।'); } });
+      ayahAudio.addEventListener('error', function () { if (audioKey && audioPlaying) { audioPlaying = false; syncAudioButtons(); toast('তিলাওয়াত চালানো যায়নি। ইন্টারনেট পরীক্ষা করে আবার চেষ্টা করুন।'); } });
     }
     var key = refKey(s, a);
     if (audioKey === key && audioPlaying) { audioAttempt++; ayahAudio.pause(); audioPlaying = false; syncAudioButtons(); return; }
     if (audioKey !== key) { ayahAudio.pause(); audioKey = key; ayahAudio.src = 'https://everyayah.com/data/Yasser_Ad-Dussary_128kbps/' + String(s).padStart(3, '0') + String(a).padStart(3, '0') + '.mp3'; }
     var attempt = ++audioAttempt; audioPlaying = true; syncAudioButtons();
     var promise = ayahAudio.play();
-    if (promise && promise.catch) promise.catch(function () { if (attempt === audioAttempt) { audioPlaying = false; syncAudioButtons(); toast('তিলাওয়াত চালানো যায়নি। ইন্টারনেট পরীক্ষা করে আবার চেষ্টা করুন।'); } });
+    if (promise && promise.catch) promise.catch(function () { if (attempt === audioAttempt && audioPlaying) { audioPlaying = false; syncAudioButtons(); toast('তিলাওয়াত চালানো যায়নি। ইন্টারনেট পরীক্ষা করে আবার চেষ্টা করুন।'); } });
   }
 
   /* ------------------------------ storage ------------------------------ */
