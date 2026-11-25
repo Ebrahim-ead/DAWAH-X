@@ -8,7 +8,7 @@
  const trigger=document.createElement('button');trigger.type='button';trigger.className='dxa-trigger';trigger.setAttribute('aria-label','এআই সহকারী চ্যাট খুলুন');trigger.setAttribute('aria-expanded','false');trigger.setAttribute('aria-controls','dxa-panel');
  const logo=document.createElement('img');logo.src=url('assistant-logo.webp');logo.alt='';logo.width=72;logo.height=72;trigger.appendChild(logo);
  const panel=document.createElement('aside');panel.id='dxa-panel';panel.className='dxa-panel';panel.hidden=true;panel.setAttribute('aria-label','DAWAH X এআই সহকারী');
- panel.innerHTML='<header class="dxa-head"><div><span class="dxa-mark" aria-hidden="true">✦</span><div><strong>DAWAH X সহকারী</strong><small>জানুন, বুঝুন, উৎস খুঁজুন</small></div></div><button class="dxa-close" type="button" aria-label="চ্যাট বন্ধ করুন">×</button></header><div class="dxa-chat" role="log" aria-live="polite" aria-relevant="additions"><div class="dxa-welcome"><span>আসসালামু আলাইকুম</span><h2>কী জানতে চান?</h2><p>দৈনন্দিন বিষয়ে গল্প করুন। ইসলাম নিয়ে প্রশ্ন করলে কুরআন, হাদিস ও সাইটের লেখা থেকে প্রাসঙ্গিক তথ্য খুঁজব। নির্দিষ্ট আয়াত বা হাদিস জানতে সূরা ও আয়াত নম্বর, অথবা কিতাব ও হাদিস নম্বর লিখুন। অনুসন্ধান সীমিত: বাছাই করা উৎসের অংশ ব্যবহার হয়; ভিডিওর শুধু শিরোনাম খোঁজা হয়, বক্তব্য নয়। এআই ভুল করতে পারে—মূল উৎস যাচাই করুন; ব্যক্তিগত ফতোয়ার জন্য যোগ্য আলেমের পরামর্শ নিন।</p><div class="dxa-prompts"><button type="button">সালাতের গুরুত্ব কী?</button><button type="button">রোজা সম্পর্কে জানতে চাই</button></div></div></div><div class="dxa-bottom"><p class="dxa-privacy">প্রশ্ন ও সাম্প্রতিক কথোপকথন Cloudflare-এর এআই সেবায় পাঠানো হয়। সংবেদনশীল তথ্য দেবেন না।</p><form class="dxa-form"><label class="dxa-sr" for="dxa-input">আপনার প্রশ্ন</label><textarea id="dxa-input" rows="1" maxlength="2000" placeholder="আপনার প্রশ্ন লিখুন…" required></textarea><button type="submit" aria-label="প্রশ্ন পাঠান">➜</button></form><div class="dxa-footer"><button type="button" class="dxa-reset">নতুন কথোপকথন</button><span>এআই-এর উত্তর যাচাই করুন</span><a href="'+url('ask.html')+'">টিমকে প্রশ্ন করুন ↗</a></div></div>';
+ panel.innerHTML='<header class="dxa-head"><div><span class="dxa-mark" aria-hidden="true">✦</span><div><strong>DAWAH X সহকারী</strong><small>জানুন, বুঝুন, উৎস খুঁজুন</small></div></div><button class="dxa-close" type="button" aria-label="চ্যাট বন্ধ করুন">×</button></header><div class="dxa-chat" role="log" aria-live="polite" aria-relevant="additions"><div class="dxa-welcome"><span>আসসালামু আলাইকুম</span><h2>কী জানতে চান?</h2><p>দৈনন্দিন বিষয়ে গল্প করুন। ইসলাম নিয়ে প্রশ্ন করলে কুরআন, হাদিস ও সাইটের লেখা থেকে প্রাসঙ্গিক তথ্য খুঁজব। নির্দিষ্ট আয়াত বা হাদিস জানতে সূরা ও আয়াত নম্বর, অথবা কিতাব ও হাদিস নম্বর লিখুন। অনুসন্ধান সীমিত: বাছাই করা উৎসের অংশ ব্যবহার হয়; সব হাদিস-গ্রন্থে বিষয়ভিত্তিক খোঁজা হয় না। নববী ও মুয়াত্তা মালিকের নির্দিষ্ট নম্বর খোঁজা যায়। ভিডিওর শুধু শিরোনাম খোঁজা হয়, বক্তব্য নয়। এআই ভুল করতে পারে—মূল উৎস যাচাই করুন; ব্যক্তিগত ফতোয়ার জন্য যোগ্য আলেমের পরামর্শ নিন।</p><div class="dxa-prompts"><button type="button">সালাতের গুরুত্ব কী?</button><button type="button">রোজা সম্পর্কে জানতে চাই</button></div></div></div><div class="dxa-bottom"><p class="dxa-privacy">প্রশ্ন ও সাম্প্রতিক কথোপকথন Cloudflare-এর এআই সেবায় পাঠানো হয়। সংবেদনশীল তথ্য দেবেন না।</p><form class="dxa-form"><label class="dxa-sr" for="dxa-input">আপনার প্রশ্ন</label><textarea id="dxa-input" rows="1" maxlength="2000" placeholder="আপনার প্রশ্ন লিখুন…" required></textarea><button type="submit" aria-label="প্রশ্ন পাঠান">➜</button></form><div class="dxa-footer"><button type="button" class="dxa-reset">নতুন কথোপকথন</button><span>এআই-এর উত্তর যাচাই করুন</span><a href="'+url('ask.html')+'">টিমকে প্রশ্ন করুন ↗</a></div></div>';
  document.body.append(trigger,panel);
  const chat=panel.querySelector('.dxa-chat'),form=panel.querySelector('form'),input=panel.querySelector('textarea'),send=form.querySelector('button'),close=panel.querySelector('.dxa-close');
  let history=[],busy=false;
@@ -27,7 +27,7 @@
    Promise.resolve(videoTask).then(items=>{const nearBottom=chat.scrollHeight-chat.scrollTop-chat.clientHeight<100;pending.remove();const videos=Array.isArray(items)?items.slice(0,2):[];videos.forEach(add);if(!found.length&&!videos.length)box.remove();if(nearBottom)chat.scrollTop=chat.scrollHeight}).catch(()=>{pending.remove();if(!found.length)box.remove()})}
   chat.scrollTop=chat.scrollHeight;
  }
- const sitePages=new Set(['about.html','services.html','contact.html','policy.html']);
+ const sitePages=new Set(['index.html','questions.html','fatwa.html','about.html','services.html','contact.html','policy.html']);
  function isFollowUp(q){const t=q.trim();return /^(?:এটা|এটি|এগুলো|ওটা|সেটা|সেটি|সেগুলো|এর|এদের|তার|তাদের|তাহলে|আর|আরও|আরো|তারপর|এ বিষয়ে|এ বিষয়ে|ওই বিষয়ে|ওই বিষয়ে|এই আয়াতের|এই আয়াতের|এই হাদিসের|এই হাদীসের|এ আয়াতের|এ আয়াতের|এ হাদিসের|এ হাদীসের)(?:\s|[?？।!,:ঃ]|$)/u.test(t)||/^(?:কেন|কীভাবে|কিভাবে|কখন|কোথায়|কোথায়|বিস্তারিত|ব্যাখ্যা)(?:\s*(?:বলুন|বলেন|বলবেন|জানান|করুন|চাই|দিন))?\s*[?？।!]*$/u.test(t)||/^(?:why|how|what about (?:it|that|this)|explain|tell me more)[?.!\s]*$/i.test(t)}
  function searchContext(q){if(!isFollowUp(q))return q;const parts=[q],users=history.filter(m=>m.role==='user');for(let i=users.length-1;i>=0;i--){parts.push(users[i].content);if(!isFollowUp(users[i].content))break}return parts.join(' ')}
  function pageMatches(q){const site=/(?:dawah\s*x|দা[ওউ]য়?া?হ|দাওয়াহ|দাওয়াহ|ওয়েবসাইট|ওয়েবসাইট|ওয়েবসাইট|সাইট|আপনাদের|তোমাদের)/i.test(q);if(!site)return [];const pages=['about.html'];if(/সেবা|কার্যক্রম|কাজ|উদ্দেশ্য|service/i.test(q))pages.push('services.html');if(/যোগাযোগ|ফোন|নম্বর|whatsapp|হোয়াটসঅ্যাপ|হোয়াটসঅ্যাপ/i.test(q))pages.push('contact.html');if(/নীতি|তথ্যসূত্র|উৎস|রেফারেন্স|সংশোধন/i.test(q))pages.push('policy.html');return pages}
@@ -43,6 +43,10 @@
    if(item.type==='quran'&&Number.isInteger(item.surah)&&item.surah>=1&&item.surah<=114&&Number.isInteger(item.verse)&&item.verse>=1&&item.verse<=286){
     link('['+item.number+'] '+item.title+' · Ebrahim Ead', 'https://ebrahim-ead.github.io/ead/quran.html#'+item.surah+':'+item.verse);
     snapshot(item,'ead','assets/quran/data/suras/'+item.surah+'.json');link('একই আয়াত Quran.com-এ দেখুন (ভিন্ন অনুবাদ হতে পারে)','https://quran.com/'+item.surah+'/'+item.verse);continue;
+   }
+   if(item.type==='hadith'&&item.origin==='dawahx'&&['malik','nawawi'].includes(item.book)&&Number.isInteger(item.chapter)&&item.chapter>=0&&item.chapter<=200&&Number.isInteger(item.hadith)&&item.hadith>=1&&item.hadith<=20000&&Number.isInteger(item.readerIndex)&&item.readerIndex>=1&&item.readerIndex<=20000){
+    link('['+item.number+'] '+item.title+' · DAWAH X',url('hadith.html#/hadith/'+item.book+'/'+item.readerIndex));
+    snapshot(item,'DAWAH-X','scripture-hadith-'+item.book+'-'+item.chapter+'.json.gz');continue;
    }
    if(item.type==='hadith'&&Object.prototype.hasOwnProperty.call(books,item.book)&&Number.isInteger(item.chapter)&&item.chapter>=0&&item.chapter<=200&&Number.isInteger(item.hadith)&&item.hadith>=1&&item.hadith<=20000){
     link('['+item.number+'] '+item.title+' · Ebrahim Ead','https://ebrahim-ead.github.io/ead/hadith.html#'+item.book+':'+item.chapter+':'+item.hadith);
@@ -66,18 +70,16 @@
  async function submit(q){q=q.trim();if(!q||busy)return;busy=true;send.disabled=true;if(reset)reset.disabled=true;input.value='';bubble(q,'user');const status=bubble('উত্তর তৈরি হচ্ছে…','status');
   try{
    if(!API_URL)throw Error('unsupported');
-   // Ask the Worker whether local search is needed; direct numbered lookups bypass it.
-   let data=await requestAnswer({message:q,ids:[],pages:[],history,lookupComplete:false,allSources:true});
-   if(data.needs_sources!==true||data.all_sources!==true)throw Error('unsupported');
-   let spelling=null;
-   if(data.needs_sources===true){
-    status.textContent='প্রাসঙ্গিক উৎস খোঁজা হচ্ছে…';let texts=[],videos=null,siteSearchFailed=false,siteSearchLimited=false;
-    const searchQ=searchContext(q),pages=pageMatches(searchQ);
-    if(data.direct_lookup!==true)try{let result;try{result=await window.dawahxAssistantSearch(searchQ)}catch(_){}if(!result)result=await window.dawahxAssistantSearch(searchQ);if(!result)throw Error('search unavailable');texts=result.texts.slice(0,6);videos=result.videos;siteSearchLimited=result.limited===true;spelling=result.correction||null}catch(_){siteSearchFailed=true}
-    status.textContent='প্রাপ্ত উৎস থেকে উত্তর তৈরি হচ্ছে…';
-    data=await requestAnswer({message:q,ids:texts.map(x=>x.k),pages,history,lookupComplete:true,scriptureSearch:true,siteSearchFailed,siteSearchLimited,...(spelling?{searchCorrection:spelling}:{}),allSources:true});
-    if(data.grounded===true)sources(texts,videos);
-   }
+   // Search first and send one Worker request per question. The server still
+   // independently detects direct numbered lookups and ignores candidates for
+   // them; a local index outage must not prevent those exact text lookups.
+   status.textContent='প্রাসঙ্গিক উৎস খোঁজা হচ্ছে…';let texts=[],videos=null,siteSearchFailed=false,siteSearchLimited=false,spelling=null;
+   const searchQ=searchContext(q),pages=pageMatches(searchQ);
+   try{let result;try{result=await window.dawahxAssistantSearch(searchQ)}catch(_){}if(!result)result=await window.dawahxAssistantSearch(searchQ);if(!result)throw Error('search unavailable');texts=result.texts.slice(0,6);videos=result.videos;siteSearchLimited=result.limited===true;spelling=result.correction||null}catch(_){siteSearchFailed=true}
+   status.textContent='প্রাপ্ত উৎস থেকে উত্তর তৈরি হচ্ছে…';
+   const data=await requestAnswer({message:q,ids:texts.map(x=>x.k),pages,history,lookupComplete:true,scriptureSearch:true,siteSearchFailed,siteSearchLimited,...(spelling?{searchCorrection:spelling}:{}),allSources:true});
+   if(data.direct_lookup===true)spelling=null;
+   else if(data.grounded===true)sources(texts,videos);
    if(typeof data.answer!=='string'||!data.answer.trim()||!Array.isArray(data.sources)||typeof data.grounded!=='boolean'||(data.grounded&&!data.sources.length))throw Error('unsupported');
    status.remove();if(spelling&&typeof spelling.from==='string'&&typeof spelling.to==='string')bubble('উৎস খোঁজায় সম্ভাব্য বানান ব্যবহার করা হয়েছে: '+spelling.from+' → '+spelling.to+'। অর্থ ভিন্ন হলে প্রশ্নটি সংশোধন করুন।','status');modeLabel(data.mode==='chat'?'chat':data.mode==='source_quote'?'source_quote':data.grounded?'grounded':data.verification_failed?'verification':data.partial?'failed':'no-source');const answerBubble=bubble(data.answer,'assistant');citations(data.sources,data.mode==='source_quote');if(data.grounded===false&&data.mode!=='source_quote'&&Array.isArray(data.candidates))citations(data.candidates.slice(0,6),true);if(data.partial===true){const labels={quran:'কুরআন',hadith:'হাদিস',site_search:'সাইটের লেখা খোঁজা',site_pages:'সাইটের তথ্য',articles:'বাছাই করা লেখা',direct_lookup:'নির্দিষ্ট আয়াত বা হাদিস'};
     const failed=Array.isArray(data.search_failures)?[...new Set(data.search_failures.filter(x=>Object.prototype.hasOwnProperty.call(labels,x)).map(x=>labels[x]))]:[];

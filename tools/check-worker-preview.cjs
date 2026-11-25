@@ -17,5 +17,9 @@ const assert=require('node:assert/strict');
  const blocked=await request({method:'POST',headers:{...headers,Origin:'https://invalid.example'},body:JSON.stringify(payload)});assert.equal(blocked.status,403,'unapproved origins must be rejected');
  const response=await request({method:'POST',headers,body:JSON.stringify(payload)});assert.equal(response.status,200,'direct lookup failed: '+response.status);assert.equal(response.headers.get('access-control-allow-origin'),origin);
  const data=await response.json();assert.equal(data.grounded,true);assert(data.sources?.some(s=>s.type==='quran'&&s.surah===2&&s.verse===255),'direct verse source was not returned');
- console.log('Preview Worker: CORS, required bindings and direct Quran lookup passed. Model inference was not tested.');
-})().catch(error=>{console.error('Preview Worker check failed:',error.message);process.exitCode=1});
+ for(const [message,book] of [['নববী হাদিস ১','nawawi'],['মুয়াত্তা মালিক হাদিস ১','malik']]){
+  const r=await request({method:'POST',headers,body:JSON.stringify({...payload,message})});assert.equal(r.status,200,'local hadith lookup failed: '+r.status);
+  const d=await r.json();assert.equal(d.grounded,true,message);assert(d.sources?.some(s=>s.book===book&&s.hadith===1&&s.origin==='dawahx'),message+' must cite the local reader');
+ }
+ console.log('Preview Worker: CORS, required bindings and three direct scripture lookups passed. Model inference was not tested.');
+})().catch(error=>{console.error('Preview Worker check failed:',error.message);if(process.env.GITHUB_ACTIONS==='true')console.log('::error::Preview Worker check failed: '+String(error.message).replace(/%/g,'%25').replace(/\r/g,'%0D').replace(/\n/g,'%0A'));process.exitCode=1});

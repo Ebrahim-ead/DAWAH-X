@@ -18,7 +18,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('nod
  const context={document,window:{dawahxAssistantSearch:async()=>({texts:[],videos:null,limited:true})},URL,fetch,Response,AbortController,TextEncoder,setTimeout,clearTimeout,console};
  vm.runInNewContext(fs.readFileSync('assistant.js','utf8'),context);input.value='উটের মূত্র পানের হাদিসটি বুঝিয়ে বলুন';form.listeners.submit({preventDefault(){}});
  for(let i=0;i<20&&send.disabled;i++)await new Promise(resolve=>setImmediate(resolve));
- assert.equal(calls,2);assert.equal(send.disabled,false);assert.equal(input.value,'উটের মূত্র পানের হাদিসটি বুঝিয়ে বলুন','question remains available for retry');
+ assert.equal(calls,1);assert.equal(send.disabled,false);assert.equal(input.value,'উটের মূত্র পানের হাদিসটি বুঝিয়ে বলুন','question remains available for retry');
  const texts=chat.children.map(x=>x.textContent||'');assert(texts.some(x=>x.includes('এআই দিয়ে ব্যাখ্যা তৈরির সেবা এখন কাজ করছে না')));assert(texts.some(x=>x.includes('কিছু উৎসে অনুসন্ধান সম্পূর্ণ হয়নি')));
  const box=chat.children.find(x=>x.className==='dxa-sources');assert(box);assert.match(box.children[0].textContent,/প্রশ্নের উত্তর হিসেবে যাচাই করা হয়নি/);
  const links=box.children.filter(x=>x.tagName==='a').map(x=>x.href);assert(links.some(x=>x.includes('hadith.html#bukhari:4:233')));assert(links.some(x=>x.includes('read.html?k=1289166d87d0da')));assert(!links.some(x=>x.includes('malicious')));

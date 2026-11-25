@@ -39,11 +39,10 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
   candidates=await findHadithCandidates(terms);
   assert(candidates.some(c=>c.book==='bukhari'&&c.id===4&&c.numbers.includes(233)),'real index must discover Bukhari 233');
   assert(candidates.some(c=>c.book==='muslim'&&c.id===29&&c.numbers.includes(4246)),'real index must discover Muslim 4246');
-  let data=await ask(ids);assert.equal(data.grounded,true);assert.match(prompt,/হাদিস 233/);assert.match(prompt,/হাদিস 4246/);assert.match(prompt,/প্রাসঙ্গিক.*?পাদটীকা|উটের মূত্র নিয়ে/s);assert.match(prompt,/Latest question: উটের মূত্র পানের হাদিসটি বুঝিয়ে বলুন/);
-  assert.match(system,/Never advise drinking animal urine/);assert.match(system,/medical claims.*unverified/i);assert.match(data.answer,/স্বাস্থ্য সতর্কতা: প্রাণীর মূত্র পান/);
+  let data=await ask(ids);assert.equal(data.grounded,false);assert.equal(data.mode,'source_quote');assert(data.sources.some(s=>s.type==='hadith'));assert.equal(prompt,'','medical query must not use generative inference');assert.match(data.answer,/স্বাস্থ্য সতর্কতা: প্রাণীর মূত্র পান/);assert.match(data.answer,/চিকিৎসার পরামর্শ নয়/);
   const direct=new Request('https://worker.test/',{method:'POST',headers:{Origin:origin,'CF-Connecting-IP':'192.0.2.1','Content-Type':'application/json'},body:JSON.stringify({message:'বুখারী হাদিস নম্বর ২৩৩',ids:[],pages:[],history:[],lookupComplete:true,allSources:true})});
   const directResult=await (await worker.fetch(direct,env)).json();assert.equal(directResult.grounded,true);assert.match(directResult.answer,/স্বাস্থ্য সতর্কতা: প্রাণীর মূত্র পান/);assert.match(directResult.answer,/উটের পেশাব ও দুধ পান/);
-  model=null;const outage=await ask(ids);assert.equal(outage.error_code,'model_unavailable');assert(outage.candidates.some(s=>s.type==='hadith'&&s.hadith===233));assert(outage.candidates.some(s=>s.key==='1289166d87d0da'));assert(outage.candidates.every(s=>!Object.hasOwn(s,'text')),'outage candidates are links, not unverified excerpts or answers');assert(!JSON.stringify(outage).includes('private model failure'));model='প্রাপ্ত বর্ণনায় একদল অসুস্থ মানুষের কথা এসেছে। [1]';
+  model=null;const outage=await ask(ids);assert.equal(outage.mode,'source_quote','quote does not depend on model availability');assert(!JSON.stringify(outage).includes('private model failure'));
   // Evidence remains unavailable if there are no actual relevant sources.
   noHadith=true;data=await ask([]);assert.equal(data.grounded,false);
  }finally{global.fetch=old}

@@ -72,6 +72,8 @@ jobs:
         run: NODE_PATH="$RUNNER_TEMP/responsive-browser/node_modules" TEST_ARTIFACT_DIR="$RUNNER_TEMP/responsive-results" node tools/check-responsive-browser.cjs
       - name: Check scripture reader layouts in Chromium
         run: NODE_PATH="$RUNNER_TEMP/responsive-browser/node_modules" node tools/check-scripture-responsive.cjs
+      - name: Check assistant on scripture readers in Chromium
+        run: NODE_PATH="$RUNNER_TEMP/responsive-browser/node_modules" node tools/check-reader-assistant-browser.cjs
       - name: Upload failure screenshot
         if: failure()
         uses: actions/upload-artifact@v4

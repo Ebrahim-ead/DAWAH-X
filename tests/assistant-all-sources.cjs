@@ -32,7 +32,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
   r=await worker.fetch(req('হ্যালো',{siteSearchLimited:true,siteSearchFailed:true}),chatEnv);data=await r.json();assert.equal(data.search_limited,true);assert.equal(data.partial,true);assert(data.search_failures.includes('site_search'),'chat must still disclose failed search');
   events.length=0;r=await worker.fetch(req('hm',{ids:[]}),chatEnv);data=await r.json();assert.equal(data.mode,'chat');assert.match(data.answer,/আর কী জানতে চান/);assert.equal(data.search_limited,true);assert(!events.some(x=>x.startsWith('AI:')),'bare acknowledgement does not need model inference');
   r=await worker.fetch(req('হ্যালো',{allSources:'true'}),chatEnv);assert.equal(r.status,400);
-  const client=fs.readFileSync(path.join(__dirname,'../assistant.js'),'utf8');assert.match(client,/allSources:true/);assert.match(client,/data\.all_sources!==true/);assert(client.includes('data.direct_lookup!==true'));
+  const client=fs.readFileSync(path.join(__dirname,'../assistant.js'),'utf8');assert.match(client,/allSources:true/);assert.match(client,/lookupComplete:true/);assert(client.includes('data.direct_lookup===true'));
   console.log('assistant all-source search: sequencing, failures, direct lookup and chat pass');
  }finally{global.fetch=old}
 })().catch(e=>{console.error(e);process.exitCode=1});
