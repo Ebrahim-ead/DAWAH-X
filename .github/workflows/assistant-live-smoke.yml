@@ -21,6 +21,8 @@ jobs:
       - name: Test deployed site search and Worker
         env:
           ASSISTANT_LIVE_FOCUS: ${{ contains(github.event.head_commit.message, '[assistant-focus-check]') && 'camel' || '' }}
+          ASSISTANT_PREVIEW: ${{ contains(github.event.head_commit.message, '[assistant-preview-check]') && 'true' || 'false' }}
+          PREVIEW_BRANCH: ${{ github.ref_name }}
         run: node tools/check-assistant-live.cjs
       - name: Save fixed public questions and responses for manual source review
         if: always()
