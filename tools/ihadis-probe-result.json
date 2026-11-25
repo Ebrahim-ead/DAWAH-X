@@ -1,0 +1,20 @@
+[
+  {
+    "path": "/40-hadith/1",
+    "status": 200,
+    "length": 328039,
+    "filename": "tools/ihadis-probe-40-hadith.html"
+  },
+  {
+    "path": "/dhaif-hadis-sirij/1",
+    "status": 200,
+    "length": 417157,
+    "filename": "tools/ihadis-probe-dhaif-hadis-sirij.html"
+  },
+  {
+    "path": "/riyadus-salihin",
+    "status": 200,
+    "length": 224308,
+    "filename": "tools/ihadis-probe-riyadus-salihin.html"
+  }
+]
