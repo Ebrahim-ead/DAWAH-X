@@ -1,3 +1,5 @@
-/* Pickthall 1930; quran-json snapshot, see scripture-credits.md. */
+/* Saheeh International, Noor International Center, QuranEnc english_saheeh v1.1.2; see scripture-credits.md. */
 window.EN_SURAHS = window.EN_SURAHS || {};
-window.EN_SURAHS[102] = ["Rivalry in worldly increase distracteth you","Until ye come to the graves","Nay, but ye will come to know","Nay, but ye will come to know","Nay, would that ye knew (now) with a sure knowledge","For ye will behold hell-fire","Aye, ye will behold it with sure vision","Then, on that day, ye will be asked concerning pleasure"];
+window.EN_NOTES = window.EN_NOTES || {};
+window.EN_SURAHS[102] = ["(1) Competition in [worldly] increase diverts you","(2) Until you visit the graveyards.[1980]","(3) No! You are going to know.","(4) Then, no! You are going to know.","(5) No! If you only knew with knowledge of certainty...[1981]","(6) You will surely see the Hellfire.","(7) Then you will surely see it with the eye of certainty.[1982]","(8) Then you will surely be asked that Day about pleasure.[1983]"];
+window.EN_NOTES[102] = ["","[1980]- i.e., remain in them temporarily, meaning until the Day of Resurrection.","","","[1981]- The conclusion of this verse is estimated to be \"...you would not have been distracted from preparing for the Hereafter.\"","","[1982]- i.e., with actual eyesight.","[1983]- i.e., the comforts of worldly life and whether you were grateful to Allāh for His blessings."];

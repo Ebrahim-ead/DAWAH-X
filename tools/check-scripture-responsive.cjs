@@ -28,7 +28,7 @@ const server=http.createServer((req,res)=>{
    const columns=await page.locator('footer .qlinks li').evaluateAll(items=>items.slice(0,2).map(x=>x.getBoundingClientRect().x));
    assert(columns[1]>columns[0],`${width}: quick links should have two columns`);
    await page.goto(base+'quran.html#/s/1/a/1');await page.waitForFunction(()=>document.querySelector('#v1 .verse-translation')?.textContent.includes('রহমান, রহীম'));
-   await page.waitForFunction(()=>document.querySelector('#v1 .english-translation .tr-text')?.textContent==='In the name of Allah, the Beneficent, the Merciful');await check('verse');
+   await page.waitForFunction(()=>document.querySelector('#v1 .english-translation .tr-text')?.textContent==='(1) In the name of Allāh,[2] the Entirely Merciful, the Especially Merciful.[3]');await check('verse');
    await page.goto(base+'hadith.html');await page.waitForSelector('.hadith-book');assert.equal(await page.locator('.hadith-book').count(),9);assert.equal(await page.locator('footer .qlinks li').count(),13);await check('books');
    await page.goto(base+'hadith.html#/hadith/bukhari/section/1');await page.waitForSelector('.hadith-card');await check('hadith');
    if(width<1100) await page.click('#burger');
@@ -38,6 +38,26 @@ const server=http.createServer((req,res)=>{
    assert.equal(await page.evaluate(()=>localStorage.getItem('dawahx-theme')), theme==='dark'?'light':'dark');
    assert.deepEqual(errors,[]);await context.close();
   }
+  // Real Chromium interaction with a deterministic media mock: streaming is
+  // independently checked by the optional source workflow, not downloaded here.
+  const interaction=await browser.newContext({serviceWorkers:'block'}), ip=await interaction.newPage();
+  await interaction.addInitScript(()=>{
+    window.__players=[];
+    window.Audio=class extends EventTarget { constructor(){super();this.src='';this.paused=true;window.__players.push(this)}
+      play(){this.paused=false;return Promise.resolve()} pause(){this.paused=true}
+      removeAttribute(name){if(name==='src')this.src=''} load(){} };
+  });
+  await ip.goto(base+'quran.html#/s/1/a/1');await ip.waitForSelector('#v1 [data-action="audio"]');
+  await ip.click('#v1 [data-action="audio"]');assert.equal(await ip.getAttribute('#v1 [data-action="audio"]','aria-pressed'),'true');
+  assert.equal(await ip.evaluate(()=>window.__players[0].src),'https://everyayah.com/data/Yasser_Ad-Dussary_128kbps/001001.mp3');
+  await ip.click('#v2 [data-action="audio"]');assert.equal(await ip.getAttribute('#v1 [data-action="audio"]','aria-pressed'),'false');
+  assert.equal(await ip.evaluate(()=>window.__players.length),1);assert.equal(await ip.evaluate(()=>window.__players[0].src),'https://everyayah.com/data/Yasser_Ad-Dussary_128kbps/001002.mp3');
+  await ip.goto(base+'hadith.html#/hadith/bukhari/section/64');await ip.waitForSelector('.hadith-autoload');
+  const first=ip.locator('#hadithList .hadith-card').first();await first.evaluate(e=>e.dataset.testIdentity='retained');
+  await ip.locator('.hadith-autoload').scrollIntoViewIfNeeded();await ip.waitForFunction(()=>document.querySelectorAll('#hadithList .hadith-card').length>20);
+  assert.equal(await first.getAttribute('data-test-identity'),'retained');assert.equal(await ip.locator('#hadithList button.more-btn').count(),0);
+  await ip.goto(base+'hadith.html#/hadith/abudawud/594');await ip.waitForSelector('.hadith-card .hadith-grade');
+  assert((await ip.locator('.hadith-grade').innerText()).includes('যঈফ'));assert.equal(await ip.locator('.hadith-grade-reason').count(),0);await interaction.close();
   // Theme and navigation remain consistent when moving from the existing site
   // into both readers and back, including the shared mobile menu.
   const shared=await browser.newContext({viewport:{width:390,height:900},serviceWorkers:'block',reducedMotion:'reduce'});
@@ -69,7 +89,7 @@ const server=http.createServer((req,res)=>{
   await retryPage.goto(base+'quran.html#/s/2/a/1');
   await retryPage.waitForFunction(()=>document.querySelector('#v1 .english-translation')?.textContent.includes('লোড করা যায়নি'));
   rejectEnglish=false; await retryPage.uncheck('#showEnglish'); await retryPage.check('#showEnglish');
-  await retryPage.waitForFunction(()=>document.querySelector('#v1 .english-translation .tr-text')?.textContent==='Alif. Lam. Mim');
+  await retryPage.waitForFunction(()=>document.querySelector('#v1 .english-translation .tr-text')?.textContent==='(1) Alif, Lām, Meem.[7]');
   await retry.close();
   // Failed search indexes must not be presented as a complete search. Retry
   // should recover both English and Bengali without reloading the reader.
@@ -103,10 +123,10 @@ const server=http.createServer((req,res)=>{
   await offlineContext.setOffline(true); await offlinePage.reload(); await offlinePage.waitForSelector('.hadith-card');
   await offlineContext.setOffline(false);
   await offlinePage.goto(base+'quran.html#/s/2/a/1');
-  await offlinePage.waitForFunction(()=>document.querySelector('#v1 .english-translation .tr-text')?.textContent==='Alif. Lam. Mim');
+  await offlinePage.waitForFunction(()=>document.querySelector('#v1 .english-translation .tr-text')?.textContent==='(1) Alif, Lām, Meem.[7]');
   await offlinePage.waitForFunction(async()=>!!(await caches.match('scripture-en-2.js')));
   await offlineContext.setOffline(true); await offlinePage.reload();
-  await offlinePage.waitForFunction(()=>document.querySelector('#v1 .english-translation .tr-text')?.textContent==='Alif. Lam. Mim');
+  await offlinePage.waitForFunction(()=>document.querySelector('#v1 .english-translation .tr-text')?.textContent==='(1) Alif, Lām, Meem.[7]');
   await offlineContext.setOffline(false); await offlinePage.goto(base+'quran.html#/search?q=MERCIFUL');
   await offlinePage.waitForFunction(()=>document.querySelector('#searchResults')?.textContent.includes('ইংরেজি অনুবাদে মিল'));
   await offlinePage.waitForFunction(async()=>!!(await caches.match('scripture-en-translation.js')));

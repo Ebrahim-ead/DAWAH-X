@@ -1,3 +1,5 @@
-/* Pickthall 1930; quran-json snapshot, see scripture-credits.md. */
+/* Saheeh International, Noor International Center, QuranEnc english_saheeh v1.1.2; see scripture-credits.md. */
 window.EN_SURAHS = window.EN_SURAHS || {};
-window.EN_SURAHS[99] = ["When Earth is shaken with her (final) earthquake","And Earth yieldeth up her burdens","And man saith: What aileth her","That day she will relate her chronicles","Because thy Lord inspireth her","That day mankind will issue forth in scattered groups to be shown their deeds","And whoso doeth good an atom's weight will see it then","And whoso doeth ill an atom's weight will see it then"];
+window.EN_NOTES = window.EN_NOTES || {};
+window.EN_SURAHS[99] = ["(1) When the earth is shaken with its [final] earthquake","(2) And the earth discharges its burdens[1962]","(3) And man says,[1963] \"What is [wrong] with it?\" -","(4) That Day, it will report its news","(5) Because your Lord has inspired [i.e., commanded] it.","(6) That Day, the people will depart[1964] separated [into categories] to be shown [the result of] their deeds.","(7) So whoever does an atom's weight[1965] of good will see it,","(8) And whoever does an atom's weight of evil will see it."];
+window.EN_NOTES[99] = ["","[1962]- See verse 84:4.","[1963]- In terror and amazement.","","","[1964]- From the place of Judgement to their final abode. Another interpretation is \"emerge separately\" (from the graves) .","[1965]- Or \"the weight of a small ant.\"",""];

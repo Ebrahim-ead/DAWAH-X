@@ -974,3 +974,10 @@ html[data-theme="light"] body.scripture-page { background:radial-gradient(ellips
 .scripture-page #app .verses.mushaf .verse,.scripture-page #app .verses.mushaf .verse:hover {background:none;border:0;box-shadow:none}
 .scripture-page #app .english-translation .tr-text {font-family:system-ui,sans-serif;line-height:1.75}
 @media(max-width:560px){.scripture-page .reader-utilities .btn{width:auto}}
+
+/* Optional English notes and on-demand recitation. */
+.english-notes { margin-top: 8px; color: var(--muted); font-size: 13px; }
+.english-notes summary { cursor: pointer; color: var(--gold); }
+.english-notes p { white-space: pre-wrap; line-height: 1.6; }
+.audio-btn[aria-pressed="true"] { color: var(--gold); border-color: var(--gold); }
+.hadith-autoload { margin: 18px auto; color: var(--muted); text-align: center; font-size: 13px; }

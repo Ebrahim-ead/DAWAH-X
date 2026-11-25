@@ -1,3 +1,5 @@
-/* Pickthall 1930; quran-json snapshot, see scripture-credits.md. */
+/* Saheeh International, Noor International Center, QuranEnc english_saheeh v1.1.2; see scripture-credits.md. */
 window.EN_SURAHS = window.EN_SURAHS || {};
-window.EN_SURAHS[104] = ["Woe unto every slandering traducer","Who hath gathered wealth (of this world) and arranged it","He thinketh that his wealth will render him immortal","Nay, but verily he will be flung to the Consuming One","Ah, what will convey unto thee what the Consuming One is","(It is) the fire of Allah, kindled","Which leapeth up over the hearts (of men)","Lo! it is closed in on them","In outstretched columns"];
+window.EN_NOTES = window.EN_NOTES || {};
+window.EN_SURAHS[104] = ["(1) Woe to every scorner and mocker","(2) Who collects wealth and [continuously] counts it.[1987]","(3) He thinks that his wealth will make him immortal.","(4) No! He will surely be thrown into the Crusher.[1988]","(5) And what can make you know what is the Crusher?","(6) It is the fire of Allāh, [eternally] fueled,","(7) Which mounts directed at the hearts.[1989]","(8) Indeed, it [i.e., Hellfire] will be closed down upon them","(9) In extended columns.[1990]"];
+window.EN_NOTES[104] = ["","[1987]- Rather than spending in the way of Allāh.","","[1988]- i.e., Hellfire, which crushes and destroys all that enters it.","","","[1989]- Covering them and penetrating them.","","[1990]- Interpreted to be either columns of fire or columns of iron to which are chained the inmates of Hell."];
