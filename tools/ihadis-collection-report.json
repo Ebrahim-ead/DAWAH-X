@@ -54,5 +54,12 @@
     "count": 151,
     "chapters": 3,
     "sha256": "8e8e62d6cdcb95647291d93bc68ce080c4e3f9ca63747be6e882e1c32dba0fe1"
+  },
+  {
+    "slug": "sahih-hadise-qudsi",
+    "status": "complete",
+    "count": 163,
+    "chapters": 1,
+    "sha256": "6ede1112cd0c62d5af0237229d9891281486ee55f0a9fe9f3d132068067b849a"
   }
 ]
