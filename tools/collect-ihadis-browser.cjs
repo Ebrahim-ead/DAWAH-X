@@ -12,7 +12,7 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
   page=await browser.newPage({viewport:{width:1200,height:6000},serviceWorkers:'block'});
   page.on('response',r=>{if(r.url().startsWith('https://ihadis.com/')&&[403,429,500,502,503].includes(r.status()))block.push({status:r.status(),path:new URL(r.url()).pathname})});
   await page.route('**/*',route=>{const u=new URL(route.request().url());return u.hostname!=='ihadis.com'||['image','media','font'].includes(route.request().resourceType())?route.abort():route.continue()});
-  async function open(path){await sleep(1200);const r=await page.goto('https://ihadis.com'+path,{waitUntil:'domcontentloaded',timeout:60000});if(!r||r.status()!==200||block.length)throw Error('HTTP or site failure '+path+' '+JSON.stringify(block));return r.text()}
+  async function open(path){let r;for(let attempt=0;attempt<3;attempt++){await sleep(attempt?5000:1200);try{r=await page.goto('https://ihadis.com'+path,{waitUntil:'domcontentloaded',timeout:60000});break}catch(e){if(block.length||attempt===2||!String(e).includes('Timeout'))throw e;console.warn('Transient navigation timeout; retrying',path)}}if(!r||r.status()!==200||block.length)throw Error('HTTP or site failure '+path+' '+JSON.stringify(block));return r.text()}
   let meta=x.index(await open('/'+slug),slug),sections=[],all=new Set();console.log('Book',slug,meta.expected,'chapters',meta.chapters.length);
   for(const ch of meta.chapters){
    let raw=await open('/'+slug+'/'+ch.id),base=x.chapter(raw,slug,ch.id),expected=new Set([...base.rows.map(r=>r.id),...base.missing]),rows=new Map(base.rows.map(r=>[r.id,r]));
