@@ -1472,3 +1472,9 @@ html[data-theme="light"] .prayer-disclaimer{background:rgba(23,36,44,.025);borde
 @media(min-width:1100px) and (max-width:1559px){.fbp span{display:none} #menu a{font-size:15px;padding-inline:5px} .bar .word{height:32px}}
 /* Tightest desktop widths need a slightly more compact row without squeezing words together. */
 @media(min-width:1100px) and (max-width:1199px){#menu{gap:6px}#menu a{font-size:14px;padding-inline:2px}}
+
+/* New book catalogue joins the shared navigation and home reading cards. */
+@media(min-width:1100px){#menu a[href="islamic-books.html"]{white-space:normal;max-width:70px;line-height:1.2;text-align:center}}
+@media(min-width:1100px) and (max-width:1199px){#menu{gap:6px}#menu a{padding-inline:1px}#menu a[href="questions.html"],#menu a[href="fatwa.html"]{max-width:84px}}
+@media(min-width:1200px) and (max-width:1559px){#menu a[href="questions.html"],#menu a[href="fatwa.html"]{max-width:94px}}
+@media(min-width:800px){.home-scripture-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}

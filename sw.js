@@ -4,14 +4,14 @@
          আনা না গেলে তবেই জমানো কপি দেওয়া হয়। শুধু নিজের সাইটের ফাইল ও Google Fonts জমানো হয়।
    কোনো ফাইলের তালিকা বদলালে VERSION বাড়ান — পুরোনো জমা মুছে যায়। */
 'use strict';
-const VERSION='v78';
+const VERSION='v79';
 const SHELL='dawahx-shell-'+VERSION;   /* পাতার কাঠামো: HTML, CSS, JS, লোগো (ইনস্টলের সময় আনা হয়) */
 const PAGES='dawahx-pages-'+VERSION;   /* ব্যবহারের সময় আনা অন্য ফাইল */
 const TEXTS='dawahx-texts-'+VERSION;   /* পড়া লেখা (texts/, rel/) */
 const FONTS='dawahx-fonts-'+VERSION;
 const LIMIT={[PAGES]:120,[TEXTS]:300,[FONTS]:30};
 const PRECACHE=['./','index.html','about.html','services.html','questions.html','topics.html','series.html','sources.html','recent.html','faq.html','topic-evil.html','topic-existence.html','topic-hadith.html','topic-prophet.html','topic-quran.html','topic-science.html','topic-sharia.html','topic-women.html','fatwa.html','videos.html','ask.html','contact.html','read.html','saved.html','policy.html','404.html',
- 'quran.html','hadith.html','scripture-shell.js','scripture-route.js','scripture-style.css','scripture-fflate.js','scripture-app.js','scripture-surahs.js','scripture-quran-data.js','scripture-quran-meta.js','scripture-bn-index.js','scripture-hadith-index.js','scripture-tafsir-ibn-kathir-index.js','scripture-bn-1.js','scripture-en-1.js','scripture-hafs.woff2','scripture-bengali.woff2',
+ 'quran.html','hadith.html','islamic-books.html','islamic-books.css','islamic-books.js','islamic-books-catalog.js','scripture-shell.js','scripture-route.js','scripture-style.css','scripture-fflate.js','scripture-app.js','scripture-surahs.js','scripture-quran-data.js','scripture-quran-meta.js','scripture-bn-index.js','scripture-hadith-index.js','scripture-tafsir-ibn-kathir-index.js','scripture-bn-1.js','scripture-en-1.js','scripture-hafs.woff2','scripture-bengali.woff2',
  'style.css','app.js','reader-assistant-search.js','assistant.js','assistant.css','assistant-logo.webp','features.js','prayer-times.js','quote-card.js','discovery.js','effects.js','live.js','youtube-gallery.js','logo.webp','logo-dark.webp','logo-icon.webp','favicon.svg','hero.webp','hero-sm.webp','hero.jpg','founder.webp','founder-sm.webp','fonts-arabic.css','manifest.webmanifest','stats.json','cross-links.json','texts/index.json'];
 const FONT_HOSTS=['fonts.googleapis.com','fonts.gstatic.com'];
 const OFFLINE='<!doctype html><html lang="bn"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ইন্টারনেট সংযোগ নেই — DAWAH X</title>'
