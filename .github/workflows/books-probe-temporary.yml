@@ -1,35 +1,24 @@
-name: Temporary books source probe
+name: Temporary books source inventory
 on:
   push:
     branches: ['arena/55c2ae55-dawah-x']
-    paths: ['.github/workflows/books-probe-temporary.yml']
+    paths: ['.github/workflows/books-probe-temporary.yml', 'tools/inspect-islamic-books.py']
 permissions:
   contents: write
 jobs:
-  probe:
+  inventory:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
-      - name: Inspect one public flipbook's delivery and embedding headers
+      - name: Collect only catalogue fields and sample PDF response headers
+        run: python3 tools/inspect-islamic-books.py
+      - name: Save diagnostic on current branch
+        if: always()
         run: |
-          python3 - <<'PY'
-          import urllib.request, re, html, json
-          url='https://book.tauhiderdak.com/flipbook/al-bidaya-wan-nihaya-1-pdf'
-          req=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0 (compatible; book source inspection)'})
-          with urllib.request.urlopen(req, timeout=40) as r:
-              text=r.read(2_000_000).decode('utf-8','replace')
-              headers={k:v for k,v in r.headers.items() if k.lower() in ['x-frame-options','content-security-policy','content-type','access-control-allow-origin']}
-          lines=[]
-          for m in re.finditer(r'(?i)(?:pdfUrl|pdf_url|pdfurl|iframe|embed|source|downloadUrl|download_url|https?[^\s"<>\\]{0,250}\.pdf)',text):
-              snippet=html.unescape(text[max(0,m.start()-150):min(len(text),m.end()+250)]).replace('\n',' ')
-              if len(lines)<100:lines.append(snippet)
-          open('tools/books-probe-result.json','w').write(json.dumps({'url':url,'headers':headers,'matches':lines},ensure_ascii=False,indent=2))
-          PY
-      - name: Save small diagnostic on current branch
-        run: |
+          test -f tools/islamic-books-source.json
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add tools/books-probe-result.json
-          git commit -m 'Record book source delivery probe [skip-data-jobs]'
+          git add tools/islamic-books-source.json
+          git commit -m 'Record book catalogue source inventory [skip-data-jobs]'
           git push origin HEAD:${{ github.ref_name }}
