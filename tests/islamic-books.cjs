@@ -11,4 +11,5 @@ assert.equal(ids.size,102);assert.deepEqual(groups.map(x=>x.items.length),[14,21
 assert.deepEqual(groups.find(x=>x.id==='usmani').items.map(x=>x.id),['tafsir-usmani-1-pdf','tafsir-usmani-2-pdf','tafsir-usmani-7-pdf']);
 const html=fs.readFileSync('islamic-books.html','utf8'),js=fs.readFileSync('islamic-books.js','utf8');
 assert.match(html,/ফাইল এই সাইটে সংরক্ষিত নয়/);assert.match(html,/aria-live="polite"/);assert.match(js,/lib\.getDocument\(\{url:item\.pdf,isEvalSupported:false\}\)/);assert.match(js,/বইটি লোড করা যায়নি/);assert.match(html,/islamic-books-credits\.md/);
+for(const file of ['islamic-book-collection.html','islamic-book-read.html']){const page=fs.readFileSync(file,'utf8');assert.match(page,/name="robots" content="noindex,follow"/);assert.match(page,/islamic-books-catalog\.js/);assert.match(page,/islamic-books\.js/);}assert.match(html,/islamic-book-collection\.html\?collection=/);assert.match(js,/location\.hash\.slice\(1\)/);assert.match(js,/location\.replace\(bookURL/);
 console.log('Islamic books: 10 series and 102 source-matched volume links, editions, gaps and disclosure verified');
