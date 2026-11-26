@@ -1334,7 +1334,8 @@
       hSections(id).forEach(function (s) {
         (hData(id, s.id) || []).forEach(function (r) {
           var t = r[3] + ' ' + r[6] + ' ' + r[8] + ' ' + r[4];
-          out.push({ b: id, i: r[0], n: r[1], an: hNum(r[2]), k: norm(t), gc: gradeCategory(id, r[7]) });
+          var sourceBody = hBook(id).source === 'dbht' ? /পাঠের শিরোনাম নম্বর: ([0-9]+)/.exec(r[10]) : null;
+          out.push({ b: id, i: r[0], n: r[1], an: hNum(r[2]), sourceBody: sourceBody ? sourceBody[1] : '', k: norm(t), gc: gradeCategory(id, r[7]) });
         });
       });
     });
@@ -1350,7 +1351,7 @@
     return 'other';
   }
   function gradeLabel(id, g) {
-    return String(g || '') || 'মান উল্লেখ নেই';
+    return String(g || '') || (hBook(id) && hBook(id).source === 'dbht' ? 'স্বতন্ত্র মান শনাক্ত হয়নি; পাঠ দেখুন' : 'মান উল্লেখ নেই');
   }
   // Display categories are visual aids, not a replacement for the source's
   // exact verdict. Combined verdicts retain both applicable badges.
@@ -1367,7 +1368,7 @@
     }).join('');
   }
   function hadithCredit() {
-    return '<p class="meta-credit hadith-credit">হাদিসের উৎস: <a href="https://ebrahim-ead.github.io/ead/hadith.html" target="_blank" rel="noopener noreferrer">Ebrahim Ead</a>, <a href="https://ihadis.com/hadith-books" target="_blank" rel="noopener noreferrer">iHadis</a> ও দারেমীর পুরোনো অনুলিপি: <a href="https://www.tauhiderdak.com/sunan-darimi-bangla" target="_blank" rel="noopener noreferrer">তাওহীদের ডাক</a> · মিশকাত: মুসলিম বাংলা · <a href="scripture-credits.md">ক্রেডিট</a></p>';
+    return '<p class="meta-credit hadith-credit">হাদিসের উৎস: <a href="https://ebrahim-ead.github.io/ead/hadith.html" target="_blank" rel="noopener noreferrer">Ebrahim Ead</a>, <a href="https://ihadis.com/hadith-books" target="_blank" rel="noopener noreferrer">iHadis</a> ও দারেমীর পুরোনো অনুলিপি: <a href="https://www.tauhiderdak.com/sunan-darimi-bangla" target="_blank" rel="noopener noreferrer">তাওহীদের ডাক</a> · <a href="https://www.waytojannah.com/blog/2017/12/25/dbht-hadith-software-version-7/" target="_blank" rel="noopener noreferrer">DBHT 7 অনুলিপি</a> · মিশকাত: মুসলিম বাংলা · <a href="scripture-credits.md">ক্রেডিট</a></p>';
   }
   function hadithSearchForm(q, scope, grade) {
     var opts = '<option value="all"' + (scope === 'all' ? ' selected' : '') + '>সব গ্রন্থ</option>' +
@@ -1392,6 +1393,9 @@
     var label = hBook(id).source === 'tauhiderdak-mirror' ? 'উৎসের সম্পূর্ণ পাঠ ও টীকা' : 'ব্যাখ্যা ও সনদ';
     return r[8] ? '<details class="hadith-grade-reason"><summary>' + label + '</summary><p>' + esc(r[8]).replace(/\n/g, '<br>') + '</p></details>' : '';
   }
+  function dbhtText(text) {
+    return text.split('\n').map(function (line) { return '<div dir="auto">' + (line ? esc(line) : '&nbsp;') + '</div>'; }).join('');
+  }
   function hadithCard(id, r) {
     var b = hBook(id), an = hNum(r[2]), sec = hSectionOf(id, r[0]);
     var gl = gradeLabel(id, r[7]);
@@ -1401,7 +1405,7 @@
         '<div class="hadith-badges">' +
           '<span class="hadith-num">' + esc(b.short) + ' ' + bn(r[1]) + '</span>' +
           gradeBadges(gl) + '<span class="hadith-source-grade">উৎসের মান: ' + esc(gl) + '</span>' +
-          (r[6] ? '<span class="hadith-narrator">' + esc(r[6]) + '</span>' : '') + (r[9] ? '<span class="hadith-narrator">একই নম্বরের আরেক বর্ণনা</span>' : '') +
+          (r[6] ? '<span class="hadith-narrator">' + esc(r[6]) + '</span>' : '') + (r[9] ? '<span class="hadith-narrator">একই নম্বরের একাধিক রেকর্ড</span>' : '') +
         '</div>' +
         '<div class="hadith-icons">' +
           '<button type="button" class="act-btn' + (saved ? ' saved' : '') + '" data-action="hadith-bookmark" data-book="' + id + '" data-i="' + r[0] + '" aria-label="সংরক্ষণ" title="সংরক্ষণ">' + ICON.star + '</button>' +
@@ -1409,28 +1413,32 @@
         '</div>' +
       '</div>' +
       (b.source === 'tauhiderdak-mirror' ? '<p class="hadith-ref">পুরোনো HadithBD অনুলিপি · বর্তমান সংস্করণ সম্পূর্ণ নয় · নম্বরে পার্থক্য থাকতে পারে</p>' : '') +
+      (b.source === 'dbht' ? '<p class="hadith-ref">DBHT 7-এর পুরোনো অসম্পূর্ণ অনুলিপি; উৎসের শিরোনাম ও পাঠে নম্বর ভিন্ন হতে পারে। বাংলা ও আরবির সঙ্গে উৎসের আলোচনাও আছে।' + (id === 'dbhtdaif' ? ' এ সংকলনে দুর্বল, জাল ও অন্যান্য মূল্যায়নের বর্ণনা আছে; উৎসের আলোচনা দেখুন।' : '') + '</p>' : '') +
       (r[10] ? '<p class="hadith-ref">' + esc(r[10]) + '</p>' : '') +
-      (r[4] ? '<p class="hadith-ar" lang="ar" dir="rtl">' + esc(r[4]).replace(/\n/g, '<br>') + '</p>' :
+      (b.source === 'dbht' && r[4] ? '<p class="hadith-ref">উৎসের আরবি পাঠ ও আলোচনা</p>' : '') +
+      (r[4] ? (b.source === 'dbht' ? '<div class="hadith-dbht-text">' + dbhtText(r[4]) + '</div>' : '<p class="hadith-ar" lang="ar" dir="rtl">' + esc(r[4]).replace(/\n/g, '<br>') + '</p>') :
         '<p class="hadith-ar missing">এই হাদিসের আরবি মূল উৎসে নেই।</p>') +
-      (r[3] ? '<p class="hadith-bn">' + esc(r[3]).replace(/\n/g, '<br>') + '</p>' :
+      (b.source === 'dbht' && r[3] ? '<p class="hadith-ref">উৎসের বাংলা পাঠ ও আলোচনা</p>' : '') +
+      (r[3] ? (b.source === 'dbht' ? '<div class="hadith-dbht-text">' + dbhtText(r[3]) + '</div>' : '<p class="hadith-bn">' + esc(r[3]).replace(/\n/g, '<br>') + '</p>') :
         '<p class="hadith-bn missing">এই হাদিসের বাংলা অনুবাদ উৎসে নেই।</p>') +
       hadithReason(id, r) +
       '<div class="hadith-foot">' +
         '<div class="hadith-ref">' +
           (an ? 'আন্তর্জাতিক নম্বর ' + esc(an) + ' · ' : '') +
-          (sec ? (b.source === 'tauhiderdak-mirror' ? 'পাঠের অংশ ' : 'অধ্যায় ') + bn(sec.id) + ' · ' + esc(sec.name) : '') +
+          (sec ? ((b.source === 'tauhiderdak-mirror' || b.source === 'dbht') ? 'পাঠের অংশ ' : 'অধ্যায় ') + bn(sec.id) + ' · ' + esc(sec.name) : '') +
         '</div>' +
         (r[5] ? '<details class="hadith-en"><summary>English translation</summary><p lang="en">' + esc(r[5]) + '</p></details>' : '') +
         '<div class="hadith-actions">' +
           '<button type="button" class="btn btn-sm" data-action="hadith-open" data-book="' + id + '" data-i="' + r[0] + '">একক পাতা ' + ICON.arrow + '</button>' +
           '<button type="button" class="btn btn-sm btn-ghost" data-action="hadith-share" data-book="' + id + '" data-i="' + r[0] + '">লিংক কপি</button>' +
-          '<a class="btn btn-sm btn-ghost" href="' + esc(b.source === 'tauhiderdak-mirror' ? (sec && sec.site || b.site) : b.source === 'ihadis-direct' ? b.site + '/hadith/' + r[1] : 'https://ebrahim-ead.github.io/ead/hadith.html#' + b.slug + ':' + (sec ? sec.id : 1) + ':' + r[1]) + '" target="_blank" rel="noopener noreferrer">উৎস ↗</a>' +
+          '<a class="btn btn-sm btn-ghost" href="' + esc(b.source === 'tauhiderdak-mirror' ? (sec && sec.site || b.site) : b.source === 'dbht' ? b.site : b.source === 'ihadis-direct' ? b.site + '/hadith/' + r[1] : 'https://ebrahim-ead.github.io/ead/hadith.html#' + b.slug + ':' + (sec ? sec.id : 1) + ':' + r[1]) + '" target="_blank" rel="noopener noreferrer">উৎস ↗</a>' +
         '</div>' +
       '</div>' +
     '</article>';
   }
   function hadithSourceNote(id) {
     if (hBook(id).source === 'tauhiderdak-mirror') return 'তাওহীদের ডাকের পুরোনো HadithBD অনুলিপি; সম্পূর্ণ বর্তমান সংস্করণ নয় · ' + hBook(id).site;
+    if (hBook(id).source === 'dbht') return 'DBHT 7 পুরোনো অনুলিপি; অসম্পূর্ণ, নম্বরে অসঙ্গতি আছে · ' + hBook(id).site;
     if (hBook(id).source === 'ihadis-direct') return 'iHadis · ' + hBook(id).edition + ' · ' + hBook(id).site;
     return hBook(id).source === 'mishkat' ? 'মিশকাত: মুসলিম বাংলা, Ebrahim Ead সংগ্রহ' : 'আল-হাদিস (iHadis), Ebrahim Ead সংগ্রহ';
   }
@@ -1484,7 +1492,7 @@
         '<span class="hadith-book-ar" lang="ar" dir="rtl">' + esc(b.ar) + '</span>' +
         '<h3>' + esc(b.bn) + '</h3>' +
         '<p class="hadith-book-en">' + (b.en ? esc(b.en) + ' · ' : '') + esc(b.edition) + '</p>' +
-        '<p class="hadith-book-count"><b>' + bn(b.total) + '</b> টি হাদিস · <b>' + bn(b.shards) + '</b> টি ' + (b.source === 'tauhiderdak-mirror' ? 'পাঠের অংশ' : 'অধ্যায়') + '</p>' +
+        '<p class="hadith-book-count"><b>' + bn(b.total) + '</b> টি হাদিস · <b>' + bn(b.shards) + '</b> টি ' + ((b.source === 'tauhiderdak-mirror' || b.source === 'dbht') ? 'পাঠের অংশ' : 'অধ্যায়') + '</p>' +
         '<span class="card-arrow">পড়ুন →</span></a>';
     }).join('');
     app.innerHTML =
@@ -1513,23 +1521,24 @@
     setTitle(b.bn); setNav('hadith');
     var rows = list.map(function (s) {
       return '<a class="result-item hadith-section" href="#/hadith2/' + id + '/section/' + s.id + '">' +
-        '<div class="result-ref"><span class="dot"></span> ' + (b.source === 'tauhiderdak-mirror' ? 'অংশ ' : 'অধ্যায় ') + bn(s.id) +
+        '<div class="result-ref"><span class="dot"></span> ' + ((b.source === 'tauhiderdak-mirror' || b.source === 'dbht') ? 'অংশ ' : 'অধ্যায় ') + bn(s.id) +
         ' <span style="color:var(--muted);font-weight:400">' + esc(s.name) + '</span></div>' +
-        '<div class="result-snippet">' + bn(s.count) + ' টি হাদিস · হাদিস ' + bn(s.hadithFirst) + '–' + bn(s.hadithLast) + '</div></a>';
+        '<div class="result-snippet">' + bn(s.count) + ' টি রেকর্ড' + (b.source === 'dbht' ? ' · উৎসের নম্বরের ক্রম ভিন্ন হতে পারে' : ' · হাদিস ' + bn(s.hadithFirst) + '–' + bn(s.hadithLast)) + '</div></a>';
     }).join('');
     app.innerHTML =
       '<section class="page-head"><div class="eyebrow"><a href="#/hadith" class="back-link">← হাদিস</a></div>' +
       '<h1>' + esc(b.bn) + '</h1><p>' + (b.en ? esc(b.en) + ' · ' : '') + esc(b.edition) + ' · ' + bn(b.total) + ' টি হাদিস' +
       (b.langs && b.langs.bn ? '' : ' · <b>আরবি মূল; বাংলা/ইংরেজি অনুবাদ উৎসে নেই</b>') +
       ' · নম্বর উৎসের সংস্করণ অনুযায়ী' + '</p>' +
-      (b.source === 'tauhiderdak-mirror' ? '<p>এটি তাওহীদের ডাকের পুরোনো HadithBD অনুলিপি, বর্তমান HadithBD-এর ৩৫৪৬ রেকর্ডের সম্পূর্ণ সংস্করণ নয়। ১১৩, ৯১৪ ও ৩৩১২ নম্বর উৎসে দুবার এসেছে; ১১৪, ৯১৫ ও ৩৩১৩ নম্বর শিরোনামে নেই। একই নম্বরের বর্ণনাগুলো আলাদা রাখা হয়েছে। বাংলা ও আরবির নির্বাচিত অংশের পাশাপাশি উৎসের সম্পূর্ণ পাঠ ও টীকা দেখুন।</p>' : '') + '</section>' +
+      (b.source === 'tauhiderdak-mirror' ? '<p>এটি তাওহীদের ডাকের পুরোনো HadithBD অনুলিপি, বর্তমান HadithBD-এর ৩৫৪৬ রেকর্ডের সম্পূর্ণ সংস্করণ নয়। ১১৩, ৯১৪ ও ৩৩১২ নম্বর উৎসে দুবার এসেছে; ১১৪, ৯১৫ ও ৩৩১৩ নম্বর শিরোনামে নেই। একই নম্বরের বর্ণনাগুলো আলাদা রাখা হয়েছে। বাংলা ও আরবির নির্বাচিত অংশের পাশাপাশি উৎসের সম্পূর্ণ পাঠ ও টীকা দেখুন।</p>' : '') +
+      (b.source === 'dbht' ? '<p>DBHT 7 সফটওয়্যারের পুরোনো অনুলিপি; সম্পূর্ণ বা বর্তমান HadithBD সংস্করণের সঙ্গে অভিন্ন বলে যাচাই হয়নি। উৎসে শিরোনাম ও পাঠের নম্বরের অমিল, পুনরাবৃত্ত নম্বর এবং অনুপস্থিত পাঠ আছে। দুই নম্বর দিয়েই খুঁজতে পারবেন; নম্বর অনুমান করে সংশোধন করা হয়নি। উৎসের পূর্ণ বাংলা ও আরবি ট্যাবের আলোচনাসহ পাঠ দেখানো হয়। স্বতন্ত্র মান শনাক্ত না হলে মূল পাঠ দেখুন।</p>' : '') + '</section>' +
       '<div class="card-panel search-panel">' +
         '<form class="search-form" data-action="hadith-goto" data-book="' + id + '">' +
-          '<input class="input" type="number" name="n" min="1" max="20000" placeholder="উৎসের হাদিস নম্বর" aria-label="হাদিস নম্বর"/>' +
+          '<input class="input" type="number" name="n" min="1" max="100000" placeholder="উৎসের হাদিস নম্বর" aria-label="হাদিস নম্বর"/>' +
           '<button class="btn btn-primary" type="submit">যান</button>' +
         '</form></div>' +
       hadithSearchForm('', id) +
-      '<div class="section-head"><div><div class="eyebrow">' + bn(list.length) + (b.source === 'tauhiderdak-mirror' ? ' টি পাঠের অংশ</div><h2>পাঠের অংশসমূহ' : ' টি অধ্যায়</div><h2>অধ্যায় সমূহ') + '</h2></div>' +
+      '<div class="section-head"><div><div class="eyebrow">' + bn(list.length) + ((b.source === 'tauhiderdak-mirror' || b.source === 'dbht') ? ' টি পাঠের অংশ</div><h2>পাঠের অংশসমূহ' : ' টি অধ্যায়</div><h2>অধ্যায় সমূহ') + '</h2></div>' +
       '<a class="btn btn-ghost btn-sm" href="#/hadith2/saved">★ সংরক্ষিত</a></div>' +
       '<div class="result-list">' + rows + '</div>' + hadithCredit();
     updateBookmarkCount(); window.scrollTo(0, 0);
@@ -1557,10 +1566,10 @@
     if (!sec) { renderHadithBook(id); return; }
     state.hadithBook = id; state.hadithSec = secId;
     state.hadithLimit = 20; state.hadithSeq++;
-    setTitle(b.bn + ' · অধ্যায় ' + bn(secId)); setNav('hadith');
+    setTitle(b.bn + (b.source === 'dbht' || b.source === 'tauhiderdak-mirror' ? ' · পাঠের অংশ ' : ' · অধ্যায় ') + bn(secId)); setNav('hadith');
     app.innerHTML =
       '<section class="page-head"><div class="eyebrow"><a class="back-link" href="#/hadith2/' + id + '">← ' + esc(b.bn) + '</a></div>' +
-      '<h1>অধ্যায় ' + bn(secId) + '</h1><p>' + esc(sec.name) + ' · ' + bn(sec.count) + ' টি হাদিস</p></section>' +
+      '<h1>' + (b.source === 'dbht' || b.source === 'tauhiderdak-mirror' ? 'পাঠের অংশ ' : 'অধ্যায় ') + bn(secId) + '</h1><p>' + esc(sec.name) + ' · ' + bn(sec.count) + ' টি হাদিস</p></section>' +
       '<div id="hadithList"><div class="search-progress">হাদিস লোড হচ্ছে…</div></div>' + hadithCredit();
     updateBookmarkCount(); window.scrollTo(0, 0);
     var seq = state.hadithSeq;
@@ -1589,10 +1598,10 @@
     setTitle(b.bn + ' · পাঠ ক্রম ' + bn(i)); setNav('hadith');
     app.innerHTML =
       '<section class="page-head"><div class="eyebrow"><a class="back-link" href="#/hadith2/' + id + '">← ' + esc(b.bn) + '</a></div>' +
-      '<h1>পাঠ ক্রম ' + bn(i) + '</h1><p>' + esc(b.en) + ' · উৎসে যতটুকু আছে, আরবি ও বাংলা পাঠ</p></section>' +
+      '<h1>পাঠ ক্রম ' + bn(i) + '</h1><p>' + (b.en ? esc(b.en) + ' · ' : '') + 'উৎসে যতটুকু আছে, আরবি ও বাংলা পাঠ</p></section>' +
       '<div class="hadith-one-nav">' +
         '<button type="button" class="btn btn-sm" data-action="hadith-prev" data-book="' + id + '" data-i="' + i + '"' + (i <= 1 ? ' disabled' : '') + '>← আগের</button>' +
-        '<a class="btn btn-sm btn-ghost" href="#/hadith2/' + id + '/section/' + (sec ? sec.id : 0) + '">অধ্যায়ে ফিরুন</a>' +
+        '<a class="btn btn-sm btn-ghost" href="#/hadith2/' + id + '/section/' + (sec ? sec.id : 0) + '">' + (b.source === 'dbht' || b.source === 'tauhiderdak-mirror' ? 'অংশে ফিরুন' : 'অধ্যায়ে ফিরুন') + '</a>' +
         '<button type="button" class="btn btn-sm" data-action="hadith-next" data-book="' + id + '" data-i="' + i + '"' + (i >= b.total ? ' disabled' : '') + '>পরের →</button>' +
       '</div>' +
       '<div id="hadithOne"><div class="search-progress">হাদিস লোড হচ্ছে…</div></div>' + hadithCredit();
@@ -1725,7 +1734,7 @@
     var gf = state.hadithGradeFilter;
     var matches = flat.filter(function (x) {
       if (gf !== 'all' && x.gc !== gf) return false;
-      return numQ ? (String(x.n) === numQ || x.an === numQ) : x.k.indexOf(nq) !== -1;
+      return numQ ? (String(x.n) === numQ || x.an === numQ || x.sourceBody === numQ) : x.k.indexOf(nq) !== -1;
     });
     var html = '<p class="result-meta">' + bn(matches.length) + ' টি ফল · «' + esc(q) + '»' +
       ' · ' + (scope === 'all' ? 'সব গ্রন্থ' : esc(hBook(scope).short)) + '</p>';

@@ -996,3 +996,6 @@ html[data-theme="light"] body.scripture-page { background:radial-gradient(ellips
 .hadith-grade-reason { margin: 1rem 0; padding: .9rem 1rem; border: 1px solid var(--border, #806b46); border-inline-start: 3px solid #b89042; border-radius: .6rem; line-height: 1.8; }
 .hadith-grade-reason p { margin: .45rem 0; }
 .hadith-grade-reason a { text-decoration: underline; }
+
+/* DBHT tabs can contain Bengali commentary and Arabic in either tab. */
+.hadith-dbht-text { font-size: 17px; line-height: 1.9; margin: 0 0 20px; overflow-wrap: anywhere; max-width: 100%; }

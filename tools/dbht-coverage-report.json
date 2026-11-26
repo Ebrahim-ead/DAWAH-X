@@ -1,0 +1,644 @@
+{
+  "sombhar": {
+    "candidates": 3900,
+    "title_unique": 3893,
+    "title_missing": [
+      119,
+      168,
+      380,
+      552,
+      891,
+      1116,
+      1657,
+      1836,
+      2751,
+      3550,
+      3551
+    ],
+    "title_duplicates": {
+      "169": 2,
+      "275": 2,
+      "553": 2,
+      "1115": 2,
+      "1837": 2,
+      "2503": 2
+    },
+    "body_missing": [
+      49,
+      119,
+      380,
+      443,
+      890,
+      1010,
+      1480,
+      1657
+    ],
+    "body_duplicates": {
+      "4": 2,
+      "148": 2,
+      "1000": 2,
+      "2504": 2
+    },
+    "body_number_unrecognized": 2,
+    "title_body_mismatch": [
+      {
+        "id": 103134,
+        "group": "sombhar",
+        "title_number": 49,
+        "body_number": 4,
+        "bangla_tab_count": 1,
+        "arabic_tab_count": 1,
+        "has_bangla": true,
+        "has_arabic": true
+      },
+      {
+        "id": 103390,
+        "group": "sombhar",
+        "title_number": 169,
+        "body_number": 168,
+        "bangla_tab_count": 1,
+        "arabic_tab_count": 1,
+        "has_bangla": true,
+        "has_arabic": true
+      },
+      {
+        "id": 104175,
+        "group": "sombhar",
+        "title_number": 553,
+        "body_number": 552,
+        "bangla_tab_count": 1,
+        "arabic_tab_count": 1,
+        "has_bangla": true,
+        "has_arabic": true
+      },
+      {
+        "id": 104874,
+        "group": "sombhar",
+        "title_number": 890,
+        "body_number": 891,
+        "bangla_tab_count": 1,
+        "arabic_tab_count": 1,
+        "has_bangla": true,
+        "has_arabic": true
+      },
+      {
+        "id": 105118,
+        "group": "sombhar",
+        "title_number": 1010,
+        "body_number": 1000,
+        "bangla_tab_count": 1,
+        "arabic_tab_count": 1,
+        "has_bangla": true,
+        "has_arabic": true
+      },
+      {
+        "id": 105339,
+        "group": "sombhar",
+        "title_number": 1115,
+        "body_number": 1116,
+        "bangla_tab_count": 1,
+        "arabic_tab_count": 1,
+        "has_bangla": true,
+        "has_arabic": true
+      },
+      {
+        "id": 106088,
+        "group": "sombhar",
+        "title_number": 1480,
+        "body_number": 148,
+        "bangla_tab_count": 1,
+        "arabic_tab_count": 1,
+        "has_bangla": true,
+        "has_arabic": true
+      },
+      {
+        "id": 106836,
+        "group": "sombhar",
+        "title_number": 1837,
+        "body_number": 1836,
+        "bangla_tab_count": 1,
+        "arabic_tab_count": 1,
+        "has_bangla": true,
+        "has_arabic": true
+      },
+      {
+        "id": 108228,
+        "group": "sombhar",
+        "title_number": 2503,
+        "body_number": 2504,
+        "bangla_tab_count": 1,
+        "arabic_tab_count": 1,
+        "has_bangla": true,
+        "has_arabic": true
+      },
+      {
+        "id": 108740,
+        "group": "sombhar",
+        "title_number": 275,
+        "body_number": 2751,
+        "bangla_tab_count": 1,
+        "arabic_tab_count": 1,
+        "has_bangla": true,
+        "has_arabic": true
+      },
+      {
+        "id": 110375,
+        "group": "sombhar",
+        "title_number": 35450,
+        "body_number": 3550,
+        "bangla_tab_count": 1,
+        "arabic_tab_count": 1,
+        "has_bangla": true,
+        "has_arabic": true
+      },
+      {
+        "id": 110377,
+        "group": "sombhar",
+        "title_number": 35451,
+        "body_number": 3551,
+        "bangla_tab_count": 1,
+        "arabic_tab_count": 1,
+        "has_bangla": true,
+        "has_arabic": true
+      }
+    ],
+    "missing_bangla_text": 1,
+    "missing_arabic_text": 63,
+    "unexpected_tab_counts": 2,
+    "title_outside_range": [
+      {
+        "id": 110375,
+        "group": "sombhar",
+        "title_number": 35450,
+        "body_number": 3550,
+        "bangla_tab_count": 1,
+        "arabic_tab_count": 1,
+        "has_bangla": true,
+        "has_arabic": true
+      },
+      {
+        "id": 110377,
+        "group": "sombhar",
+        "title_number": 35451,
+        "body_number": 3551,
+        "bangla_tab_count": 1,
+        "arabic_tab_count": 1,
+        "has_bangla": true,
+        "has_arabic": true
+      },
+      {
+        "id": 130462,
+        "group": "sombhar",
+        "title_number": null,
+        "body_number": null,
+        "bangla_tab_count": 0,
+        "arabic_tab_count": 0,
+        "has_bangla": false,
+        "has_arabic": false
+      }
+    ]
+  },
+  "daif": {
+    "candidates": 1998,
+    "title_unique": 1980,
+    "title_missing": [
+      90,
+      204,
+      363,
+      691,
+      732,
+      759,
+      799,
+      1226,
+      1285,
+      1319,
+      1391,
+      1392,
+      1393,
+      1394,
+      1395,
+      1396,
+      1397,
+      1398,
+      1399,
+      1991
+    ],
+    "title_duplicates": {
+      "9": 2,
+      "75": 2,
+      "79": 2,
+      "131": 2,
+      "205": 2,
+      "365": 2,
+      "690": 2,
+      "730": 2,
+      "1191": 3,
+      "1192": 2,
+      "1193": 2,
+      "1194": 2,
+      "1195": 2,
+      "1196": 2,
+      "1197": 2,
+      "1198": 2,
+      "1199": 2
+    },
+    "body_missing": [
+      3,
+      89,
+      445,
+      656,
+      777,
+      881,
+      917,
+      979,
+      1000,
+      1064,
+      1077,
+      1090,
+      1226,
+      1240,
+      1291,
+      1396,
+      1732,
+      1764
+    ],
+    "body_duplicates": {
+      "2": 2,
+      "88": 2,
+      "776": 2,
+      "817": 2,
+      "883": 2,
+      "978": 2,
+      "1063": 2,
+      "1076": 2,
+      "1733": 2
+    },
+    "body_number_unrecognized": 6,
+    "title_body_mismatch": [
+      {
+        "id": 51665,
+        "group": "daif",
+        "title_number": 3,
+        "body_number": 2,
+        "bangla_tab_count": 1,
+        "arabic_tab_count": 1,
+        "has_bangla": true,
+        "has_arabic": true
+      },
+      {
+        "id": 51842,
+        "group": "daif",
+        "title_number": 89,
+        "body_number": 88,
+        "bangla_tab_count": 1,
+        "arabic_tab_count": 1,
+        "has_bangla": true,
+        "has_arabic": true
+      },
+      {
+        "id": 51844,
+        "group": "daif",
+        "title_number": 9,
+        "body_number": 90,
+        "bangla_tab_count": 1,
+        "arabic_tab_count": 1,
+        "has_bangla": true,
+        "has_arabic": true
+      },
+      {
+        "id": 52080,
+        "group": "daif",
+        "title_number": 205,
+        "body_number": 204,
+        "bangla_tab_count": 1,
+        "arabic_tab_count": 1,
+        "has_bangla": true,
+        "has_arabic": true
+      },
+      {
+        "id": 52416,
+        "group": "daif",
+        "title_number": 364,
+        "body_number": 363,
+        "bangla_tab_count": 1,
+        "arabic_tab_count": 1,
+        "has_bangla": true,
+        "has_arabic": true
+      },
+      {
+        "id": 52418,
+        "group": "daif",
+        "title_number": 365,
+        "body_number": 364,
+        "bangla_tab_count": 1,
+        "arabic_tab_count": 1,
+        "has_bangla": true,
+        "has_arabic": true
+      },
+      {
+        "id": 53101,
+        "group": "daif",
+        "title_number": 690,
+        "body_number": 691,
+        "bangla_tab_count": 1,
+        "arabic_tab_count": 1,
+        "has_bangla": true,
+        "has_arabic": true
+      },
+      {
+        "id": 53184,
+        "group": "daif",
+        "title_number": 730,
+        "body_number": 731,
+        "bangla_tab_count": 1,
+        "arabic_tab_count": 1,
+        "has_bangla": true,
+        "has_arabic": true
+      },
+      {
+        "id": 53188,
+        "group": "daif",
+        "title_number": 731,
+        "body_number": 732,
+        "bangla_tab_count": 1,
+        "arabic_tab_count": 1,
+        "has_bangla": true,
+        "has_arabic": true
+      },
+      {
+        "id": 53244,
+        "group": "daif",
+        "title_number": 75,
+        "body_number": 759,
+        "bangla_tab_count": 1,
+        "arabic_tab_count": 1,
+        "has_bangla": true,
+        "has_arabic": true
+      },
+      {
+        "id": 53278,
+        "group": "daif",
+        "title_number": 777,
+        "body_number": 776,
+        "bangla_tab_count": 1,
+        "arabic_tab_count": 1,
+        "has_bangla": true,
+        "has_arabic": true
+      },
+      {
+        "id": 53327,
+        "group": "daif",
+        "title_number": 79,
+        "body_number": 799,
+        "bangla_tab_count": 1,
+        "arabic_tab_count": 1,
+        "has_bangla": true,
+        "has_arabic": true
+      },
+      {
+        "id": 53500,
+        "group": "daif",
+        "title_number": 881,
+        "body_number": 882,
+        "bangla_tab_count": 1,
+        "arabic_tab_count": 1,
+        "has_bangla": true,
+        "has_arabic": true
+      },
+      {
+        "id": 53503,
+        "group": "daif",
+        "title_number": 882,
+        "body_number": 883,
+        "bangla_tab_count": 1,
+        "arabic_tab_count": 1,
+        "has_bangla": true,
+        "has_arabic": true
+      },
+      {
+        "id": 53578,
+        "group": "daif",
+        "title_number": 917,
+        "body_number": 817,
+        "bangla_tab_count": 1,
+        "arabic_tab_count": 1,
+        "has_bangla": true,
+        "has_arabic": true
+      },
+      {
+        "id": 53705,
+        "group": "daif",
+        "title_number": 979,
+        "body_number": 978,
+        "bangla_tab_count": 1,
+        "arabic_tab_count": 1,
+        "has_bangla": true,
+        "has_arabic": true
+      },
+      {
+        "id": 53880,
+        "group": "daif",
+        "title_number": 1064,
+        "body_number": 1063,
+        "bangla_tab_count": 1,
+        "arabic_tab_count": 1,
+        "has_bangla": true,
+        "has_arabic": true
+      },
+      {
+        "id": 53907,
+        "group": "daif",
+        "title_number": 1077,
+        "body_number": 1076,
+        "bangla_tab_count": 1,
+        "arabic_tab_count": 1,
+        "has_bangla": true,
+        "has_arabic": true
+      },
+      {
+        "id": 54335,
+        "group": "daif",
+        "title_number": 1286,
+        "body_number": 1285,
+        "bangla_tab_count": 1,
+        "arabic_tab_count": 1,
+        "has_bangla": true,
+        "has_arabic": true
+      },
+      {
+        "id": 54337,
+        "group": "daif",
+        "title_number": 1287,
+        "body_number": 1286,
+        "bangla_tab_count": 1,
+        "arabic_tab_count": 1,
+        "has_bangla": true,
+        "has_arabic": true
+      },
+      {
+        "id": 54339,
+        "group": "daif",
+        "title_number": 1288,
+        "body_number": 1287,
+        "bangla_tab_count": 1,
+        "arabic_tab_count": 1,
+        "has_bangla": true,
+        "has_arabic": true
+      },
+      {
+        "id": 54341,
+        "group": "daif",
+        "title_number": 1289,
+        "body_number": 1288,
+        "bangla_tab_count": 1,
+        "arabic_tab_count": 1,
+        "has_bangla": true,
+        "has_arabic": true
+      },
+      {
+        "id": 54343,
+        "group": "daif",
+        "title_number": 1290,
+        "body_number": 1289,
+        "bangla_tab_count": 1,
+        "arabic_tab_count": 1,
+        "has_bangla": true,
+        "has_arabic": true
+      },
+      {
+        "id": 54345,
+        "group": "daif",
+        "title_number": 1291,
+        "body_number": 1290,
+        "bangla_tab_count": 1,
+        "arabic_tab_count": 1,
+        "has_bangla": true,
+        "has_arabic": true
+      },
+      {
+        "id": 54401,
+        "group": "daif",
+        "title_number": 131,
+        "body_number": 1319,
+        "bangla_tab_count": 1,
+        "arabic_tab_count": 1,
+        "has_bangla": true,
+        "has_arabic": true
+      },
+      {
+        "id": 54548,
+        "group": "daif",
+        "title_number": 1191,
+        "body_number": 1391,
+        "bangla_tab_count": 1,
+        "arabic_tab_count": 1,
+        "has_bangla": true,
+        "has_arabic": true
+      },
+      {
+        "id": 54550,
+        "group": "daif",
+        "title_number": 1192,
+        "body_number": 1392,
+        "bangla_tab_count": 1,
+        "arabic_tab_count": 1,
+        "has_bangla": true,
+        "has_arabic": true
+      },
+      {
+        "id": 54552,
+        "group": "daif",
+        "title_number": 1193,
+        "body_number": 1393,
+        "bangla_tab_count": 1,
+        "arabic_tab_count": 1,
+        "has_bangla": true,
+        "has_arabic": true
+      },
+      {
+        "id": 54554,
+        "group": "daif",
+        "title_number": 1194,
+        "body_number": 1394,
+        "bangla_tab_count": 1,
+        "arabic_tab_count": 1,
+        "has_bangla": true,
+        "has_arabic": true
+      },
+      {
+        "id": 54556,
+        "group": "daif",
+        "title_number": 1195,
+        "body_number": 1395,
+        "bangla_tab_count": 1,
+        "arabic_tab_count": 1,
+        "has_bangla": true,
+        "has_arabic": true
+      },
+      {
+        "id": 54560,
+        "group": "daif",
+        "title_number": 1197,
+        "body_number": 1397,
+        "bangla_tab_count": 1,
+        "arabic_tab_count": 1,
+        "has_bangla": true,
+        "has_arabic": true
+      },
+      {
+        "id": 54562,
+        "group": "daif",
+        "title_number": 1198,
+        "body_number": 1398,
+        "bangla_tab_count": 1,
+        "arabic_tab_count": 1,
+        "has_bangla": true,
+        "has_arabic": true
+      },
+      {
+        "id": 54564,
+        "group": "daif",
+        "title_number": 1199,
+        "body_number": 1399,
+        "bangla_tab_count": 1,
+        "arabic_tab_count": 1,
+        "has_bangla": true,
+        "has_arabic": true
+      },
+      {
+        "id": 55277,
+        "group": "daif",
+        "title_number": 1732,
+        "body_number": 1733,
+        "bangla_tab_count": 1,
+        "arabic_tab_count": 1,
+        "has_bangla": true,
+        "has_arabic": true
+      },
+      {
+        "id": 55348,
+        "group": "daif",
+        "title_number": 1764,
+        "body_number": 17604,
+        "bangla_tab_count": 1,
+        "arabic_tab_count": 1,
+        "has_bangla": true,
+        "has_arabic": true
+      },
+      {
+        "id": 55824,
+        "group": "daif",
+        "title_number": 1191,
+        "body_number": 1991,
+        "bangla_tab_count": 1,
+        "arabic_tab_count": 1,
+        "has_bangla": true,
+        "has_arabic": true
+      }
+    ],
+    "missing_bangla_text": 5,
+    "missing_arabic_text": 3,
+    "unexpected_tab_counts": 0,
+    "title_outside_range": []
+  }
+}

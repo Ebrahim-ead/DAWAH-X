@@ -26,9 +26,9 @@ vm.runInNewContext(read('scripture-en-translation.js').toString(), context);
 assert.equal(JSON.stringify(context.window.EN_TRANSLATION),JSON.stringify(en),'search bundle must exactly match the verified per-surah text');
 for (let i=1; i<=114; i++) for (const group of ['bn','tafsir','tafsir-ibn-kathir']) assert.ok(fs.existsSync(path.join(root, `scripture-${group}-${i}.js`)));
 const manifest = JSON.parse(read('scripture-manifest.json'));
-assert.equal(manifest.shards.length, 710);
-assert.equal(manifest.total, 56014);
-assert.equal(Object.keys(manifest.books).length, 26);
+assert.equal(manifest.shards.length, 828);
+assert.equal(manifest.total, 61910);
+assert.equal(Object.keys(manifest.books).length, 28);
 const totals = {}, seen = new Set();
 for (const shard of manifest.shards) {
   const section = HADITH_INDEX.books[shard.book].sections.find(s => s.id === shard.section);
@@ -47,6 +47,6 @@ for (const [book, total] of Object.entries(manifest.books)) {
   assert.equal(HADITH_INDEX.books[book].total, total, book);
   for (const section of HADITH_INDEX.books[book].sections.filter(s => s.count)) assert.ok(seen.has(`scripture-hadith-${book}-${section.id}.json.gz`));
 }
-assert.deepEqual(Object.keys(manifest.books), ['bukhari','muslim','nasai','abudawud','tirmidhi','ibnmajah','mishkat','nawawi','rafayadain','daifseries','hundredsunnah','ramadandaif','silsilasahih','mishkatdaif','fazayeleamal','hadisequdsi','upodesh','shamail','targib','adabul','muwatta','luluwal','somvar','bulug','riyad','darimimirror']);
+assert.deepEqual(Object.keys(manifest.books), ['bukhari','muslim','nasai','abudawud','tirmidhi','ibnmajah','mishkat','nawawi','rafayadain','daifseries','hundredsunnah','ramadandaif','silsilasahih','mishkatdaif','fazayeleamal','hadisequdsi','upodesh','shamail','targib','adabul','muwatta','luluwal','somvar','bulug','riyad','darimimirror','dbhtsombhar','dbhtdaif']);
 assert.equal(manifest.revision, 'c2ade0610877453c854e10db8e80a9c6864bf0f3');
-console.log('scripture: 114 surahs, 6,236 verses and all 56,014 indexed hadith rows verified');
+console.log('scripture: 114 surahs, 6,236 verses and all 61,910 indexed hadith rows verified');

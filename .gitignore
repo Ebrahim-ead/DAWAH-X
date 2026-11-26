@@ -13,3 +13,7 @@ test-results/
 /tools/probe-report.txt
 /tools/ik-report.txt
 /tools/ik-probe-report.txt
+
+# Python bytecode
+__pycache__/
+*.pyc
