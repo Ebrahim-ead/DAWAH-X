@@ -50,3 +50,5 @@ jobs:
           git add .dbht-probe/coverage.json
           git commit -m 'Temporary aggregate source validation report'
           git push origin HEAD:${{ github.ref_name }}
+
+# Check source-title and source-body numbering independently.
