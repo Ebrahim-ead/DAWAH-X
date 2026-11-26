@@ -69,7 +69,7 @@ const checkOverflow=async(page,label)=>{
    await visit('islamic-books.html');
    assert.equal(await page.locator('.books-card').count(),10);
    await page.locator('.books-card-main').first().click();
-   assert(page.url().includes('islamic-book-collection.html?collection='));assert.equal(await page.locator('.books-volume').count(),14);
+   assert(page.url().includes('islamic-book-collection.html?collection='));await page.locator('.books-volume').first().waitFor();assert.equal(await page.locator('.books-volume').count(),14);
    await checkOverflow(page,`${theme} ${width} book collection`);
    await page.addInitScript(()=>{window.pdfjsLib={GlobalWorkerOptions:{},getDocument:()=>({promise:Promise.resolve({numPages:10,getPage:async()=>({getViewport:({scale})=>({width:600*scale,height:800*scale}),render:()=>({promise:Promise.resolve(),cancel(){}})}),destroy(){}}),destroy(){}})}});
    await page.locator('.books-volume').first().click();assert(page.url().includes('islamic-book-read.html?book='));
