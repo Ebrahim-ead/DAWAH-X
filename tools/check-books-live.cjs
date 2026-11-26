@@ -8,7 +8,7 @@ const server=http.createServer((req,res)=>{const url=new URL(req.url,'http://loc
 try{
  browser=await chromium.launch({executablePath:process.env.CHROME_PATH||'/usr/bin/google-chrome',args:['--no-sandbox']});const page=await browser.newPage({viewport:{width:390,height:900}});const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto(`http://127.0.0.1:${server.address().port}/project/islamic-books.html`,{waitUntil:'domcontentloaded'});
- await page.locator('.books-group summary').first().click();await page.locator('.books-volume').first().click();
+ await page.locator('.books-card-main').first().click();await page.locator('.books-volume').first().click();
  await page.waitForFunction(()=>/পৃষ্ঠা 1 \/ \d+/.test(document.querySelector('#books-status').textContent),null,{timeout:120000});
  assert.equal(await page.locator('#books-page-total').innerText(),'/ 740');assert((await page.locator('#books-canvas').evaluate(e=>e.width))>1);
  await page.locator('#books-next').click();await page.waitForFunction(()=>/পৃষ্ঠা 2 \/ \d+/.test(document.querySelector('#books-status').textContent),null,{timeout:60000});
