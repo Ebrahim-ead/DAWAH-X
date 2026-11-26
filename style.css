@@ -1478,3 +1478,4 @@ html[data-theme="light"] .prayer-disclaimer{background:rgba(23,36,44,.025);borde
 @media(min-width:1100px) and (max-width:1199px){#menu{gap:6px}#menu a{padding-inline:0}#menu a[href="questions.html"],#menu a[href="fatwa.html"]{max-width:84px}}
 @media(min-width:800px){.home-scripture-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(min-width:1200px) and (max-width:1559px){#menu a{padding-inline:0}}
+@media(min-width:1560px){#menu a{padding-inline:0}}
