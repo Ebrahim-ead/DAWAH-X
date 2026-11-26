@@ -44,9 +44,10 @@ jobs:
           for id,title,content in c:
               print(json.dumps({'id':id,'title':title,'content':content},ensure_ascii=False))
           PY
-          python3 tools/export-dbht-hadith.py /tmp/dbht/candidates.jsonl tools/dbht-hadith-posts.json.gz
+          if ! python3 tools/export-dbht-hadith.py /tmp/dbht/candidates.jsonl tools/dbht-hadith-posts.json.gz 2>tools/dbht-export-error.txt; then echo 'Export validation failed; inspect sanitized error'; fi
           git config user.name github-actions\[bot\]
           git config user.email 41898282+github-actions\[bot\]@users.noreply.github.com
-          git add tools/dbht-hadith-posts.json.gz
+          git add tools/dbht-export-error.txt
+          if [ -f tools/dbht-hadith-posts.json.gz ]; then git add tools/dbht-hadith-posts.json.gz; fi
           git commit -m 'Pin selected DBHT Bengali and Arabic source tabs'
           git push origin HEAD:${{ github.ref_name }}
