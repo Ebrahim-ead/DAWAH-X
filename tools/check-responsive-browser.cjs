@@ -211,7 +211,7 @@ const checkOverflow=async(page,label)=>{
    const bounds=await page.locator('#menu a').evaluateAll(links=>links.map(link=>{const b=link.getBoundingClientRect();return {left:b.left,right:b.right,top:b.top,bottom:b.bottom,scroll:link.scrollWidth,client:link.clientWidth}}));
    const navStyle=await page.locator('#menu').evaluate(menu=>({justify:getComputedStyle(menu).justifyContent,gap:parseFloat(getComputedStyle(menu).columnGap),font:parseFloat(getComputedStyle(menu.querySelector('a')).fontSize)}));
    assert.equal(navStyle.justify,'space-evenly');assert(navStyle.gap>=6,`${width}px: navigation items too close`);assert(navStyle.font>=(width<1200?14:width<1560?15:17),`${width}px: navigation text too small`);
-   assert.equal(bounds.length,11);for(let i=0;i<bounds.length;i++){assert(bounds[i].scroll<=bounds[i].client+1,`${width}px fallback=${fallback}: clipped navigation text`);if(i){assert(bounds[i].left>=bounds[i-1].right+5,`${width}px: navigation links too close or overlapping`);assert(Math.abs(bounds[i].top-bounds[0].top)<2,`${width}px: wrapped navigation`)}}
+   assert.equal(bounds.length,11);for(let i=0;i<bounds.length;i++){assert(bounds[i].scroll<=bounds[i].client+1,`${width}px fallback=${fallback}: clipped navigation text item ${i}: ${JSON.stringify(bounds[i])}`);if(i){assert(bounds[i].left>=bounds[i-1].right+5,`${width}px: navigation links too close or overlapping`);assert(Math.abs(bounds[i].top-bounds[0].top)<2,`${width}px: wrapped navigation`)}}
    const acts=await page.locator('.acts').boundingBox();assert(bounds.at(-1).right<=acts.x+1,`${width}px: navigation overlaps actions`);
    await checkOverflow(page,`${width}px desktop navigation`);await context.close();page=null;
   }
