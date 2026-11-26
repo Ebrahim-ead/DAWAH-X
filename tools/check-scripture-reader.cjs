@@ -92,7 +92,7 @@ async function go(w, hash) { w.location.hash=hash; await new Promise(r=>setTimeo
   click(w,'#v1 [data-action=audio]');assert.equal(w.__audio.length,1);assert.equal(w.__audio[0].src,'https://everyayah.com/data/Yasser_Ad-Dussary_128kbps/001001.mp3');assert.equal($('#v1 [data-action=audio]').getAttribute('aria-pressed'),'true');
   click(w,'#v2 [data-action=audio]');assert.equal(w.__audio.length,1,'only one audio player');assert.equal(w.__audio[0].src,'https://everyayah.com/data/Yasser_Ad-Dussary_128kbps/001002.mp3');assert.equal($('#v1 [data-action=audio]').getAttribute('aria-pressed'),'false');
   click(w,'#v2 [data-action=audio]');assert(w.__audio[0].paused);assert.equal($('#v2 [data-action=audio]').getAttribute('aria-pressed'),'false');
-  assert.equal(w.document.querySelectorAll('footer .qlinks li').length,13);
+  assert.equal(w.document.querySelectorAll('footer .qlinks li').length,14);
   click(w,'#showEnglish'); assert.equal($('#v1 .english-translation'),null);
   click(w,'#showEnglish'); await waitFor(()=>$('#v1 .english-translation .tr-text')?.textContent.includes('In the name'), 'English translation re-enabled');
   await go(w,'/s/114/a/6'); await waitFor(()=>$('#v6 .english-translation .tr-text')?.textContent==='(6) From among the jinn and mankind."[2017]','last English verse');
