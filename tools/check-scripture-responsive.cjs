@@ -21,7 +21,7 @@ const server=http.createServer((req,res)=>{
    await context.addInitScript(t=>localStorage.setItem('dawahx-theme',t),theme);
    const check=async(label)=>{await page.evaluate(()=>document.fonts.ready);const s=await page.evaluate(()=>({client:document.documentElement.clientWidth,scroll:document.documentElement.scrollWidth}));if(s.scroll>s.client+1)console.log(await page.evaluate(()=>Array.from(document.querySelectorAll('*')).map(e=>[e.tagName,e.className,e.getBoundingClientRect().right,e.scrollWidth,e.clientWidth]).filter(r=>r[2]>document.documentElement.clientWidth+1).slice(0,20)));assert(s.scroll<=s.client+1,`${width} ${theme} ${label}: overflow ${s.scroll-s.client}px`)};
    await page.goto(base+'quran.html');await page.waitForSelector('.surah-card');assert.equal(await page.locator('.surah-card').count(),114);await check('surahs');
-   assert.equal(await page.locator('footer .qlinks li').count(),13);
+   assert.equal(await page.locator('footer .qlinks li').count(),14);
    assert.equal(await page.locator('footer .soc a').count(),3);
    assert.equal(await page.locator('footer .follow-btn').count(),2);
    assert.equal(await page.locator('footer .word').getAttribute('src'),theme==='light'?'logo-dark.webp':'logo.webp');
@@ -29,7 +29,7 @@ const server=http.createServer((req,res)=>{
    assert(columns[1]>columns[0],`${width}: quick links should have two columns`);
    await page.goto(base+'quran.html#/s/1/a/1');await page.waitForFunction(()=>document.querySelector('#v1 .verse-translation')?.textContent.includes('রহমান, রহীম'));
    await page.waitForFunction(()=>document.querySelector('#v1 .english-translation .tr-text')?.textContent==='(1) In the name of Allāh,[2] the Entirely Merciful, the Especially Merciful.[3]');await check('verse');
-   await page.goto(base+'hadith.html');await page.waitForSelector('.hadith-book');assert.equal(await page.locator('.hadith-book').count(),28);assert.equal(await page.locator('footer .qlinks li').count(),13);await check('books');
+   await page.goto(base+'hadith.html');await page.waitForSelector('.hadith-book');assert.equal(await page.locator('.hadith-book').count(),28);assert.equal(await page.locator('footer .qlinks li').count(),14);await check('books');
    await page.goto(base+'hadith.html#/hadith2/dbhtdaif/3');await page.waitForSelector('.hadith-card .hadith-dbht-text');await check('DBHT mixed text');
    await page.goto(base+'hadith.html#/hadith2/bukhari/section/1');await page.waitForSelector('.hadith-card');await check('hadith');
    if(width<1100) await page.click('#burger');

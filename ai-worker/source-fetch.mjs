@@ -2,13 +2,13 @@
 // are an outage fallback and can lag behind the published sites. Keep them in
 // sync with reviewed site/corpus updates; evidence from them is labelled.
 export const EAD_SNAPSHOT='c2ade0610877453c854e10db8e80a9c6864bf0f3';
-export const SITE_SNAPSHOT='7b763a83ae1591b9ae99a786cd2346bd3103fade';
+export const SITE_SNAPSHOT='9606abde90c838adcd017a79f94fde23fb46433a';
 function mirrorFor(url){
  let u;try{u=new URL(url)}catch(_){return null}
  if(u.origin!=='https://ebrahim-ead.github.io'||u.search||u.hash)return null;
  const ead=u.pathname.match(/^\/ead\/(assets\/(?:search-ayahs\.js|quran\/data\/(?:index\.json|suras\/\d{1,3}\.json)|hadith\/data\/(?:index\.json|(?:bukhari|muslim|abu-dawud|tirmidhi|nasai|ibn-majah|mishkat)\/\d{1,3}\.json)))$/);
  if(ead)return 'https://raw.githubusercontent.com/Ebrahim-ead/ead/'+EAD_SNAPSHOT+'/'+ead[1];
- const site=u.pathname.match(/^\/DAWAH-X\/((?:texts\/[a-f0-9]{3}\.json|hadith-search\/(?:meta|\d{2})\.json|(?:index|questions|fatwa|about|services|contact|policy)\.html))$/);
+ const site=u.pathname.match(/^\/DAWAH-X\/((?:texts\/[a-f0-9]{3}\.json|hadith-search\/(?:meta|\d{2})\.json|(?:index|questions|fatwa|about|services|contact|policy|islamic-books)\.html|islamic-books-catalog\.js))$/);
  return site?'https://raw.githubusercontent.com/Ebrahim-ead/DAWAH-X/'+SITE_SNAPSHOT+'/'+site[1]:null;
 }
 // Do not log URLs, questions, exception text, IP addresses or response bodies.
