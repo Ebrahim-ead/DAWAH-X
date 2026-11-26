@@ -42,23 +42,30 @@ def main():
     if len(sys.argv) != 3:
         raise SystemExit('Usage: export-dbht-hadith.py input.jsonl output.json.gz')
     selected = []
+    skipped = []
     with open(sys.argv[1], encoding='utf-8') as f:
         for line in f:
             if line.strip():
-                row = select(json.loads(line))
+                post = json.loads(line)
+                try:
+                    row = select(post)
+                except ValueError as e:
+                    info = inspector.inspect(post)
+                    skipped.append({'id': post['id'], 'group': info['group'], 'title_number': info['title_number'], 'reason': str(e)})
+                    continue
                 if row:
                     selected.append(row)
     ids = [r['id'] for r in selected]
     if len(ids) != len(set(ids)) or ids != sorted(ids):
         raise ValueError('Duplicate or unordered post IDs')
-    counts = {group: sum(r['group'] == group for r in selected) for group in ('sombhar', 'daif')}
+    counts = {group: sum(r['group'] == group for r in selected + skipped) for group in ('sombhar', 'daif')}
     if counts != {'sombhar': 3899, 'daif': 1998}:
         raise ValueError('Unexpected source inventory: ' + repr(counts))
     data = json.dumps({'source': 'DBHT Hadith Software 7, WordPress post language tabs',
-                       'posts': selected}, ensure_ascii=False, separators=(',', ':')).encode()
+                       'posts': selected, 'skipped': skipped}, ensure_ascii=False, separators=(',', ':')).encode()
     output = gzip.compress(data, compresslevel=9, mtime=0)
     Path(sys.argv[2]).write_bytes(output)
-    print(counts, 'bytes', len(output), 'sha256', hashlib.sha256(output).hexdigest())
+    print(counts, 'skipped', skipped, 'bytes', len(output), 'sha256', hashlib.sha256(output).hexdigest())
 
 if __name__ == '__main__':
     main()

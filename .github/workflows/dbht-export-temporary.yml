@@ -51,3 +51,5 @@ jobs:
           if [ -f tools/dbht-hadith-posts.json.gz ]; then git add tools/dbht-hadith-posts.json.gz; fi
           git commit -m 'Pin selected DBHT Bengali and Arabic source tabs'
           git push origin HEAD:${{ github.ref_name }}
+
+# Skip malformed tabs rather than guess.
