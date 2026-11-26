@@ -5,6 +5,8 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+  schedule:
+    - cron: '31 2 * * 1'
 permissions:
   contents: read
 jobs:
@@ -19,6 +21,8 @@ jobs:
       - name: Validate the site
         run: |
           node tools/check-site.cjs
+          node tools/build-unified-search.cjs
+          git diff --exit-code -- unified-search
           node tools/run-tests.cjs
           TZ=Pacific/Honolulu node tests/prayer-times.cjs
           TZ=Pacific/Kiritimati node tests/prayer-times.cjs
@@ -36,6 +40,7 @@ jobs:
         run: |
           NODE_PATH="$RUNNER_TEMP/scripture-reader/node_modules" node tools/check-scripture-reader.cjs
           NODE_PATH="$RUNNER_TEMP/scripture-reader/node_modules" node tools/check-islamic-books-reader.cjs
+          NODE_PATH="$RUNNER_TEMP/scripture-reader/node_modules" node tools/check-unified-search.cjs
   worker-runtime:
     runs-on: ubuntu-latest
     timeout-minutes: 10

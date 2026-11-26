@@ -66,6 +66,7 @@ const checkOverflow=async(page,label)=>{
     await page.keyboard.press('Escape');assert.equal(await panel.isVisible(),false);
     assert.equal(await trigger.getAttribute('aria-expanded'),'false');
    };
+   await visit('search-all.html');await page.locator('#unified-query').fill('উসমানী');await page.locator('#unified-form button').click();await page.waitForFunction(()=>document.querySelector('#unified-status').textContent.includes('সম্পন্ন'),null,{timeout:30000});assert.equal(await page.locator('#unified-books a').count(),3);await checkOverflow(page,`${theme} ${width} unified search results`);
    await visit('islamic-books.html');
    assert.equal(await page.locator('.books-card').count(),10);
    await page.locator('.books-card-main').first().click();
