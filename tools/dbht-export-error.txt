@@ -1,0 +1,9 @@
+Traceback (most recent call last):
+  File "/home/runner/work/DAWAH-X/DAWAH-X/tools/export-dbht-hadith.py", line 64, in <module>
+    main()
+    ~~~~^^
+  File "/home/runner/work/DAWAH-X/DAWAH-X/tools/export-dbht-hadith.py", line 48, in main
+    row = select(json.loads(line))
+  File "/home/runner/work/DAWAH-X/DAWAH-X/tools/export-dbht-hadith.py", line 30, in select
+    raise ValueError(f"Unexpected tab structure in post {post['id']}")
+ValueError: Unexpected tab structure in post 108107
