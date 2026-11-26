@@ -1,7 +1,7 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const root=path.resolve(__dirname,'..');
-const expected=['index.html','quran.html','hadith.html','questions.html','topics.html','fatwa.html','videos.html','ask.html','about.html','contact.html'];
+const expected=['index.html','quran.html','hadith.html','islamic-books.html','questions.html','topics.html','fatwa.html','videos.html','ask.html','about.html','contact.html'];
 let pages=0;
 for(const name of fs.readdirSync(root).filter(f=>f.endsWith('.html'))){
  const html=fs.readFileSync(path.join(root,name),'utf8'),nav=html.match(/<nav\b[^>]*\bid="menu"[^>]*>([\s\S]*?)<\/nav>/);

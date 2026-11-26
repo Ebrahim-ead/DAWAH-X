@@ -8,7 +8,7 @@ const http=require('node:http');
 const path=require('node:path');
 const {chromium}=require('playwright-core');
 const root=path.resolve(__dirname,'..');
-const mime={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.json':'application/json; charset=utf-8','.woff2':'font/woff2'};
+const mime={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.json':'application/json; charset=utf-8','.woff2':'font/woff2'};
 const server=http.createServer((req,res)=>{
  let url;try{url=decodeURIComponent(new URL(req.url,'http://localhost').pathname)}catch{res.writeHead(400).end();return}
  if(!url.startsWith('/DAWAH-X/')){res.writeHead(404).end();return}
@@ -66,6 +66,13 @@ const checkOverflow=async(page,label)=>{
     await page.keyboard.press('Escape');assert.equal(await panel.isVisible(),false);
     assert.equal(await trigger.getAttribute('aria-expanded'),'false');
    };
+   await visit('islamic-books.html');
+   assert.equal(await page.locator('.books-group').count(),10);assert.equal(await page.locator('.books-volume').count(),102);
+   await page.evaluate(()=>{window.pdfjsLib={GlobalWorkerOptions:{},getDocument:()=>({promise:Promise.resolve({numPages:10,getPage:async()=>({getViewport:({scale})=>({width:600*scale,height:800*scale}),render:()=>({promise:Promise.resolve(),cancel(){}})}),destroy(){}}),destroy(){}})}});
+   await page.locator('.books-group summary').first().click();await page.locator('.books-volume').first().click();
+   await page.waitForFunction(()=>document.querySelector('#books-status').textContent.includes('পৃষ্ঠা 1 / 10'));
+   await checkOverflow(page,`${theme} ${width} book reader`);await page.locator('#books-next').click();await page.waitForFunction(()=>document.querySelector('#books-status').textContent.includes('পৃষ্ঠা 2 / 10'));
+   await page.locator('#books-close').click();assert.equal(await page.locator('#books-reader').isVisible(),false);
    await visit('index.html');await checkAssistant();
    assert(await page.locator('.home-scripture').isVisible(),'home Quran/Hadith section must be visible');
    assert(await page.locator('.home-scripture .scripture-card[href="quran.html"]').isVisible());
@@ -93,7 +100,7 @@ const checkOverflow=async(page,label)=>{
     await page.locator('.dxa-close').click();
    }
 
-   const expectedMenu=['index.html','quran.html','hadith.html','questions.html','topics.html','fatwa.html','videos.html','ask.html','about.html','contact.html'];
+   const expectedMenu=['index.html','quran.html','hadith.html','islamic-books.html','questions.html','topics.html','fatwa.html','videos.html','ask.html','about.html','contact.html'];
    assert.deepEqual(await page.locator('#menu a').evaluateAll(links=>links.map(a=>a.getAttribute('href'))),expectedMenu);
    assert.equal(await page.locator('footer .qlinks a[href="services.html"]').count(),1);
    await page.click('#theme-toggle');assert.notEqual(await page.getAttribute('html','data-theme'),theme);await page.reload();assert.notEqual(await page.getAttribute('html','data-theme'),theme);await page.click('#theme-toggle');
@@ -204,7 +211,7 @@ const checkOverflow=async(page,label)=>{
    const bounds=await page.locator('#menu a').evaluateAll(links=>links.map(link=>{const b=link.getBoundingClientRect();return {left:b.left,right:b.right,top:b.top,bottom:b.bottom,scroll:link.scrollWidth,client:link.clientWidth}}));
    const navStyle=await page.locator('#menu').evaluate(menu=>({justify:getComputedStyle(menu).justifyContent,gap:parseFloat(getComputedStyle(menu).columnGap),font:parseFloat(getComputedStyle(menu.querySelector('a')).fontSize)}));
    assert.equal(navStyle.justify,'space-evenly');assert(navStyle.gap>=6,`${width}px: navigation items too close`);assert(navStyle.font>=(width<1200?14:width<1560?15:17),`${width}px: navigation text too small`);
-   assert.equal(bounds.length,10);for(let i=0;i<bounds.length;i++){assert(bounds[i].scroll<=bounds[i].client+1,`${width}px fallback=${fallback}: clipped navigation text`);if(i){assert(bounds[i].left>=bounds[i-1].right+5,`${width}px: navigation links too close or overlapping`);assert(Math.abs(bounds[i].top-bounds[0].top)<2,`${width}px: wrapped navigation`)}}
+   assert.equal(bounds.length,11);for(let i=0;i<bounds.length;i++){assert(bounds[i].scroll<=bounds[i].client+1,`${width}px fallback=${fallback}: clipped navigation text item ${i}: ${JSON.stringify(bounds[i])}`);if(i){assert(bounds[i].left>=bounds[i-1].right+5,`${width}px: navigation links too close or overlapping`);assert(Math.abs(bounds[i].top-bounds[0].top)<2,`${width}px: wrapped navigation`)}}
    const acts=await page.locator('.acts').boundingBox();assert(bounds.at(-1).right<=acts.x+1,`${width}px: navigation overlaps actions`);
    await checkOverflow(page,`${width}px desktop navigation`);await context.close();page=null;
   }
