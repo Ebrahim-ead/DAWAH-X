@@ -221,15 +221,15 @@ async function bookCatalog(mirrors){
  for(const group of groups){
   if(!group||typeof group.id!=='string'||!/^[a-z0-9-]{1,80}$/.test(group.id)||seen.has(group.id)||typeof group.name!=='string'||!group.name.trim()||group.name.length>160||!Array.isArray(group.items)||!group.items.length||group.items.length>100)throw Error('Invalid book catalogue');
   seen.add(group.id);total+=group.items.length;if(total>500)throw Error('Book catalogue too large');
-  const names=group.items.map(item=>{if(!item||typeof item.name!=='string'||!item.name.trim()||item.name.length>180)throw Error('Invalid book volume');return item.name.replace(/[\r\n]+/g,' ')});
+  const names=group.items.map(item=>{if(!item||typeof item.name!=='string'||!item.name.trim()||item.name.length>180||typeof item.pdf!=='string')throw Error('Invalid book volume');let pdf;try{pdf=new URL(item.pdf)}catch(_){throw Error('Invalid book PDF')}if(pdf.origin!=='https://book.tauhiderdak.com'||!/^\/wp-content\/uploads\/.+\.pdf$/i.test(pdf.pathname)||pdf.search||pdf.hash)throw Error('Invalid book PDF');return item.name.replace(/[\r\n]+/g,' ')});
   lines.push(group.name.replace(/[\r\n]+/g,' ')+' — '+names.length+'টি উৎসে তালিকাভুক্ত ফাইল: '+names.join(' | '));
  }
  const text='ইসলামিক বই বিভাগে '+groups.length+'টি সংগ্রহ ও '+total+'টি উৎসে তালিকাভুক্ত খণ্ড বা ফাইল আছে। PDF তাওহীদ লাইব্রেরীর সার্ভার থেকে অনলাইনে লোড হয়; ফাইল DAWAH X-এ কপি করা হয়নি। এই তালিকা বইয়ের ভেতরের পাঠ নয়; পূর্ণতা বা সব খণ্ডের প্রমাণ নয়। আলাদা সংস্করণ আলাদা রাখা হয়েছে।\n'+lines.join('\n');
- if(text.length>30000)throw Error('Book catalogue too large');return text;
+ if(text.length>30000)throw Error('Book catalogue too large');return {text,groups,total};
 }
 async function sitePages(paths,query,mirrors){
  const results=await Promise.allSettled([...new Set(paths)].map(async path=>{
-  if(path==='islamic-books.html'){const text=await bookCatalog(mirrors);return {path,title:SITE_PAGES[path],...(mirrors?.has(SITE+'islamic-books-catalog.js')?{snapshot:SITE_SNAPSHOT}:{}),text};}
+  if(path==='islamic-books.html'){const inventory=await bookCatalog(mirrors);return {path,title:SITE_PAGES[path],...(mirrors?.has(SITE+'islamic-books-catalog.js')?{snapshot:SITE_SNAPSHOT}:{}),text:inventory.text,inventory};}
   const html=await siteText(path,mirrors),main=html.match(/<main\b[^>]*>([\s\S]*?)<\/main>/i);
   if(!main)throw Error('Site page content missing');
   // The homepage contains hidden example scripture and stale placeholders for
@@ -239,6 +239,24 @@ async function sitePages(paths,query,mirrors){
   return {path,title:SITE_PAGES[path],...(mirrors?.has(SITE+path)?{snapshot:SITE_SNAPSHOT}:{}),text:excerpt(content,query)};
  }));
  return {items:results.filter(r=>r.status==='fulfilled').map(r=>r.value),failed:results.some(r=>r.status==='rejected')};
+}
+
+// Only these exact simple catalogue questions bypass inference. Do not turn a
+// question about a book's meaning, completeness, or other conditions into an
+// inventory answer. Values come from the validated published inventory.
+function directBookInventory(message,ref){
+ if(!ref?.inventory)return null;
+ const q=String(message).normalize('NFC').toLowerCase().replace(/[?？।!]+$/gu,'').replace(/\s+/g,' ').trim();
+ const {groups,total}=ref.inventory;
+ if(q==='ইসলামিক বই বিভাগে কী কী সংগ্রহ আছে'){
+  return 'ইসলামিক বই বিভাগে উৎসে তালিকাভুক্ত '+groups.length+'টি সংগ্রহ ও '+total+'টি খণ্ড / ফাইল আছে। [1]\n\n'+groups.map(g=>'• '+g.name+' — '+g.items.length+'টি ফাইল').join('\n')+'\n\nএটি উপলব্ধ ফাইলের তালিকা; সব খণ্ড সম্পূর্ণ হওয়ার দাবি নয়।';
+ }
+ if(q==='ইসলামিক বই বিভাগে তাফসীরে উসমানীর কোন খণ্ডগুলো আছে'){
+  const group=groups.find(g=>g.id==='usmani');if(!group)return null;
+  return 'উৎসে তাফসীরে উসমানীর তালিকাভুক্ত খণ্ড / ফাইল: [1]\n\n'+group.items.map(x=>'• '+x.name).join('\n')+'\n\nএই তালিকা বইটির সব খণ্ড সম্পূর্ণ থাকার দাবি নয়।';
+ }
+ if(q==='ইসলামিক বইয়ের pdf কোথা থেকে আসে'.normalize('NFC'))return 'ইসলামিক বইয়ের PDF তাওহীদ লাইব্রেরীর সার্ভার থেকে অনলাইনে লোড হয়; ফাইল DAWAH X-এ কপি করা হয়নি। [1]';
+ return null;
 }
 
 // Deterministic conservative guard complements (but cannot guarantee) model routing.
@@ -353,6 +371,8 @@ export default {
    const failures=[...(scriptureRefs.failedSources||[]),...(body.siteSearchFailed===true?['site_search']:[]),...(siteRefs.failed?['site_pages']:[]),...(articleRefs.failed?['articles']:[]),...(directFailed?['direct_lookup']:[])];
    const partial=scriptureRefs.failed||siteRefs.failed||articleRefs.failed||body.siteSearchFailed===true||directFailed;
    if(partial)console.warn('assistant-search-failed',failures.join(','));
+   const catalogRef=siteRefs.items.find(x=>x.path==='islamic-books.html'),catalogAnswer=body.allSources===true?directBookInventory(body.message.trim(),catalogRef):null;
+   if(catalogAnswer)return reply({answer:catalogAnswer,sources:[referenceInfo(catalogRef,1)],grounded:true,mode:'grounded',partial,search_limited:true,...(mirrors.size?{snapshot_search:true}:{}),...(partial?{search_failures:failures}:{})},200,origin,allowed);
    const limited=scriptureRefs.skipped===true||scriptureRefs.limited===true||(body.allSources===true&&(!!specific||body.siteSearchLimited===true));
    if(explicit&&!record)return reply({answer:directFailed?'উল্লেখিত আয়াত বা হাদিসের উৎস এখন পাওয়া যাচ্ছে না। পরে আবার চেষ্টা করুন।':'উল্লেখিত আয়াত বা হাদিসের নম্বরটি নিশ্চিতভাবে পাওয়া যায়নি। সূরা ও আয়াত অথবা কিতাব ও হাদিস নম্বর যাচাই করে আবার লিখুন।',sources:[],grounded:false,partial,...(mirrors.size?{snapshot_search:true}:{}),...(partial?{search_failures:failures}:{}),...(limited?{search_limited:true}:{})},200,origin,allowed);
    const direct=record?{...record.source,text:record.evidence}:null;

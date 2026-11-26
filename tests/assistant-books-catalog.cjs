@@ -19,7 +19,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs');
  ];
  for(const q of samples)assert(sitePageMatches(q).includes('islamic-books.html'),q);
  assert.deepEqual(sitePageMatches('তাফসীর ইবনে কাসীরে এ আয়াতের অর্থ কী?'),[],'ordinary religious queries do not become site navigation queries');
- const origin='https://ebrahim-ead.github.io',old=global.fetch,real=fs.readFileSync('islamic-books-catalog.js','utf8');let mode='valid',prompt='',requests=[];
+ const origin='https://ebrahim-ead.github.io',old=global.fetch,real=fs.readFileSync('islamic-books-catalog.js','utf8');let mode='valid',prompt='',requests=[],modelCalls=0;
  global.fetch=async u=>{
   const url=String(u);requests.push(url);
   if(url.includes('/assets/search-ayahs.js'))return new Response('window.SITE_AYAHS=[[1,1,"পরীক্ষার তথ্য"]];');
@@ -35,11 +35,16 @@ const assert=require('node:assert/strict'),fs=require('node:fs');
   if(url.match(/\/DAWAH-X\/(?:index|about)\.html$/))return new Response(fs.readFileSync(url.endsWith('/index.html')?'index.html':'about.html','utf8'));
   throw Error('unexpected source '+url);
  };
- const env={ALLOWED_ORIGINS:origin,RATE_LIMITER:{limit:async()=>({success:true})},AI:{run:async(_m,args)=>{prompt=args.messages[1].content;const match=prompt.match(/\[(\d+)\] ইসলামিক বইয়ের তালিকা/);return {response:match?'তালিকায় তথ্য রয়েছে ['+match[1]+']':'NOT_ENOUGH_INFORMATION'}}}};
+ const env={ALLOWED_ORIGINS:origin,RATE_LIMITER:{limit:async()=>({success:true})},AI:{run:async(_m,args)=>{modelCalls++;prompt=args.messages[1].content;const match=prompt.match(/\[(\d+)\] ইসলামিক বইয়ের তালিকা/);return {response:match?'তালিকায় তথ্য রয়েছে ['+match[1]+']':'NOT_ENOUGH_INFORMATION'}}}};
  const ask=(message,history=[])=>worker.fetch(new Request('https://worker.test/',{method:'POST',headers:{Origin:origin,'CF-Connecting-IP':'192.0.2.1','Content-Type':'application/json'},body:JSON.stringify({message,ids:[],pages:[],history,lookupComplete:true,allSources:true,siteSearchLimited:true})}),env).then(r=>r.json());
  try{
   for(const q of samples){const data=await ask(q);assert.equal(data.grounded,true,q+': '+JSON.stringify(data));assert(data.sources.some(x=>x.path==='islamic-books.html'),q);assert(prompt.includes('এই তালিকা বইয়ের ভেতরের পাঠ নয়'));}
   assert(prompt.includes('তাফসীরে উসমানী ১ম খন্ড pdf'));assert(prompt.includes('তাফসীরে উসমানী ২য় খন্ড pdf'));assert(prompt.includes('তাফসীরে উসমানী ৭ম খন্ড pdf'));assert(!prompt.includes('তাফসীরে উসমানী ৩য় খন্ড pdf'));assert(prompt.includes('মুসনাদে আহমদ'));
+  for(const q of ['ইসলামিক বই বিভাগে কী কী সংগ্রহ আছে?', 'ইসলামিক বই বিভাগে তাফসীরে উসমানীর কোন খণ্ডগুলো আছে?', 'ইসলামিক বইয়ের PDF কোথা থেকে আসে?']){
+   const before=modelCalls,data=await ask(q);assert.equal(modelCalls,before,q+': exact inventory answers require no model inference');assert.equal(data.grounded,true);assert.equal(data.sources[0].path,'islamic-books.html');
+   if(q.includes('উসমানীর')){assert(data.answer.includes('১ম খন্ড'));assert(data.answer.includes('২য় খন্ড'));assert(data.answer.includes('৭ম খন্ড'));assert(!data.answer.includes('৩য় খন্ড'));}
+  }
+  {const before=modelCalls;await ask('ইসলামিক বই বিভাগে কী কী সংগ্রহ আছে এবং সব গ্রন্থের বিষয় ব্যাখ্যা দিন?');assert(modelCalls>before,'extra instructions must not receive an incomplete deterministic answer');}
   let data=await ask('এর কোন খণ্ড আছে?',[{role:'user',content:'ইসলামিক বই বিভাগে তাফসীরে উসমানী আছে?'},{role:'assistant',content:'পূর্বের উত্তর প্রমাণ নয়'}]);assert(data.sources.some(x=>x.path==='islamic-books.html'),'follow-up retrieves real catalogue');
   mode='malformed';data=await ask(samples[0]);assert.equal(data.partial,true);assert(data.search_failures.includes('site_pages'));assert(!data.sources.some(x=>x.path==='islamic-books.html'));
   mode='fallback';data=await ask(samples[0]);assert.equal(data.grounded,true);assert.equal(data.snapshot_search,true);assert.equal(data.sources.find(x=>x.path==='islamic-books.html').snapshot,SITE_SNAPSHOT);
