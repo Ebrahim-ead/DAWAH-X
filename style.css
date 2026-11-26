@@ -1479,3 +1479,6 @@ html[data-theme="light"] .prayer-disclaimer{background:rgba(23,36,44,.025);borde
 @media(min-width:800px){.home-scripture-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(min-width:1200px) and (max-width:1559px){#menu a{padding-inline:0}}
 @media(min-width:1560px){#menu a{padding-inline:0}}
+
+/* Unified site search entry */
+.home-unified-link{margin:12px 0 20px}.home-unified-link a{display:inline-flex;align-items:center;min-height:44px;border:1px solid var(--line);border-radius:9px;padding:8px 14px;color:var(--gold2);font-weight:700}.home-unified-link a:hover{border-color:var(--gold)}

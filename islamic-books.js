@@ -10,6 +10,10 @@
   function saved(){try{var data=JSON.parse(localStorage.getItem(storageKey)||'{}');return data&&typeof data==='object'&&!Array.isArray(data)?data:{};}catch(_){return {};}}
   function savedPage(data,id){var n=data.pages&&Number(data.pages[id]);return Number.isSafeInteger(n)&&n>0&&n<=100000?n:0;}
   function savePage(id,n){try{var data=saved();if(!data.pages||typeof data.pages!=='object'||Array.isArray(data.pages))data.pages={};data.pages[id]=n;data.last=id;localStorage.setItem(storageKey,JSON.stringify(data));}catch(_){} }
+  var bookmarkKey='dawahx-books-bookmarks-v1',scaleKey='dawahx-books-scale-v1';
+  function bookmarks(){try{var a=JSON.parse(localStorage.getItem(bookmarkKey)||'[]');return Array.isArray(a)?a.filter(function(x){return x&&entries.has(x.id)&&Number.isSafeInteger(x.page)&&x.page>0&&x.page<=100000;}).slice(0,102):[];}catch(_){return [];}}
+  function setBookmarks(a){try{localStorage.setItem(bookmarkKey,JSON.stringify(a));return true;}catch(_){return false;}}
+  function savedScale(){try{var n=Number(localStorage.getItem(scaleKey));return [1,1.25,1.5].includes(n)?n:1;}catch(_){return 1;}}
   function kind(group){return group.id==='bidaya'?'ইতিহাস':group.id==='ahmad'?'হাদিস':'তাফসীর';}
   function element(tag,className,text){var el=document.createElement(tag);if(className)el.className=className;if(text!==undefined)el.textContent=text;return el;}
   function aLink(text,url,className){var a=element('a',className,text);a.href=url;return a;}
@@ -20,6 +24,7 @@
     if(legacy){var oldPage=Number(old.get('page'));location.replace(bookURL(legacy.item,Number.isSafeInteger(oldPage)&&oldPage>0?oldPage:1));return;}
     var data=saved(),last=entries.get(data.last),lp=last?savedPage(data,last.item.id):0;
     if(last&&lp){$('books-resume').hidden=false;$('books-resume-title').textContent=last.item.name;$('books-resume-page').textContent='পৃষ্ঠা '+lp;$('books-resume-link').href=bookURL(last.item,lp);}
+    var marks=bookmarks();if(marks.length){$('books-saved').hidden=false;marks.forEach(function(mark){var found=entries.get(mark.id),a=aLink(found.item.name+' · পৃষ্ঠা '+mark.page,bookURL(found.item,mark.page),'books-match-link');$('books-saved-list').appendChild(a);});}
     var input=$('books-search'), filter='all';
     function searchCatalog(){
       var q=normalize(input.value),visible=0,matchedItems=0;
@@ -51,7 +56,7 @@
   if(type!=='reader')return;
   var entry=entries.get(params.get('book'));
   if(!entry){$('books-reader').hidden=true;$('books-error').hidden=false;return;}
-  var item=entry.item,doc=null,loading=null,renderTask=null,version=0,drawId=0,resizeTimer=0,canvas=$('books-canvas'),scale=1;
+  var item=entry.item,doc=null,loading=null,renderTask=null,version=0,drawId=0,resizeTimer=0,canvas=$('books-canvas'),scale=savedScale();
   var requestedPage=Number(params.get('page')),progress=savedPage(saved(),item.id);
   var page=params.has('page')?(Number.isSafeInteger(requestedPage)&&requestedPage>0?requestedPage:1):(progress||1);
   document.title=item.name+' — DAWAH X';$('books-reader-title').textContent=item.name;$('books-reader-subtitle').textContent=entry.group.name+' · উৎসের PDF অনলাইনে পড়ুন';
@@ -60,7 +65,10 @@
   if(entry.index>0){$('books-previous-volume').hidden=false;$('books-previous-volume').href=bookURL(entry.group.items[entry.index-1]);}
   if(entry.index+1<entry.group.items.length){$('books-next-volume').hidden=false;$('books-next-volume').href=bookURL(entry.group.items[entry.index+1]);}
   function message(text){$('books-status').textContent=text;}
-  function controls(){var ready=!!doc;['books-prev','books-bottom-prev'].forEach(function(id){$(id).disabled=!ready||page<=1;});['books-next','books-bottom-next'].forEach(function(id){$(id).disabled=!ready||page>=doc.numPages;});$('books-page').value=String(page);$('books-page-total').textContent='/ '+(ready?doc.numPages:'—');$('books-bottom-page').textContent=ready?'পৃষ্ঠা '+page+' / '+doc.numPages:'—';$('books-progress-fill').style.width=ready?(page/doc.numPages*100)+'%':'0%';}
+  $('books-scale').value=String(scale);
+  function updateBookmark(){var marked=bookmarks().some(function(x){return x.id===item.id&&x.page===page;});$('books-bookmark').setAttribute('aria-pressed',String(marked));$('books-bookmark').textContent=marked?'★ এই পৃষ্ঠা সরান':'☆ এই পৃষ্ঠা রাখুন';}
+  $('books-bookmark').addEventListener('click',function(){if(!doc){message('পৃষ্ঠা লোড হওয়ার পর সংরক্ষণ করুন।');return;}var a=bookmarks(),exists=a.some(function(x){return x.id===item.id&&x.page===page;});a=a.filter(function(x){return !(x.id===item.id&&x.page===page);});if(!exists){if(a.length>=102){message('১০২টি বুকমার্কের সীমা পূর্ণ। আগে একটি সরান।');return;}a.unshift({id:item.id,page:page});}if(!setBookmarks(a)){message('ব্রাউজারে বুকমার্ক সংরক্ষণ করা যায়নি।');return;}updateBookmark();message(exists?'বুকমার্ক সরানো হয়েছে।':'এই পৃষ্ঠা এই ব্রাউজারে সংরক্ষিত হয়েছে।');});
+  function controls(){updateBookmark();var ready=!!doc;['books-prev','books-bottom-prev'].forEach(function(id){$(id).disabled=!ready||page<=1;});['books-next','books-bottom-next'].forEach(function(id){$(id).disabled=!ready||page>=doc.numPages;});$('books-page').value=String(page);$('books-page-total').textContent='/ '+(ready?doc.numPages:'—');$('books-bottom-page').textContent=ready?'পৃষ্ঠা '+page+' / '+doc.numPages:'—';$('books-progress-fill').style.width=ready?(page/doc.numPages*100)+'%':'0%';}
   function syncURL(){var url=new URL(location.href);url.searchParams.set('book',item.id);url.searchParams.set('page',String(page));url.hash='';history.replaceState(null,'',url.pathname+url.search);}
   function ensurePdf(){return window.pdfjsLib?Promise.resolve(window.pdfjsLib):import('./books-pdf.min.mjs');}
   async function draw(ticket){
@@ -91,7 +99,7 @@
   ['books-prev','books-bottom-prev'].forEach(function(id){$(id).addEventListener('click',function(){jump(page-1,id==='books-bottom-prev');});});
   ['books-next','books-bottom-next'].forEach(function(id){$(id).addEventListener('click',function(){jump(page+1,id==='books-bottom-next');});});
   $('books-jump').addEventListener('submit',function(e){e.preventDefault();var n=Number(normalize($('books-page').value));if(Number.isSafeInteger(n)&&n>0)jump(n,false);else message('একটি সঠিক পৃষ্ঠা নম্বর লিখুন।');});
-  $('books-scale').addEventListener('change',function(e){scale=Number(e.target.value)||1;draw(version);});$('books-retry').addEventListener('click',function(){if(doc)draw(version);else load();});
+  $('books-scale').addEventListener('change',function(e){scale=Number(e.target.value)||1;try{localStorage.setItem(scaleKey,String(scale));}catch(_){}draw(version);});$('books-retry').addEventListener('click',function(){if(doc)draw(version);else load();});
   $('books-share').addEventListener('click',async function(){try{var url=new URL(location.href);url.searchParams.set('book',item.id);url.searchParams.set('page',String(page));url.hash='';await navigator.clipboard.writeText(url.href);message('এই পৃষ্ঠার লিংক কপি হয়েছে।');}catch(_){message('লিংক কপি করা যায়নি। ব্রাউজারের ঠিকানা থেকে কপি করুন।');}});
   window.addEventListener('resize',function(){clearTimeout(resizeTimer);resizeTimer=setTimeout(function(){if(doc)draw(version);},180);});
   window.addEventListener('keydown',function(e){if(/^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(e.target.tagName)||e.altKey||e.ctrlKey||e.metaKey)return;if(e.key==='ArrowLeft'){e.preventDefault();jump(page-1,false);}else if(e.key==='ArrowRight'){e.preventDefault();jump(page+1,false);}});

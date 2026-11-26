@@ -4,7 +4,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),{JSDOM}=require
 async function wait(fn,label){for(let i=0;i<100;i++){if(fn())return;await new Promise(r=>setTimeout(r,10));}throw Error('Timed out: '+label);}
 function setup(file,query='',options={}){
  const dom=new JSDOM(fs.readFileSync(file,'utf8'),{url:'https://example.test/project/'+file+query,runScripts:'outside-only',pretendToBeVisual:true});const w=dom.window;
- w.HTMLElement.prototype.scrollIntoView=()=>{};w.HTMLCanvasElement.prototype.getContext=()=>({});if(options.storage)w.localStorage.setItem('dawahx-books-progress-v1',options.storage);
+ w.HTMLElement.prototype.scrollIntoView=()=>{};w.HTMLCanvasElement.prototype.getContext=()=>({});if(options.storage)w.localStorage.setItem('dawahx-books-progress-v1',options.storage);if(options.bookmarks)w.localStorage.setItem('dawahx-books-bookmarks-v1',options.bookmarks);if(options.scale)w.localStorage.setItem('dawahx-books-scale-v1',options.scale);
  let requested=[];w.pdfjsLib={GlobalWorkerOptions:{},getDocument({url,isEvalSupported}){assert.equal(isEvalSupported,false);requested.push(url);return {promise:options.fail?Promise.reject(Error('network')):Promise.resolve({numPages:10,getPage:async()=>({getViewport:({scale})=>({width:600*scale,height:800*scale}),render:()=>({promise:Promise.resolve(),cancel(){}})}),destroy(){}}),destroy(){}}}};
  w.eval(fs.readFileSync('islamic-books-catalog.js','utf8'));w.eval(fs.readFileSync('islamic-books.js','utf8'));
  return {dom,w,requested,$:s=>w.document.querySelector(s)};
@@ -21,7 +21,10 @@ function setup(file,query='',options={}){
  $('#books-next').click();await wait(()=>$('#books-status').textContent.includes('পৃষ্ঠা 5 / 10'),'next page');assert.match(w.location.search,/page=5/);
  $('#books-page').value='৭';$('#books-jump').dispatchEvent(new w.Event('submit',{bubbles:true,cancelable:true}));await wait(()=>$('#books-status').textContent.includes('পৃষ্ঠা 7 / 10'),'Bengali digits jump');
  $('#books-scale').value='1.5';$('#books-scale').dispatchEvent(new w.Event('change',{bubbles:true}));await wait(()=>$('#books-status').textContent.includes('পৃষ্ঠা 7 / 10'),'zoom');
+ $('#books-bookmark').click();assert.equal($('#books-bookmark').getAttribute('aria-pressed'),'true');const bookmarks=w.localStorage.getItem('dawahx-books-bookmarks-v1');assert.equal(JSON.parse(bookmarks)[0].page,7);assert.equal(w.localStorage.getItem('dawahx-books-scale-v1'),'1.5');
  const storage=w.localStorage.getItem('dawahx-books-progress-v1');assert.equal(JSON.parse(storage).pages['tafsir-usmani-1-pdf'],7);dom.window.close();
+ ({dom,$}=setup('islamic-books.html','',{storage,bookmarks}));assert.equal($('#books-saved').hidden,false);assert.match($('#books-saved-list a').href,/page=7/);dom.window.close();
+ ({dom,w,$}=setup('islamic-book-read.html','?book=tafsir-usmani-1-pdf&page=7',{bookmarks,scale:'1.5'}));await wait(()=>$('#books-status').textContent.includes('পৃষ্ঠা 7 / 10'),'bookmarked page');assert.equal($('#books-scale').value,'1.5');assert.equal($('#books-bookmark').getAttribute('aria-pressed'),'true');$('#books-bookmark').click();assert.equal(JSON.parse(w.localStorage.getItem('dawahx-books-bookmarks-v1')).length,0);dom.window.close();
  ({dom,w,$}=setup('islamic-books.html','',{storage}));assert.equal($('#books-resume').hidden,false);assert.match($('#books-resume-link').href,/page=7/);dom.window.close();
  ({dom,w,$}=setup('islamic-book-read.html','?book=tafsir-usmani-1-pdf',{storage}));await wait(()=>$('#books-status').textContent.includes('পৃষ্ঠা 7 / 10'),'resume');dom.window.close();
  ({dom,$}=setup('islamic-book-read.html','?book=invalid'));assert.equal($('#books-error').hidden,false);dom.window.close();

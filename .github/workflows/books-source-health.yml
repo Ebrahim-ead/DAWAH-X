@@ -1,0 +1,23 @@
+name: Rotating PDF source health
+# Weekly on the default branch after deployment; checks 1/8 of the public
+# inventory at a time. No forms, user data or AI inference are submitted.
+on:
+  schedule:
+    - cron: '21 3 * * 1'
+  workflow_dispatch:
+  push:
+    branches: ['arena/**']
+permissions:
+  contents: read
+jobs:
+  source:
+    if: github.event_name != 'push' || contains(github.event.head_commit.message, '[books-source-check]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Check current rotating batch of remote PDFs
+        run: node tools/check-books-source-health.cjs
