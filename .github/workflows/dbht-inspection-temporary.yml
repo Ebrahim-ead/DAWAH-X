@@ -1,0 +1,52 @@
+name: Temporary source validation
+on:
+  push:
+    paths: ['.github/workflows/dbht-inspection-temporary.yml', 'tools/inspect-dbht-hadith.py']
+permissions:
+  contents: write
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Inspect database in isolated runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet remotezip pymysql
+          sudo apt-get update -qq
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq mariadb-server >/tmp/mariadb-install.log
+          mkdir -p /tmp/dbht/data/wordpress .dbht-probe
+          mariadb-install-db --no-defaults --datadir=/tmp/dbht/data --auth-root-authentication-method=normal >/tmp/maria-init.log
+          python3 - <<'PY'
+          from remotezip import RemoteZip
+          from pathlib import Path
+          import shutil
+          url='https://drive.usercontent.google.com/download?id=1pc5bcP4ADxkYcWU2McPuSY5yU-tLUcpR&export=download&confirm=t'
+          with RemoteZip(url,timeout=240) as z:
+              files=[i for i in z.infolist() if '/iwpserver/dbdir/wordpress/wp_posts.' in i.filename and i.filename.rsplit('.',1)[-1].lower() in ('frm','myd','myi')]
+              if len(files)!=3: raise RuntimeError('Unexpected table files')
+              for info in files:
+                  dest=Path('/tmp/dbht/data/wordpress')/info.filename.rsplit('/',1)[-1]
+                  with z.open(info) as src, dest.open('wb') as out: shutil.copyfileobj(src,out)
+          PY
+          mariadbd --no-defaults --datadir=/tmp/dbht/data --socket=/tmp/dbht/mariadb.sock --pid-file=/tmp/dbht/mariadb.pid --skip-networking --user=$(id -un) >/tmp/dbht/mariadb.log 2>&1 &
+          python3 - <<'PY' > /tmp/dbht/candidates.jsonl
+          import pymysql,time,json
+          for i in range(90):
+              try:
+                  conn=pymysql.connect(unix_socket='/tmp/dbht/mariadb.sock',user='root',database='wordpress',charset='utf8mb4',cursorclass=pymysql.cursors.SSCursor); break
+              except Exception: time.sleep(1)
+          else: raise RuntimeError('Database failed to start')
+          c=conn.cursor()
+          c.execute('SELECT ID,post_title,post_content FROM wp_posts WHERE post_status=%s AND post_type=%s AND (post_title LIKE %s OR post_title LIKE %s OR post_title LIKE %s)',('publish','post','%সম্ভার%','%যয়িফ ও জাল হাদিস%','হাদীস %'))
+          for id,title,content in c:
+              print(json.dumps({'id':id,'title':title,'content':content},ensure_ascii=False))
+          PY
+          python3 tools/inspect-dbht-hadith.py /tmp/dbht/candidates.jsonl > .dbht-probe/coverage.json
+          git config user.name github-actions\[bot\]
+          git config user.email 41898282+github-actions\[bot\]@users.noreply.github.com
+          git add .dbht-probe/coverage.json
+          git commit -m 'Temporary aggregate source validation report'
+          git push origin HEAD:${{ github.ref_name }}
