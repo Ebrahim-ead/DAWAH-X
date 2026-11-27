@@ -51,6 +51,7 @@
    if(!/^[a-f0-9]{14}$/.test(item.key||'')&&!sitePages.has(item.path))continue;
    link('['+item.number+'] '+item.title,item.path&&sitePages.has(item.path)?url(item.path):url('read.html?k='+encodeURIComponent(item.key)));snapshot(item,'DAWAH-X',item.path==='islamic-books.html'?'islamic-books-catalog.js':item.path&&sitePages.has(item.path)?item.path:'texts/'+item.key.slice(-3)+'.json');
   }chat.append(box);chat.scrollTop=chat.scrollHeight}
+ function manualSearch(){const box=document.createElement('div');box.className='dxa-sources';const a=document.createElement('a');a.href=url('search-all.html');a.textContent='নিজে কুরআন, ২৮ হাদিস সংগ্রহ ও বইয়ের তালিকায় খুঁজুন ↗';a.target='_blank';a.rel='noopener noreferrer';box.append(a);chat.append(box);}
  async function requestAnswer(payload){
   // Keep the most recent complete turns while respecting the Worker's byte limit.
   payload={...payload,history:payload.history.slice()};let encoded=JSON.stringify(payload);
@@ -77,7 +78,7 @@
    if(data.direct_lookup===true)spelling=null;
    else if(data.grounded===true)sources(texts,videos);
    if(typeof data.answer!=='string'||!data.answer.trim()||!Array.isArray(data.sources)||typeof data.grounded!=='boolean'||(data.grounded&&!data.sources.length))throw Error('unsupported');
-   status.remove();if(spelling&&typeof spelling.from==='string'&&typeof spelling.to==='string')bubble('উৎস খোঁজায় সম্ভাব্য বানান ব্যবহার করা হয়েছে: '+spelling.from+' → '+spelling.to+'। অর্থ ভিন্ন হলে প্রশ্নটি সংশোধন করুন।','status');modeLabel(data.mode==='chat'?'chat':data.mode==='source_quote'?'source_quote':data.grounded?'grounded':data.verification_failed?'verification':data.partial?'failed':'no-source');const answerBubble=bubble(data.answer,'assistant');citations(data.sources,data.mode==='source_quote');if(data.grounded===false&&data.mode!=='source_quote'&&Array.isArray(data.candidates))citations(data.candidates.slice(0,6),true);if(data.partial===true){const labels={quran:'কুরআন',hadith:'হাদিস',site_search:'সাইটের লেখা খোঁজা',site_pages:'সাইটের তথ্য',articles:'বাছাই করা লেখা',direct_lookup:'নির্দিষ্ট আয়াত বা হাদিস'};
+   status.remove();if(spelling&&typeof spelling.from==='string'&&typeof spelling.to==='string')bubble('উৎস খোঁজায় সম্ভাব্য বানান ব্যবহার করা হয়েছে: '+spelling.from+' → '+spelling.to+'। অর্থ ভিন্ন হলে প্রশ্নটি সংশোধন করুন।','status');modeLabel(data.mode==='chat'?'chat':data.mode==='source_quote'?'source_quote':data.grounded?'grounded':data.verification_failed?'verification':data.partial?'failed':'no-source');const answerBubble=bubble(data.answer,'assistant');citations(data.sources,data.mode==='source_quote');if(data.grounded===false&&data.mode!=='source_quote'&&Array.isArray(data.candidates))citations(data.candidates.slice(0,6),true);if(data.grounded===false&&data.mode!=='chat')manualSearch();if(data.partial===true){const labels={quran:'কুরআন',hadith:'হাদিস',site_search:'সাইটের লেখা খোঁজা',site_pages:'সাইটের তথ্য',articles:'বাছাই করা লেখা',direct_lookup:'নির্দিষ্ট আয়াত বা হাদিস'};
     const failed=Array.isArray(data.search_failures)?[...new Set(data.search_failures.filter(x=>Object.prototype.hasOwnProperty.call(labels,x)).map(x=>labels[x]))]:[];
     bubble(failed.length?'এই অংশগুলোতে সমস্যা হয়েছে: '+failed.join(', ')+'। অনুসন্ধান সম্পূর্ণ হয়নি।':'কিছু উৎস এই মুহূর্তে পাওয়া যায়নি; অনুসন্ধান সম্পূর্ণ হয়নি।','status')}if(data.search_limited===true)bubble(data.mode==='chat'?'এই সাধারণ কথায় বিষয়ভিত্তিক উৎস অনুসন্ধান সীমিত ছিল।':'উৎসগুলোতে বিষয়ভিত্তিক অনুসন্ধান সীমিত ছিল; প্রয়োজন হলে বিষয় ও প্রাসঙ্গিক শর্ত স্পষ্ট করে আবার চেষ্টা করুন।','status');if(data.grounded===true&&data.source_coverage){const c=data.source_coverage,names={quran:'কুরআন',hadith:'হাদিস'};
     const missing=Object.keys(names).filter(k=>c[k]==='no_match').map(k=>names[k]),skipped=Object.keys(names).filter(k=>c[k]==='skipped').map(k=>names[k]);
@@ -91,8 +92,8 @@
   }catch(e){status.remove();if(!input.value)input.value=q;
    if(e.message==='model_unavailable'){
     bubble((e.quota?'এআই সেবা দৈনিক ব্যবহারের সীমা শেষ হয়েছে বলে জানিয়েছে।':'এআই দিয়ে ব্যাখ্যা তৈরির সেবা এখন কাজ করছে না।')+' নিচে সম্ভাব্য উৎস দেওয়া হলো; এগুলো আপনার প্রশ্নের সঠিক উত্তর কি না যাচাই করা হয়নি। মূল লেখা দেখুন বা পরে আবার চেষ্টা করুন।','assistant');
-    citations(e.candidates||[],true);if(e.partial)bubble('কিছু উৎসে অনুসন্ধান সম্পূর্ণ হয়নি।','status');
-   }else bubble(e.message==='429'?'অনেকগুলো অনুরোধ এসেছে। একটু পরে আবার চেষ্টা করুন।':e.message==='search'?'সাইটের লেখা এখন খোঁজা যাচ্ছে না। সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।':e.message==='unsupported'?'এআই সেবা এখনো হালনাগাদ হয়নি। পরে আবার চেষ্টা করুন, অথবা টিমকে প্রশ্ন পাঠান।':'এখন উত্তর পাওয়া যাচ্ছে না। সংযোগ পরীক্ষা করে আবার চেষ্টা করুন, অথবা টিমকে প্রশ্ন পাঠান।','assistant')}
+    citations(e.candidates||[],true);if(e.partial)bubble('কিছু উৎসে অনুসন্ধান সম্পূর্ণ হয়নি।','status');manualSearch();
+   }else {manualSearch();bubble(e.message==='429'?'অনেকগুলো অনুরোধ এসেছে। একটু পরে আবার চেষ্টা করুন।':e.message==='search'?'সাইটের লেখা এখন খোঁজা যাচ্ছে না। সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।':e.message==='unsupported'?'এআই সেবা এখনো হালনাগাদ হয়নি। পরে আবার চেষ্টা করুন, অথবা টিমকে প্রশ্ন পাঠান।':'এখন উত্তর পাওয়া যাচ্ছে না। সংযোগ পরীক্ষা করে আবার চেষ্টা করুন, অথবা টিমকে প্রশ্ন পাঠান।','assistant')}}
 
   finally{busy=false;send.disabled=false;if(reset)reset.disabled=false;if(!panel.hidden)input.focus()}
  }
