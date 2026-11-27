@@ -1,0 +1,12 @@
+'use strict';
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+const source=fs.readFileSync('scripture-app.js','utf8'),start=source.indexOf('  function readBookBackup()'),end=source.indexOf('  function backupData()',start);assert(start>0&&end>start);
+const map=new Map(),localStorage={getItem:k=>map.has(k)?map.get(k):null,setItem:(k,v)=>map.set(k,v)};const context={localStorage};vm.runInNewContext(source.slice(start,end),context);
+const set=(k,v)=>localStorage.setItem('dawahx-books-'+k+'-v1',JSON.stringify(v));
+set('bookmarks',[{id:'tafsir-usmani-1-pdf',page:7}]);set('progress',{pages:{'tafsir-usmani-1-pdf':8},last:'tafsir-usmani-1-pdf'});localStorage.setItem('dawahx-books-scale-v1','1.5');
+let backup=JSON.parse(JSON.stringify(context.readBookBackup()));assert.equal(backup.bookmarks[0].page,7);assert.equal(backup.progress.pages['tafsir-usmani-1-pdf'],8);assert.equal(backup.scale,1.5);
+map.clear();context.restoreBookBackup(backup);assert.equal(JSON.parse(localStorage.getItem('dawahx-books-bookmarks-v1'))[0].page,7);assert.equal(localStorage.getItem('dawahx-books-scale-v1'),'1.5');
+context.restoreBookBackup({bookmarks:[{id:'tafsir-usmani-1-pdf',page:7},{id:'other-pdf',page:9},{id:'../bad',page:1},{id:'bad',page:-1}],progress:{pages:{'tafsir-usmani-1-pdf':1,'other-pdf':10,'__proto__':9},last:'other-pdf'},scale:1});
+backup=JSON.parse(JSON.stringify(context.readBookBackup()));assert.equal(backup.bookmarks.length,2);assert.equal(backup.progress.pages['tafsir-usmani-1-pdf'],8);assert.equal(backup.progress.pages['other-pdf'],10);assert.equal(backup.progress.last,'tafsir-usmani-1-pdf');assert.equal(backup.scale,1.5);context.restoreBookBackup(undefined);
+assert(source.includes('books: readBookBackup()'));assert(source.includes('restoreBookBackup(data.books)'));
+console.log('Book backup: round-trip, existing data preservation, malformed data and legacy backup pass.');

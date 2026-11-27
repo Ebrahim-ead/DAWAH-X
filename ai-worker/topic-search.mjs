@@ -33,7 +33,7 @@ export function topics(terms){
  const expanded=terms.filter(group=>!group.some(x=>generic.has(x))).map(group=>{const inflection=INFLECTIONS.find(g=>group.some(x=>g.forms.has(x)));if(inflection)return inflection.match;const concept=CONCEPTS.find((g,i)=>!(i===2&&group.some(x=>generic.has(x)))&&group.some(x=>g.some(y=>x===y||([...y].length>=3&&x.startsWith(y)))));return concept||group});
  const seen=new Set();const result=expanded.filter(group=>{const key=[...group].sort().join('|');if(seen.has(key))return false;seen.add(key);return true}).map(group=>[...new Set(group.flatMap(x=>{
   // A few common Bengali case suffixes; don't guess arbitrary stems.
-  const stem=x.replace(/(?:ের|তে|কে)$/u,'').replace(/ার$/u,'া');return [...stem].length>=4?[x,stem]:[x];
+  const stem=x===fold('সফরে')?fold('সফর'):x.replace(/(?:ের|তে|কে)$/u,'').replace(/ার$/u,'া');return [...stem].length>=4||stem===fold('সফর')?[x,stem]:[x];
  }))]);
  const numberWords={1:'এক',2:'দুই',3:'তিন',4:'চার',5:'পাঁচ',6:'ছয়',7:'সাত',8:'আট',9:'নয়',10:'দশ'};
  for(const group of result)if(group.length===1){
@@ -154,9 +154,11 @@ export function articleCandidate(text,termGroups,correction,title=''){
  const i=missing[0],group=t[i];if(group.numeric||!group.includes(from))return false;
  const expanded=t.map((g,n)=>n===i?[to]:g);return score(body,expanded)===t.length&&near(body,expanded,300);
 }
-export async function searchScripture(termGroups,mirrors){
+export async function searchScripture(termGroups,mirrors,sourceFilter='all'){
  const terms=topics(termGroups);if(!terms.length||terms.every(group=>group.every(x=>/^\d+$/.test(x))))return {items:[],failed:false,skipped:true};
- const results=await Promise.allSettled([quran(terms,mirrors),hadith(terms,mirrors)]);
- const failedSources=results.flatMap((r,i)=>r.status==='rejected'||r.value.failed?[i===0?'quran':'hadith']:[]);
+ const types=sourceFilter==='all'?['quran','hadith']:[sourceFilter];
+ if(types.some(x=>!['quran','hadith'].includes(x)))throw Error('Invalid scripture filter');
+ const results=await Promise.allSettled(types.map(type=>type==='quran'?quran(terms,mirrors):hadith(terms,mirrors)));
+ const failedSources=results.flatMap((r,i)=>r.status==='rejected'||r.value.failed?[types[i]]:[]);
  return {items:results.flatMap(r=>r.status==='fulfilled'?r.value.items:[]),failed:failedSources.length>0,failedSources,limited:results.some(r=>r.status==='fulfilled'&&r.value.limited===true)};
 }

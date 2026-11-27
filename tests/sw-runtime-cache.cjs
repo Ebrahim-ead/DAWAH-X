@@ -6,7 +6,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('nod
  const caches={open:async name=>{if(!stores.has(name))stores.set(name,new Map());const store=stores.get(name);return {
   put:async(req,res)=>store.set(key(req),res),keys:async()=>[...store.keys()],delete:async req=>store.delete(key(req)),
   match:async(req,options={})=>{const url=key(req);if(store.has(url))return store.get(url);if(options.ignoreSearch){const wanted=new URL(url);wanted.search='';for(const [k,v] of store){const entry=new URL(k);entry.search='';if(entry.href===wanted.href)return v}}}
- }},match:async req=>{for(const name of stores.keys()){const found=await (await caches.open(name)).match(req);if(found)return found}}};
+ }},keys:async()=>[...stores.keys()],delete:async name=>stores.delete(name),match:async req=>{for(const name of stores.keys()){const found=await (await caches.open(name)).match(req);if(found)return found}}};
  const response=text=>({ok:true,type:'basic',text:async()=>text,clone(){return response(text)}});
  const ctx={self:{addEventListener:(type,cb)=>listeners[type]=cb,registration:{scope:base},location:{origin:'https://example.test'}},caches,fetch:async()=>{if(!online)throw Error('offline');return response('new')},URL,Response,Request,Promise,Set};
  const sw=fs.readFileSync('sw.js','utf8');vm.runInNewContext(sw,ctx);
@@ -15,6 +15,10 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('nod
  async function run(url,extra={}){let result;const waits=[];listeners.fetch({request:{url:new URL(url,base).href,method:'GET',mode:'same-origin',headers:new Headers(),...extra},respondWith:p=>{result=p},waitUntil:p=>waits.push(p)});if(!result)return null;const out=await result;await Promise.all(waits);return out}
  assert.equal(await (await run('app.js')).text(),'new');online=false;assert.equal(await (await run('app.js')).text(),'new','offline must prefer the latest runtime version to the older shell');
  assert.equal(await (await run('read.html?k=abc',{mode:'navigate'})).text(),'read shell');assert.equal(await (await run('./',{mode:'navigate'})).text(),'home shell');
+ const saved=await caches.open('dawahx-saved-texts-v1');await saved.put('texts/abc.json',response('saved article'));
+ assert.equal(await (await run('texts/abc.json')).text(),'saved article','pinned record survives offline runtime eviction');
+ let activation;listeners.activate({waitUntil:p=>{activation=p}});ctx.self.clients={claim:async()=>{}};await activation;
+ assert(stores.has('dawahx-saved-texts-v1'),'saved cache survives SW version change');
  const noCache=await run('missing.html',{mode:'navigate'});assert.equal(noCache.status,503);
  assert.equal(await run('https://elsewhere.test/fonts/fake.woff2'),null,'do not intercept third-party font paths');
  assert.equal(await run('app.js',{headers:new Headers({Range:'bytes=0-1'})}),null,'range requests bypass caching');

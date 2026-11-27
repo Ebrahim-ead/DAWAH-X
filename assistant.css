@@ -8,3 +8,6 @@
 .dxa-reset{background:none;border:0;padding:4px 0;color:inherit;font:inherit;text-decoration:underline;cursor:pointer}
 .dxa-reset:disabled{opacity:.5;cursor:wait}
 .dxa-reset:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+.dxa-filter{display:flex;align-items:center;gap:6px;margin:0 0 7px;color:#345c4a;font-size:12px}.dxa-filter select{min-width:0;max-width:100%;padding:4px;border:1px solid #cfdad0;border-radius:7px;background:#fff;color:#23493a;font:inherit}.dxa-voice-stop{margin-top:5px;padding:5px 10px;border:1px solid #cfdad0;border-radius:8px;background:#eff5ed;color:#23493a;font:inherit;font-size:12px;cursor:pointer}.dxa-voice-stop[hidden]{display:none}
+.dxa-share{padding:8px 10px;border:1px solid #dae4d8;border-radius:10px;font-size:12px}.dxa-share span{display:block;color:#64756c}.dxa-share a,.dxa-share button{display:inline-block;margin:6px 8px 0 0;padding:5px 9px;border:1px solid #cfdad0;border-radius:7px;background:white;color:#25614d;font:inherit;cursor:pointer}
+.dxa-log-preference{display:flex;align-items:flex-start;gap:6px;color:#345c4a;font-size:11px;line-height:1.4;margin-bottom:3px}.dxa-log-preference input{flex:none;margin-top:2px}.dxa-privacy a{color:#25614d}
