@@ -8,13 +8,13 @@
  const trigger=document.createElement('button');trigger.type='button';trigger.className='dxa-trigger';trigger.setAttribute('aria-label','এআই সহকারী চ্যাট খুলুন');trigger.setAttribute('aria-expanded','false');trigger.setAttribute('aria-controls','dxa-panel');
  const logo=document.createElement('img');logo.src=url('assistant-logo.webp');logo.alt='';logo.width=72;logo.height=72;trigger.appendChild(logo);
  const panel=document.createElement('aside');panel.id='dxa-panel';panel.className='dxa-panel';panel.hidden=true;panel.setAttribute('aria-label','DAWAH X এআই সহকারী');
- panel.innerHTML='<header class="dxa-head"><div><span class="dxa-mark" aria-hidden="true">✦</span><div><strong>DAWAH X সহকারী</strong><small>জানুন, বুঝুন, উৎস খুঁজুন</small></div></div><button class="dxa-close" type="button" aria-label="চ্যাট বন্ধ করুন">×</button></header><div class="dxa-chat" role="log" aria-live="polite" aria-relevant="additions"><div class="dxa-welcome"><span>আসসালামু আলাইকুম</span><h2>কী জানতে চান?</h2><p>দৈনন্দিন বিষয়ে গল্প করুন। ইসলাম নিয়ে প্রশ্ন করলে কুরআন, হাদিস ও সাইটের লেখা থেকে প্রাসঙ্গিক তথ্য খুঁজব। নির্দিষ্ট আয়াত বা হাদিস জানতে সূরা ও আয়াত নম্বর, অথবা কিতাব ও হাদিস নম্বর লিখুন। অনুসন্ধান সীমিত: বাছাই করা উৎসের অংশ ব্যবহার হয়; সব হাদিস-গ্রন্থে বিষয়ভিত্তিক খোঁজা হয় না। নির্দিষ্ট নম্বরের খোঁজ সীমিত কয়েকটি সংগ্রহে কাজ করে; ইসলামিক বইয়ের PDF-এর ভেতর বা ভিডিওর বক্তব্য এআই খোঁজে না। ভিডিওর শুধু শিরোনাম খোঁজা হয়, বক্তব্য নয়। এআই ভুল করতে পারে—মূল উৎস যাচাই করুন; ব্যক্তিগত ফতোয়ার জন্য যোগ্য আলেমের পরামর্শ নিন।</p><div class="dxa-prompts"><button type="button">সালাতের গুরুত্ব কী?</button><button type="button">রোজা সম্পর্কে জানতে চাই</button></div></div></div><div class="dxa-bottom"><p class="dxa-privacy">প্রশ্ন ও সাম্প্রতিক কথোপকথন Cloudflare-এর এআই সেবায় পাঠানো হয়। সংবেদনশীল তথ্য দেবেন না। কণ্ঠ শনাক্তকরণে ব্রাউজারের সেবাও ব্যবহৃত হতে পারে।</p><label class="dxa-log-preference"><input type="checkbox" class="dxa-log-toggle"> উত্তর না পাওয়া প্রশ্ন টিমের পর্যালোচনায় পাঠানো যেতে পারে</label><p class="dxa-privacy">চালু থাকলে অনুত্তরিত প্রশ্নের লেখা সর্বোচ্চ ৩০ দিন রাখা হতে পারে। নাম বা ব্যক্তিগত তথ্য দেবেন না; প্রশ্ন সম্পূর্ণ বেনামি নয়। টিক সরালে পরবর্তী প্রশ্ন জমা হবে না। <a href="'+url('policy.html')+'#ai-privacy">বিস্তারিত</a></p><form class="dxa-form"><label class="dxa-sr" for="dxa-input">আপনার প্রশ্ন</label><textarea id="dxa-input" rows="1" maxlength="2000" placeholder="আপনার প্রশ্ন লিখুন…" required></textarea><button type="submit" aria-label="প্রশ্ন পাঠান">➜</button></form><div class="dxa-footer"><button type="button" class="dxa-reset">নতুন কথোপকথন</button><span>এআই-এর উত্তর যাচাই করুন</span><a href="'+url('ask.html')+'">টিমকে প্রশ্ন করুন ↗</a></div></div>';
+ panel.innerHTML='<header class="dxa-head"><div><span class="dxa-mark" aria-hidden="true">✦</span><div><strong>DAWAH X সহকারী</strong><small>জানুন, বুঝুন, উৎস খুঁজুন</small></div></div><button class="dxa-close" type="button" aria-label="চ্যাট বন্ধ করুন">×</button></header><div class="dxa-chat" role="log" aria-live="polite" aria-relevant="additions"><div class="dxa-welcome"><span>আসসালামু আলাইকুম</span><h2>কী জানতে চান?</h2><div class="dxa-prompts"><button type="button">সালাতের গুরুত্ব কী?</button><button type="button">রোজা সম্পর্কে জানতে চাই</button></div></div></div><div class="dxa-bottom"><p class="dxa-privacy">প্রশ্ন Cloudflare AI-তে পাঠানো হয়; উত্তর না পেলে পর্যালোচনায় ৩০ দিন পর্যন্ত রাখা হতে পারে। ব্যক্তিগত তথ্য দেবেন না। <a href="'+url('policy.html')+'#ai-privacy">বিস্তারিত</a></p><form class="dxa-form"><label class="dxa-sr" for="dxa-input">আপনার প্রশ্ন</label><textarea id="dxa-input" rows="1" maxlength="2000" placeholder="আপনার প্রশ্ন লিখুন…" required></textarea><button type="submit" aria-label="প্রশ্ন পাঠান">➜</button></form><div class="dxa-footer"><button type="button" class="dxa-reset">নতুন কথোপকথন</button><span>এআই-এর উত্তর যাচাই করুন</span><a href="'+url('ask.html')+'">টিমকে প্রশ্ন করুন ↗</a></div></div>';
  document.body.append(trigger,panel);
  const chat=panel.querySelector('.dxa-chat'),form=panel.querySelector('form'),input=panel.querySelector('textarea'),send=form.querySelector('button'),close=panel.querySelector('.dxa-close');
  let history=[],busy=false;
- const logToggle=panel.querySelector('.dxa-log-toggle'),LOG_PREF='dawahx-assistant-unanswered-logging-v1';
- if(logToggle){try{logToggle.checked=window.localStorage.getItem(LOG_PREF)!=='off'}catch(_){logToggle.checked=false}
-  logToggle.addEventListener('change',()=>{try{window.localStorage.setItem(LOG_PREF,logToggle.checked?'on':'off')}catch(_){/* setting remains in effect for this page */}})}
+ // Honor prior opt-outs even though the visible toggle has been removed.
+ // A blocked preference store fails closed, as it did before.
+ function loggingEnabled(){try{return window.localStorage.getItem('dawahx-assistant-unanswered-logging-v1')!=='off'}catch(_){return false}}
 
  // Voice is opt-in per question. Recognition may use the browser vendor's
  // service; it is not sent for inference until the recognized text is submitted.
@@ -43,12 +43,6 @@
    try{r.start()}catch(_){recognition=null;mic.setAttribute('aria-pressed','false');bubble('মাইক্রোফোন চালু করা যায়নি।','status')}
   });
  }
- // The selection is explicit and scoped to direct texts, not the quality/grade
- // of every narration. It does not imply tafsir has been searched.
- const filter=document.createElement('label');filter.className='dxa-filter';filter.textContent='উত্তরের উৎস: ';
- const select=document.createElement('select');select.setAttribute('aria-label','উত্তরের উৎস বাছাই');
- for(const [value,label] of [['all','সব উপলব্ধ উৎস'],['quran','শুধু কুরআনের পাঠ'],['hadith','শুধু হাদিসের পাঠ (মান যাচাই করুন)']]){const option=document.createElement('option');option.value=value;option.textContent=label;select.appendChild(option)}
- filter.appendChild(select);if(form.parentNode)form.parentNode.insertBefore(filter,form);
  const reset=panel.querySelector('.dxa-reset');
  if(reset)reset.addEventListener('click',()=>{if(busy)return;stopSpeech();if(recognition)recognition.abort();voicePending=false;history=[];chat.replaceChildren();input.value='';bubble('নতুন কথোপকথন শুরু হয়েছে। কী জানতে চান?','status');input.focus()});
  function open(){panel.hidden=false;trigger.setAttribute('aria-expanded','true');input.focus()}
@@ -124,7 +118,7 @@
   }return res.json();
  }
  function modeLabel(mode){const el=document.createElement('div');el.className='dxa-mode';el.textContent=mode==='chat'?'সাধারণ আলাপ · সাইটের উৎসভিত্তিক নয়':mode==='source_quote'?'কাছাকাছি প্রশ্নের মূল লেখা · প্রযোজ্যতা যাচাই করা হয়নি':mode==='failed'?'উৎস অনুসন্ধান সম্পূর্ণ হয়নি':mode==='verification'?'উত্তর যাচাই করা যায়নি':mode==='no-source'?'খুঁজে পাওয়া উৎসে পর্যাপ্ত তথ্য নেই':'প্রাপ্ত উৎসভিত্তিক উত্তর';chat.append(el)}
- async function submit(q){q=q.trim();if(!q||busy)return;const voiceQuestion=voicePending,sourceFilter=select.value||'all';voicePending=false;stopSpeech();busy=true;send.disabled=true;if(reset)reset.disabled=true;input.value='';bubble(q,'user');const status=bubble('উত্তর তৈরি হচ্ছে…','status');
+ async function submit(q){q=q.trim();if(!q||busy)return;const voiceQuestion=voicePending,sourceFilter='all';voicePending=false;stopSpeech();busy=true;send.disabled=true;if(reset)reset.disabled=true;input.value='';bubble(q,'user');const status=bubble('উত্তর তৈরি হচ্ছে…','status');
   try{
    if(!API_URL)throw Error('unsupported');
    // Search first and send one Worker request per question. The server still
@@ -134,7 +128,7 @@
    const searchQ=searchContext(q),pages=sourceFilter==='all'?pageMatches(searchQ):[];
    if(sourceFilter==='all')try{let result;try{result=await window.dawahxAssistantSearch(searchQ)}catch(_){}if(!result)result=await window.dawahxAssistantSearch(searchQ);if(!result)throw Error('search unavailable');texts=result.texts.slice(0,6);videos=result.videos;siteSearchLimited=result.limited===true;spelling=result.correction||null}catch(_){siteSearchFailed=true}
    status.textContent='প্রাপ্ত উৎস থেকে উত্তর তৈরি হচ্ছে…';
-   const data=await requestAnswer({message:q,ids:texts.map(x=>x.k),pages,history,lookupComplete:true,scriptureSearch:true,siteSearchFailed,siteSearchLimited,sourceFilter,unansweredLogging:!!logToggle?.checked,...(spelling?{searchCorrection:spelling}:{}),allSources:true});
+   const data=await requestAnswer({message:q,ids:texts.map(x=>x.k),pages,history,lookupComplete:true,scriptureSearch:true,siteSearchFailed,siteSearchLimited,sourceFilter,unansweredLogging:loggingEnabled(),...(spelling?{searchCorrection:spelling}:{}),allSources:true});
    if(data.direct_lookup===true)spelling=null;
    else if(data.grounded===true&&sourceFilter==='all')sources(texts,videos);
    if(typeof data.answer!=='string'||!data.answer.trim()||!Array.isArray(data.sources)||typeof data.grounded!=='boolean'||(data.grounded&&!data.sources.length))throw Error('unsupported');
