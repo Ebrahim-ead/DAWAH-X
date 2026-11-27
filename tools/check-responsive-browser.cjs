@@ -90,8 +90,11 @@ const checkOverflow=async(page,label)=>{
     await context.route('https://dawah-x.github.io/card/',route=>route.fulfill({status:200,contentType:'text/html',body:'<title>Destination</title>'}));
     await aiLink.click();assert.equal(page.url(),'https://dawah-x.github.io/card/','AI link navigates to the requested site');
     await visit('index.html');
-    prayerAvailable=false;await page.reload({waitUntil:'domcontentloaded'});await page.waitForFunction(()=>document.querySelector('#prayer-next')?.textContent.includes('পাওয়া যাচ্ছে না'));
-    assert.equal(await page.locator('.prayer-card time[datetime]').count(),0,'outage does not display old times');
+    prayerAvailable=false;await page.reload({waitUntil:'domcontentloaded'});await page.waitForFunction(()=>document.querySelector('#prayer-next')?.textContent.includes('সংরক্ষিত সময়সূচি'));
+    assert.equal(await page.locator('.prayer-card time[datetime]').count(),6,'validated cached month is labelled and available offline');
+    await page.evaluate(()=>{for(const key of Object.keys(localStorage))if(key.startsWith('dawahx-prayer-'))localStorage.removeItem(key)});
+    await page.reload({waitUntil:'domcontentloaded'});await page.waitForFunction(()=>document.querySelector('#prayer-next')?.textContent.includes('পাওয়া যাচ্ছে না'));
+    assert.equal(await page.locator('.prayer-card time[datetime]').count(),0,'without an eligible cache no old times are shown');
     prayerAvailable=true;await visit('index.html');await page.waitForFunction(()=>document.querySelector('[data-prayer="fajr"] time')?.textContent.includes('05:10'));
     await page.evaluate(()=>{window.testSearchCalls=0;window.dawahxAssistantSearch=async()=>{if(++window.testSearchCalls===1)throw Error('temporary');return {texts:[],videos:Promise.resolve([])}}});
     await page.click('.dxa-trigger');await page.fill('#dxa-input','নামাজের সময় কী?');await page.locator('.dxa-form button').click();
