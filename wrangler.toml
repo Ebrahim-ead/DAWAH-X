@@ -17,9 +17,11 @@ name = "UNANSWERED_LIMITER"
 namespace_id = "1003"
 simple = { limit = 1, period = 60 }
 
-# The optional UNANSWERED_QUESTIONS KV binding is deliberately absent until
-# an administrator creates a dedicated namespace and configures its real ID.
-# See ai-worker/unanswered-setup.md. Without it no question is stored.
+# Dedicated production namespace; previews remain unbound.
+# See ai-worker/unanswered-setup.md for privacy and operational controls.
+[[kv_namespaces]]
+binding = "UNANSWERED_QUESTIONS"
+id = "c2a366fb051244d5a21878990e62458d"
 
 [vars]
 ALLOWED_ORIGINS = "https://ebrahim-ead.github.io"
