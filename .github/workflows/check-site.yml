@@ -54,6 +54,7 @@ jobs:
         run: npm install --prefix "$RUNNER_TEMP/worker-runtime" miniflare@3.20250718.3
       - name: Test actual Worker fetch behavior
         run: NODE_PATH="$RUNNER_TEMP/worker-runtime/node_modules" node tools/check-worker-runtime.cjs
+          NODE_PATH="$RUNNER_TEMP/worker-runtime/node_modules" node tools/check-unanswered-worker.cjs
   guidance-contrast:
     runs-on: ubuntu-latest
     timeout-minutes: 10
