@@ -90,7 +90,10 @@ if(readTitle){
  if(nav&&from==="f"){nav.classList.remove("on");const f=document.querySelector('#menu a[href="fatwa.html"]');if(f)f.classList.add("on")}
  const fail=msg=>{delete body.dataset.loaded;for(const id of ["read-save","quote-open","read-complete","read-find-videos"]){const control=$(id);if(control)control.disabled=true}readTitle.textContent="লেখাটি পাওয়া যায়নি";body.innerHTML=`<p>${msg}</p><p><a class="askbtn" href="${backHref}">${backLabel} তালিকায় ফিরে যান</a></p>`};
  /* লেখার শেয়ার-লিংক s/<চাবি>.html — সেখানে লেখার নিজের শিরোনাম থাকে (Facebook/WhatsApp-এর প্রিভিউয়ের জন্য), খুললে এই পাতাতেই আসে */
- const shareLinks=(t,k)=>{const url=k?new URL("s/"+k+".html",location.href).href:location.href.split("#")[0],share=encodeURIComponent(t+"\n"+url);
+ const shareLinks=(t,k,source)=>{const url=k?new URL("s/"+k+".html",location.href).href:location.href.split("#")[0];
+  const excerpt=k?(body.textContent||"").replace(/\s+/g," ").trim():"";
+  const short=excerpt.length>220?excerpt.slice(0,220)+"…":excerpt;
+  const message="প্রশ্ন: "+t+(short?"\n\nলেখার প্রারম্ভিক অংশ (পূর্ণ প্রসঙ্গ পড়ুন): "+short:"")+(source?"\nউৎস: "+source:"")+"\n\nসম্পূর্ণ লেখা: "+url,share=encodeURIComponent(message);
   const cp=document.querySelector("#read-share [data-copy-link]");if(cp)cp.dataset.copyLink=url;
   /* ফোনে সিস্টেমের নিজের শেয়ার-শিট (WhatsApp/Telegram/যা আছে) — সেখানেই লেখা ও লিংক যায় */
   const shareBox=$("read-share");
@@ -98,7 +101,7 @@ if(readTitle){
    let nat=document.getElementById("read-native");
    if(!nat){nat=document.createElement("button");nat.type="button";nat.id="read-native";nat.className="share-btn";
     nat.innerHTML='<svg class="ic" aria-hidden="true"><use href="#link"></use></svg><span>শেয়ার…</span>';shareBox.appendChild(nat)}
-   nat.onclick=()=>{try{navigator.share({title:toLatinDigits(t),url}).catch(()=>{})}catch(e){}};
+   nat.onclick=()=>{try{navigator.share({title:toLatinDigits(t),text:message}).catch(()=>{})}catch(e){}};
   }
   $("read-wa").href="https://wa.me/?text="+share;$("read-fb").href="https://www.facebook.com/sharer/sharer.php?u="+encodeURIComponent(url);$("read-share").hidden=false};
  /* সার্চ থেকে এলে (…&q=শব্দ) লেখার ভেতরে শব্দগুলো দাগিয়ে দেখানো হয়; বানানভেদও ধরা হয় */
@@ -149,7 +152,7 @@ if(readTitle){
   body.textContent="";body.appendChild(safeArticle(x.h,/^https?:\/\//i.test(x.u||"")?x.u:"",x.s));
   $("read-credit").innerHTML=`এই লেখাটি <b>${escHTML(srcName)}</b>-এর (${escHTML(hostOf(x.u))})। প্রকাশকের অনুমতিক্রমে এখানে হুবহু তুলে ধরা হয়েছে; লেখার স্বত্ব মূল প্রকাশকের।`+(/^\d{8}/.test(x.w||"")?` এই কপিটি Internet Archive-এ সংরক্ষিত ${x.w.slice(0,4)}-${x.w.slice(4,6)}-${x.w.slice(6,8)} তারিখের সংস্করণ থেকে নেওয়া; মূল পেজে এরপর পরিবর্তন হয়ে থাকতে পারে।`:"");
   $("read-original").href=x.u;$("read-source").hidden=false;
-  shareLinks(x.t,key);
+  shareLinks(x.t,key,srcName);
   markHits(body,P.get("q")||"");
   showRelated(key);
   body.dataset.loaded="true";
@@ -1301,6 +1304,24 @@ if(readTools){
  const savedList=()=>{try{const a=JSON.parse(localStorage.getItem(SAVED_KEY)||"[]");return Array.isArray(a)?a:[]}catch(e){return[]}};
  const storeList=a=>{try{localStorage.setItem(SAVED_KEY,JSON.stringify(a.slice(0,200)));return true}catch(e){return false}};
  const curKey=()=>question().get("k")||"";
+ // Keep only the saved records, not entire multi-article buckets. CacheStorage
+ // can be denied or evicted, so bookmarking is never advertised as a guarantee.
+ let pinQueue=Promise.resolve();
+ const pinSaved=(list,changed,adding)=>{
+  pinQueue=pinQueue.catch(()=>{}).then(async()=>{
+   if(!window.caches||typeof Response!=="function")throw Error("cache unavailable");
+   const cache=await window.caches.open("dawahx-saved-texts-v1"),wanted=new Set(list.map(x=>x.k).filter(k=>/^[0-9a-f]{14}$/.test(k)));
+   const bucket=textBucket(changed),target=new URL("texts/"+bucket+".json",location.href).href;
+   let entries={};const old=await cache.match(target);if(old)entries=await old.json();
+   if(!entries||typeof entries!=="object"||Array.isArray(entries))entries={};
+   if(adding){const response=await fetch(target);if(!response.ok)throw Error("text unavailable");const full=await response.json();if(!full[changed])throw Error("missing text");entries[changed]=full[changed]}
+   for(const key of Object.keys(entries))if(!wanted.has(key)||textBucket(key)!==bucket)delete entries[key];
+   if(Object.keys(entries).length)await cache.put(target,new Response(JSON.stringify(entries),{headers:{"Content-Type":"application/json; charset=utf-8"}}));else await cache.delete(target);
+   // Saving the 201st item evicts an old bookmark; remove orphaned cache keys.
+   for(const req of await cache.keys()){if(req.url===target)continue;const res=await cache.match(req);if(!res)continue;const data=await res.json();for(const k of Object.keys(data))if(!wanted.has(k))delete data[k];
+    if(!Object.keys(data).length)await cache.delete(req);else await cache.put(req,new Response(JSON.stringify(data),{headers:{"Content-Type":"application/json; charset=utf-8"}}));}
+  });return pinQueue;
+ };
  const countEl=$("read-saved-count");
  const paintCount=()=>{if(countEl)countEl.textContent=formatCount(savedList().length)};
  /* লেখার আকার: A− / A+ (ব্রাউজারে মনে থাকে) */
@@ -1330,7 +1351,8 @@ if(readTools){
  if(saveBtn)saveBtn.addEventListener("click",()=>{
   if(!canSave||$("read-body")?.dataset.loaded!=="true")return;
   const k=curKey();let list=savedList();
-  if(list.some(x=>x.k===k))list=list.filter(x=>x.k!==k);
+  const adding=!list.some(x=>x.k===k);
+  if(!adding)list=list.filter(x=>x.k!==k);
   else{
    const title=(($("read-title")&&$("read-title").textContent)||"").trim(),cat=(($("read-cat")&&$("read-cat").textContent)||"").trim();
    if(!title||title.indexOf("লোড হচ্ছে")>=0)return;
@@ -1338,6 +1360,7 @@ if(readTools){
   }
   if(!storeList(list)){if(saveLabel)saveLabel.textContent="সংরক্ষণ করা যায়নি";return}
   paintSave();paintCount();
+  pinSaved(list.slice(0,200),k,adding).catch(()=>{if(adding&&saveLabel&&savedList().some(x=>x.k===k))saveLabel.textContent="তালিকায় আছে · অফলাইন কপি রাখা যায়নি"});
  });
  const printBtn=$("read-print");
  if(printBtn)printBtn.addEventListener("click",()=>window.print());

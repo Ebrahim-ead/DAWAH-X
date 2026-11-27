@@ -4,14 +4,15 @@
          আনা না গেলে তবেই জমানো কপি দেওয়া হয়। শুধু নিজের সাইটের ফাইল ও Google Fonts জমানো হয়।
    কোনো ফাইলের তালিকা বদলালে VERSION বাড়ান — পুরোনো জমা মুছে যায়। */
 'use strict';
-const VERSION='v83';
+const VERSION='v84';
 const SHELL='dawahx-shell-'+VERSION;   /* পাতার কাঠামো: HTML, CSS, JS, লোগো (ইনস্টলের সময় আনা হয়) */
 const PAGES='dawahx-pages-'+VERSION;   /* ব্যবহারের সময় আনা অন্য ফাইল */
 const TEXTS='dawahx-texts-'+VERSION;   /* পড়া লেখা (texts/, rel/) */
 const FONTS='dawahx-fonts-'+VERSION;
+const SAVED='dawahx-saved-texts-v1'; /* explicitly saved records; survives shell upgrades */
 const LIMIT={[PAGES]:120,[TEXTS]:300,[FONTS]:30};
 const PRECACHE=['./','index.html','about.html','services.html','questions.html','topics.html','series.html','sources.html','recent.html','faq.html','topic-evil.html','topic-existence.html','topic-hadith.html','topic-prophet.html','topic-quran.html','topic-science.html','topic-sharia.html','topic-women.html','fatwa.html','videos.html','ask.html','contact.html','read.html','saved.html','policy.html','404.html',
- 'quran.html','hadith.html','search-all.html','unified-search.css','unified-search.js','islamic-books.html','islamic-book-collection.html','islamic-book-read.html','islamic-books-hero.jpg','islamic-books.css','islamic-books.js','islamic-books-catalog.js','scripture-shell.js','scripture-route.js','scripture-style.css','scripture-fflate.js','scripture-app.js','scripture-surahs.js','scripture-quran-data.js','scripture-quran-meta.js','scripture-bn-index.js','scripture-hadith-index.js','scripture-tafsir-ibn-kathir-index.js','scripture-bn-1.js','scripture-en-1.js','scripture-hafs.woff2','scripture-bengali.woff2',
+ 'quran.html','hadith.html','assistant-share.html','assistant-share.js','search-all.html','unified-search.css','unified-search.js','islamic-books.html','islamic-book-collection.html','islamic-book-read.html','islamic-books-hero.jpg','islamic-books.css','islamic-books.js','islamic-books-catalog.js','scripture-shell.js','scripture-route.js','scripture-style.css','scripture-fflate.js','scripture-app.js','scripture-surahs.js','scripture-quran-data.js','scripture-quran-meta.js','scripture-bn-index.js','scripture-hadith-index.js','scripture-tafsir-ibn-kathir-index.js','scripture-bn-1.js','scripture-en-1.js','scripture-bn-108.js','scripture-bn-109.js','scripture-bn-110.js','scripture-bn-111.js','scripture-bn-112.js','scripture-bn-113.js','scripture-bn-114.js','scripture-hafs.woff2','scripture-bengali.woff2',
  'style.css','app.js','reader-assistant-search.js','assistant.js','assistant.css','assistant-logo.webp','features.js','prayer-times.js','quote-card.js','discovery.js','effects.js','live.js','youtube-gallery.js','logo.webp','logo-dark.webp','logo-icon.webp','favicon.svg','hero.webp','hero-sm.webp','hero.jpg','founder.webp','founder-sm.webp','fonts-arabic.css','manifest.webmanifest','stats.json','cross-links.json','texts/index.json'];
 const FONT_HOSTS=['fonts.googleapis.com','fonts.gstatic.com'];
 const OFFLINE='<!doctype html><html lang="bn"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ইন্টারনেট সংযোগ নেই — DAWAH X</title>'
@@ -30,7 +31,7 @@ self.addEventListener('install',event=>{
 });
 
 self.addEventListener('activate',event=>{
- const keep=new Set([SHELL,PAGES,TEXTS,FONTS]);
+ const keep=new Set([SHELL,PAGES,TEXTS,FONTS,SAVED]);
  event.waitUntil(caches.keys().then(names=>Promise.all(names.filter(n=>n.startsWith('dawahx-')&&!keep.has(n)).map(n=>caches.delete(n)))).then(()=>self.clients.claim()));
 });
 
@@ -44,6 +45,7 @@ const fromCache=async(request,isPage,name)=>{
  // file. Search it before the install-time shell and never use unrelated caches.
  const runtime=await caches.open(name),shell=await caches.open(SHELL);
  let hit=await runtime.match(request)||await shell.match(request);
+ if(!hit&&name===TEXTS)hit=await (await caches.open(SAVED)).match(request);
  /* read.html?k=…: fall back to the cached page shell without its query. */
  if(!hit&&isPage)hit=await runtime.match(request,{ignoreSearch:true})||await shell.match(request,{ignoreSearch:true});
  if(!hit&&isPage&&new URL(request.url).pathname.endsWith('/'))hit=await runtime.match('index.html')||await shell.match('index.html');

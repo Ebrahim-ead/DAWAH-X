@@ -55,9 +55,21 @@
     const url='https://api.aladhan.com/v1/calendar/'+day.year+'/'+day.month+'?latitude=23.7104&longitude=90.40744&method=1&school=0';
     const response=await fetch(url,{signal:controller.signal,cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});
     if(!response.ok)throw Error('calendar unavailable');
-    const data=parseCalendar(await response.json(),day.year,day.month);
+    const raw=await response.json(),data=parseCalendar(raw,day.year,day.month);
+    // Only validated calendars are saved; storage can be unavailable or cleared.
+    try{
+     const store=window.localStorage;store.setItem('dawahx-prayer-'+id,JSON.stringify({saved:Date.now(),raw}));
+     const keys=[];for(let i=0;i<store.length;i++){const key=store.key(i);if(/^dawahx-prayer-\d{4}-\d{2}$/.test(key||''))keys.push(key)}
+     keys.sort().reverse();for(const key of keys.slice(2))store.removeItem(key);
+    }catch(_){}
     months.set(id,{data,until:Date.now()+ttl});failures.delete(id);return data;
-   }catch(error){months.delete(id);failures.set(id,Date.now()+retryAfter);throw error}
+   }catch(error){months.delete(id);failures.set(id,Date.now()+retryAfter);
+    try{const saved=JSON.parse(window.localStorage.getItem('dawahx-prayer-'+id)||'null');
+     if(saved&&Number.isFinite(saved.saved)&&saved.saved<=Date.now()&&Date.now()-saved.saved<=35*24*60*60*1000){
+      const data=parseCalendar(saved.raw,day.year,day.month);data.offline=true;data.savedAt=saved.saved;
+      months.set(id,{data,until:Date.now()+retryAfter});return data;
+     }
+    }catch(_){}throw error}
    finally{window.clearTimeout(timer);inflight.delete(id)}
   });
   inflight.set(id,request);return request;
@@ -73,7 +85,7 @@
   }
   try{
    if(cards.some(card=>!card))throw Error('missing card');
-   const times=(await calendar(day)).get(day.day);
+   const dayCalendar=await calendar(day),times=dayCalendar.get(day.day);
    if(id!==sequence)return;
    now=new Date();if(dayParts(now).key!==day.key){render();return}
    if(!times)throw Error('missing day');
@@ -87,11 +99,12 @@
    if(next<keys.length)nextNode.textContent='পরবর্তী: '+names[keys[next]]+' · '+formatted.format(times[keys[next]]);
    else{
     nextNode.textContent='আগামীকালের ফজরের সময় আনা হচ্ছে…';
-    try{const nextDay=tomorrow(day),nextTimes=(await calendar(nextDay)).get(nextDay.day);
+    try{const nextDay=tomorrow(day),nextCalendar=await calendar(nextDay),nextTimes=nextCalendar.get(nextDay.day);
      if(id!==sequence)return;if(dayParts(new Date()).key!==day.key){render();return}
-     if(!nextTimes)throw Error('missing next day');nextNode.textContent='পরবর্তী: ফজর · আগামীকাল '+formatted.format(nextTimes.fajr);
+     if(!nextTimes)throw Error('missing next day');nextNode.textContent='পরবর্তী: ফজর · আগামীকাল '+formatted.format(nextTimes.fajr)+(nextCalendar.offline?' · সংরক্ষিত সময়সূচি (ঢাকা, যাচাই করুন)':'');
     }catch(_){if(id===sequence)nextNode.textContent='আগামীকালের ফজরের সময় পাওয়া যাচ্ছে না। আলআযানের লিংক বা স্থানীয় সময়সূচি দেখুন।'}
    }
+   if(dayCalendar.offline&&!nextNode.textContent.includes('সংরক্ষিত সময়সূচি'))nextNode.textContent+=' · সংরক্ষিত সময়সূচি (ঢাকা, যাচাই করুন)';
   }catch(_){if(id===sequence){clear();nextNode.textContent='আলআযানের সময়সূচি এখন পাওয়া যাচ্ছে না। লিংক বা স্থানীয় সময়সূচি দেখুন।'}}
   finally{if(id===sequence)scheduleMidnight(new Date())}
  }

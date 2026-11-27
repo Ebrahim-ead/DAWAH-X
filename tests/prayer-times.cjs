@@ -14,13 +14,13 @@ function payload(year,month){
  })};
 }
 const node=()=>({textContent:'',dateTime:'',removeAttribute(){this.dateTime=''}});
-function harness(start,handler){
+function harness(start,handler,storage){
  let now=start,nextTimer=0;const events={},docEvents={},timers=new Map(),requests=[];
  const cards=keys.map(key=>{const time=node(),state=node(),classes=new Set();return {key,time,state,classes,querySelector:s=>s==='time'?time:state,classList:{toggle:(name,on)=>on?classes.add(name):classes.delete(name),remove:(...names)=>names.forEach(name=>classes.delete(name))}}});
  const nodes={'prayer-date':node(),'prayer-next':node()};
  class FakeDate extends Date{constructor(...args){super(...(args.length?args:[now]))}static now(){return new Date(now).getTime()}}
  const document={hidden:false,getElementById:id=>nodes[id]||null,querySelector:s=>cards.find(c=>s.includes('"'+c.key+'"')),addEventListener:(key,fn)=>docEvents[key]=fn};
- const window={addEventListener:(key,fn)=>events[key]=fn,setInterval:(fn,ms)=>{assert.equal(ms,60000);events.tick=fn},setTimeout:(fn,ms)=>{const id=++nextTimer;timers.set(id,{fn,ms});return id},clearTimeout:id=>timers.delete(id)};
+ const window={localStorage:storage,addEventListener:(key,fn)=>events[key]=fn,setInterval:(fn,ms)=>{assert.equal(ms,60000);events.tick=fn},setTimeout:(fn,ms)=>{const id=++nextTimer;timers.set(id,{fn,ms});return id},clearTimeout:id=>timers.delete(id)};
  const fetch=async(url,opts)=>{requests.push({url,opts});const u=new URL(url);assert.equal(u.origin,'https://api.aladhan.com');assert.equal(u.searchParams.get('latitude'),'23.7104');assert.equal(u.searchParams.get('longitude'),'90.40744');assert.equal(u.searchParams.get('method'),'1');assert.equal(u.searchParams.get('school'),'0');assert.equal(opts.credentials,'omit');assert.equal(opts.referrerPolicy,'no-referrer');
   const match=/\/calendar\/(\d{4})\/(\d+)$/.exec(u.pathname);assert(match);return handler(Number(match[1]),Number(match[2]),requests.length,opts);
  };
@@ -43,6 +43,10 @@ const minute=t=>{const m=t.match(/(\d+):(\d+)\s*([AP]M)/);assert(m,t);return (+m
  h=harness('2026-12-31T16:00:00Z',async(y,m)=>ok(payload(y,m)));await flush();assert(h.nodes['prayer-next'].textContent.includes('আগামীকাল 05:10 AM'));assert(h.requests.some(r=>r.url.includes('/2027/1?')),'next year is fetched after Isha on Dec 31');
  h=harness('2026-11-22T05:00:00Z',async()=>({ok:false}));await flush();assert(h.cards.every(c=>c.time.textContent==='—'));assert(h.nodes['prayer-next'].textContent.includes('পাওয়া যাচ্ছে না'));h.events.tick();await flush();assert.equal(h.requests.length,1,'outage is throttled');
  h=harness('2026-11-22T05:00:00Z',async(y,m,n)=>n===1?{ok:false}:ok(payload(y,m)));await flush();h.setNow('2026-11-22T05:05:01Z');h.events.tick();await flush();assert.equal(h.requests.length,2);assert.notEqual(h.cards[0].time.textContent,'—','retry recovers');
+ const values=new Map(),storage={get length(){return values.size},key:i=>[...values.keys()][i],getItem:k=>values.get(k)||null,setItem:(k,v)=>values.set(k,v),removeItem:k=>values.delete(k)};
+ h=harness('2026-11-22T05:00:00Z',async(y,m)=>ok(payload(y,m)),storage);await flush();assert(values.has('dawahx-prayer-2026-11'),'validated schedule persisted');
+ h=harness('2026-11-22T05:00:00Z',async()=>({ok:false}),storage);await flush();assert.notEqual(h.cards[0].time.textContent,'—');assert(h.nodes['prayer-next'].textContent.includes('সংরক্ষিত সময়সূচি'),'offline schedule labelled');
+ const saved=JSON.parse(values.get('dawahx-prayer-2026-11'));saved.raw.data[0].meta.school='HANAFI';values.set('dawahx-prayer-2026-11',JSON.stringify(saved));h=harness('2026-11-22T05:00:00Z',async()=>({ok:false}),storage);await flush();assert(h.cards.every(c=>c.time.textContent==='—'),'tampered cache is revalidated');
  let abortSeen=false;h=harness('2026-11-22T05:00:00Z',async(y,m,n,opts)=>new Promise((resolve,reject)=>opts.signal.addEventListener('abort',()=>{abortSeen=true;reject(Error('aborted'))})));await flush();
  const timeout=[...h.timers.values()].find(t=>t.ms===12000);assert(timeout);timeout.fn();await flush();assert(abortSeen);assert(h.nodes['prayer-next'].textContent.includes('পাওয়া যাচ্ছে না'));
  h=harness('2026-11-22T05:00:00Z',async(y,m,n)=>n===1?ok(payload(y,m)):new Promise(()=>{}));await flush();assert.notEqual(h.cards[0].time.textContent,'—');h.setNow('2026-11-22T11:00:01Z');h.events.focus();assert(h.cards.every(c=>c.time.textContent==='—'),'expired data disappears while refreshing');

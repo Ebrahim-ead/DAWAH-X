@@ -41,6 +41,7 @@ jobs:
           NODE_PATH="$RUNNER_TEMP/scripture-reader/node_modules" node tools/check-scripture-reader.cjs
           NODE_PATH="$RUNNER_TEMP/scripture-reader/node_modules" node tools/check-islamic-books-reader.cjs
           NODE_PATH="$RUNNER_TEMP/scripture-reader/node_modules" node tools/check-unified-search.cjs
+          NODE_PATH="$RUNNER_TEMP/scripture-reader/node_modules" node tools/check-assistant-features.cjs
   worker-runtime:
     runs-on: ubuntu-latest
     timeout-minutes: 10
