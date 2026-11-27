@@ -1797,7 +1797,7 @@
       '<div class="bookmark-tools">' +
         '<button type="button" class="btn" data-action="export-backup">⬇ ব্যাকআপ রপ্তানি</button>' +
         '<button type="button" class="btn btn-ghost" data-action="import-backup">⬆ ব্যাকআপ আমদানি</button>' +
-        '<span class="backup-hint">বুকমার্ক, নোট, পরিকল্পনা ও পাঠ-সেটিংস এক ফাইলে — ক্যাশ মুছলেও ফিরে পাবেন।</span>' +
+        '<span class="backup-hint">কুরআন, হাদিস ও বইয়ের বুকমার্ক, বইয়ের অগ্রগতি, নোট, পরিকল্পনা ও পাঠ-সেটিংস এক ফাইলে — ক্যাশ মুছলেও ফিরে পাবেন।</span>' +
       '</div>';
     if (!refs.length) {
       html += '<div class="card-panel empty-state"><span class="empty-icon">☆</span><h3>এখনো কিছু সংরক্ষণ করেননি</h3>' +
@@ -1842,10 +1842,34 @@
     loadBnMany(need, function () { if (state.view === 'bookmarks') renderBookmarks(); });
   }
 
+  // PDF reader data uses its own keys; old backups without these fields remain valid.
+  function readBookBackup() {
+    try {
+      var marks=JSON.parse(localStorage.getItem('dawahx-books-bookmarks-v1') || '[]');
+      var progress=JSON.parse(localStorage.getItem('dawahx-books-progress-v1') || '{}');
+      var scale=Number(localStorage.getItem('dawahx-books-scale-v1'));
+      var validId=function(id){return typeof id==='string' && /^[a-z0-9-]{1,120}$/.test(id);};
+      var validPage=function(n){return Number.isSafeInteger(n) && n>0 && n<=100000;};
+      var seen=new Set(), result=[];
+      if(Array.isArray(marks)) marks.slice(0,1020).forEach(function(m){if(m && validId(m.id) && validPage(m.page) && !seen.has(m.id+':'+m.page) && result.length<102){seen.add(m.id+':'+m.page);result.push({id:m.id,page:m.page});}});
+      var pages={};if(progress && typeof progress==='object' && !Array.isArray(progress) && progress.pages && typeof progress.pages==='object' && !Array.isArray(progress.pages)) Object.keys(progress.pages).slice(0,1020).forEach(function(id){if(validId(id) && validPage(progress.pages[id]) && Object.keys(pages).length<102) pages[id]=progress.pages[id];});
+      return {bookmarks:result,progress:{pages:pages,last:validId(progress && progress.last) && pages[progress.last]?progress.last:null},scale:[1,1.25,1.5].includes(scale)?scale:1};
+    } catch (_) { return {bookmarks:[],progress:{pages:{},last:null},scale:1}; }
+  }
+  function restoreBookBackup(data) {
+    if (!data || typeof data!=='object' || Array.isArray(data)) return;
+    var current=readBookBackup(), validId=function(id){return typeof id==='string' && /^[a-z0-9-]{1,120}$/.test(id);};
+    var validPage=function(n){return Number.isSafeInteger(n) && n>0 && n<=100000;};
+    var seen=new Set(current.bookmarks.map(function(x){return x.id+':'+x.page;}));
+    if(Array.isArray(data.bookmarks)) data.bookmarks.slice(0,1020).forEach(function(m){if(m && validId(m.id) && validPage(m.page) && !seen.has(m.id+':'+m.page) && current.bookmarks.length<102){seen.add(m.id+':'+m.page);current.bookmarks.push({id:m.id,page:m.page});}});
+    var p=data.progress;if(p && typeof p==='object' && !Array.isArray(p) && p.pages && typeof p.pages==='object' && !Array.isArray(p.pages)) Object.keys(p.pages).slice(0,1020).forEach(function(id){if(validId(id) && validPage(p.pages[id]) && !Object.hasOwn(current.progress.pages,id) && Object.keys(current.progress.pages).length<102) current.progress.pages[id]=p.pages[id];});
+    if(!current.progress.last && p && validId(p.last) && current.progress.pages[p.last]) current.progress.last=p.last;
+    try {localStorage.setItem('dawahx-books-bookmarks-v1',JSON.stringify(current.bookmarks));localStorage.setItem('dawahx-books-progress-v1',JSON.stringify(current.progress));if([1,1.25,1.5].includes(data.scale) && !localStorage.getItem('dawahx-books-scale-v1')) localStorage.setItem('dawahx-books-scale-v1',String(data.scale));} catch (_) { throw Error('book storage unavailable'); }
+  }
   function backupData() {
     return {
       app: 'DAWAH X — আল-কুরআন', format: 1, build: BUILD.v,
-      exportedAt: new Date().toISOString(),
+      exportedAt: new Date().toISOString(), books: readBookBackup(),
       bookmarks: state.bookmarks, hadithBookmarks: state.hadithBookmarks, hadithEdition: 'ead-1', legacyHadithBookmarks: load('hadithBookmarks', []),
       notes: state.notes, plan: state.plan, tafsirSource: state.tafsirSource,
       settings: {
@@ -1866,7 +1890,8 @@
     } catch (e) { toast('ব্যাকআপ তৈরি করা যায়নি'); }
   }
   function applyBackup(data) {
-    if (!data || typeof data !== 'object') throw new Error('invalid');
+    if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('invalid');
+    restoreBookBackup(data.books);
     if (Array.isArray(data.bookmarks)) {
       data.bookmarks.forEach(function (k) {
         if (parseRef(k) && state.bookmarks.indexOf(k) === -1) state.bookmarks.push(k);

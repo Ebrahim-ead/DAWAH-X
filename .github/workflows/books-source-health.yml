@@ -21,3 +21,19 @@ jobs:
           node-version: 20
       - name: Check current rotating batch of remote PDFs
         run: node tools/check-books-source-health.cjs
+  pdf-render:
+    if: github.event_name != 'push' || contains(github.event.head_commit.message, '[books-source-check]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install browser dependency
+        run: npm install --prefix "$RUNNER_TEMP/books-live" playwright-core@1.56.1
+      - name: Render two pages from one live PDF in the reader
+        run: NODE_PATH="$RUNNER_TEMP/books-live/node_modules" node tools/check-books-live.cjs
+      - name: Probe text extraction from three PDFs (opt-in only)
+        if: github.event_name == 'push' && contains(github.event.head_commit.message, '[books-text-probe]')
+        run: NODE_PATH="$RUNNER_TEMP/books-live/node_modules" node tools/probe-books-text.cjs
