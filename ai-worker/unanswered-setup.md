@@ -1,6 +1,6 @@
 # Unanswered question tracker: deployment and administration
 
-The code does **not** activate collection without a real, dedicated Cloudflare KV namespace bound as `UNANSWERED_QUESTIONS`. It also requires `UNANSWERED_LIMITER`; if either is missing, writes fail closed and assistant replies still work. No credentials or production namespace IDs belong in chat or GitHub secrets output.
+The production Wrangler configuration specifies a dedicated Cloudflare KV namespace bound as `UNANSWERED_QUESTIONS`. Collection also requires `UNANSWERED_LIMITER`; if either binding is missing, writes fail closed and assistant replies still work. A configured ID does not prove the namespace exists in the correct account or that the binding is deployed. Never share credentials or question records in chats or public logs.
 
 ## Privacy and behavior
 
@@ -14,7 +14,7 @@ The code does **not** activate collection without a real, dedicated Cloudflare K
 ## Provisioning
 
 1. An authorized Cloudflare account administrator creates a dedicated KV namespace and restricts who may inspect its contents. Do not reuse a production namespace for preview testing.
-2. Add the actual namespace ID and binding `UNANSWERED_QUESTIONS` to the production `[[kv_namespaces]]` in **both** repository-root `wrangler.toml` and `ai-worker/wrangler.toml`; keep all other settings identical except `main`. The repository root config is used by the existing Cloudflare build. An actual ID is required: an invented or placeholder ID will break deployment. Keep previews unbound, or configure a separate isolated preview namespace under `[previews]`.
+2. The namespace ID supplied by the owner is configured as `UNANSWERED_QUESTIONS` in **both** repository-root `wrangler.toml` and `ai-worker/wrangler.toml`; keep all other settings identical except `main`. The repository root config is used by the existing Cloudflare build. The account administrator must verify that the ID identifies the intended dedicated namespace in the Worker account. Keep previews unbound, or configure a separate isolated preview namespace under `[previews]`.
 3. Build and deploy the Worker and site together after reviewing the branch and privacy notice. Verify the correct Worker is bound in the Cloudflare dashboard. A successful code build alone does not establish that KV is configured or that records are being stored.
 4. Review records in the Cloudflare KV dashboard, or with an already-authorized Wrangler session: `npx wrangler kv key list --binding UNANSWERED_QUESTIONS --remote --prefix unanswered/`, then `npx wrangler kv key get --binding UNANSWERED_QUESTIONS --remote --text '<key from the list>'`. Run from the directory containing the appropriate configured `wrangler.toml`. Treat output as sensitive: don't paste it into public issues, CI logs or chats. Delete a selected key with Wrangler's `kv key delete` or the dashboard.
 5. Test with a deliberately public synthetic question only after the owner authorizes a production check. Confirm a successful qualifying answer does not create a record, the off switch prevents a write, a qualifying no-answer creates one with a 30-day expiry, and source/model outages do not create one. Clean up that synthetic record afterwards.

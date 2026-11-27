@@ -25,4 +25,9 @@ for(const rate of [prodLogRate,previewLogRate])assert.match(rate,/^\s*simple\s*=
 assert.equal(new Set([prodRate,previewRate,prodLogRate,previewLogRate].map(x=>value(x,'namespace_id'))).size,4,'each limiter must use an isolated namespace');
 const origin=value(prodVars,'ALLOWED_ORIGINS');assert.equal(origin,'https://ebrahim-ead.github.io');assert.equal(value(previewVars,'ALLOWED_ORIGINS'),origin);
 assert(!previewVars.includes('*'),'preview does not broaden CORS');
+const prodKV=block('kv_namespaces',true);
+assert.equal(prodKV.length,1,'exactly one production KV namespace is expected');
+assert.equal(value(prodKV[0],'binding'),'UNANSWERED_QUESTIONS');
+assert.match(value(prodKV[0],'id'),/^[a-f0-9]{32}$/,'production namespace ID must be a real-format ID');
+assert.equal(block('previews.kv_namespaces',true).length,0,'preview must not bind the production question namespace');
 console.log('assistant preview config: AI, isolated rate limiter and restricted origin pass');
