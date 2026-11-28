@@ -37,6 +37,9 @@ export function sitePageMatches(question){
  return [...new Set(pages)].slice(0,4);
 }
 const NO_ANSWER = 'দুঃখিত, আপনার প্রশ্নের নির্ভরযোগ্য উত্তর দেওয়ার মতো তথ্য এই মুহূর্তে খুঁজে পাওয়া উৎসগুলোতে নেই। প্রশ্নটি অন্যভাবে লিখে চেষ্টা করুন অথবা DAWAH X টিমকে প্রশ্ন পাঠান।';
+// Reviewed source conflates invalidators and permissions; exclude it from
+// automatic summaries and quotations until the source is independently reviewed.
+const AUTO_EVIDENCE_EXCLUDED=new Set(['008c1cb3e535f0']);
 
 // A valid citation number is necessary, not proof of semantic support.
 export function verifyAnswer(raw,refs){
@@ -45,6 +48,9 @@ export function verifyAnswer(raw,refs){
  // Narrow fail-closed checks for actual reviewed errors, not a general
  // semantic verifier. A cited article can itself contain contradictory text.
  const normalized=fold(answer);
+ // Repeated large paragraphs indicate a runaway generation, not a complete answer.
+ const paragraphs=answer.split(/\n\s*\n/u).map(x=>x.replace(/\s+/g,' ').trim()).filter(x=>x.length>=100);
+ if(new Set(paragraphs).size!==paragraphs.length)return {answer,valid:false};
  if(/তাওহিদ[^\n]{0,35}(?:তিন|3)টি?\s*(?:স্তর|প্রকার)[^\n]{0,50}ইসলাম[^\n]{0,30}ইমান[^\n]{0,30}ইহসান/u.test(normalized))return {answer,valid:false};
  if(/(?:রোজা|সিয়াম|সাওম)[^\n]{0,50}(?:ভাঙ|ভঙ্গ|ভাঙ্গ)[^\n]{0,30}কারন/u.test(normalized) && /(?:^|\n)\s*[0-9০-৯]+[.)।]\s*(?:অসুস্থ|সফর|ভ্রমণ|গর্ভবতী|গর্ভবতি|দুগ্ধবতী|দুগ্ধবতি)[^\n]{0,100}(?:রোজা|সিয়াম|সাওম)[^\n]{0,30}(?:ভঙ্গ|ভাঙ|ভাঙ্গ)/u.test(normalized))return {answer,valid:false};
  const marks=[...answer.matchAll(/\[([0-9০-৯]+)\]/g)].map(m=>Number(m[1].replace(/[০-৯]/g,c=>String(c.charCodeAt(0)-0x09e6))));
@@ -390,7 +396,7 @@ export default {
    if(partial)console.warn('assistant-search-failed',failures.join(','));
    const catalogRef=siteRefs.items.find(x=>x.path==='islamic-books.html'),catalogAnswer=body.allSources===true?directBookInventory(body.message.trim(),catalogRef):null;
    if(catalogAnswer)return reply({answer:catalogAnswer,sources:[referenceInfo(catalogRef,1)],grounded:true,mode:'grounded',partial,search_limited:true,...(mirrors.size?{snapshot_search:true}:{}),...(partial?{search_failures:failures}:{})},200,origin,allowed);
-   const limited=scriptureRefs.skipped===true||scriptureRefs.limited===true||(body.allSources===true&&(!!specific||body.siteSearchLimited===true));
+   let limited=scriptureRefs.skipped===true||scriptureRefs.limited===true||(body.allSources===true&&(!!specific||body.siteSearchLimited===true));
    if(explicit&&!record)return reply({answer:directFailed?'উল্লেখিত আয়াত বা হাদিসের উৎস এখন পাওয়া যাচ্ছে না। পরে আবার চেষ্টা করুন।':'উল্লেখিত আয়াত বা হাদিসের নম্বরটি নিশ্চিতভাবে পাওয়া যায়নি। সূরা ও আয়াত অথবা কিতাব ও হাদিস নম্বর যাচাই করে আবার লিখুন।',sources:[],grounded:false,partial,...(mirrors.size?{snapshot_search:true}:{}),...(partial?{search_failures:failures}:{}),...(limited?{search_limited:true}:{})},200,origin,allowed);
    const direct=record?{...record.source,text:record.evidence}:null;
    // Corrections are client-supplied hints, not evidence. Tie them to an
@@ -398,7 +404,9 @@ export default {
    // relationship and proximity to every other required topic.
    const queryWords=new Set(fold(normalizeRoman(query)).match(/[\p{L}\p{M}\p{N}]+/gu)||[]);
    const correction=body.searchCorrection&&queryWords.has(fold(body.searchCorrection.from))?body.searchCorrection:null;
-   const articles=(body.allSources===true||body.scriptureSearch===true)?articleRefs.items.filter(x=>articleCandidate(x.text,terms,correction,x.title)):articleRefs.items;
+   const candidates=(body.allSources===true||body.scriptureSearch===true)?articleRefs.items.filter(x=>articleCandidate(x.text,terms,correction,x.title)):articleRefs.items;
+   const excluded=candidates.some(x=>AUTO_EVIDENCE_EXCLUDED.has(x.key));
+   const articles=candidates.filter(x=>!AUTO_EVIDENCE_EXCLUDED.has(x.key));if(excluded)limited=true;
    const same=(a,b)=>a.type===b.type&&(a.type==='quran'?a.surah===b.surah&&a.verse===b.verse:a.type==='hadith'?a.book===b.book&&a.hadith===b.hadith:false);
    const refs=[...(direct?[direct]:[]),...scriptureRefs.items.filter(r=>(sourceFilter==='all'||r.type===sourceFilter)&&(!direct||!same(r,direct))),...siteRefs.items,...articles];
    // A model can contradict its own safety warning or invent medical reasons,
@@ -422,7 +430,7 @@ export default {
     const result=await generateAnswer(answerModel,messages,CHAT_TOKENS,false);
     return reply({answer:result.text.trim(),sources:[],grounded:false,mode:'chat',...(partial?{partial:true,search_failures:failures}:{}),...(mirrors.size?{snapshot_search:true}:{}),...(limited?{search_limited:true}:{}),...(result.incomplete?{incomplete:true}:{})},200,origin,allowed);
    }
-   const mayLog=body.unansweredLogging===true&&body.lookupComplete===true&&body.allSources===true&&sourceFilter==='all'&&!partial&&!isFollowUp(body.message.trim());
+   const mayLog=!excluded&&body.unansweredLogging===true&&body.lookupComplete===true&&body.allSources===true&&sourceFilter==='all'&&!partial&&!isFollowUp(body.message.trim());
    if(!refs.length&&partial&&body.allSources!==true)throw Error('Sources unavailable');
    if(!refs.length&&partial)return reply({answer:'প্রাসঙ্গিক উৎস থেকে পর্যাপ্ত তথ্য পাওয়া যায়নি। উৎস অনুসন্ধানে সমস্যাও হয়েছে; অনুগ্রহ করে পরে আবার চেষ্টা করুন।',sources:[],grounded:false,partial:true,search_failures:failures,...(mirrors.size?{snapshot_search:true}:{}),...(limited?{search_limited:true}:{})},200,origin,allowed);
    if (!refs.length){if(mayLog&&!scriptureRefs.skipped)queueUnanswered(env,ctx,body.message.trim(),'no_candidates',ip);return reply({answer:NO_ANSWER,sources:[],grounded:false,partial,...(mirrors.size?{snapshot_search:true}:{}),...(partial?{search_failures:failures}:{}),...(limited?{search_limited:true}:{})},200,origin,allowed)}
