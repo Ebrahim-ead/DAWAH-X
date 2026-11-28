@@ -51,6 +51,18 @@ export function verifyAnswer(raw,refs){
  // Repeated large paragraphs indicate a runaway generation, not a complete answer.
  const paragraphs=answer.split(/\n\s*\n/u).map(x=>x.replace(/\s+/g,' ').trim()).filter(x=>x.length>=100);
  if(new Set(paragraphs).size!==paragraphs.length)return {answer,valid:false};
+ // The reviewed model put one citation near the beginning of a paragraph,
+ // then added several claims from another article with no supporting marks.
+ // Reject that shape rather than implying the first citation supports them.
+ // This is a narrow formatting guard, not semantic citation verification.
+ for(const paragraph of answer.split(/\n\s*\n/u)){
+  const citations=[...paragraph.matchAll(/\[[0-9০-৯]+\]/g)];
+  if(!citations.length)continue;
+  const last=citations[citations.length-1];
+  const tail=paragraph.slice(last.index+last[0].length).replace(/^[\s।.!?,;:]+/u,'');
+  const sentences=tail.split(/[।!?]|\.(?![0-9০-৯])/u).filter(s=>/[\p{L}]/u.test(s));
+  if(sentences.length>=2)return {answer,valid:false};
+ }
  if(/তাওহিদ[^\n]{0,35}(?:তিন|3)টি?\s*(?:স্তর|প্রকার)[^\n]{0,50}ইসলাম[^\n]{0,30}ইমান[^\n]{0,30}ইহসান/u.test(normalized))return {answer,valid:false};
  if(/(?:রোজা|সিয়াম|সাওম)[^\n]{0,50}(?:ভাঙ|ভঙ্গ|ভাঙ্গ)[^\n]{0,30}কারন/u.test(normalized) && /(?:^|\n)\s*[0-9০-৯]+[.)।]\s*(?:অসুস্থ|সফর|ভ্রমণ|গর্ভবতী|গর্ভবতি|দুগ্ধবতী|দুগ্ধবতি)[^\n]{0,100}(?:রোজা|সিয়াম|সাওম)[^\n]{0,30}(?:ভঙ্গ|ভাঙ|ভাঙ্গ)/u.test(normalized))return {answer,valid:false};
  const marks=[...answer.matchAll(/\[([0-9০-৯]+)\]/g)].map(m=>Number(m[1].replace(/[০-৯]/g,c=>String(c.charCodeAt(0)-0x09e6))));
