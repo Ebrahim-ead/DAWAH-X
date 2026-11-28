@@ -1,3 +1,4 @@
+import {answerAI} from './gemini.mjs';
 import {queueUnanswered} from './unanswered.mjs';
 import {sourceText,SITE_SNAPSHOT} from './source-fetch.mjs';
 import {parseScripture,parseSurah,lookupScripture,hadithMentions,isPlainScriptureRequest} from './scripture.mjs';
@@ -77,6 +78,7 @@ async function generateAnswer(ai,messages,limit,grounded){
  let first,model=MODEL,text='',quotaFailures=0;
  for(const candidate of [MODEL,FALLBACK_MODEL]){
   try{const result=await ai.run(candidate,{messages,max_tokens:limit});const value=modelText(result);if(!value.trim())continue;first=result;text=value;model=candidate;break}catch(error){
+   if(error?.safetyBlocked)throw error; // Do not shop around provider safety blocks.
    // Disclose only this fixed category, never provider exception text or user
    // content. Both attempts must explicitly report a daily Neuron quota.
    const message=typeof error?.message==='string'?error.message:'';
@@ -341,6 +343,9 @@ export default {
   if(body.searchCorrection!==undefined&&(!body.searchCorrection||typeof body.searchCorrection!=='object'||Array.isArray(body.searchCorrection)||typeof body.searchCorrection.from!=='string'||typeof body.searchCorrection.to!=='string'||body.searchCorrection.from.length>48||body.searchCorrection.to.length>48))return reply({error:'Invalid search correction'},400,origin,allowed);
   if(body.allSources!==undefined&&typeof body.allSources!=='boolean')return reply({error:'Invalid search mode'},400,origin,allowed);
   if(body.unansweredLogging!==undefined&&typeof body.unansweredLogging!=='boolean')return reply({error:'Invalid logging preference'},400,origin,allowed);
+  // Only updated clients with the Gemini notice can use Google. Older cached
+  // clients keep the Cloudflare path during rollout. This is not authentication.
+  const answerModel=body.privacyNoticeVersion==='gemini-v1'?answerAI(env,MODEL):env.AI;
   if(body.sourceFilter!==undefined&&!['all','quran','hadith'].includes(body.sourceFilter))return reply({error:'Invalid source filter'},400,origin,allowed);
   const sourceFilter=body.sourceFilter||'all';
   const history=body.history;
@@ -352,7 +357,7 @@ export default {
     const mode=await routeMessage(body.message.trim(),history,env.AI);
     if(mode!=='CHAT')return reply({needs_sources:true,...(plainSpecific(body.message.trim(),history)?{direct_lookup:true}:{})},200,origin,allowed);
     const messages=[{role:'system',content:CHAT_SYSTEM},...history,{role:'user',content:body.message.trim()}];
-    const result=await generateAnswer(env.AI,messages,CHAT_TOKENS,false);
+    const result=await generateAnswer(answerModel,messages,CHAT_TOKENS,false);
     return reply({answer:result.text.trim(),sources:[],grounded:false,mode:'chat',...(result.incomplete?{incomplete:true}:{})},200,origin,allowed);
    }
    // Explicit single numbered lookups return the source's original text rather
@@ -414,7 +419,7 @@ export default {
    const hasCandidateEvidence=topics(terms).length>0&&(scriptureRefs.items.length>0||articles.length>0||siteRefs.items.length>0);
    if(body.allSources===true&&sourceFilter==='all'&&!hasCandidateEvidence&&await routeMessage(body.message.trim(),history,env.AI)==='CHAT'){
     const messages=[{role:'system',content:CHAT_SYSTEM},...history,{role:'user',content:body.message.trim()}];
-    const result=await generateAnswer(env.AI,messages,CHAT_TOKENS,false);
+    const result=await generateAnswer(answerModel,messages,CHAT_TOKENS,false);
     return reply({answer:result.text.trim(),sources:[],grounded:false,mode:'chat',...(partial?{partial:true,search_failures:failures}:{}),...(mirrors.size?{snapshot_search:true}:{}),...(limited?{search_limited:true}:{}),...(result.incomplete?{incomplete:true}:{})},200,origin,allowed);
    }
    const mayLog=body.unansweredLogging===true&&body.lookupComplete===true&&body.allSources===true&&sourceFilter==='all'&&!partial&&!isFollowUp(body.message.trim());
@@ -429,7 +434,7 @@ export default {
    const prior=questionContext(body.message.trim(),history).slice(1).reverse().join('\n');
    const messages=[{role:'system',content:GROUNDED_SAFETY},{role:'user',content:context+'\n\nEarlier questions (context only):\n'+prior+'\n\nLatest question: '+body.message.trim()}];
    let result;
-   try{result=await generateAnswer(env.AI,messages,ANSWER_TOKENS,true)}catch(error){
+   try{result=await generateAnswer(answerModel,messages,ANSWER_TOKENS,true)}catch(error){
     // Preserve clickable candidates during inference outages, but never label
     // them as verified answers or return source excerpts as a ruling.
     return reply({error:'Assistant unavailable',error_code:'model_unavailable',...(error?.reason==='quota'?{model_reason:'quota'}:{}),candidates:refs.slice(0,6).map((r,i)=>referenceInfo(r,i+1)),partial,search_limited:true,...(partial?{search_failures:failures}:{})},502,origin,allowed);
@@ -439,7 +444,7 @@ export default {
     // One fresh attempt with the same evidence, never the rejected output.
     // Reference validation still runs in full; this does not verify semantics.
     const reminder='Your answer failed citation or scripture-number checks. Answer only from the supplied evidence with valid excerpt citations. Do not reproduce scripture numbers found only in article text. If evidence is insufficient, output NOT_ENOUGH_INFORMATION.';
-    try{const retry=await env.AI.run(result.model,{messages:[...messages,{role:'user',content:reminder}],max_tokens:ANSWER_TOKENS}),text=modelText(retry);
+    try{const retry=await answerModel.run(result.model,{messages:[...messages,{role:'user',content:reminder}],max_tokens:ANSWER_TOKENS}),text=modelText(retry);
      if(text.trim()){result={text,incomplete:lengthLimited(retry,ANSWER_TOKENS),model:result.model};checked=verifyAnswer(result.text,refs)}
     }catch(_){}
    }

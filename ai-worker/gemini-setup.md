@@ -1,0 +1,17 @@
+# Gemini Flash-Lite integration
+
+Production Wrangler config enables the adapter with `GEMINI_ENABLED = "true"`; it also requires a nonempty server-side secret named `gem` and a request from a client displaying the Gemini privacy notice. The code defaults to `gemini-2.5-flash-lite`. With the flag absent, disabled, or the secret missing, existing Workers AI behavior is unchanged. Preview has no Gemini flag or secret and must remain isolated. Never put API keys in the repository, browser code, chat, CI output or public logs.
+
+## Before activation
+
+1. An authorized owner must review Google's current Gemini API Additional Terms, including the restriction on an API client directed toward or likely to be accessed by people under 18: https://ai.google.dev/gemini-api/terms . Do not enable Gemini until the owner confirms eligibility; a public site may be accessible to minors. Do not imply a simple disclaimer alone establishes compliance.
+2. Review the free tier's data-use terms. Google may use input and output for product improvement and human reviewers may process it. Questions, conversation context, and retrieved excerpts can be sent to Google. The chat notice and policy must be deployed *before or together with* enabling the integration. Review whether the source content may be shared with this third party.
+3. Verify in Cloudflare that `gem` is a secret on the production Worker, not a plaintext variable, and will be available to the deployed version. Never reveal its value. Check the chosen model and free-tier quota in Google AI Studio. Do not rely on the site's per-IP, per-location rate limiter as a global quota, a spending cap, or abuse prevention; do not enable billing without the owner's explicit decision.
+4. Review and deploy the code and disclosure together. The production flag is present in both Wrangler configs, but older cached clients do not send the new disclosure version and therefore keep using Cloudflare AI during rollout. Verify that the secret remains bound to the deployed version. Never add a preview flag or a production secret to CI.
+5. With explicit owner authorization, test with a public synthetic question, check the answer/citations, and verify Gemini request counts in Google AI Studio plus Cloudflare fallback when appropriate. Do not log or publish real questions. A successful build, or an answer alone, does not prove Gemini handled it (fallback can answer). Don't call a test live without authorization. Remove any synthetic KV question record if one was created.
+
+## Runtime behavior
+
+- The production configuration is not live until merged and deployed. The existing Cloudflare Workers AI classifier stays active. Answer generation uses Gemini first when enabled; API/network/empty-output failures fall back to Workers AI. Gemini safety-blocked responses fail closed rather than using another model to bypass the block. Existing exact-source lookup, bounded context, citation checks, continuation limits, and KV privacy handling remain in place.
+- Google requests have a bounded timeout and response size. Errors are generic and neither secret nor response body is logged. A successful citation check does not prove semantic or religious correctness.
+- If Gemini returns an abstention, the system does not shop for another answer. If a completed answer fails citation checks, a single retry stays with the same model and is checked again. A length-limited answer is continued once on the same model.

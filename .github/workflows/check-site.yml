@@ -56,6 +56,7 @@ jobs:
         run: |
           NODE_PATH="$RUNNER_TEMP/worker-runtime/node_modules" node tools/check-worker-runtime.cjs
           NODE_PATH="$RUNNER_TEMP/worker-runtime/node_modules" node tools/check-unanswered-worker.cjs
+          NODE_PATH="$RUNNER_TEMP/worker-runtime/node_modules" node tools/check-gemini-workerd.cjs
   guidance-contrast:
     runs-on: ubuntu-latest
     timeout-minutes: 10
