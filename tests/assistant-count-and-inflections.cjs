@@ -30,7 +30,9 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
  const env={ALLOWED_ORIGINS:origin,RATE_LIMITER:{limit:async()=>({success:true})},AI:{run:async(_,args)=>{calls++;prompt=args.messages[1].content;return {response:'উৎসের প্রাসঙ্গিক তথ্য [1]'}}}};
  const ask=async(message,ids)=>{const req=new Request('https://worker.test/',{method:'POST',headers:{Origin:origin,'CF-Connecting-IP':'192.0.2.1','Content-Type':'application/json'},body:JSON.stringify({message,ids,pages:[],history:[],lookupComplete:true,allSources:true,scriptureSearch:true})});return (await worker.fetch(req,env)).json()};
  try{
-  for(let i=0;i<questions.length;i++){const [q,key]=questions[i],data=await ask(q,selected[i]);assert.equal(data.grounded,true,q);assert(data.sources.some(s=>s.key===key),q);assert(prompt.includes('Latest question: '+q),'original question must reach the model');}
+  {const [q,key]=questions[0],data=await ask(q,selected[0]);assert.equal(data.grounded,true,q);assert(data.sources.some(s=>s.key===key),q);assert(prompt.includes('Latest question: '+q),'original question must reach the model');}
+  {const [q,key]=questions[1],data=await ask(q,selected[1]);assert(!data.sources?.some(s=>s.key===key),'reviewed contradictory source must not become automatic evidence');assert.equal(data.search_limited,true);}
+  {const [q,key]=questions[1],before=calls,data=await ask(q,[key]);assert.equal(data.grounded,false,'excluded source alone cannot produce an answer');assert.equal(data.search_limited,true);assert.equal(calls,before,'excluded source is never sent to the answer model');}
   const before=calls,data=await ask('সালাতের গুরুত্ব কী?',['008c1cb3e535f0']);assert.equal(data.grounded,false,'unrelated one-topic candidate must not become evidence');assert.equal(calls,before);
  }finally{global.fetch=old}
  console.log('count questions and Bengali inflections: real browser and worker retrieval, numeric and unrelated-source safeguards pass');

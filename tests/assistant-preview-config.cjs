@@ -25,6 +25,8 @@ for(const rate of [prodLogRate,previewLogRate])assert.match(rate,/^\s*simple\s*=
 assert.equal(new Set([prodRate,previewRate,prodLogRate,previewLogRate].map(x=>value(x,'namespace_id'))).size,4,'each limiter must use an isolated namespace');
 const origin=value(prodVars,'ALLOWED_ORIGINS');assert.equal(origin,'https://ebrahim-ead.github.io');assert.equal(value(previewVars,'ALLOWED_ORIGINS'),origin);
 assert(!previewVars.includes('*'),'preview does not broaden CORS');
+assert.equal(value(prodVars,'GEMINI_ENABLED'),'true');
+assert(!/^\s*GEMINI_ENABLED\s*=/m.test(previewVars),'preview must not enable Gemini');
 const prodKV=block('kv_namespaces',true);
 assert.equal(prodKV.length,1,'exactly one production KV namespace is expected');
 assert.equal(value(prodKV[0],'binding'),'UNANSWERED_QUESTIONS');

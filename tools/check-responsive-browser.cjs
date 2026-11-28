@@ -176,11 +176,11 @@ const checkOverflow=async(page,label)=>{
     const searchCount=await page.evaluate(()=>window.assistantSearchCalls);
     await page.locator('#dxa-input').fill('কুরআন ২:২৫৫');await page.locator('.dxa-form button[type="submit"]').click();await page.waitForFunction(()=>document.querySelectorAll('.dxa-message.assistant').length===7);
     assert.equal(await page.evaluate(()=>window.assistantSearchCalls),searchCount+1,'single request does local search before the Worker resolves the exact lookup');
-    assert.equal(await page.locator('.dxa-sources a').nth(-2).getAttribute('href'),'https://ebrahim-ead.github.io/ead/quran.html#2:255');assert.equal(await page.locator('.dxa-sources a').last().getAttribute('href'),'https://quran.com/2/255');
+    assert.equal(await page.locator('.dxa-sources a').last().getAttribute('href'),'https://ebrahim-ead.github.io/ead/quran.html#2:255');
     await page.locator('#dxa-input').fill('বুখারী ৮');await page.locator('.dxa-form button[type="submit"]').click();await page.waitForFunction(()=>document.querySelectorAll('.dxa-message.assistant').length===8);
-    assert.equal(await page.locator('.dxa-sources a').nth(-2).getAttribute('href'),'https://ebrahim-ead.github.io/ead/hadith.html#bukhari:2:8');assert((await page.locator('.dxa-sources a').last().getAttribute('href')).startsWith('https://www.hadithbd.com/search/?q='));
+    assert.equal(await page.locator('.dxa-sources a').last().getAttribute('href'),'https://ebrahim-ead.github.io/ead/hadith.html#bukhari:2:8');
     await page.locator('#dxa-input').fill('quran er 2 number surah ki');await page.locator('.dxa-form button[type="submit"]').click();await page.waitForFunction(()=>document.querySelectorAll('.dxa-message.assistant').length===9);
-    assert((await page.locator('.dxa-message.assistant').last().textContent()).includes('আল-বাকারা'));assert.equal(await page.locator('.dxa-sources a').nth(-2).getAttribute('href'),'https://ebrahim-ead.github.io/ead/quran.html#2');assert.equal(await page.locator('.dxa-sources a').last().getAttribute('href'),'https://quran.com/2');
+    assert((await page.locator('.dxa-message.assistant').last().textContent()).includes('আল-বাকারা'));assert.equal(await page.locator('.dxa-sources a').last().getAttribute('href'),'https://ebrahim-ead.github.io/ead/quran.html#2');
     await page.locator('#dxa-input').fill('ব্যর্থ পরীক্ষা');await page.locator('.dxa-form button[type="submit"]').click();await page.waitForFunction(()=>document.querySelectorAll('.dxa-message.assistant').length===10);assert.equal(await page.locator('#dxa-input').inputValue(),'ব্যর্থ পরীক্ষা','failed question should remain available for retry');
     await page.evaluate(()=>{window.dawahxAssistantSearch=async()=>{throw Error('offline')}});
     await page.locator('#dxa-input').fill('নামাজের গুরুত্ব কী?');await page.locator('.dxa-form button[type="submit"]').click();await page.waitForFunction(()=>document.querySelectorAll('.dxa-message.assistant').length===11);

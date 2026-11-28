@@ -25,6 +25,8 @@ id = "c2a366fb051244d5a21878990e62458d"
 
 [vars]
 ALLOWED_ORIGINS = "https://ebrahim-ead.github.io"
+# Active only for clients showing the Google privacy notice; previews stay off.
+GEMINI_ENABLED = "true"
 
 # Preview settings do not inherit production bindings. Use an isolated rate
 # limit namespace; AI inference still uses the account's Workers AI quota.
