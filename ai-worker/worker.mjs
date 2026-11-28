@@ -65,6 +65,10 @@ export function verifyAnswer(raw,refs){
  }
  if(/তাওহিদ[^\n]{0,35}(?:তিন|3)টি?\s*(?:স্তর|প্রকার)[^\n]{0,50}ইসলাম[^\n]{0,30}ইমান[^\n]{0,30}ইহসান/u.test(normalized))return {answer,valid:false};
  if(/(?:রোজা|সিয়াম|সাওম)[^\n]{0,50}(?:ভাঙ|ভঙ্গ|ভাঙ্গ)[^\n]{0,30}কারন/u.test(normalized) && /(?:^|\n)\s*[0-9০-৯]+[.)।]\s*(?:অসুস্থ|সফর|ভ্রমণ|গর্ভবতী|গর্ভবতি|দুগ্ধবতী|দুগ্ধবতি)[^\n]{0,100}(?:রোজা|সিয়াম|সাওম)[^\n]{0,30}(?:ভঙ্গ|ভাঙ|ভাঙ্গ)/u.test(normalized))return {answer,valid:false};
+ // Reviewed output converted a disputed narration on cupping into an
+ // unqualified cause and attributed an altered rationale to it. Avoid
+ // generating this combination pending independent scholarly review.
+ if(/(?:রোজা|সিয়াম|সাওম)/u.test(normalized)&&/(?:সিঙ্গা|হিজামা)/u.test(normalized))return {answer,valid:false};
  const marks=[...answer.matchAll(/\[([0-9০-৯]+)\]/g)].map(m=>Number(m[1].replace(/[০-৯]/g,c=>String(c.charCodeAt(0)-0x09e6))));
  if(!marks.length||marks.some(n=>!Number.isInteger(n)||n<1||n>refs.length))return {answer,valid:false};
  const pairs=[...answer.matchAll(/(?<![0-9০-৯])([0-9০-৯]{1,3})\s*[:/]\s*([0-9০-৯]{1,3})(?![0-9০-৯])/g)];
